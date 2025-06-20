@@ -22,6 +22,22 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   global: {
     headers: {
       'X-Client-Info': 'supabase-js-web/2.50.0'
+    },
+    fetch: (url, options = {}) => {
+      // Añadir timeout y mejores headers
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+      
+      return fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          ...options.headers,
+          'Cache-Control': 'no-cache',
+        }
+      }).finally(() => {
+        clearTimeout(timeoutId)
+      })
     }
   }
 });

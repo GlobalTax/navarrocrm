@@ -11,7 +11,8 @@ import { useSystemSetup } from '@/hooks/useSystemSetup'
 import { SystemDiagnostics } from '@/components/SystemDiagnostics'
 import { SecurityVerification } from '@/components/SecurityVerification'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronDown, Settings, Shield } from 'lucide-react'
+import { ChevronDown, Settings, Shield, Wifi, WifiOff } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -19,22 +20,37 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showDiagnostics, setShowDiagnostics] = useState(false)
   const [showSecurity, setShowSecurity] = useState(false)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
-  const { isSetup, loading: setupLoading } = useSystemSetup()
+  const { isSetup, loading: setupLoading, error: setupError } = useSystemSetup()
 
   const from = location.state?.from?.pathname || '/dashboard'
 
+  // Monitor network status
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
   // Redirigir al setup si el sistema no está configurado
   useEffect(() => {
-    console.log('🔍 Verificando redirección:', { setupLoading, isSetup })
-    if (!setupLoading && isSetup === false) {
+    console.log('🔍 Verificando redirección:', { setupLoading, isSetup, setupError })
+    if (!setupLoading && isSetup === false && !setupError) {
       console.log('↪️ Redirigiendo al setup porque el sistema no está configurado')
       navigate('/setup', { replace: true })
     }
-  }, [isSetup, setupLoading, navigate])
+  }, [isSetup, setupLoading, setupError, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,6 +59,15 @@ export default function Login() {
       toast({
         title: "Error",
         description: "Por favor, completa todos los campos",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!isOnline) {
+      toast({
+        title: "Sin conexión",
+        description: "Verifica tu conexión a internet e intenta de nuevo",
         variant: "destructive",
       })
       return
@@ -67,8 +92,10 @@ export default function Login() {
         errorMessage = "Email o contraseña incorrectos"
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = "Por favor, confirma tu email antes de iniciar sesión"
-      } else if (error.message?.includes('Too many requests')) {
+      } else if (error.message?.includes('Too many requests') || error.message?.includes('429')) {
         errorMessage = "Demasiados intentos. Intenta de nuevo en unos minutos"
+      } else if (error.message?.includes('fetch')) {
+        errorMessage = "Error de conexión. Verifica tu internet e intenta de nuevo"
       } else if (error.message) {
         errorMessage = error.message
       }
@@ -87,16 +114,22 @@ export default function Login() {
   if (setupLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando configuración del sistema...</p>
+          <p className="text-gray-600 mb-2">Verificando configuración del sistema...</p>
+          {!isOnline && (
+            <div className="flex items-center justify-center gap-2 text-red-600 text-sm">
+              <WifiOff className="h-4 w-4" />
+              <span>Sin conexión a internet</span>
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
   // No mostrar login si el sistema no está configurado (se redirigirá al setup)
-  if (isSetup === false) {
+  if (isSetup === false && !setupError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -109,6 +142,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+      {/* Indicador de conexión */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+          isOnline 
+            ? 'bg-green-100 text-green-800' 
+            : 'bg-red-100 text-red-800'
+        }`}>
+          {isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+          {isOnline ? 'Conectado' : 'Sin conexión'}
+        </div>
+      </div>
+
       <Card className="w-full max-w-md mb-4">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary-600">CRM Legal</CardTitle>
@@ -117,6 +162,15 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Mostrar error de setup si existe */}
+          {setupError && (
+            <Alert className="mb-4">
+              <AlertDescription>
+                {setupError}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -127,7 +181,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                disabled={loading}
+                disabled={loading || !isOnline}
               />
             </div>
             
@@ -140,14 +194,14 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                disabled={loading}
+                disabled={loading || !isOnline}
               />
             </div>
             
             <Button
               type="submit"
               className="w-full"
-              disabled={loading || !email.trim() || !password.trim()}
+              disabled={loading || !email.trim() || !password.trim() || !isOnline}
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>

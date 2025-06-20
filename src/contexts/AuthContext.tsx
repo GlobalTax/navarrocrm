@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 
@@ -29,120 +29,159 @@ export const useAuth = () => {
   return context
 }
 
+// Cache para perfil de usuario
+const profileCache = new Map<string, { data: any, timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      // Verificar cache primero
+      const cached = profileCache.get(userId)
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.log('📦 Usando perfil de usuario desde cache')
+        return cached.data
+      }
+
+      console.log('👤 Obteniendo perfil para usuario:', userId)
+      
+      const { data, error } = await Promise.race([
+        supabase
+          .from('users')
+          .select('role, org_id')
+          .eq('id', userId)
+          .maybeSingle(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+        )
+      ]) as any
+
+      if (error) {
+        console.warn('⚠️ Error obteniendo perfil de usuario:', error.message)
+        return null
+      }
+
+      // Guardar en cache
+      if (data) {
+        profileCache.set(userId, { data, timestamp: Date.now() })
+      }
+
+      return data
+    } catch (error) {
+      console.error('💥 Error en fetchUserProfile:', error)
+      return null
+    }
+  }, [])
 
   useEffect(() => {
     console.log('🚀 Inicializando AuthProvider...')
     
     let mounted = true
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!mounted) return
-      
-      if (error) {
-        console.error('❌ Error obteniendo sesión inicial:', error.message)
-        setLoading(false)
-        return
-      }
+    const initializeAuth = async () => {
+      try {
+        // Get initial session with timeout
+        const { data: { session }, error } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Session timeout')), 5000)
+          )
+        ]) as any
 
-      const userId = session?.user?.id
-      console.log('🔑 Sesión inicial:', userId ? `Usuario: ${userId}` : 'No hay sesión')
-      setSession(session)
-      if (session?.user) {
-        // Usar setTimeout para evitar problemas de recursión
-        setTimeout(() => {
+        if (!mounted) return
+        
+        if (error) {
+          console.error('❌ Error obteniendo sesión inicial:', error.message)
+          setLoading(false)
+          return
+        }
+
+        const userId = session?.user?.id
+        console.log('🔑 Sesión inicial:', userId ? `Usuario: ${userId}` : 'No hay sesión')
+        setSession(session)
+        
+        if (session?.user) {
+          const profileData = await fetchUserProfile(session.user.id)
+          
           if (mounted) {
-            fetchUserProfile(session.user.id)
+            if (profileData) {
+              console.log('✅ Perfil obtenido exitosamente:', { role: profileData.role, org_id: profileData.org_id })
+              setUser({
+                ...session.user,
+                role: profileData.role as UserRole,
+                org_id: profileData.org_id
+              })
+            } else {
+              console.log('📝 Sin datos de perfil adicional, usando sesión básica')
+              setUser(session.user as AuthUser)
+            }
           }
-        }, 0)
-      } else {
-        setLoading(false)
+        }
+      } catch (error) {
+        console.error('💥 Error en inicialización de auth:', error)
+        if (mounted) {
+          setLoading(false)
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
       }
-    })
+    }
 
-    // Listen for auth changes
+    initializeAuth()
+
+    // Listen for auth changes con debounce
+    let authChangeTimeout: NodeJS.Timeout | null = null
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
       
-      const userId = session?.user?.id
-      console.log('🔄 Cambio de estado de auth:', event, userId ? `Usuario: ${userId}` : 'No user')
-      setSession(session)
-      if (session?.user) {
-        // Usar setTimeout para evitar problemas de recursión en onAuthStateChange
-        setTimeout(() => {
-          if (mounted) {
-            fetchUserProfile(session.user.id)
-          }
-        }, 0)
-      } else {
-        setUser(null)
-        setLoading(false)
+      // Clear previous timeout
+      if (authChangeTimeout) {
+        clearTimeout(authChangeTimeout)
       }
+      
+      // Debounce auth state changes
+      authChangeTimeout = setTimeout(async () => {
+        if (!mounted) return
+        
+        const userId = session?.user?.id
+        console.log('🔄 Cambio de estado de auth:', event, userId ? `Usuario: ${userId}` : 'No user')
+        setSession(session)
+        
+        if (session?.user) {
+          const profileData = await fetchUserProfile(session.user.id)
+          
+          if (mounted) {
+            if (profileData) {
+              setUser({
+                ...session.user,
+                role: profileData.role as UserRole,
+                org_id: profileData.org_id
+              })
+            } else {
+              setUser(session.user as AuthUser)
+            }
+          }
+        } else {
+          setUser(null)
+        }
+      }, 100) // 100ms debounce
     })
 
     return () => {
       mounted = false
+      if (authChangeTimeout) {
+        clearTimeout(authChangeTimeout)
+      }
       subscription.unsubscribe()
     }
-  }, [])
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      console.log('👤 Obteniendo perfil para usuario:', userId)
-      
-      // Añadir timeout y retry para la consulta de perfil
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 5000)
-      )
-      
-      const queryPromise = supabase
-        .from('users')
-        .select('role, org_id')
-        .eq('id', userId)
-        .maybeSingle()
-
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
-
-      if (error) {
-        console.warn('⚠️ Error obteniendo perfil de usuario:', error.message)
-        // Si no se puede obtener el perfil, mantener la sesión de auth básica
-        if (session?.user) {
-          console.log('📝 Manteniendo sesión básica sin perfil adicional')
-          setUser(session.user as AuthUser)
-        }
-        setLoading(false)
-        return
-      }
-
-      if (data && session?.user) {
-        console.log('✅ Perfil obtenido exitosamente:', { role: data.role, org_id: data.org_id })
-        setUser({
-          ...session.user,
-          role: data.role as UserRole,
-          org_id: data.org_id
-        })
-      } else if (session?.user) {
-        console.log('📝 Sin datos de perfil adicional, usando sesión básica')
-        setUser(session.user as AuthUser)
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message === 'Timeout') {
-        console.error('⏰ Timeout obteniendo perfil de usuario')
-      } else {
-        console.error('💥 Error inesperado en fetchUserProfile:', error)
-      }
-      // En caso de error, mantener la sesión de auth básica
-      if (session?.user) {
-        setUser(session.user as AuthUser)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [fetchUserProfile])
 
   const signIn = async (email: string, password: string) => {
     console.log('🔐 Intentando iniciar sesión:', email)
@@ -173,7 +212,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (data.user) {
       console.log('👤 Creando perfil para:', data.user.id)
-      // Create user profile
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -192,6 +230,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     console.log('🚪 Cerrando sesión')
+    // Limpiar cache al cerrar sesión
+    profileCache.clear()
     const { error } = await supabase.auth.signOut()
     if (error) {
       console.error('❌ Error en signOut:', error.message)

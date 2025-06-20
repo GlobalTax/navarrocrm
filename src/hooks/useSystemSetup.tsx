@@ -1,83 +1,145 @@
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
+
+// Circuit breaker para evitar demasiadas consultas fallidas
+class CircuitBreaker {
+  private failures = 0
+  private lastFailure = 0
+  private readonly threshold = 3
+  private readonly timeout = 30000 // 30 segundos
+
+  isOpen(): boolean {
+    if (this.failures >= this.threshold) {
+      if (Date.now() - this.lastFailure > this.timeout) {
+        this.failures = 0 // Reset después del timeout
+        return false
+      }
+      return true
+    }
+    return false
+  }
+
+  recordSuccess(): void {
+    this.failures = 0
+  }
+
+  recordFailure(): void {
+    this.failures++
+    this.lastFailure = Date.now()
+  }
+}
+
+const circuitBreaker = new CircuitBreaker()
 
 export const useSystemSetup = () => {
   const [isSetup, setIsSetup] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
-  const [retryCount, setRetryCount] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    checkSetupStatus()
-  }, [])
+  // Debounce para evitar múltiples llamadas rápidas
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null)
 
-  const checkSetupStatus = async () => {
+  const checkSetupStatus = useCallback(async (retryCount = 0) => {
+    // Circuit breaker check
+    if (circuitBreaker.isOpen()) {
+      console.log('🚫 Circuit breaker abierto, evitando consulta')
+      setError('Sistema temporalmente no disponible. Reintentando automáticamente...')
+      // Programar retry automático después del timeout
+      setTimeout(() => {
+        if (retryCount < 2) {
+          checkSetupStatus(retryCount + 1)
+        }
+      }, 35000)
+      return
+    }
+
     try {
       console.log('🔍 Verificando estado del setup del sistema... (intento', retryCount + 1, ')')
+      setError(null)
       
-      // Estrategia 1: Usar la función RPC con retry
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('is_system_setup')
-
-      if (rpcError) {
-        console.warn('⚠️ Error en RPC is_system_setup:', rpcError.message)
-        
-        // Estrategia 2: Verificación directa con mayor timeout y retry
-        console.log('🔄 Intentando verificación directa...')
-        
-        const { data: orgs, error: orgError } = await supabase
-          .from('organizations')
-          .select('id')
-          .limit(1)
-        
-        if (orgError) {
-          console.error('❌ Error verificando organizations directamente:', orgError.message)
-          
-          // Estrategia 3: Retry con backoff si no hemos intentado demasiadas veces
-          if (retryCount < 3) {
-            console.log(`🔄 Reintentando en ${(retryCount + 1) * 1000}ms...`)
-            setTimeout(() => {
-              setRetryCount(prev => prev + 1)
-              checkSetupStatus()
-            }, (retryCount + 1) * 1000)
-            return
-          }
-          
-          // Si fallan todos los métodos, asumir que NO está configurado para permitir setup
-          console.log('📝 Después de múltiples intentos, asumiendo sistema NO configurado')
+      // Estrategia simplificada: usar directamente la consulta a organizations
+      const { data: orgs, error: orgError } = await supabase
+        .from('organizations')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
+      
+      if (orgError) {
+        // Si hay error 404, significa que la tabla no existe o no hay datos
+        if (orgError.code === 'PGRST116' || orgError.message.includes('404')) {
+          console.log('📝 Tabla organizations no encontrada o vacía - sistema no configurado')
           setIsSetup(false)
-        } else {
-          const setupStatus = orgs && orgs.length > 0
-          console.log('✅ Verificación directa exitosa. Sistema configurado:', setupStatus)
-          setIsSetup(setupStatus)
-          setRetryCount(0) // Reset retry count on success
+          circuitBreaker.recordSuccess()
+          return
         }
-      } else {
-        console.log('✅ RPC exitoso. Sistema configurado:', rpcResult)
-        setIsSetup(rpcResult === true)
-        setRetryCount(0) // Reset retry count on success
+        
+        // Para otros errores, registrar fallo y reintentar si es necesario
+        console.error('❌ Error verificando organizations:', orgError.message)
+        circuitBreaker.recordFailure()
+        
+        if (retryCount < 2) {
+          const delay = Math.min(1000 * Math.pow(2, retryCount), 5000) // Exponential backoff max 5s
+          console.log(`🔄 Reintentando en ${delay}ms...`)
+          setTimeout(() => checkSetupStatus(retryCount + 1), delay)
+          return
+        }
+        
+        throw orgError
       }
+
+      // Si llegamos aquí, la consulta fue exitosa
+      const setupStatus = !!orgs
+      console.log('✅ Verificación exitosa. Sistema configurado:', setupStatus)
+      setIsSetup(setupStatus)
+      circuitBreaker.recordSuccess()
+      
     } catch (error) {
       console.error('💥 Error inesperado en checkSetupStatus:', error)
+      circuitBreaker.recordFailure()
       
-      // En caso de error crítico, intentar una vez más si no hemos superado el límite
-      if (retryCount < 3) {
-        console.log(`🔄 Error crítico, reintentando en ${(retryCount + 1) * 1000}ms...`)
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1)
-          checkSetupStatus()
-        }, (retryCount + 1) * 1000)
+      if (retryCount < 2) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000)
+        console.log(`🔄 Error crítico, reintentando en ${delay}ms...`)
+        setTimeout(() => checkSetupStatus(retryCount + 1), delay)
         return
       }
       
-      // Después de múltiples intentos, asumir que NO está configurado
+      // Después de múltiples intentos, asumir que NO está configurado para permitir setup
+      console.log('📝 Después de múltiples intentos, asumiendo sistema NO configurado')
       setIsSetup(false)
+      setError('No se pudo verificar el estado del sistema. Asumiendo configuración inicial necesaria.')
     } finally {
-      // Solo marcar como no loading si no vamos a reintentar
-      if (retryCount >= 3 || isSetup !== null) {
-        setLoading(false)
+      setLoading(false)
+    }
+  }, [])
+
+  const debouncedCheckSetup = useCallback(() => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+    }
+
+    const timer = setTimeout(() => {
+      checkSetupStatus()
+    }, 300) // 300ms debounce
+
+    setDebounceTimer(timer)
+  }, [checkSetupStatus, debounceTimer])
+
+  useEffect(() => {
+    debouncedCheckSetup()
+    
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
       }
     }
-  }
+  }, []) // Solo ejecutar una vez al montar
 
-  return { isSetup, loading, checkSetupStatus }
+  return { 
+    isSetup, 
+    loading, 
+    error,
+    checkSetupStatus: debouncedCheckSetup 
+  }
 }
