@@ -12,6 +12,8 @@ export const useSystemSetup = () => {
 
   const checkSetupStatus = async () => {
     try {
+      console.log('Verificando estado del setup...')
+      
       // Verificar si hay organizaciones
       const { data: orgs, error } = await supabase
         .from('organizations')
@@ -22,10 +24,11 @@ export const useSystemSetup = () => {
         console.error('Error verificando setup:', error)
         setIsSetup(false)
       } else {
+        console.log('Organizaciones encontradas:', orgs?.length || 0)
         setIsSetup((orgs && orgs.length > 0))
       }
     } catch (error) {
-      console.error('Error verificando setup:', error)
+      console.error('Error en checkSetupStatus:', error)
       setIsSetup(false)
     } finally {
       setLoading(false)

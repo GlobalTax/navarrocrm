@@ -35,26 +35,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('Inicializando AuthProvider...')
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session)
+      console.log('Sesión inicial:', session?.user?.id || 'No hay sesión')
       setSession(session)
       if (session?.user) {
         fetchUserProfile(session.user.id)
+      } else {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session)
+      console.log('Cambio de estado de auth:', event, session?.user?.id || 'No user')
       setSession(session)
       if (session?.user) {
         await fetchUserProfile(session.user.id)
       } else {
         setUser(null)
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
@@ -62,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('Fetching user profile for:', userId)
+      console.log('Obteniendo perfil para usuario:', userId)
       const { data, error } = await supabase
         .from('users')
         .select('role, org_id')
@@ -70,12 +73,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single()
 
       if (error) {
-        console.error('Error fetching user profile:', error)
+        console.error('Error obteniendo perfil:', error)
+        setLoading(false)
         return
       }
 
       if (session?.user) {
-        console.log('User profile data:', data)
+        console.log('Datos del perfil:', data)
         setUser({
           ...session.user,
           role: data.role as UserRole,
@@ -83,29 +87,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error)
+      console.error('Error en fetchUserProfile:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
-    console.log('Attempting to sign in:', email)
+    console.log('Intentando iniciar sesión:', email)
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    if (error) throw error
+    if (error) {
+      console.error('Error en signIn:', error)
+      throw error
+    }
   }
 
   const signUp = async (email: string, password: string, role: UserRole, orgId: string) => {
-    console.log('Attempting to sign up:', email, 'with role:', role)
+    console.log('Intentando registrar usuario:', email, 'con rol:', role)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`
+      }
     })
-    if (error) throw error
+    if (error) {
+      console.error('Error en signUp:', error)
+      throw error
+    }
 
     if (data.user) {
-      console.log('Creating user profile for:', data.user.id)
+      console.log('Creando perfil para:', data.user.id)
       // Create user profile
       const { error: profileError } = await supabase
         .from('users')
@@ -116,16 +131,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           org_id: orgId
         })
       if (profileError) {
-        console.error('Profile creation error:', profileError)
+        console.error('Error creando perfil:', profileError)
         throw profileError
       }
     }
   }
 
   const signOut = async () => {
-    console.log('Signing out')
+    console.log('Cerrando sesión')
     const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    if (error) {
+      console.error('Error en signOut:', error)
+      throw error
+    }
   }
 
   const value = {

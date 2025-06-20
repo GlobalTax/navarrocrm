@@ -29,6 +29,8 @@ export default function Setup() {
     setLoading(true)
 
     try {
+      console.log('Creando organización:', orgData.name)
+      
       // Crear la organización
       const { data: orgResult, error: orgError } = await supabase
         .from('organizations')
@@ -38,9 +40,12 @@ export default function Setup() {
         .select()
         .single()
 
-      if (orgError) throw orgError
+      if (orgError) {
+        console.error('Error creando organización:', orgError)
+        throw orgError
+      }
 
-      console.log('Organización creada:', orgResult)
+      console.log('Organización creada exitosamente:', orgResult)
       
       toast({
         title: "Organización creada",
@@ -49,7 +54,7 @@ export default function Setup() {
       
       setStep(2)
     } catch (error: any) {
-      console.error('Error creando organización:', error)
+      console.error('Error en handleCreateOrg:', error)
       toast({
         title: "Error",
         description: error.message || "No se pudo crear la organización",
@@ -65,6 +70,8 @@ export default function Setup() {
     setLoading(true)
 
     try {
+      console.log('Iniciando creación de usuario:', userData.email)
+
       // Obtener la organización creada
       const { data: org, error: orgError } = await supabase
         .from('organizations')
@@ -72,7 +79,12 @@ export default function Setup() {
         .eq('name', orgData.name)
         .single()
 
-      if (orgError) throw orgError
+      if (orgError) {
+        console.error('Error obteniendo organización:', orgError)
+        throw orgError
+      }
+
+      console.log('Organización encontrada:', org)
 
       // Registrar usuario en Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -83,7 +95,12 @@ export default function Setup() {
         }
       })
 
-      if (authError) throw authError
+      if (authError) {
+        console.error('Error en auth.signUp:', authError)
+        throw authError
+      }
+
+      console.log('Usuario de auth creado:', authData.user?.id)
 
       if (authData.user) {
         // Crear perfil de usuario
@@ -96,9 +113,12 @@ export default function Setup() {
             org_id: org.id
           })
 
-        if (profileError) throw profileError
+        if (profileError) {
+          console.error('Error creando perfil:', profileError)
+          throw profileError
+        }
 
-        console.log('Usuario creado y vinculado a organización')
+        console.log('Perfil de usuario creado exitosamente')
         
         toast({
           title: "Configuración completada",
@@ -109,7 +129,7 @@ export default function Setup() {
         navigate('/login')
       }
     } catch (error: any) {
-      console.error('Error creando usuario:', error)
+      console.error('Error en handleCreateUser:', error)
       toast({
         title: "Error",
         description: error.message || "No se pudo crear el usuario",
