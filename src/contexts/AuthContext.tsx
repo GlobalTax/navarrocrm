@@ -69,13 +69,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Obteniendo perfil para usuario:', userId)
       const { data, error } = await supabase
-        .from('users' as any)
+        .from('users')
         .select('role, org_id')
         .eq('id', userId)
         .maybeSingle()
 
       if (error) {
         console.error('Error obteniendo perfil:', error)
+        // Si no se puede obtener el perfil, aún así mantener la sesión de auth
+        if (session?.user) {
+          setUser(session.user as AuthUser)
+        }
         setLoading(false)
         return
       }
@@ -84,12 +88,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Datos del perfil:', data)
         setUser({
           ...session.user,
-          role: (data as any).role as UserRole,
-          org_id: (data as any).org_id
+          role: data.role as UserRole,
+          org_id: data.org_id
         })
+      } else if (session?.user) {
+        // Si no hay datos de perfil pero sí sesión de auth
+        setUser(session.user as AuthUser)
       }
     } catch (error) {
       console.error('Error en fetchUserProfile:', error)
+      // En caso de error, mantener la sesión de auth básica
+      if (session?.user) {
+        setUser(session.user as AuthUser)
+      }
     } finally {
       setLoading(false)
     }
@@ -125,13 +136,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Creando perfil para:', data.user.id)
       // Create user profile
       const { error: profileError } = await supabase
-        .from('users' as any)
+        .from('users')
         .insert({
           id: data.user.id,
           email,
           role,
           org_id: orgId
-        } as any)
+        })
       if (profileError) {
         console.error('Error creando perfil:', profileError)
         throw profileError

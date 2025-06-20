@@ -14,19 +14,26 @@ export const useSystemSetup = () => {
     try {
       console.log('Verificando estado del setup...')
       
-      // Verificar si hay organizaciones usando una consulta directa
-      const { data: orgs, error } = await supabase
-        .from('organizations')
-        .select('id')
-        .limit(1)
+      // Usar la función de Supabase para verificar si el sistema está configurado
+      const { data, error } = await supabase.rpc('is_system_setup')
 
       if (error) {
         console.error('Error verificando setup:', error)
-        // Si hay error, asumimos que el sistema no está configurado
-        setIsSetup(false)
+        // Si hay error, verificar manualmente
+        const { data: orgs, error: orgError } = await supabase
+          .from('organizations')
+          .select('id')
+          .limit(1)
+        
+        if (orgError) {
+          console.error('Error manual verificando setup:', orgError)
+          setIsSetup(false)
+        } else {
+          setIsSetup((orgs && orgs.length > 0))
+        }
       } else {
-        console.log('Organizaciones encontradas:', orgs?.length || 0)
-        setIsSetup((orgs && orgs.length > 0))
+        console.log('Sistema configurado:', data)
+        setIsSetup(data === true)
       }
     } catch (error) {
       console.error('Error en checkSetupStatus:', error)

@@ -214,10 +214,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_current_user_org: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
       is_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean

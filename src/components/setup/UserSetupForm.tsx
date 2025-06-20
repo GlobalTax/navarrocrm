@@ -50,20 +50,16 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
     try {
       console.log('Iniciando creación de usuario:', userData.email)
 
-      // Obtener la organización creada usando una consulta simple
+      // Obtener la organización creada
       const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('id')
         .eq('name', orgName)
         .single()
 
-      if (orgError) {
+      if (orgError || !orgData) {
         console.error('Error obteniendo organización:', orgError)
         throw new Error('No se pudo encontrar la organización. Por favor, vuelve al paso anterior.')
-      }
-
-      if (!orgData) {
-        throw new Error('Organización no encontrada')
       }
 
       console.log('Organización encontrada:', orgData)

@@ -32,28 +32,7 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
     try {
       console.log('Creando organización:', orgName)
       
-      // Verificar si ya existe una organización con ese nombre
-      const { data: existingOrg, error: checkError } = await supabase
-        .from('organizations')
-        .select('id')
-        .eq('name', orgName.trim())
-        .maybeSingle()
-
-      if (checkError) {
-        console.error('Error verificando organización existente:', checkError)
-        throw new Error(`Error al verificar organización: ${checkError.message}`)
-      }
-
-      if (existingOrg) {
-        toast({
-          title: "Error",
-          description: "Ya existe una organización con ese nombre. Por favor, elige otro nombre.",
-          variant: "destructive",
-        })
-        return
-      }
-      
-      // Crear la organización
+      // Crear la organización directamente (sin verificar duplicados por ahora)
       const { data: orgResult, error: orgError } = await supabase
         .from('organizations')
         .insert({
@@ -64,6 +43,17 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
 
       if (orgError) {
         console.error('Error creando organización:', orgError)
+        
+        // Manejar error de nombre duplicado
+        if (orgError.message?.includes('duplicate') || orgError.code === '23505') {
+          toast({
+            title: "Error",
+            description: "Ya existe una organización con ese nombre. Por favor, elige otro nombre.",
+            variant: "destructive",
+          })
+          return
+        }
+        
         throw new Error(`Error al crear organización: ${orgError.message}`)
       }
 
@@ -101,7 +91,7 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
           maxLength={100}
         />
         <p className="text-xs text-gray-500">
-          Este nombre debe ser único y representará tu organización en el sistema.
+          Este nombre identificará tu organización en el sistema.
         </p>
       </div>
       
