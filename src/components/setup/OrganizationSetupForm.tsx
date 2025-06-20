@@ -34,14 +34,14 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
       
       // Verificar si ya existe una organización con ese nombre
       const { data: existingOrg, error: checkError } = await supabase
-        .from('organizations' as any)
+        .from('organizations')
         .select('id')
         .eq('name', orgName.trim())
         .maybeSingle()
 
       if (checkError) {
         console.error('Error verificando organización existente:', checkError)
-        throw checkError
+        throw new Error(`Error al verificar organización: ${checkError.message}`)
       }
 
       if (existingOrg) {
@@ -55,16 +55,16 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
       
       // Crear la organización
       const { data: orgResult, error: orgError } = await supabase
-        .from('organizations' as any)
+        .from('organizations')
         .insert({
           name: orgName.trim()
-        } as any)
+        })
         .select()
         .single()
 
       if (orgError) {
         console.error('Error creando organización:', orgError)
-        throw orgError
+        throw new Error(`Error al crear organización: ${orgError.message}`)
       }
 
       console.log('Organización creada exitosamente:', orgResult)

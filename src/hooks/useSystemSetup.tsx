@@ -16,12 +16,13 @@ export const useSystemSetup = () => {
       
       // Verificar si hay organizaciones usando una consulta directa
       const { data: orgs, error } = await supabase
-        .from('organizations' as any)
+        .from('organizations')
         .select('id')
         .limit(1)
 
       if (error) {
         console.error('Error verificando setup:', error)
+        // Si hay error, asumimos que el sistema no está configurado
         setIsSetup(false)
       } else {
         console.log('Organizaciones encontradas:', orgs?.length || 0)
