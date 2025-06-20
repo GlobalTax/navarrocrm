@@ -23,26 +23,51 @@ export default function Login() {
 
   // Redirigir al setup si el sistema no está configurado
   useEffect(() => {
+    console.log('🔍 Verificando redirección:', { setupLoading, isSetup })
     if (!setupLoading && isSetup === false) {
+      console.log('↪️ Redirigiendo al setup porque el sistema no está configurado')
       navigate('/setup', { replace: true })
     }
   }, [isSetup, setupLoading, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!email.trim() || !password.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor, completa todos los campos",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
+      console.log('🔐 Iniciando proceso de login...')
       await signIn(email, password)
       toast({
         title: "Inicio de sesión exitoso",
         description: "Bienvenido al sistema",
       })
+      console.log('↪️ Redirigiendo a:', from)
       navigate(from, { replace: true })
     } catch (error: any) {
+      console.error('❌ Error de autenticación:', error)
+      let errorMessage = "Credenciales inválidas"
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "Email o contraseña incorrectos"
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Por favor, confirma tu email antes de iniciar sesión"
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Error de autenticación",
-        description: error.message || "Credenciales inválidas",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -54,21 +79,31 @@ export default function Login() {
   if (setupLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando configuración del sistema...</p>
+        </div>
       </div>
     )
   }
 
   // No mostrar login si el sistema no está configurado (se redirigirá al setup)
   if (isSetup === false) {
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirigiendo al setup inicial...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">CRM Legal</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary-600">CRM Legal</CardTitle>
           <CardDescription>
             Inicia sesión en tu cuenta
           </CardDescription>
@@ -84,6 +119,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
+                disabled={loading}
               />
             </div>
             
@@ -96,13 +132,14 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
+                disabled={loading}
               />
             </div>
             
             <Button
               type="submit"
               className="w-full"
-              disabled={loading}
+              disabled={loading || !email.trim() || !password.trim()}
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>

@@ -12,31 +12,38 @@ export const useSystemSetup = () => {
 
   const checkSetupStatus = async () => {
     try {
-      console.log('Verificando estado del setup...')
+      console.log('🔍 Verificando estado del setup del sistema...')
       
-      // Usar la función de Supabase para verificar si el sistema está configurado
-      const { data, error } = await supabase.rpc('is_system_setup')
+      // Primero intentar usar la función RPC
+      const { data: rpcResult, error: rpcError } = await supabase.rpc('is_system_setup')
 
-      if (error) {
-        console.error('Error verificando setup:', error)
-        // Si hay error, verificar manualmente
+      if (rpcError) {
+        console.warn('⚠️ Error en RPC is_system_setup:', rpcError.message)
+        // Fallback: verificar directamente la tabla organizations
+        console.log('🔄 Intentando verificación directa...')
+        
         const { data: orgs, error: orgError } = await supabase
           .from('organizations')
           .select('id')
           .limit(1)
         
         if (orgError) {
-          console.error('Error manual verificando setup:', orgError)
+          console.error('❌ Error verificando organizations directamente:', orgError.message)
+          // Si ambos métodos fallan, asumir que NO está configurado
+          console.log('📝 Asumiendo sistema NO configurado por los errores')
           setIsSetup(false)
         } else {
-          setIsSetup((orgs && orgs.length > 0))
+          const setupStatus = orgs && orgs.length > 0
+          console.log('✅ Verificación directa exitosa. Sistema configurado:', setupStatus)
+          setIsSetup(setupStatus)
         }
       } else {
-        console.log('Sistema configurado:', data)
-        setIsSetup(data === true)
+        console.log('✅ RPC exitoso. Sistema configurado:', rpcResult)
+        setIsSetup(rpcResult === true)
       }
     } catch (error) {
-      console.error('Error en checkSetupStatus:', error)
+      console.error('💥 Error inesperado en checkSetupStatus:', error)
+      // En caso de error crítico, asumir que NO está configurado para permitir setup
       setIsSetup(false)
     } finally {
       setLoading(false)

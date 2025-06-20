@@ -35,14 +35,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log('Inicializando AuthProvider...')
+    console.log('🚀 Inicializando AuthProvider...')
     
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Sesión inicial:', session?.user?.id || 'No hay sesión')
+      const userId = session?.user?.id
+      console.log('🔑 Sesión inicial:', userId ? `Usuario: ${userId}` : 'No hay sesión')
       setSession(session)
       if (session?.user) {
-        fetchUserProfile(session.user.id)
+        // Usar setTimeout para evitar problemas de recursión
+        setTimeout(() => {
+          fetchUserProfile(session.user.id)
+        }, 0)
       } else {
         setLoading(false)
       }
@@ -50,9 +54,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Cambio de estado de auth:', event, session?.user?.id || 'No user')
+      const userId = session?.user?.id
+      console.log('🔄 Cambio de estado de auth:', event, userId ? `Usuario: ${userId}` : 'No user')
       setSession(session)
       if (session?.user) {
+        // Usar setTimeout para evitar problemas de recursión en onAuthStateChange
         setTimeout(() => {
           fetchUserProfile(session.user.id)
         }, 0)
@@ -67,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('Obteniendo perfil para usuario:', userId)
+      console.log('👤 Obteniendo perfil para usuario:', userId)
       const { data, error } = await supabase
         .from('users')
         .select('role, org_id')
@@ -75,9 +81,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle()
 
       if (error) {
-        console.error('Error obteniendo perfil:', error)
-        // Si no se puede obtener el perfil, aún así mantener la sesión de auth
+        console.warn('⚠️ Error obteniendo perfil de usuario:', error.message)
+        // Si no se puede obtener el perfil, mantener la sesión de auth básica
         if (session?.user) {
+          console.log('📝 Manteniendo sesión básica sin perfil adicional')
           setUser(session.user as AuthUser)
         }
         setLoading(false)
@@ -85,18 +92,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data && session?.user) {
-        console.log('Datos del perfil:', data)
+        console.log('✅ Perfil obtenido exitosamente:', { role: data.role, org_id: data.org_id })
         setUser({
           ...session.user,
           role: data.role as UserRole,
           org_id: data.org_id
         })
       } else if (session?.user) {
-        // Si no hay datos de perfil pero sí sesión de auth
+        console.log('📝 Sin datos de perfil adicional, usando sesión básica')
         setUser(session.user as AuthUser)
       }
     } catch (error) {
-      console.error('Error en fetchUserProfile:', error)
+      console.error('💥 Error inesperado en fetchUserProfile:', error)
       // En caso de error, mantener la sesión de auth básica
       if (session?.user) {
         setUser(session.user as AuthUser)
@@ -107,19 +114,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const signIn = async (email: string, password: string) => {
-    console.log('Intentando iniciar sesión:', email)
+    console.log('🔐 Intentando iniciar sesión:', email)
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) {
-      console.error('Error en signIn:', error)
+      console.error('❌ Error en signIn:', error.message)
       throw error
     }
+    console.log('✅ Inicio de sesión exitoso')
   }
 
   const signUp = async (email: string, password: string, role: UserRole, orgId: string) => {
-    console.log('Intentando registrar usuario:', email, 'con rol:', role)
+    console.log('📝 Intentando registrar usuario:', email, 'con rol:', role)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -128,12 +136,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     })
     if (error) {
-      console.error('Error en signUp:', error)
+      console.error('❌ Error en signUp:', error.message)
       throw error
     }
 
     if (data.user) {
-      console.log('Creando perfil para:', data.user.id)
+      console.log('👤 Creando perfil para:', data.user.id)
       // Create user profile
       const { error: profileError } = await supabase
         .from('users')
@@ -144,19 +152,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           org_id: orgId
         })
       if (profileError) {
-        console.error('Error creando perfil:', profileError)
+        console.error('❌ Error creando perfil:', profileError.message)
         throw profileError
       }
+      console.log('✅ Usuario y perfil creados exitosamente')
     }
   }
 
   const signOut = async () => {
-    console.log('Cerrando sesión')
+    console.log('🚪 Cerrando sesión')
     const { error } = await supabase.auth.signOut()
     if (error) {
-      console.error('Error en signOut:', error)
+      console.error('❌ Error en signOut:', error.message)
       throw error
     }
+    console.log('✅ Sesión cerrada exitosamente')
   }
 
   const value = {
