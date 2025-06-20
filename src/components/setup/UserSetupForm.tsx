@@ -50,9 +50,9 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
     try {
       console.log('Iniciando creación de usuario:', userData.email)
 
-      // Obtener la organización creada
-      const { data: org, error: orgError } = await supabase
-        .from('organizations' as any)
+      // Obtener la organización creada usando una consulta simple
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
         .select('id')
         .eq('name', orgName)
         .single()
@@ -62,7 +62,11 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
         throw new Error('No se pudo encontrar la organización. Por favor, vuelve al paso anterior.')
       }
 
-      console.log('Organización encontrada:', org)
+      if (!orgData) {
+        throw new Error('Organización no encontrada')
+      }
+
+      console.log('Organización encontrada:', orgData)
 
       // Registrar usuario en Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -80,16 +84,16 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
 
       console.log('Usuario de auth creado:', authData.user?.id)
 
-      if (authData.user && org?.id) {
+      if (authData.user && orgData.id) {
         // Crear perfil de usuario
         const { error: profileError } = await supabase
-          .from('users' as any)
+          .from('users')
           .insert({
             id: authData.user.id,
             email: userData.email.trim(),
             role: userData.role,
-            org_id: org.id
-          } as any)
+            org_id: orgData.id
+          })
 
         if (profileError) {
           console.error('Error creando perfil:', profileError)
