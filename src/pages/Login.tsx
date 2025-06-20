@@ -9,14 +9,16 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { useSystemSetup } from '@/hooks/useSystemSetup'
 import { SystemDiagnostics } from '@/components/SystemDiagnostics'
+import { SecurityVerification } from '@/components/SecurityVerification'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronDown, Settings } from 'lucide-react'
+import { ChevronDown, Settings, Shield } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [showDiagnostics, setShowDiagnostics] = useState(false)
+  const [showSecurity, setShowSecurity] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -156,6 +158,20 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Verificación de Seguridad */}
+      <Collapsible open={showSecurity} onOpenChange={setShowSecurity} className="mb-4">
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" size="sm" className="mb-4">
+            <Shield className="h-4 w-4 mr-2" />
+            Verificación de Seguridad
+            <ChevronDown className="h-4 w-4 ml-2" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SecurityVerification />
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Diagnósticos del Sistema */}
       <Collapsible open={showDiagnostics} onOpenChange={setShowDiagnostics}>
