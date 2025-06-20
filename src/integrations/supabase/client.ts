@@ -32,7 +32,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
         ...options,
         signal: controller.signal,
         headers: {
-          ...options.headers,
+          ...(options.headers || {}),
           'Cache-Control': 'no-cache',
         }
       }).finally(() => {
