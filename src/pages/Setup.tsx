@@ -13,7 +13,7 @@ export default function Setup() {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1)
   const [orgData, setOrgData] = useState({
-    name: 'WebCapital'
+    name: ''
   })
   const [userData, setUserData] = useState({
     email: '',
@@ -26,16 +26,48 @@ export default function Setup() {
 
   const handleCreateOrg = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!orgData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor, introduce el nombre de la organización",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
       console.log('Creando organización:', orgData.name)
       
+      // Verificar si ya existe una organización con ese nombre
+      const { data: existingOrg, error: checkError } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('name', orgData.name)
+        .single()
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        // PGRST116 es "not found", cualquier otro error es problemático
+        console.error('Error verificando organización existente:', checkError)
+        throw checkError
+      }
+
+      if (existingOrg) {
+        toast({
+          title: "Error",
+          description: "Ya existe una organización con ese nombre. Por favor, elige otro nombre.",
+          variant: "destructive",
+        })
+        return
+      }
+      
       // Crear la organización
       const { data: orgResult, error: orgError } = await supabase
         .from('organizations')
         .insert({
-          name: orgData.name
+          name: orgData.name.trim()
         })
         .select()
         .single()
@@ -67,6 +99,25 @@ export default function Setup() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!userData.email.trim() || !userData.password.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor, completa todos los campos obligatorios",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (userData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -81,14 +132,14 @@ export default function Setup() {
 
       if (orgError) {
         console.error('Error obteniendo organización:', orgError)
-        throw orgError
+        throw new Error('No se pudo encontrar la organización. Por favor, vuelve al paso anterior.')
       }
 
       console.log('Organización encontrada:', org)
 
       // Registrar usuario en Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
+        email: userData.email.trim(),
         password: userData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`
@@ -108,7 +159,7 @@ export default function Setup() {
           .from('users')
           .insert({
             id: authData.user.id,
-            email: userData.email,
+            email: userData.email.trim(),
             role: userData.role,
             org_id: org.id
           })
@@ -127,12 +178,24 @@ export default function Setup() {
 
         // Redirigir al login
         navigate('/login')
+      } else {
+        throw new Error('No se pudo crear el usuario')
       }
     } catch (error: any) {
       console.error('Error en handleCreateUser:', error)
+      let errorMessage = "No se pudo crear el usuario"
+      
+      if (error.message?.includes('User already registered')) {
+        errorMessage = "Ya existe un usuario con este email"
+      } else if (error.message?.includes('Password should be at least')) {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres"
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear el usuario",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -160,11 +223,15 @@ export default function Setup() {
                   value={orgData.name}
                   onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
                   required
-                  placeholder="Nombre de tu asesoría"
+                  placeholder="Ej: Mi Asesoría Legal"
+                  maxLength={100}
                 />
+                <p className="text-xs text-gray-500">
+                  Este nombre debe ser único y representará tu organización en el sistema.
+                </p>
               </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || !orgData.name.trim()}>
                 {loading ? 'Creando organización...' : 'Crear Organización'}
               </Button>
             </form>
@@ -210,8 +277,16 @@ export default function Setup() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="bg-blue-50 p-3 rounded-md text-sm text-blue-800">
+                <p><strong>Organización:</strong> {orgData.name}</p>
+              </div>
               
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={loading || !userData.email.trim() || !userData.password.trim()}
+              >
                 {loading ? 'Creando usuario...' : 'Crear Usuario'}
               </Button>
               
