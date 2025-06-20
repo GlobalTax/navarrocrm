@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Search, Mail, Phone, Edit, Eye } from 'lucide-react'
+import { Plus, Search, Mail, Phone, Edit, Eye, RefreshCw } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { ClientFormDialog } from '@/components/clients/ClientFormDialog'
@@ -31,10 +31,15 @@ const Clients = () => {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
-  const { data: clients = [], isLoading, refetch } = useQuery({
+  const { data: clients = [], isLoading, error, refetch } = useQuery({
     queryKey: ['clients', user?.org_id],
     queryFn: async () => {
-      if (!user?.org_id) return []
+      if (!user?.org_id) {
+        console.log('👥 No org_id disponible para obtener clientes')
+        return []
+      }
+      
+      console.log('👥 Obteniendo clientes para org:', user.org_id)
       
       const { data, error } = await supabase
         .from('clients')
@@ -45,13 +50,14 @@ const Clients = () => {
           phone,
           created_at
         `)
-        .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching clients:', error)
+        console.error('❌ Error fetching clients:', error)
         throw error
       }
+      
+      console.log('✅ Clientes obtenidos:', data?.length || 0)
       return data || []
     },
     enabled: !!user?.org_id,
@@ -86,6 +92,10 @@ const Clients = () => {
     refetch()
   }
 
+  const handleRetry = () => {
+    refetch()
+  }
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -102,7 +112,20 @@ const Clients = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Lista de Clientes</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              Lista de Clientes
+              {error && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Reintentar
+                </Button>
+              )}
+            </CardTitle>
             <div className="flex items-center gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -116,11 +139,23 @@ const Clients = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {error && (
+              <div className="text-center py-8 text-red-600">
+                <p className="font-medium">Error al cargar clientes</p>
+                <p className="text-sm">{error.message}</p>
+                <Button variant="outline" onClick={handleRetry} className="mt-2">
+                  Reintentar
+                </Button>
+              </div>
+            )}
+            
+            {!error && isLoading && (
               <div className="flex justify-center py-8">
                 <div className="text-gray-500">Cargando clientes...</div>
               </div>
-            ) : filteredClients.length === 0 ? (
+            )}
+            
+            {!error && !isLoading && filteredClients.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-gray-500 mb-4">
                   {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
@@ -131,7 +166,9 @@ const Clients = () => {
                   </Button>
                 )}
               </div>
-            ) : (
+            )}
+            
+            {!error && !isLoading && filteredClients.length > 0 && (
               <Table>
                 <TableHeader>
                   <TableRow>
