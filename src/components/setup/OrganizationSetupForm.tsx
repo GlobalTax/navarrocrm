@@ -36,11 +36,10 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
       const { data: existingOrg, error: checkError } = await supabase
         .from('organizations')
         .select('id')
-        .eq('name', orgName)
-        .single()
+        .eq('name', orgName.trim())
+        .maybeSingle()
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        // PGRST116 es "not found", cualquier otro error es problemático
+      if (checkError) {
         console.error('Error verificando organización existente:', checkError)
         throw checkError
       }

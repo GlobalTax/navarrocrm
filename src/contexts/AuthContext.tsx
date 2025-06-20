@@ -53,7 +53,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Cambio de estado de auth:', event, session?.user?.id || 'No user')
       setSession(session)
       if (session?.user) {
-        await fetchUserProfile(session.user.id)
+        setTimeout(() => {
+          fetchUserProfile(session.user.id)
+        }, 0)
       } else {
         setUser(null)
         setLoading(false)
@@ -70,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('users')
         .select('role, org_id')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('Error obteniendo perfil:', error)
@@ -78,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return
       }
 
-      if (session?.user) {
+      if (data && session?.user) {
         console.log('Datos del perfil:', data)
         setUser({
           ...session.user,
