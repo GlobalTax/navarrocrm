@@ -14,9 +14,9 @@ export const useSystemSetup = () => {
     try {
       console.log('Verificando estado del setup...')
       
-      // Verificar si hay organizaciones
+      // Verificar si hay organizaciones usando una consulta directa
       const { data: orgs, error } = await supabase
-        .from('organizations')
+        .from('organizations' as any)
         .select('id')
         .limit(1)
 

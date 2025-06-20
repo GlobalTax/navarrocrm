@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Obteniendo perfil para usuario:', userId)
       const { data, error } = await supabase
-        .from('users')
+        .from('users' as any)
         .select('role, org_id')
         .eq('id', userId)
         .maybeSingle()
@@ -84,8 +84,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Datos del perfil:', data)
         setUser({
           ...session.user,
-          role: data.role as UserRole,
-          org_id: data.org_id
+          role: (data as any).role as UserRole,
+          org_id: (data as any).org_id
         })
       }
     } catch (error) {
@@ -125,13 +125,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Creando perfil para:', data.user.id)
       // Create user profile
       const { error: profileError } = await supabase
-        .from('users')
+        .from('users' as any)
         .insert({
           id: data.user.id,
           email,
           role,
           org_id: orgId
-        })
+        } as any)
       if (profileError) {
         console.error('Error creando perfil:', profileError)
         throw profileError

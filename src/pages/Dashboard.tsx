@@ -1,179 +1,174 @@
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { MainLayout } from '@/components/layout/MainLayout'
-import { Clock, DollarSign, FolderOpen, Users } from 'lucide-react'
-import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
-
-interface DashboardStats {
-  billableHoursThisMonth: number
-  revenueThisMonth: number
-  openCases: number
-  totalClients: number
-}
+import { supabase } from '@/integrations/supabase/client'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
-  const { user } = useAuth()
-  const [stats, setStats] = useState<DashboardStats>({
-    billableHoursThisMonth: 0,
-    revenueThisMonth: 0,
-    openCases: 0,
-    totalClients: 0
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const [stats, setStats] = useState({
+    totalTimeEntries: 0,
+    totalBillableHours: 0,
+    totalClients: 0,
+    totalCases: 0
   })
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchDashboardStats()
-  }, [user?.org_id])
+    if (user) {
+      fetchStats()
+    }
+  }, [user])
 
-  const fetchDashboardStats = async () => {
-    if (!user?.org_id) return
-
+  const fetchStats = async () => {
     try {
-      const startOfMonth = new Date()
-      startOfMonth.setDate(1)
-      startOfMonth.setHours(0, 0, 0, 0)
-
-      // Get billable hours this month
+      // Obtener estadísticas de entradas de tiempo
       const { data: timeEntries } = await supabase
-        .from('time_entries')
-        .select('duration_minutes')
-        .eq('org_id', user.org_id)
-        .eq('is_billable', true)
-        .gte('created_at', startOfMonth.toISOString())
+        .from('time_entries' as any)
+        .select('duration_minutes, is_billable')
 
-      const billableMinutes = timeEntries?.reduce((acc, entry) => acc + entry.duration_minutes, 0) || 0
-      const billableHours = Math.round(billableMinutes / 60 * 100) / 100
+      const totalTimeEntries = timeEntries?.length || 0
+      const totalBillableHours = timeEntries
+        ?.filter((entry: any) => entry.is_billable)
+        .reduce((acc: number, entry: any) => acc + ((entry as any).duration_minutes || 0), 0) / 60 || 0
 
-      // Get open cases
-      const { count: openCasesCount } = await supabase
-        .from('cases')
-        .select('*', { count: 'exact', head: true })
-        .eq('org_id', user.org_id)
-        .in('status', ['open', 'in_progress'])
+      // Obtener estadísticas de clientes
+      const { data: clients } = await supabase
+        .from('clients' as any)
+        .select('id')
 
-      // Get total clients
-      const { count: clientsCount } = await supabase
-        .from('clients')
-        .select('*', { count: 'exact', head: true })
-        .eq('org_id', user.org_id)
+      // Obtener estadísticas de casos
+      const { data: cases } = await supabase
+        .from('cases' as any)
+        .select('id')
 
       setStats({
-        billableHoursThisMonth: billableHours,
-        revenueThisMonth: billableHours * 150, // Assuming 150€/hour average
-        openCases: openCasesCount || 0,
-        totalClients: clientsCount || 0
+        totalTimeEntries,
+        totalBillableHours: Math.round(totalBillableHours * 100) / 100,
+        totalClients: clients?.length || 0,
+        totalCases: cases?.length || 0
       })
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error)
-    } finally {
-      setLoading(false)
+      console.error('Error obteniendo estadísticas:', error)
     }
   }
 
-  const statCards = [
-    {
-      title: 'Horas Facturables',
-      value: loading ? '...' : `${stats.billableHoursThisMonth}h`,
-      description: 'Este mes',
-      icon: Clock,
-      color: 'text-blue-600'
-    },
-    {
-      title: 'Ingresos Estimados',
-      value: loading ? '...' : `${stats.revenueThisMonth.toLocaleString()}€`,
-      description: 'Este mes',
-      icon: DollarSign,
-      color: 'text-green-600'
-    },
-    {
-      title: 'Casos Abiertos',
-      value: loading ? '...' : stats.openCases.toString(),
-      description: 'En progreso',
-      icon: FolderOpen,
-      color: 'text-orange-600'
-    },
-    {
-      title: 'Total Clientes',
-      value: loading ? '...' : stats.totalClients.toString(),
-      description: 'Activos',
-      icon: Users,
-      color: 'text-purple-600'
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      navigate('/login')
+    } catch (error) {
+      console.error('Error cerrando sesión:', error)
     }
-  ]
+  }
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((card) => {
-            const Icon = card.icon
-            return (
-              <Card key={card.title}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    {card.title}
-                  </CardTitle>
-                  <Icon className={`h-4 w-4 ${card.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
-                  <p className="text-xs text-gray-500 mt-1">{card.description}</p>
-                </CardContent>
-              </Card>
-            )
-          })}
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard CRM Legal</h1>
+            <p className="text-gray-600">
+              Bienvenido, {user?.email} ({user?.role})
+            </p>
+          </div>
+          <Button variant="outline" onClick={handleSignOut}>
+            Cerrar Sesión
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Clientes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalClients}</div>
+              <p className="text-xs text-muted-foreground">
+                Total de clientes registrados
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Casos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCases}</div>
+              <p className="text-xs text-muted-foreground">
+                Expedientes activos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Horas Facturables</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalBillableHours}h</div>
+              <p className="text-xs text-muted-foreground">
+                Este mes
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Registros de Tiempo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalTimeEntries}</div>
+              <p className="text-xs text-muted-foreground">
+                Total de entradas
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Casos Recientes</CardTitle>
+              <CardTitle>Bienvenido al CRM Legal</CardTitle>
               <CardDescription>
-                Últimos casos creados en tu organización
+                Sistema de gestión para asesorías multidisciplinares
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Caso de ejemplo</p>
-                    <p className="text-sm text-gray-500">Cliente: Empresa XYZ</p>
-                  </div>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    En progreso
-                  </span>
-                </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Este sistema te ayudará a gestionar clientes, casos, tiempo de trabajo y facturación 
+                de manera eficiente. Las estadísticas se actualizarán automáticamente conforme uses el sistema.
+              </p>
+              <div className="space-y-2 text-sm">
+                <p><strong>Organización:</strong> {user?.org_id}</p>
+                <p><strong>Rol:</strong> {user?.role}</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Actividad del Equipo</CardTitle>
+              <CardTitle>Próximas Funcionalidades</CardTitle>
               <CardDescription>
-                Resumen de la actividad reciente
+                Características que se implementarán próximamente
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Tiempo registrado hoy</p>
-                    <p className="text-xs text-gray-500">Pendiente de implementar</p>
-                  </div>
-                </div>
-              </div>
+              <ul className="text-sm space-y-2 text-gray-600">
+                <li>• Gestión completa de clientes</li>
+                <li>• Creación y seguimiento de casos</li>
+                <li>• Timer integrado para registro de tiempo</li>
+                <li>• Sistema de facturación</li>
+                <li>• Portal cliente</li>
+                <li>• Alertas de plazos legales</li>
+              </ul>
             </CardContent>
           </Card>
         </div>
       </div>
-    </MainLayout>
+    </div>
   )
 }

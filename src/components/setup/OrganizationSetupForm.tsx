@@ -34,7 +34,7 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
       
       // Verificar si ya existe una organización con ese nombre
       const { data: existingOrg, error: checkError } = await supabase
-        .from('organizations')
+        .from('organizations' as any)
         .select('id')
         .eq('name', orgName.trim())
         .maybeSingle()
@@ -55,10 +55,10 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
       
       // Crear la organización
       const { data: orgResult, error: orgError } = await supabase
-        .from('organizations')
+        .from('organizations' as any)
         .insert({
           name: orgName.trim()
-        })
+        } as any)
         .select()
         .single()
 

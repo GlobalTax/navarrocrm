@@ -52,7 +52,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
 
       // Obtener la organización creada
       const { data: org, error: orgError } = await supabase
-        .from('organizations')
+        .from('organizations' as any)
         .select('id')
         .eq('name', orgName)
         .single()
@@ -80,16 +80,16 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
 
       console.log('Usuario de auth creado:', authData.user?.id)
 
-      if (authData.user) {
+      if (authData.user && org?.id) {
         // Crear perfil de usuario
         const { error: profileError } = await supabase
-          .from('users')
+          .from('users' as any)
           .insert({
             id: authData.user.id,
             email: userData.email.trim(),
             role: userData.role,
             org_id: org.id
-          })
+          } as any)
 
         if (profileError) {
           console.error('Error creando perfil:', profileError)
