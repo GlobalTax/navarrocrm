@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Setup from "./pages/Setup";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
+import Cases from "./pages/Cases";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
@@ -42,6 +43,15 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior', 'junior']}>
                   <Clients />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/cases"
+              element={
+                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior', 'junior']}>
+                  <Cases />
                 </ProtectedRoute>
               }
             />
