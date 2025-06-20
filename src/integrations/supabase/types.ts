@@ -57,32 +57,211 @@ export type Database = {
           },
         ]
       }
+      client_documents: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          description: string | null
+          document_type: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          org_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          document_type?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          org_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          document_type?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          org_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_notes: {
+        Row: {
+          client_id: string
+          content: string | null
+          created_at: string | null
+          id: string
+          is_private: boolean | null
+          note_type: string | null
+          org_id: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_private?: boolean | null
+          note_type?: string | null
+          org_id: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_private?: boolean | null
+          note_type?: string | null
+          org_id?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
+          address_city: string | null
+          address_country: string | null
+          address_postal_code: string | null
+          address_street: string | null
+          business_sector: string | null
+          client_type: string | null
+          contact_preference: string | null
           created_at: string | null
+          dni_nif: string | null
           email: string | null
+          hourly_rate: number | null
+          how_found_us: string | null
           id: string
+          internal_notes: string | null
+          last_contact_date: string | null
+          legal_representative: string | null
           name: string
           org_id: string
+          payment_method: string | null
           phone: string | null
+          preferred_language: string | null
+          status: string | null
+          tags: string[] | null
           updated_at: string | null
         }
         Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_street?: string | null
+          business_sector?: string | null
+          client_type?: string | null
+          contact_preference?: string | null
           created_at?: string | null
+          dni_nif?: string | null
           email?: string | null
+          hourly_rate?: number | null
+          how_found_us?: string | null
           id?: string
+          internal_notes?: string | null
+          last_contact_date?: string | null
+          legal_representative?: string | null
           name: string
           org_id: string
+          payment_method?: string | null
           phone?: string | null
+          preferred_language?: string | null
+          status?: string | null
+          tags?: string[] | null
           updated_at?: string | null
         }
         Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_street?: string | null
+          business_sector?: string | null
+          client_type?: string | null
+          contact_preference?: string | null
           created_at?: string | null
+          dni_nif?: string | null
           email?: string | null
+          hourly_rate?: number | null
+          how_found_us?: string | null
           id?: string
+          internal_notes?: string | null
+          last_contact_date?: string | null
+          legal_representative?: string | null
           name?: string
           org_id?: string
+          payment_method?: string | null
           phone?: string | null
+          preferred_language?: string | null
+          status?: string | null
+          tags?: string[] | null
           updated_at?: string | null
         }
         Relationships: [
