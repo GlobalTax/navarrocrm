@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import { useSystemSetup } from '@/hooks/useSystemSetup'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -16,8 +17,16 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
+  const { isSetup, loading: setupLoading } = useSystemSetup()
 
   const from = location.state?.from?.pathname || '/dashboard'
+
+  // Redirigir al setup si el sistema no está configurado
+  useEffect(() => {
+    if (!setupLoading && isSetup === false) {
+      navigate('/setup', { replace: true })
+    }
+  }, [isSetup, setupLoading, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,6 +48,20 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Mostrar loading mientras se verifica el setup
+  if (setupLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // No mostrar login si el sistema no está configurado (se redirigirá al setup)
+  if (isSetup === false) {
+    return null
   }
 
   return (
@@ -84,6 +107,10 @@ export default function Login() {
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center text-sm text-gray-600">
+            <p>¿Primera vez? El sistema te guiará en la configuración inicial.</p>
+          </div>
         </CardContent>
       </Card>
     </div>

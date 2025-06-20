@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Login from "./pages/Login";
+import Setup from "./pages/Setup";
 import Dashboard from "./pages/Dashboard";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -22,6 +23,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/setup" element={<Setup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Protected Routes */}
