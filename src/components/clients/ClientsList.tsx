@@ -31,7 +31,7 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
     refetch()
   }
 
-  const hasFilters = searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
+  const hasFilters = Boolean(searchTerm || statusFilter !== 'all' || typeFilter !== 'all')
 
   return (
     <Card>

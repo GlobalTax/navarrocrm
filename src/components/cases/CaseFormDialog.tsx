@@ -83,12 +83,17 @@ export const CaseFormDialog = ({ case_, open, onClose }: CaseFormDialogProps) =>
 
   const createCaseMutation = useMutation({
     mutationFn: async (data: CaseFormData) => {
+      const insertData = {
+        title: data.title,
+        description: data.description || null,
+        status: data.status,
+        client_id: data.client_id,
+        org_id: user?.org_id!,
+      }
+
       const { error } = await supabase
         .from('cases')
-        .insert({
-          ...data,
-          org_id: user?.org_id!,
-        })
+        .insert(insertData)
 
       if (error) throw error
     },
@@ -113,9 +118,16 @@ export const CaseFormDialog = ({ case_, open, onClose }: CaseFormDialogProps) =>
 
   const updateCaseMutation = useMutation({
     mutationFn: async (data: CaseFormData) => {
+      const updateData = {
+        title: data.title,
+        description: data.description || null,
+        status: data.status,
+        client_id: data.client_id,
+      }
+
       const { error } = await supabase
         .from('cases')
-        .update(data)
+        .update(updateData)
         .eq('id', case_!.id)
 
       if (error) throw error
