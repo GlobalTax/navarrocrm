@@ -8,11 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { useSystemSetup } from '@/hooks/useSystemSetup'
+import { SystemDiagnostics } from '@/components/SystemDiagnostics'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ChevronDown, Settings } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showDiagnostics, setShowDiagnostics] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -61,6 +65,8 @@ export default function Login() {
         errorMessage = "Email o contraseña incorrectos"
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = "Por favor, confirma tu email antes de iniciar sesión"
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = "Demasiados intentos. Intenta de nuevo en unos minutos"
       } else if (error.message) {
         errorMessage = error.message
       }
@@ -100,8 +106,8 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md mb-4">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary-600">CRM Legal</CardTitle>
           <CardDescription>
@@ -150,6 +156,20 @@ export default function Login() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Diagnósticos del Sistema */}
+      <Collapsible open={showDiagnostics} onOpenChange={setShowDiagnostics}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" size="sm" className="mb-4">
+            <Settings className="h-4 w-4 mr-2" />
+            Diagnósticos del Sistema
+            <ChevronDown className="h-4 w-4 ml-2" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SystemDiagnostics />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   )
 }

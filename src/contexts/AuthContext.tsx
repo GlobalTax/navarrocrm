@@ -37,15 +37,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🚀 Inicializando AuthProvider...')
     
+    let mounted = true
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return
+      
+      if (error) {
+        console.error('❌ Error obteniendo sesión inicial:', error.message)
+        setLoading(false)
+        return
+      }
+
       const userId = session?.user?.id
       console.log('🔑 Sesión inicial:', userId ? `Usuario: ${userId}` : 'No hay sesión')
       setSession(session)
       if (session?.user) {
         // Usar setTimeout para evitar problemas de recursión
         setTimeout(() => {
-          fetchUserProfile(session.user.id)
+          if (mounted) {
+            fetchUserProfile(session.user.id)
+          }
         }, 0)
       } else {
         setLoading(false)
@@ -54,13 +66,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+      
       const userId = session?.user?.id
       console.log('🔄 Cambio de estado de auth:', event, userId ? `Usuario: ${userId}` : 'No user')
       setSession(session)
       if (session?.user) {
         // Usar setTimeout para evitar problemas de recursión en onAuthStateChange
         setTimeout(() => {
-          fetchUserProfile(session.user.id)
+          if (mounted) {
+            fetchUserProfile(session.user.id)
+          }
         }, 0)
       } else {
         setUser(null)
@@ -68,17 +84,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchUserProfile = async (userId: string) => {
     try {
       console.log('👤 Obteniendo perfil para usuario:', userId)
-      const { data, error } = await supabase
+      
+      // Añadir timeout y retry para la consulta de perfil
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      )
+      
+      const queryPromise = supabase
         .from('users')
         .select('role, org_id')
         .eq('id', userId)
         .maybeSingle()
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
 
       if (error) {
         console.warn('⚠️ Error obteniendo perfil de usuario:', error.message)
@@ -103,7 +130,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session.user as AuthUser)
       }
     } catch (error) {
-      console.error('💥 Error inesperado en fetchUserProfile:', error)
+      if (error instanceof Error && error.message === 'Timeout') {
+        console.error('⏰ Timeout obteniendo perfil de usuario')
+      } else {
+        console.error('💥 Error inesperado en fetchUserProfile:', error)
+      }
       // En caso de error, mantener la sesión de auth básica
       if (session?.user) {
         setUser(session.user as AuthUser)
