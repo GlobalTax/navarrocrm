@@ -1,78 +1,101 @@
 
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { 
-  Home, 
+  LayoutDashboard, 
   Users, 
   FolderOpen, 
-  Clock, 
-  FileText, 
-  Settings,
+  Clock,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/AuthContext'
 
 const menuItems = [
-  { icon: Home, label: 'Dashboard', path: '/dashboard', roles: ['partner', 'area_manager', 'senior', 'junior', 'finance'] },
-  { icon: Users, label: 'Clientes', path: '/clients', roles: ['partner', 'area_manager', 'senior', 'junior'] },
-  { icon: FolderOpen, label: 'Casos', path: '/cases', roles: ['partner', 'area_manager', 'senior', 'junior'] },
-  { icon: Clock, label: 'Tiempo', path: '/time', roles: ['partner', 'area_manager', 'senior', 'junior'] },
-  { icon: FileText, label: 'Facturación', path: '/billing', roles: ['partner', 'area_manager', 'finance'] },
-  { icon: Settings, label: 'Administración', path: '/admin', roles: ['partner', 'area_manager'] },
+  {
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    href: '/dashboard',
+  },
+  {
+    title: 'Clientes',
+    icon: Users,
+    href: '/clients',
+  },
+  {
+    title: 'Casos',
+    icon: FolderOpen,
+    href: '/cases',
+  },
+  {
+    title: 'Registro de Tiempo',
+    icon: Clock,
+    href: '/time-tracking',
+  },
 ]
 
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
-  const { user } = useAuth()
-
-  const filteredMenuItems = menuItems.filter(item => 
-    user?.role && item.roles.includes(user.role)
-  )
+  const navigate = useNavigate()
 
   return (
-    <div className={`bg-white border-r border-gray-200 transition-all duration-300 ${
-      collapsed ? 'w-16' : 'w-64'
-    }`}>
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          {!collapsed && (
-            <h2 className="text-xl font-bold text-gray-800">CRM Legal</h2>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setCollapsed(!collapsed)}
-            className="ml-auto"
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
+    <div className={cn(
+      "relative flex flex-col h-full bg-card border-r border-border transition-all duration-300",
+      collapsed ? "w-16" : "w-64"
+    )}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b">
+        {!collapsed && (
+          <h2 className="text-lg font-semibold text-foreground">CRM Legal</h2>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-2"
+        >
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1 px-3 py-4">
+        <nav className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon =  item.icon
+            const isActive = location.pathname === item.href
+
+            return (
+              <Button
+                key={item.href}
+                variant={isActive ? "default" : "ghost"}
+                className={cn(
+                  "w-full justify-start gap-3 text-left",
+                  collapsed && "justify-center px-2",
+                  isActive && "bg-primary text-primary-foreground"
+                )}
+                onClick={() => navigate(item.href)}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span>{item.title}</span>}
+              </Button>
+            )
+          })}
+        </nav>
+      </ScrollArea>
+
+      {/* Footer */}
+      <div className="p-4 border-t">
+        <div className={cn(
+          "text-xs text-muted-foreground",
+          collapsed && "text-center"
+        )}>
+          {collapsed ? "CRM" : "Sistema de Gestión Legal"}
         </div>
       </div>
-      
-      <nav className="p-4 space-y-2">
-        {filteredMenuItems.map((item) => {
-          const Icon = item.icon
-          const isActive = location.pathname === item.path
-          
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              {!collapsed && <span className="text-sm font-medium">{item.label}</span>}
-            </Link>
-          )
-        })}
-      </nav>
     </div>
   )
 }
