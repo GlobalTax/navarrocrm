@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client'
 import { UserRole } from '../types'
-import { cleanCorruptedSessions, clearAuthCaches } from '../utils/authCache'
+import { clearAuthCaches } from '../utils/authCache'
+import { cleanCorruptedSessions } from '../utils/sessionValidator'
 
 export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
