@@ -20,8 +20,8 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   
   const { events, isLoading, createEvent, isCreating } = useCalendarEvents()
-  const { data: clients = [] } = useClients()
-  const { data: cases = [] } = useCases()
+  const { clients = [] } = useClients()
+  const { cases = [] } = useCases()
   
   const [newEvent, setNewEvent] = useState<CreateCalendarEventData & { 
     date: string

@@ -47,9 +47,27 @@ export const useCalendarEvents = () => {
   // Mutation para crear evento
   const createEventMutation = useMutation({
     mutationFn: async (eventData: CreateCalendarEventData) => {
+      // Obtener el usuario actual y su organización
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Usuario no autenticado')
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!userData?.org_id) throw new Error('Usuario sin organización')
+
+      const completeEventData = {
+        ...eventData,
+        created_by: user.id,
+        org_id: userData.org_id
+      }
+
       const { data, error } = await supabase
         .from('calendar_events')
-        .insert([eventData])
+        .insert([completeEventData])
         .select()
         .single()
 
