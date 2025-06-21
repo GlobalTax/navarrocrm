@@ -19,19 +19,16 @@ const Index = () => {
     })
   }, [authLoading, setupLoading, user, isSetup, emergencyRedirect])
 
-  // Timeout de emergencia para evitar carga infinita
+  // Timeout de emergencia reducido y más específico
   useEffect(() => {
-    const emergencyTimeout = setTimeout(() => {
-      console.error('🚨 [Index] TIMEOUT EMERGENCIA: Redirigiendo al login después de 15 segundos')
-      setEmergencyRedirect(true)
-    }, 15000)
+    if (authLoading || setupLoading) {
+      const emergencyTimeout = setTimeout(() => {
+        console.error('🚨 [Index] TIMEOUT EMERGENCIA: Redirigiendo después de 10 segundos de carga')
+        setEmergencyRedirect(true)
+      }, 10000)
 
-    // Limpiar timeout si ya no está cargando
-    if (!authLoading && !setupLoading) {
-      clearTimeout(emergencyTimeout)
+      return () => clearTimeout(emergencyTimeout)
     }
-
-    return () => clearTimeout(emergencyTimeout)
   }, [authLoading, setupLoading])
 
   // Redirección de emergencia
@@ -47,10 +44,10 @@ const Index = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 mb-2">
-            {setupLoading ? 'Verificando configuración...' : 'Verificando autenticación...'}
+            {setupLoading ? 'Verificando configuración del sistema...' : 'Cargando perfil de usuario...'}
           </p>
           <p className="text-xs text-gray-400">
-            Si esto tarda mucho, serás redirigido automáticamente
+            Esto debería tomar solo unos segundos
           </p>
         </div>
       </div>

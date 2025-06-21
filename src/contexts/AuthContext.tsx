@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 
@@ -33,20 +33,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const fetchingProfile = useRef<string | null>(null)
+  const lastAuthEvent = useRef<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
-    let timeoutId: NodeJS.Timeout
-
-    // Timeout de emergencia para evitar carga infinita
-    const emergencyTimeout = setTimeout(() => {
-      console.error('🚨 TIMEOUT EMERGENCIA: AuthContext tardó más de 10 segundos')
-      if (isMounted) {
-        setLoading(false)
-        setUser(null)
-        setSession(null)
-      }
-    }, 10000)
 
     const initializeAuth = async () => {
       try {
@@ -87,8 +78,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Listener para cambios de auth
+    // Listener para cambios de auth con deduplicación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const eventKey = `${event}-${session?.user?.id || 'null'}`
+      
+      // Evitar procesamiento duplicado del mismo evento
+      if (lastAuthEvent.current === eventKey) {
+        console.log('🔄 [AuthContext] Evento duplicado ignorado:', event)
+        return
+      }
+      
+      lastAuthEvent.current = eventKey
       console.log('🔄 [AuthContext] Cambio de estado:', event)
       
       if (isMounted) {
@@ -108,28 +108,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       isMounted = false
-      clearTimeout(emergencyTimeout)
-      if (timeoutId) clearTimeout(timeoutId)
       subscription.unsubscribe()
     }
   }, [])
 
   const fetchUserProfile = async (authUser: User) => {
+    // Evitar consultas duplicadas para el mismo usuario
+    if (fetchingProfile.current === authUser.id) {
+      console.log('👤 [AuthContext] Consulta de perfil ya en curso para:', authUser.id)
+      return
+    }
+
     try {
+      fetchingProfile.current = authUser.id
       console.log('👤 [AuthContext] Consultando perfil para:', authUser.id)
       
-      // Timeout específico para la consulta del perfil
-      const profileTimeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout consultando perfil')), 5000)
-      })
-
-      const profileQuery = supabase
+      const { data, error } = await supabase
         .from('users')
         .select('role, org_id')
         .eq('id', authUser.id)
         .single()
-
-      const { data, error } = await Promise.race([profileQuery, profileTimeout])
 
       if (error) {
         console.error('❌ [AuthContext] Error consultando perfil:', error.message)
@@ -152,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // En caso de error crítico, usar usuario básico
       setUser(authUser as AuthUser)
     } finally {
+      fetchingProfile.current = null
       console.log('🏁 [AuthContext] Finalizando carga de perfil')
       setLoading(false)
     }
