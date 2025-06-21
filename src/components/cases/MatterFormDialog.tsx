@@ -1,471 +1,428 @@
-
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { usePracticeAreas } from '@/hooks/usePracticeAreas'
-import { useMatterTemplates } from '@/hooks/useMatterTemplates'
-import { useUsers } from '@/hooks/useUsers'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
+import { 
+  Plus, 
+  Loader2, 
+  FileText,
+  Users, 
+  Bell, 
+  Settings, 
+  CreditCard, 
+  CheckSquare,
+  FolderOpen,
+  X
+} from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
-import { Case } from '@/hooks/useCases'
-import { Building, User, DollarSign, Calendar, FileTemplate, Settings, Bell, Shield } from 'lucide-react'
-
-const matterSchema = z.object({
-  title: z.string().min(1, 'Matter title is required'),
-  description: z.string().optional(),
-  status: z.enum(['open', 'in_progress', 'pending', 'closed']),
-  client_id: z.string().min(1, 'Client is required'),
-  practice_area: z.string().optional(),
-  responsible_solicitor_id: z.string().optional(),
-  originating_solicitor_id: z.string().optional(),
-  billing_method: z.enum(['hourly', 'fixed', 'contingency']).default('hourly'),
-  estimated_budget: z.number().optional(),
-  template_id: z.string().optional(),
-})
-
-type MatterFormData = z.infer<typeof matterSchema>
+import { usePracticeAreas } from '@/hooks/usePracticeAreas'
+import { useUsers } from '@/hooks/useUsers'
+import { useMatterTemplates } from '@/hooks/useMatterTemplates'
+import { CreateCaseData } from '@/hooks/useCases'
 
 interface MatterFormDialogProps {
-  case_: Case | null
   open: boolean
-  onClose: () => void
-  onSubmit: (data: MatterFormData) => void
-  isSubmitting: boolean
+  onOpenChange: (open: boolean) => void
+  onSubmit: (data: CreateCaseData) => void
+  isLoading?: boolean
 }
 
-export const MatterFormDialog = ({ case_, open, onClose, onSubmit, isSubmitting }: MatterFormDialogProps) => {
-  const [activeTab, setActiveTab] = useState('details')
-  const { practiceAreas } = usePracticeAreas()
-  const { templates } = useMatterTemplates()
-  const { users } = useUsers()
-  const { clients } = useClients()
+export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: MatterFormDialogProps) {
+  const { clients = [] } = useClients()
+  const { practiceAreas = [] } = usePracticeAreas()
+  const { users = [] } = useUsers()
+  const { templates = [] } = useMatterTemplates()
 
-  const form = useForm<MatterFormData>({
-    resolver: zodResolver(matterSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      status: 'open',
-      client_id: '',
-      practice_area: '',
-      responsible_solicitor_id: '',
-      originating_solicitor_id: '',
-      billing_method: 'hourly',
-      estimated_budget: undefined,
-      template_id: '',
-    },
+  const [formData, setFormData] = useState<CreateCaseData & {
+    template_selection: string
+    custom_fields: Record<string, string>
+    notifications: string[]
+    permissions: Array<{ user_id: string; permission: string }>
+    task_lists: string[]
+    document_folders: string[]
+  }>({
+    title: '',
+    description: '',
+    status: 'open',
+    client_id: '',
+    practice_area: '',
+    responsible_solicitor_id: '',
+    originating_solicitor_id: '',
+    billing_method: 'hourly',
+    estimated_budget: undefined,
+    template_selection: '',
+    custom_fields: {},
+    notifications: [],
+    permissions: [],
+    task_lists: [],
+    document_folders: []
   })
 
-  useEffect(() => {
-    if (case_) {
-      form.reset({
-        title: case_.title,
-        description: case_.description || '',
-        status: case_.status as 'open' | 'in_progress' | 'pending' | 'closed',
-        client_id: case_.client_id,
-        practice_area: case_.practice_area || '',
-        responsible_solicitor_id: case_.responsible_solicitor_id || '',
-        originating_solicitor_id: case_.originating_solicitor_id || '',
-        billing_method: case_.billing_method as 'hourly' | 'fixed' | 'contingency',
-        estimated_budget: case_.estimated_budget || undefined,
-        template_id: case_.template_id || '',
-      })
-    } else {
-      form.reset({
-        title: '',
-        description: '',
-        status: 'open',
-        client_id: '',
-        practice_area: '',
-        responsible_solicitor_id: '',
-        originating_solicitor_id: '',
-        billing_method: 'hourly',
-        estimated_budget: undefined,
-        template_id: '',
-      })
-    }
-  }, [case_, form])
-
-  const handleSubmit = (data: MatterFormData) => {
-    onSubmit(data)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({ ...prev, [id]: value }))
   }
 
-  const statusOptions = [
-    { value: 'open', label: 'Open', color: 'bg-blue-100 text-blue-800' },
-    { value: 'in_progress', label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' },
-    { value: 'pending', label: 'Pending', color: 'bg-orange-100 text-orange-800' },
-    { value: 'closed', label: 'Closed', color: 'bg-green-100 text-green-800' },
-  ]
+  const handleSelectChange = (id: string, value: string) => {
+    setFormData(prev => ({ ...prev, [id]: value }))
+  }
+
+  const handleNumberChange = (id: string, value: number | undefined) => {
+    setFormData(prev => ({ ...prev, [id]: value }))
+  }
+
+  const handleCheckboxChange = (id: string, checked: boolean) => {
+    setFormData(prev => ({ ...prev, [id]: checked }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    const submitData: CreateCaseData = {
+      title: formData.title,
+      description: formData.description,
+      status: formData.status,
+      client_id: formData.client_id,
+      practice_area: formData.practice_area || undefined,
+      responsible_solicitor_id: formData.responsible_solicitor_id || undefined,
+      originating_solicitor_id: formData.originating_solicitor_id || undefined,
+      billing_method: formData.billing_method,
+      estimated_budget: formData.estimated_budget
+    }
+    
+    onSubmit(submitData)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
-            {case_ ? 'Edit Matter' : 'New Matter'}
-          </DialogTitle>
-        </DialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Nuevo Expediente</DialogTitle>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="details" className="flex items-center gap-2">
-                  <FileTemplate className="h-4 w-4" />
-                  Details
-                </TabsTrigger>
-                <TabsTrigger value="assignment" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Assignment
-                </TabsTrigger>
-                <TabsTrigger value="billing" className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Billing
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </TabsTrigger>
-              </TabsList>
+          <Tabs defaultValue="template" className="mt-6">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="template">Plantilla</TabsTrigger>
+              <TabsTrigger value="details">Detalles</TabsTrigger>
+              <TabsTrigger value="permissions">Permisos</TabsTrigger>
+              <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
+              <TabsTrigger value="contacts">Contactos</TabsTrigger>
+              <TabsTrigger value="fields">Campos</TabsTrigger>
+              <TabsTrigger value="billing">Facturación</TabsTrigger>
+              <TabsTrigger value="workflow">Workflow</TabsTrigger>
+            </TabsList>
 
-              <TabsContent value="details" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Matter Information</CardTitle>
-                    <CardDescription>
-                      Basic information about this matter
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="client_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Client *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select client" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {clients.map((client) => (
-                                  <SelectItem key={client.id} value={client.id}>
-                                    {client.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+            <TabsContent value="template" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Información de Plantilla
+                  </CardTitle>
+                  <CardDescription>
+                    Selecciona una plantilla para pre-configurar el expediente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label>Plantilla de Expediente</Label>
+                    <Select 
+                      value={formData.template_selection} 
+                      onValueChange={(value) => setFormData({...formData, template_selection: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar plantilla..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sin plantilla</SelectItem>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{template.name}</span>
+                              {template.practice_area && (
+                                <Badge variant="outline" className="text-xs">
+                                  {template.practice_area.name}
+                                </Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                      <FormField
-                        control={form.control}
-                        name="template_id"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Template</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select template" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="">No template</SelectItem>
-                                {templates.map((template) => (
-                                  <SelectItem key={template.id} value={template.id}>
-                                    {template.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+            <TabsContent value="details" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Detalles del Expediente</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="title">Título del Expediente *</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={handleInputChange}
+                        placeholder="Ej: Compraventa inmueble - Juan Pérez"
+                        required
                       />
                     </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="client">Cliente *</Label>
+                      <Select 
+                        value={formData.client_id} 
+                        onValueChange={(value) => setFormData({...formData, client_id: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar cliente..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Matter Title *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Smith vs. Jones litigation" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="grid gap-2">
+                      <Label>Área de Práctica</Label>
+                      <Select 
+                        value={formData.practice_area || ''} 
+                        onValueChange={(value) => setFormData({...formData, practice_area: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar área..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sin especificar</SelectItem>
+                          {practiceAreas.map((area) => (
+                            <SelectItem key={area.id} value={area.name}>
+                              {area.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Abogado Responsable</Label>
+                      <Select 
+                        value={formData.responsible_solicitor_id || ''} 
+                        onValueChange={(value) => setFormData({...formData, responsible_solicitor_id: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar abogado..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sin asignar</SelectItem>
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Estado</Label>
+                      <Select 
+                        value={formData.status} 
+                        onValueChange={(value) => setFormData({...formData, status: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="open">Abierto</SelectItem>
+                          <SelectItem value="on_hold">En espera</SelectItem>
+                          <SelectItem value="closed">Cerrado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Descripción</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description || ''}
+                      onChange={handleInputChange}
+                      placeholder="Descripción detallada del expediente..."
+                      rows={3}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Detailed description of the matter..."
-                              rows={4}
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+            <TabsContent value="permissions" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Permisos del Expediente
+                  </CardTitle>
+                  <CardDescription>
+                    Configura quién puede acceder y editar este expediente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Los permisos se configurarán después de crear el expediente.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="practice_area"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Practice Area</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select practice area" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="">No practice area</SelectItem>
-                                {practiceAreas.map((area) => (
-                                  <SelectItem key={area.id} value={area.name}>
-                                    {area.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+            <TabsContent value="notifications" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Notificaciones del Expediente
+                  </CardTitle>
+                  <CardDescription>
+                    Configura las notificaciones para este expediente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Las notificaciones se configurarán después de crear el expediente.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                      <FormField
-                        control={form.control}
-                        name="status"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Status</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {statusOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    <div className="flex items-center gap-2">
-                                      <Badge className={option.color}>{option.label}</Badge>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+            <TabsContent value="contacts" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contactos Relacionados</CardTitle>
+                  <CardDescription>
+                    Añade contactos adicionales relacionados con este expediente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Los contactos relacionados se configurarán después de crear el expediente.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="fields" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Campos Personalizados</CardTitle>
+                  <CardDescription>
+                    Añade campos específicos para este tipo de expediente
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Los campos personalizados se configurarán después de crear el expediente.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="billing" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Preferencias de Facturación
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>Método de Facturación</Label>
+                      <Select 
+                        value={formData.billing_method || 'hourly'} 
+                        onValueChange={(value) => setFormData({...formData, billing_method: value})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="hourly">Por Horas</SelectItem>
+                          <SelectItem value="fixed">Tarifa Fija</SelectItem>
+                          <SelectItem value="contingency">Contingencia</SelectItem>
+                          <SelectItem value="retainer">Anticipo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Presupuesto Estimado</Label>
+                      <Input
+                        type="number"
+                        value={formData.estimated_budget || ''}
+                        onChange={(e) => setFormData({...formData, estimated_budget: e.target.value ? parseFloat(e.target.value) : undefined})}
+                        placeholder="0.00"
+                        step="0.01"
                       />
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <TabsContent value="assignment" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Solicitor Assignment</CardTitle>
-                    <CardDescription>
-                      Assign responsible and originating solicitors
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="responsible_solicitor_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Responsible Solicitor</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select responsible solicitor" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">Unassigned</SelectItem>
-                              {users.map((user) => (
-                                <SelectItem key={user.id} value={user.id}>
-                                  {user.email}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+            <TabsContent value="workflow" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckSquare className="h-5 w-5" />
+                    Listas de Tareas y Carpetas
+                  </CardTitle>
+                  <CardDescription>
+                    Configura las tareas y organización de documentos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Las listas de tareas y carpetas se configurarán después de crear el expediente.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
-                    <FormField
-                      control={form.control}
-                      name="originating_solicitor_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Originating Solicitor</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select originating solicitor" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">Unassigned</SelectItem>
-                              {users.map((user) => (
-                                <SelectItem key={user.id} value={user.id}>
-                                  {user.email}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="billing" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Billing Information</CardTitle>
-                    <CardDescription>
-                      Set billing method and budget information
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="billing_method"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Billing Method</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="hourly">Hourly Rate</SelectItem>
-                              <SelectItem value="fixed">Fixed Fee</SelectItem>
-                              <SelectItem value="contingency">Contingency</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="estimated_budget"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Estimated Budget (€)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="0.00"
-                              {...field}
-                              value={field.value || ''}
-                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="settings" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Bell className="h-4 w-4" />
-                        Notifications
-                      </CardTitle>
-                      <CardDescription>
-                        Configure matter notifications
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500">
-                        Notification settings will be configured after matter creation.
-                      </p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        Permissions
-                      </CardTitle>
-                      <CardDescription>
-                        Configure matter access permissions
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-500">
-                        Permission settings will be configured after matter creation.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <Separator />
-
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                * Required fields
-              </div>
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving...' : (case_ ? 'Update Matter' : 'Create Matter')}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </Form>
+          <div className="flex justify-end gap-3 pt-6 border-t mt-6">
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading || !formData.title || !formData.client_id}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Creando...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear Expediente
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   )

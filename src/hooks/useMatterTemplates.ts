@@ -45,7 +45,7 @@ export const useMatterTemplates = () => {
   })
 
   const createTemplate = useMutation({
-    mutationFn: async (templateData: Partial<MatterTemplate>) => {
+    mutationFn: async (templateData: { name: string; description?: string; practice_area_id?: string; default_billing_method?: string; template_data?: any }) => {
       const { error } = await supabase
         .from('matter_templates')
         .insert({

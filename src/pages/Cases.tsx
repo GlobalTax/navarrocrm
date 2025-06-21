@@ -1,34 +1,28 @@
 
 import { useState } from 'react'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { Plus, Filter, Download, MoreVertical, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Plus, Search, Filter, RefreshCw, Building, FileTemplate, Download, Trash2 } from 'lucide-react'
+
+import { CaseTable } from '@/components/cases/CaseTable'
+import { CaseDetailDialog } from '@/components/cases/CaseDetailDialog'
+import { MatterFormDialog } from '@/components/cases/MatterFormDialog'
 import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
-import { MatterFormDialog } from '@/components/cases/MatterFormDialog'
-import { CaseDetailDialog } from '@/components/cases/CaseDetailDialog'
-import { CaseTable } from '@/components/cases/CaseTable'
+import { useMatterTemplates } from '@/hooks/useMatterTemplates'
 
-const Cases = () => {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
-  const [selectedCase, setSelectedCase] = useState<Case | null>(null)
-  const [selectedCases, setSelectedCases] = useState<string[]>([])
-
-  const {
-    filteredCases,
-    isLoading,
-    error,
-    refetch,
-    searchTerm,
+export default function Cases() {
+  const { 
+    filteredCases, 
+    isLoading, 
+    searchTerm, 
     setSearchTerm,
     statusFilter,
     setStatusFilter,
@@ -40,292 +34,263 @@ const Cases = () => {
     isCreating
   } = useCases()
 
-  const { practiceAreas } = usePracticeAreas()
-  const { users } = useUsers()
+  const { practiceAreas = [] } = usePracticeAreas()
+  const { users = [] } = useUsers()
+  const { templates = [] } = useMatterTemplates()
 
-  const handleCreateCase = () => {
-    setSelectedCase(null)
-    setIsCreateDialogOpen(true)
+  const [selectedCase, setSelectedCase] = useState<Case | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [selectedCases, setSelectedCases] = useState<string[]>([])
+
+  const handleViewCase = (case_: Case) => {
+    setSelectedCase(case_)
+    setIsDetailOpen(true)
   }
 
   const handleEditCase = (case_: Case) => {
     setSelectedCase(case_)
-    setIsEditDialogOpen(true)
+    setIsFormOpen(true)
   }
 
-  const handleViewCase = (case_: Case) => {
-    setSelectedCase(case_)
-    setIsDetailDialogOpen(true)
-  }
-
-  const handleDialogClose = () => {
-    setIsCreateDialogOpen(false)
-    setIsEditDialogOpen(false)
-    setIsDetailDialogOpen(false)
-    setSelectedCase(null)
-  }
-
-  const handleFormSubmit = (data: any) => {
-    createCase(data)
-    handleDialogClose()
-  }
-
-  const handleRefresh = () => {
-    refetch()
-  }
-
-  const handleSelectCase = (caseId: string) => {
-    setSelectedCases(prev => 
-      prev.includes(caseId) 
-        ? prev.filter(id => id !== caseId)
-        : [...prev, caseId]
-    )
+  const handleSelectCase = (caseId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedCases([...selectedCases, caseId])
+    } else {
+      setSelectedCases(selectedCases.filter(id => id !== caseId))
+    }
   }
 
   const handleSelectAll = (selected: boolean) => {
-    setSelectedCases(selected ? filteredCases.map(c => c.id) : [])
+    if (selected) {
+      setSelectedCases(filteredCases.map(c => c.id))
+    } else {
+      setSelectedCases([])
+    }
   }
 
-  const hasFilters = searchTerm || statusFilter !== 'all' || practiceAreaFilter !== 'all' || solicitorFilter !== 'all'
-
-  const statusCounts = {
-    all: filteredCases.length,
+  const stats = {
+    total: filteredCases.length,
     open: filteredCases.filter(c => c.status === 'open').length,
-    in_progress: filteredCases.filter(c => c.status === 'in_progress').length,
-    pending: filteredCases.filter(c => c.status === 'pending').length,
     closed: filteredCases.filter(c => c.status === 'closed').length,
+    on_hold: filteredCases.filter(c => c.status === 'on_hold').length
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando expedientes...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Building className="h-8 w-8" />
-              Matters
-            </h1>
-            <p className="text-gray-600">Manage all legal matters and cases for your clients</p>
+            <h1 className="text-2xl font-bold text-gray-900">Expedientes</h1>
+            <p className="text-gray-600">Gestiona todos los expedientes de la firma</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
-              <FileTemplate className="h-4 w-4 mr-2" />
-              Templates
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
             </Button>
-            <Button onClick={handleCreateCase} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              New Matter
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Plantillas
+                  <MoreVertical className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {templates.map((template) => (
+                  <DropdownMenuItem key={template.id}>
+                    {template.name}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuItem>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nueva Plantilla
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Expediente
             </Button>
           </div>
         </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Abiertos</CardTitle>
+              <Badge className="bg-green-100 text-green-800">{stats.open}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.open}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">En Espera</CardTitle>
+              <Badge className="bg-yellow-100 text-yellow-800">{stats.on_hold}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{stats.on_hold}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cerrados</CardTitle>
+              <Badge className="bg-gray-100 text-gray-800">{stats.closed}</Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-600">{stats.closed}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters and Search */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-y-0 md:space-x-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Buscar expedientes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="open">Abierto</SelectItem>
+                    <SelectItem value="on_hold">En espera</SelectItem>
+                    <SelectItem value="closed">Cerrado</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={practiceAreaFilter} onValueChange={setPracticeAreaFilter}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Área de práctica" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las áreas</SelectItem>
+                    {practiceAreas.map((area) => (
+                      <SelectItem key={area.id} value={area.name}>{area.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={solicitorFilter} onValueChange={setSolicitorFilter}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Abogado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los abogados</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>{user.email}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Más filtros
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bulk Actions */}
+        {selectedCases.length > 0 && (
+          <Card className="mb-4">
+            <CardContent className="py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  {selectedCases.length} expediente(s) seleccionado(s)
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">Cambiar estado</Button>
+                  <Button variant="outline" size="sm">Asignar abogado</Button>
+                  <Button variant="outline" size="sm">Exportar seleccionados</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content */}
-        <div className="space-y-6">
-          <Tabs defaultValue="matters" className="w-full">
-            <div className="flex items-center justify-between">
+        <Card>
+          <CardHeader>
+            <Tabs defaultValue="matters" className="w-full">
               <TabsList>
-                <TabsTrigger value="matters" className="flex items-center gap-2">
-                  Matters
-                  <Badge variant="secondary">{statusCounts.all}</Badge>
+                <TabsTrigger value="matters">
+                  Expedientes ({filteredCases.length})
                 </TabsTrigger>
-                <TabsTrigger value="stages">Stages</TabsTrigger>
+                <TabsTrigger value="stages">
+                  Etapas
+                </TabsTrigger>
               </TabsList>
-
-              {error && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefresh}
-                  className="flex items-center gap-2"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Retry
-                </Button>
-              )}
-            </div>
-
-            <TabsContent value="matters" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>All Matters</CardTitle>
-                    {selectedCases.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">
-                          {selectedCases.length} selected
-                        </span>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Export
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Filters */}
-                  <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="Search matters by title, description, client, or matter number..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10"
-                        />
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                          <SelectTrigger className="w-40">
-                            <Filter className="h-4 w-4 mr-2" />
-                            <SelectValue placeholder="Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Status ({statusCounts.all})</SelectItem>
-                            <SelectItem value="open">Open ({statusCounts.open})</SelectItem>
-                            <SelectItem value="in_progress">In Progress ({statusCounts.in_progress})</SelectItem>
-                            <SelectItem value="pending">Pending ({statusCounts.pending})</SelectItem>
-                            <SelectItem value="closed">Closed ({statusCounts.closed})</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={practiceAreaFilter} onValueChange={setPracticeAreaFilter}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Practice Area" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Areas</SelectItem>
-                            {practiceAreas.map((area) => (
-                              <SelectItem key={area.id} value={area.name}>
-                                {area.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={solicitorFilter} onValueChange={setSolicitorFilter}>
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Solicitor" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Solicitors</SelectItem>
-                            {users.map((user) => (
-                              <SelectItem key={user.id} value={user.id}>
-                                {user.email}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {hasFilters && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">Filters applied:</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSearchTerm('')
-                            setStatusFilter('all')
-                            setPracticeAreaFilter('all')
-                            setSolicitorFilter('all')
-                          }}
-                        >
-                          Clear all
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
-                
-                <CardContent>
-                  {error && (
-                    <div className="text-center py-8 text-red-600">
-                      <p className="font-medium">Error loading matters</p>
-                      <p className="text-sm">{error.message}</p>
-                      <Button variant="outline" onClick={handleRefresh} className="mt-2">
-                        Retry
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {!error && isLoading && (
-                    <div className="flex justify-center py-8">
-                      <div className="text-gray-500">Loading matters...</div>
-                    </div>
-                  )}
-                  
-                  {!error && !isLoading && filteredCases.length === 0 && (
-                    <div className="text-center py-8">
-                      <div className="text-gray-500 mb-4">
-                        {hasFilters 
-                          ? 'No matters found with the applied filters' 
-                          : 'No matters registered yet'
-                        }
-                      </div>
-                      {!hasFilters && (
-                        <Button onClick={handleCreateCase}>
-                          Create first matter
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                  
-                  {!error && !isLoading && filteredCases.length > 0 && (
-                    <CaseTable
-                      cases={filteredCases}
-                      onViewCase={handleViewCase}
-                      onEditCase={handleEditCase}
-                      selectedCases={selectedCases}
-                      onSelectCase={handleSelectCase}
-                      onSelectAll={handleSelectAll}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="stages" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Matter Stages</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Matter stages functionality will be implemented here.</p>
-                    <p className="text-sm">Track progress through different stages of legal matters.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+              
+              <TabsContent value="matters">
+                <CaseTable
+                  cases={filteredCases}
+                  onViewCase={handleViewCase}
+                  onEditCase={handleEditCase}
+                  selectedCases={selectedCases}
+                  onSelectCase={handleSelectCase}
+                  onSelectAll={handleSelectAll}
+                />
+              </TabsContent>
+              
+              <TabsContent value="stages">
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>La gestión de etapas estará disponible próximamente</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardHeader>
+        </Card>
 
         {/* Dialogs */}
-        <MatterFormDialog
-          case_={selectedCase}
-          open={isCreateDialogOpen || isEditDialogOpen}
-          onClose={handleDialogClose}
-          onSubmit={handleFormSubmit}
-          isSubmitting={isCreating}
-        />
-
         <CaseDetailDialog
           case_={selectedCase}
-          open={isDetailDialogOpen}
-          onClose={handleDialogClose}
-          onEdit={handleEditCase}
+          open={isDetailOpen}
+          onOpenChange={setIsDetailOpen}
+        />
+
+        <MatterFormDialog
+          open={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          onSubmit={createCase}
+          isLoading={isCreating}
         />
       </div>
-    </MainLayout>
+    </div>
   )
 }
-
-export default Cases
