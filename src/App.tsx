@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AppProvider } from '@/contexts/AppContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { SystemDiagnostics } from '@/components/SystemDiagnostics';
 
 // Pages
 import Login from '@/pages/Login';
@@ -57,7 +56,6 @@ function App() {
               </Routes>
               
               <Toaster position="bottom-right" />
-              <SystemDiagnostics />
             </div>
           </Router>
         </AppProvider>
