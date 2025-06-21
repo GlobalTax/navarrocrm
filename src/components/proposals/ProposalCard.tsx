@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Eye, Send, Check, X, Clock, Repeat, Calendar } from 'lucide-react'
-import { Proposal } from '@/hooks/useProposals'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import type { Proposal } from '@/types/proposals'
 
 interface ProposalCardProps {
   proposal: Proposal
