@@ -60,10 +60,8 @@ export function CaseTable({
             <TableHead className="w-12">
               <Checkbox
                 checked={allSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = someSelected
-                }}
                 onCheckedChange={onSelectAll}
+                className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
               />
             </TableHead>
             <TableHead>Nº Expediente</TableHead>

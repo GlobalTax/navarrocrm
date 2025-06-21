@@ -281,7 +281,7 @@ export default function Cases() {
         <CaseDetailDialog
           case_={selectedCase}
           open={isDetailOpen}
-          onOpenChange={setIsDetailOpen}
+          onClose={() => setIsDetailOpen(false)}
         />
 
         <MatterFormDialog
