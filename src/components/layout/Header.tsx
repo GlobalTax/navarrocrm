@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import { LogOut, User, Search, Bell } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 
@@ -29,7 +29,7 @@ const getBreadcrumbs = (pathname: string) => {
 }
 
 export const Header = () => {
-  const { user, signOut } = useAuth()
+  const { user, signOut } = useApp()
   const location = useLocation()
   const breadcrumbs = getBreadcrumbs(location.pathname)
 
