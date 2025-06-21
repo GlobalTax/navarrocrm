@@ -2,17 +2,22 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { cn } from "@/lib/utils"
 import { 
-  LayoutDashboard, 
-  Users, 
-  FolderOpen, 
-  FileText,
+  Home, 
+  UserCheck, 
+  Scale, 
+  ScrollText,
   Calendar,
-  Clock,
+  Timer,
   Settings,
   ChevronDown,
-  MessageSquare,
-  Plus,
-  DollarSign
+  Bot,
+  Zap,
+  UserPlus,
+  FolderPlus,
+  CalendarPlus,
+  PlayCircle,
+  Receipt,
+  Sparkles
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useState } from 'react'
@@ -20,12 +25,12 @@ import { Button } from '@/components/ui/button'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Clientes', href: '/clients', icon: Users },
-  { name: 'Casos', href: '/cases', icon: FolderOpen },
-  { name: 'Propuestas', href: '/proposals', icon: FileText },
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Clientes', href: '/clients', icon: UserCheck },
+  { name: 'Casos', href: '/cases', icon: Scale },
+  { name: 'Propuestas', href: '/proposals', icon: ScrollText },
   { name: 'Calendario', href: '/calendar', icon: Calendar },
-  { name: 'Registro de Tiempo', href: '/time-tracking', icon: Clock },
+  { name: 'Registro de Tiempo', href: '/time-tracking', icon: Timer },
 ]
 
 export function Sidebar() {
@@ -38,35 +43,35 @@ export function Sidebar() {
     {
       id: 'new-client',
       title: 'Nuevo Cliente',
-      icon: Users,
+      icon: UserPlus,
       action: () => navigate('/clients'),
       color: 'text-blue-600 hover:text-blue-700'
     },
     {
       id: 'new-case',
       title: 'Nuevo Caso',
-      icon: FolderOpen,
+      icon: FolderPlus,
       action: () => navigate('/cases'),
       color: 'text-green-600 hover:text-green-700'
     },
     {
       id: 'calendar-event',
       title: 'Nuevo Evento',
-      icon: Calendar,
+      icon: CalendarPlus,
       action: () => navigate('/calendar'),
       color: 'text-purple-600 hover:text-purple-700'
     },
     {
       id: 'time-entry',
       title: 'Registrar Tiempo',
-      icon: Clock,
+      icon: PlayCircle,
       action: () => navigate('/time-tracking'),
       color: 'text-orange-600 hover:text-orange-700'
     },
     {
       id: 'invoice',
       title: 'Nueva Factura',
-      icon: DollarSign,
+      icon: Receipt,
       action: () => {}, // TODO: Implementar facturación
       color: 'text-indigo-600 hover:text-indigo-700'
     }
@@ -76,13 +81,13 @@ export function Sidebar() {
     {
       id: 'ai-create-client',
       title: 'Crear cliente con IA',
-      icon: Users,
+      icon: UserCheck,
       prompt: 'Ayúdame a crear un nuevo cliente paso a paso'
     },
     {
       id: 'ai-search-case',
       title: 'Buscar expediente',
-      icon: FolderOpen,
+      icon: Scale,
       prompt: 'Quiero buscar información sobre un expediente específico'
     },
     {
@@ -132,7 +137,7 @@ export function Sidebar() {
           {/* Acciones Rápidas */}
           <Collapsible open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
             <CollapsibleTrigger className="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 mt-4">
-              <Plus className="mr-3 flex-shrink-0 h-6 w-6" />
+              <Zap className="mr-3 flex-shrink-0 h-6 w-6" />
               Acciones Rápidas
               <ChevronDown className={cn(
                 "ml-auto h-4 w-4 transition-transform",
@@ -161,7 +166,10 @@ export function Sidebar() {
               
               {/* Separador para acciones de IA */}
               <div className="border-t border-gray-200 my-2" />
-              <div className="text-xs text-gray-500 px-2 py-1 font-medium">Con IA</div>
+              <div className="text-xs text-gray-500 px-2 py-1 font-medium flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Con IA
+              </div>
               
               {aiQuickActions.map((action) => {
                 const Icon = action.icon
@@ -184,7 +192,7 @@ export function Sidebar() {
           {/* Asistente IA */}
           <Collapsible open={isAIOpen} onOpenChange={setIsAIOpen}>
             <CollapsibleTrigger className="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-              <MessageSquare className="mr-3 flex-shrink-0 h-6 w-6" />
+              <Bot className="mr-3 flex-shrink-0 h-6 w-6" />
               Asistente IA
               <ChevronDown className={cn(
                 "ml-auto h-4 w-4 transition-transform",
@@ -211,7 +219,7 @@ export function Sidebar() {
                 onClick={toggleAI}
                 className="w-full justify-start px-2 py-1.5 h-auto text-sm font-normal text-gray-600 hover:text-gray-900"
               >
-                <MessageSquare className="mr-2 h-4 w-4" />
+                <Bot className="mr-2 h-4 w-4" />
                 Abrir Chat IA
               </Button>
             </CollapsibleContent>
