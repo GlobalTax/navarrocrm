@@ -2,9 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Clock, Calendar, AlertTriangle, Plus } from 'lucide-react'
+import { Clock, Calendar, AlertTriangle, Plus, CalendarDays } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
 
 interface AgendaItem {
   id: string
@@ -77,6 +78,7 @@ const getPriorityColor = (priority: AgendaItem['priority']) => {
 
 export const TodayAgenda = () => {
   const today = new Date()
+  const navigate = useNavigate()
   
   return (
     <Card className="h-full">
@@ -88,6 +90,14 @@ export const TodayAgenda = () => {
           <span className="text-sm text-muted-foreground">
             {format(today, 'EEEE, d MMMM', { locale: es })}
           </span>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-8 w-8 p-0"
+            onClick={() => navigate('/calendar')}
+          >
+            <CalendarDays className="h-4 w-4" />
+          </Button>
           <Button size="sm" variant="outline" className="h-8 w-8 p-0">
             <Plus className="h-4 w-4" />
           </Button>
@@ -98,37 +108,58 @@ export const TodayAgenda = () => {
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
             <p>No hay eventos programados para hoy</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-3"
+              onClick={() => navigate('/calendar')}
+            >
+              Ver Calendario Completo
+            </Button>
           </div>
         ) : (
-          mockAgendaItems.map((item) => (
-            <div
-              key={item.id}
-              className={`flex items-start gap-3 p-3 rounded-lg border-l-4 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer ${getPriorityColor(item.priority)}`}
-            >
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div className="flex-shrink-0">
-                  {getTypeIcon(item.type)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-sm truncate">{item.title}</p>
-                    <Badge variant="secondary" className={`text-xs ${getTypeColor(item.type)}`}>
-                      {item.type === 'meeting' && 'Reunión'}
-                      {item.type === 'deadline' && 'Plazo'}
-                      {item.type === 'task' && 'Tarea'}
-                      {item.type === 'court' && 'Juzgado'}
-                    </Badge>
+          <>
+            {mockAgendaItems.map((item) => (
+              <div
+                key={item.id}
+                className={`flex items-start gap-3 p-3 rounded-lg border-l-4 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer ${getPriorityColor(item.priority)}`}
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="flex-shrink-0">
+                    {getTypeIcon(item.type)}
                   </div>
-                  {item.client && (
-                    <p className="text-xs text-muted-foreground">{item.client}</p>
-                  )}
-                </div>
-                <div className="text-sm font-medium text-muted-foreground">
-                  {item.time}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-sm truncate">{item.title}</p>
+                      <Badge variant="secondary" className={`text-xs ${getTypeColor(item.type)}`}>
+                        {item.type === 'meeting' && 'Reunión'}
+                        {item.type === 'deadline' && 'Plazo'}
+                        {item.type === 'task' && 'Tarea'}
+                        {item.type === 'court' && 'Juzgado'}
+                      </Badge>
+                    </div>
+                    {item.client && (
+                      <p className="text-xs text-muted-foreground">{item.client}</p>
+                    )}
+                  </div>
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {item.time}
+                  </div>
                 </div>
               </div>
+            ))}
+            <div className="pt-2 border-t">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                onClick={() => navigate('/calendar')}
+              >
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Ver Calendario Completo
+              </Button>
             </div>
-          ))
+          </>
         )}
       </CardContent>
     </Card>

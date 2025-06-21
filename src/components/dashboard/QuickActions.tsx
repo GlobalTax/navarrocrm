@@ -41,20 +41,20 @@ export const QuickActions = () => {
       color: 'bg-green-500 hover:bg-green-600'
     },
     {
+      id: 'calendar-event',
+      title: 'Nuevo Evento',
+      description: 'Programar cita',
+      icon: Calendar,
+      action: () => navigate('/calendar'),
+      color: 'bg-purple-500 hover:bg-purple-600'
+    },
+    {
       id: 'time-entry',
       title: 'Registrar Tiempo',
       description: 'Iniciar timer',
       icon: Clock,
       action: () => navigate('/time-tracking'),
       color: 'bg-orange-500 hover:bg-orange-600'
-    },
-    {
-      id: 'schedule',
-      title: 'Cita',
-      description: 'Programar reunión',
-      icon: Calendar,
-      action: () => {}, // TODO: Implementar calendario
-      color: 'bg-purple-500 hover:bg-purple-600'
     },
     {
       id: 'invoice',

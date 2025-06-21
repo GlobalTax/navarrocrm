@@ -13,6 +13,7 @@ import Dashboard from '@/pages/Dashboard'
 import Clients from '@/pages/Clients'
 import Cases from '@/pages/Cases'
 import TimeTracking from '@/pages/TimeTracking'
+import Calendar from '@/pages/Calendar'
 import Setup from '@/pages/Setup'
 import NotFound from '@/pages/NotFound'
 import Unauthorized from '@/pages/Unauthorized'
@@ -76,6 +77,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <TimeTracking />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/calendar"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Calendar />
                     </MainLayout>
                   </ProtectedRoute>
                 }

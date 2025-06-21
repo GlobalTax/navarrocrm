@@ -53,15 +53,15 @@ const menuSections = [
         badge: null
       },
       {
-        title: 'Facturas',
-        icon: DollarSign,
-        href: '/invoices',
-        badge: { text: 'Próximo', variant: 'secondary' as const }
-      },
-      {
         title: 'Calendario',
         icon: Calendar,
         href: '/calendar',
+        badge: null
+      },
+      {
+        title: 'Facturas',
+        icon: DollarSign,
+        href: '/invoices',
         badge: { text: 'Próximo', variant: 'secondary' as const }
       }
     ]
