@@ -45,12 +45,12 @@ export function ProposalFilters({ filters, onFiltersChange }: ProposalFiltersPro
         />
       </div>
       
-      <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
+      <Select value={filters.status} onValueChange={(value) => updateFilter('status', value === 'all' ? '' : value)}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos los estados</SelectItem>
+          <SelectItem value="all">Todos los estados</SelectItem>
           <SelectItem value="draft">Borrador</SelectItem>
           <SelectItem value="sent">Enviada</SelectItem>
           <SelectItem value="negotiating">Negociando</SelectItem>
