@@ -21,6 +21,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Timeout más agresivo para consultas de perfil
+const PROFILE_FETCH_TIMEOUT = 3000 // 3 segundos
+const MAX_RETRIES = 2
+
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {
@@ -35,46 +39,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
   const fetchingProfile = useRef<string | null>(null)
   const lastAuthEvent = useRef<string | null>(null)
+  const initializationComplete = useRef(false)
 
   useEffect(() => {
     let isMounted = true
+    let initTimeout: NodeJS.Timeout
 
     const initializeAuth = async () => {
       try {
-        console.log('🔐 [AuthContext] Inicializando...')
+        console.log('🔐 [AuthContext] Inicializando con timeout de 5s...')
         
+        // Timeout de seguridad para inicialización
+        initTimeout = setTimeout(() => {
+          if (!initializationComplete.current && isMounted) {
+            console.warn('⚠️ [AuthContext] Timeout de inicialización - usando sesión básica')
+            setLoading(false)
+            initializationComplete.current = true
+          }
+        }, 5000)
+
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
           console.error('❌ [AuthContext] Error obteniendo sesión:', error.message)
-          if (isMounted) {
+          if (isMounted && !initializationComplete.current) {
             setSession(null)
             setUser(null)
             setLoading(false)
+            initializationComplete.current = true
           }
           return
         }
 
         console.log('📋 [AuthContext] Sesión inicial:', session ? 'Encontrada' : 'No encontrada')
         
-        if (isMounted) {
+        if (isMounted && !initializationComplete.current) {
           setSession(session)
           if (session?.user) {
             console.log('👤 [AuthContext] Usuario en sesión:', session.user.id)
-            await fetchUserProfile(session.user)
+            await fetchUserProfileWithTimeout(session.user)
           } else {
             console.log('🚫 [AuthContext] Sin usuario en sesión')
             setUser(null)
             setLoading(false)
+            initializationComplete.current = true
           }
         }
       } catch (error) {
         console.error('❌ [AuthContext] Error crítico en inicialización:', error)
-        if (isMounted) {
+        if (isMounted && !initializationComplete.current) {
           setUser(null)
           setSession(null)
           setLoading(false)
+          initializationComplete.current = true
         }
+      } finally {
+        if (initTimeout) clearTimeout(initTimeout)
       }
     }
 
@@ -95,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session)
         if (session?.user) {
           console.log('👤 [AuthContext] Nuevo usuario autenticado:', session.user.id)
-          await fetchUserProfile(session.user)
+          await fetchUserProfileWithTimeout(session.user)
         } else {
           console.log('🚫 [AuthContext] Usuario desautenticado')
           setUser(null)
@@ -108,11 +128,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       isMounted = false
+      if (initTimeout) clearTimeout(initTimeout)
       subscription.unsubscribe()
     }
   }, [])
 
-  const fetchUserProfile = async (authUser: User) => {
+  const fetchUserProfileWithTimeout = async (authUser: User, retryCount = 0): Promise<void> => {
     // Evitar consultas duplicadas para el mismo usuario
     if (fetchingProfile.current === authUser.id) {
       console.log('👤 [AuthContext] Consulta de perfil ya en curso para:', authUser.id)
@@ -121,38 +142,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       fetchingProfile.current = authUser.id
-      console.log('👤 [AuthContext] Consultando perfil para:', authUser.id)
+      console.log(`👤 [AuthContext] Consultando perfil (intento ${retryCount + 1}/${MAX_RETRIES + 1}):`, authUser.id)
       
-      const { data, error } = await supabase
-        .from('users')
-        .select('role, org_id')
-        .eq('id', authUser.id)
-        .single()
+      // Implementar timeout para la consulta
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), PROFILE_FETCH_TIMEOUT)
 
-      if (error) {
-        console.error('❌ [AuthContext] Error consultando perfil:', error.message)
-        // Si falla la consulta del perfil, usar usuario básico
-        console.log('⚠️ [AuthContext] Usando usuario básico sin perfil extendido')
-        setUser(authUser as AuthUser)
-      } else if (data) {
-        console.log('✅ [AuthContext] Perfil consultado exitosamente:', { role: data.role, org_id: data.org_id })
-        setUser({
-          ...authUser,
-          role: data.role as UserRole,
-          org_id: data.org_id
-        })
-      } else {
-        console.log('⚠️ [AuthContext] No se encontró perfil, usando usuario básico')
-        setUser(authUser as AuthUser)
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('role, org_id')
+          .eq('id', authUser.id)
+          .abortSignal(controller.signal)
+          .single()
+
+        clearTimeout(timeoutId)
+
+        if (error) {
+          throw error
+        }
+
+        if (data) {
+          console.log('✅ [AuthContext] Perfil consultado exitosamente:', { role: data.role, org_id: data.org_id })
+          setUser({
+            ...authUser,
+            role: data.role as UserRole,
+            org_id: data.org_id
+          })
+        } else {
+          console.log('⚠️ [AuthContext] No se encontró perfil, usando usuario básico')
+          setUser(authUser as AuthUser)
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId)
+        
+        if (fetchError.name === 'AbortError') {
+          console.warn('⏰ [AuthContext] Timeout en consulta de perfil')
+          throw new Error('Timeout en consulta de perfil')
+        }
+        throw fetchError
       }
-    } catch (error) {
-      console.error('❌ [AuthContext] Error crítico en fetchUserProfile:', error)
-      // En caso de error crítico, usar usuario básico
+    } catch (error: any) {
+      console.error(`❌ [AuthContext] Error en fetchUserProfile (intento ${retryCount + 1}):`, error.message)
+      
+      // Retry logic
+      if (retryCount < MAX_RETRIES && error.message !== 'Timeout en consulta de perfil') {
+        console.log(`🔄 [AuthContext] Reintentando consulta de perfil en 1s...`)
+        setTimeout(() => {
+          fetchUserProfileWithTimeout(authUser, retryCount + 1)
+        }, 1000)
+        return
+      }
+      
+      // Si fallan todos los intentos, usar usuario básico
+      console.log('⚠️ [AuthContext] Usando usuario básico tras fallos en consulta de perfil')
       setUser(authUser as AuthUser)
     } finally {
       fetchingProfile.current = null
-      console.log('🏁 [AuthContext] Finalizando carga de perfil')
-      setLoading(false)
+      if (!initializationComplete.current) {
+        console.log('🏁 [AuthContext] Finalizando carga de perfil')
+        setLoading(false)
+        initializationComplete.current = true
+      }
     }
   }
 
