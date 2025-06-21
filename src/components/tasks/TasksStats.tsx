@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Clock, AlertTriangle, Target } from 'lucide-react'
 
 interface TasksStatsProps {
-  stats: {
+  stats?: {
     total_tasks: number
     pending_tasks: number
     in_progress_tasks: number
@@ -14,45 +14,55 @@ interface TasksStatsProps {
 }
 
 export const TasksStats = ({ stats }: TasksStatsProps) => {
+  // Provide default values if stats is undefined
+  const safeStats = stats || {
+    total_tasks: 0,
+    pending_tasks: 0,
+    in_progress_tasks: 0,
+    completed_tasks: 0,
+    overdue_tasks: 0,
+    high_priority_tasks: 0
+  }
+
   const statItems = [
     {
       label: 'Total',
-      value: stats.total_tasks,
+      value: safeStats.total_tasks,
       icon: Target,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
       label: 'Pendientes',
-      value: stats.pending_tasks,
+      value: safeStats.pending_tasks,
       icon: Clock,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50'
     },
     {
       label: 'En Progreso',
-      value: stats.in_progress_tasks,
+      value: safeStats.in_progress_tasks,
       icon: Clock,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
       label: 'Completadas',
-      value: stats.completed_tasks,
+      value: safeStats.completed_tasks,
       icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
       label: 'Vencidas',
-      value: stats.overdue_tasks,
+      value: safeStats.overdue_tasks,
       icon: AlertTriangle,
       color: 'text-red-600',
       bgColor: 'bg-red-50'
     },
     {
       label: 'Alta Prioridad',
-      value: stats.high_priority_tasks,
+      value: safeStats.high_priority_tasks,
       icon: AlertTriangle,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50'
