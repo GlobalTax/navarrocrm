@@ -1,4 +1,3 @@
-
 import { useState, FormEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -24,7 +23,7 @@ import { ChatInput } from '@/components/ui/chat-input'
 import { ChatMessageList } from '@/components/ui/chat-message-list'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 
 interface Message {
@@ -61,7 +60,8 @@ const QUICK_ACTIONS = [
 ]
 
 export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAssistantProps) => {
-  const { user } = useAuth()
+  const { user } = useApp()
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
