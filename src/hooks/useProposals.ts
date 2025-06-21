@@ -21,6 +21,17 @@ export interface Proposal {
   created_by: string
   assigned_to?: string
   notes?: string
+  // Campos recurrentes
+  is_recurring?: boolean
+  recurring_frequency?: 'monthly' | 'quarterly' | 'yearly'
+  contract_start_date?: string
+  contract_end_date?: string
+  auto_renewal?: boolean
+  retainer_amount?: number
+  included_hours?: number
+  hourly_rate_extra?: number
+  next_billing_date?: string
+  billing_day?: number
   created_at: string
   updated_at: string
   client?: {
@@ -51,6 +62,16 @@ export interface CreateProposalData {
   valid_until?: string
   assigned_to?: string
   notes?: string
+  // Campos recurrentes
+  is_recurring?: boolean
+  recurring_frequency?: 'monthly' | 'quarterly' | 'yearly'
+  contract_start_date?: string
+  contract_end_date?: string
+  auto_renewal?: boolean
+  retainer_amount?: number
+  included_hours?: number
+  hourly_rate_extra?: number
+  billing_day?: number
   line_items: Omit<ProposalLineItem, 'id' | 'proposal_id'>[]
 }
 
@@ -83,15 +104,32 @@ export const useProposals = () => {
     mutationFn: async (proposalData: CreateProposalData) => {
       if (!user?.org_id || !user?.id) throw new Error('Usuario no autenticado')
 
+      // Preparar datos de propuesta
+      const proposalInsert = {
+        org_id: user.org_id,
+        created_by: user.id,
+        ...proposalData,
+        line_items: undefined // No incluir line_items en el insert principal
+      }
+
+      // Si es recurrente y de tipo retainer, calcular la próxima fecha de facturación
+      if (proposalData.is_recurring && proposalData.contract_start_date && proposalData.billing_day) {
+        const startDate = new Date(proposalData.contract_start_date)
+        const nextBilling = new Date(startDate)
+        nextBilling.setDate(proposalData.billing_day)
+        
+        // Si el día ya pasó este mes, mover al siguiente mes
+        if (nextBilling <= startDate) {
+          nextBilling.setMonth(nextBilling.getMonth() + 1)
+        }
+        
+        proposalInsert.next_billing_date = nextBilling.toISOString().split('T')[0]
+      }
+
       // Crear la propuesta
       const { data: proposal, error: proposalError } = await supabase
         .from('proposals')
-        .insert({
-          org_id: user.org_id,
-          created_by: user.id,
-          ...proposalData,
-          line_items: undefined // No incluir line_items en el insert principal
-        })
+        .insert(proposalInsert)
         .select()
         .single()
 
@@ -111,6 +149,11 @@ export const useProposals = () => {
         if (lineItemsError) throw lineItemsError
       }
 
+      // Si es retainer y está ganada, crear el contrato retainer
+      if (proposal.proposal_type === 'retainer' && proposal.is_recurring && proposal.status === 'won') {
+        await createRetainerContract(proposal)
+      }
+
       return proposal
     },
     onSuccess: () => {
@@ -125,9 +168,10 @@ export const useProposals = () => {
 
   const updateProposalStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: Proposal['status'] }) => {
+      const proposal = proposals.find(p => p.id === id)
       const updateData: any = { status }
       
-      if (status === 'sent' && !proposals.find(p => p.id === id)?.sent_at) {
+      if (status === 'sent' && !proposal?.sent_at) {
         updateData.sent_at = new Date().toISOString()
       }
       
@@ -143,6 +187,12 @@ export const useProposals = () => {
         .single()
 
       if (error) throw error
+
+      // Si la propuesta es de tipo retainer y recurrente, crear el contrato
+      if (status === 'won' && data.proposal_type === 'retainer' && data.is_recurring) {
+        await createRetainerContract(data)
+      }
+
       return data
     },
     onSuccess: () => {
@@ -154,6 +204,27 @@ export const useProposals = () => {
       toast.error('Error al actualizar estado')
     }
   })
+
+  const createRetainerContract = async (proposal: any) => {
+    const { error } = await supabase
+      .from('retainer_contracts')
+      .insert({
+        org_id: proposal.org_id,
+        proposal_id: proposal.id,
+        client_id: proposal.client_id,
+        retainer_amount: proposal.retainer_amount || 0,
+        included_hours: proposal.included_hours || 0,
+        hourly_rate_extra: proposal.hourly_rate_extra || 0,
+        contract_start_date: proposal.contract_start_date,
+        contract_end_date: proposal.contract_end_date,
+        next_invoice_date: proposal.next_billing_date
+      })
+
+    if (error) {
+      console.error('Error creating retainer contract:', error)
+      toast.error('Error al crear contrato retainer')
+    }
+  }
 
   return {
     proposals,

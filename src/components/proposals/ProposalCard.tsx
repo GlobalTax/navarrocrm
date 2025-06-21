@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Send, Check, X, Clock } from 'lucide-react'
+import { MoreHorizontal, Eye, Send, Check, X, Clock, Repeat, Calendar } from 'lucide-react'
 import { Proposal } from '@/hooks/useProposals'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -47,6 +47,12 @@ const statusConfig = {
   }
 }
 
+const frequencyLabels = {
+  monthly: 'Mensual',
+  quarterly: 'Trimestral',
+  yearly: 'Anual'
+}
+
 export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardProps) {
   const config = statusConfig[proposal.status]
   const StatusIcon = config.icon
@@ -56,7 +62,15 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <h3 className="font-semibold text-lg leading-none">{proposal.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-lg leading-none">{proposal.title}</h3>
+              {proposal.is_recurring && (
+                <Badge variant="outline" className="text-xs">
+                  <Repeat className="h-3 w-3 mr-1" />
+                  {proposal.recurring_frequency && frequencyLabels[proposal.recurring_frequency]}
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               {proposal.client?.name}
             </p>
@@ -103,6 +117,12 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
           </Badge>
           <span className="font-semibold text-lg">
             €{proposal.total_amount.toLocaleString()}
+            {proposal.is_recurring && proposal.recurring_frequency && (
+              <span className="text-xs text-muted-foreground ml-1">
+                /{proposal.recurring_frequency === 'monthly' ? 'mes' : 
+                  proposal.recurring_frequency === 'quarterly' ? 'trim' : 'año'}
+              </span>
+            )}
           </span>
         </div>
         
@@ -120,7 +140,28 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
           {proposal.valid_until && (
             <div>Válida hasta: {format(new Date(proposal.valid_until), 'dd MMM yyyy', { locale: es })}</div>
           )}
+          {proposal.is_recurring && proposal.contract_start_date && (
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Inicio: {format(new Date(proposal.contract_start_date), 'dd MMM yyyy', { locale: es })}
+            </div>
+          )}
+          {proposal.is_recurring && proposal.next_billing_date && (
+            <div className="flex items-center gap-1 text-blue-600">
+              <Calendar className="h-3 w-3" />
+              Próxima factura: {format(new Date(proposal.next_billing_date), 'dd MMM yyyy', { locale: es })}
+            </div>
+          )}
         </div>
+
+        {proposal.proposal_type === 'retainer' && proposal.retainer_amount && (
+          <div className="mt-2 text-xs bg-blue-50 p-2 rounded">
+            <div className="font-medium">Retainer: €{proposal.retainer_amount.toLocaleString()}</div>
+            {proposal.included_hours && (
+              <div>Incluye {proposal.included_hours}h • Extra: €{proposal.hourly_rate_extra || 0}/h</div>
+            )}
+          </div>
+        )}
       </CardContent>
       
       <CardFooter className="pt-3">

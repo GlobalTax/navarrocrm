@@ -6,8 +6,10 @@ import { useProposals } from '@/hooks/useProposals'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
 import { ProposalFilters } from '@/components/proposals/ProposalFilters'
 import { ProposalCard } from '@/components/proposals/ProposalCard'
-import { NewProposalDialog } from '@/components/proposals/NewProposalDialog'
+import { RecurringProposalForm } from '@/components/proposals/RecurringProposalForm'
+import { RecurringRevenueMetrics } from '@/components/proposals/RecurringRevenueMetrics'
 import { Loader2 } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function Proposals() {
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
@@ -28,6 +30,10 @@ export default function Proposals() {
     if (filters.dateTo && new Date(proposal.created_at) > filters.dateTo) return false
     return true
   })
+
+  // Separar propuestas recurrentes y puntuales
+  const recurringProposals = filteredProposals.filter(p => p.is_recurring)
+  const oneTimeProposals = filteredProposals.filter(p => !p.is_recurring)
 
   const handleStatusChange = (id: string, status: any) => {
     updateProposalStatus.mutate({ id, status })
@@ -55,7 +61,7 @@ export default function Proposals() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Propuestas</h1>
-          <p className="text-gray-600 mt-1">Gestiona tus propuestas comerciales y seguimiento de ventas</p>
+          <p className="text-gray-600 mt-1">Gestiona tus propuestas comerciales y contratos recurrentes</p>
         </div>
         <Button onClick={() => setIsNewProposalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -63,42 +69,103 @@ export default function Proposals() {
         </Button>
       </div>
 
-      {/* Métricas */}
+      {/* Métricas de Ingresos Recurrentes */}
+      <RecurringRevenueMetrics />
+
+      {/* Métricas Generales */}
       <ProposalMetrics />
 
       {/* Filtros */}
       <ProposalFilters filters={filters} onFiltersChange={setFilters} />
 
-      {/* Lista de Propuestas */}
-      <div className="space-y-4">
-        {filteredProposals.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-500 text-lg mb-4">
-              {proposals.length === 0 ? 'No hay propuestas creadas aún' : 'No se encontraron propuestas con los filtros aplicados'}
+      {/* Tabs para Propuestas */}
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList>
+          <TabsTrigger value="all">Todas ({filteredProposals.length})</TabsTrigger>
+          <TabsTrigger value="recurring">Recurrentes ({recurringProposals.length})</TabsTrigger>
+          <TabsTrigger value="onetime">Puntuales ({oneTimeProposals.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-4">
+          {filteredProposals.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500 text-lg mb-4">
+                {proposals.length === 0 ? 'No hay propuestas creadas aún' : 'No se encontraron propuestas con los filtros aplicados'}
+              </div>
+              {proposals.length === 0 && (
+                <Button onClick={() => setIsNewProposalOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear primera propuesta
+                </Button>
+              )}
             </div>
-            {proposals.length === 0 && (
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredProposals.map(proposal => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onStatusChange={handleStatusChange}
+                  onView={handleViewProposal}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="recurring" className="space-y-4">
+          {recurringProposals.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500 text-lg mb-4">
+                No hay propuestas recurrentes
+              </div>
               <Button onClick={() => setIsNewProposalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Crear primera propuesta
+                Crear propuesta recurrente
               </Button>
-            )}
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredProposals.map(proposal => (
-              <ProposalCard
-                key={proposal.id}
-                proposal={proposal}
-                onStatusChange={handleStatusChange}
-                onView={handleViewProposal}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {recurringProposals.map(proposal => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onStatusChange={handleStatusChange}
+                  onView={handleViewProposal}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="onetime" className="space-y-4">
+          {oneTimeProposals.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500 text-lg mb-4">
+                No hay propuestas puntuales
+              </div>
+              <Button onClick={() => setIsNewProposalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear propuesta puntual
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {oneTimeProposals.map(proposal => (
+                <ProposalCard
+                  key={proposal.id}
+                  proposal={proposal}
+                  onStatusChange={handleStatusChange}
+                  onView={handleViewProposal}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog para nueva propuesta */}
-      <NewProposalDialog
+      <RecurringProposalForm
         open={isNewProposalOpen}
         onOpenChange={setIsNewProposalOpen}
         onSubmit={createProposal.mutate}

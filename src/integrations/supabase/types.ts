@@ -799,19 +799,83 @@ export type Database = {
           },
         ]
       }
+      proposal_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          default_frequency: string | null
+          default_hourly_rate: number | null
+          default_included_hours: number | null
+          default_retainer_amount: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_recurring: boolean | null
+          name: string
+          org_id: string
+          template_data: Json | null
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          default_frequency?: string | null
+          default_hourly_rate?: number | null
+          default_included_hours?: number | null
+          default_retainer_amount?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          name: string
+          org_id: string
+          template_data?: Json | null
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          default_frequency?: string | null
+          default_hourly_rate?: number | null
+          default_included_hours?: number | null
+          default_retainer_amount?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          name?: string
+          org_id?: string
+          template_data?: Json | null
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       proposals: {
         Row: {
           accepted_at: string | null
           assigned_to: string | null
+          auto_renewal: boolean | null
+          billing_day: number | null
           client_id: string
+          contract_end_date: string | null
+          contract_start_date: string | null
           created_at: string | null
           created_by: string
           currency: string | null
           description: string | null
+          hourly_rate_extra: number | null
           id: string
+          included_hours: number | null
+          is_recurring: boolean | null
+          next_billing_date: string | null
           notes: string | null
           org_id: string
           proposal_type: string | null
+          recurring_frequency: string | null
+          retainer_amount: number | null
           sent_at: string | null
           status: string
           title: string
@@ -822,15 +886,25 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           assigned_to?: string | null
+          auto_renewal?: boolean | null
+          billing_day?: number | null
           client_id: string
+          contract_end_date?: string | null
+          contract_start_date?: string | null
           created_at?: string | null
           created_by: string
           currency?: string | null
           description?: string | null
+          hourly_rate_extra?: number | null
           id?: string
+          included_hours?: number | null
+          is_recurring?: boolean | null
+          next_billing_date?: string | null
           notes?: string | null
           org_id: string
           proposal_type?: string | null
+          recurring_frequency?: string | null
+          retainer_amount?: number | null
           sent_at?: string | null
           status?: string
           title: string
@@ -841,15 +915,25 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           assigned_to?: string | null
+          auto_renewal?: boolean | null
+          billing_day?: number | null
           client_id?: string
+          contract_end_date?: string | null
+          contract_start_date?: string | null
           created_at?: string | null
           created_by?: string
           currency?: string | null
           description?: string | null
+          hourly_rate_extra?: number | null
           id?: string
+          included_hours?: number | null
+          is_recurring?: boolean | null
+          next_billing_date?: string | null
           notes?: string | null
           org_id?: string
           proposal_type?: string | null
+          recurring_frequency?: string | null
+          retainer_amount?: number | null
           sent_at?: string | null
           status?: string
           title?: string
@@ -870,6 +954,197 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_invoices: {
+        Row: {
+          amount: number
+          billing_period_end: string | null
+          billing_period_start: string | null
+          client_id: string
+          created_at: string | null
+          due_date: string
+          extra_hours: number | null
+          extra_hours_amount: number | null
+          hours_included: number | null
+          hours_used: number | null
+          id: string
+          invoice_date: string
+          invoice_number: string | null
+          notes: string | null
+          org_id: string
+          proposal_id: string
+          retainer_contract_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          client_id: string
+          created_at?: string | null
+          due_date: string
+          extra_hours?: number | null
+          extra_hours_amount?: number | null
+          hours_included?: number | null
+          hours_used?: number | null
+          id?: string
+          invoice_date: string
+          invoice_number?: string | null
+          notes?: string | null
+          org_id: string
+          proposal_id: string
+          retainer_contract_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          client_id?: string
+          created_at?: string | null
+          due_date?: string
+          extra_hours?: number | null
+          extra_hours_amount?: number | null
+          hours_included?: number | null
+          hours_used?: number | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string | null
+          notes?: string | null
+          org_id?: string
+          proposal_id?: string
+          retainer_contract_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_invoices_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_invoices_retainer_contract_id_fkey"
+            columns: ["retainer_contract_id"]
+            isOneToOne: false
+            referencedRelation: "retainer_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_revenue_metrics: {
+        Row: {
+          active_retainers: number | null
+          active_subscriptions: number | null
+          annual_recurring_revenue: number | null
+          churn_rate: number | null
+          churned_mrr: number | null
+          contraction_mrr: number | null
+          created_at: string | null
+          expansion_mrr: number | null
+          id: string
+          metric_date: string
+          monthly_recurring_revenue: number | null
+          new_mrr: number | null
+          org_id: string
+        }
+        Insert: {
+          active_retainers?: number | null
+          active_subscriptions?: number | null
+          annual_recurring_revenue?: number | null
+          churn_rate?: number | null
+          churned_mrr?: number | null
+          contraction_mrr?: number | null
+          created_at?: string | null
+          expansion_mrr?: number | null
+          id?: string
+          metric_date: string
+          monthly_recurring_revenue?: number | null
+          new_mrr?: number | null
+          org_id: string
+        }
+        Update: {
+          active_retainers?: number | null
+          active_subscriptions?: number | null
+          annual_recurring_revenue?: number | null
+          churn_rate?: number | null
+          churned_mrr?: number | null
+          contraction_mrr?: number | null
+          created_at?: string | null
+          expansion_mrr?: number | null
+          id?: string
+          metric_date?: string
+          monthly_recurring_revenue?: number | null
+          new_mrr?: number | null
+          org_id?: string
+        }
+        Relationships: []
+      }
+      retainer_contracts: {
+        Row: {
+          client_id: string
+          contract_end_date: string | null
+          contract_start_date: string
+          created_at: string | null
+          hourly_rate_extra: number
+          id: string
+          included_hours: number
+          last_invoice_date: string | null
+          next_invoice_date: string | null
+          org_id: string
+          proposal_id: string
+          retainer_amount: number
+          status: string | null
+          updated_at: string | null
+          used_hours: number | null
+        }
+        Insert: {
+          client_id: string
+          contract_end_date?: string | null
+          contract_start_date: string
+          created_at?: string | null
+          hourly_rate_extra: number
+          id?: string
+          included_hours?: number
+          last_invoice_date?: string | null
+          next_invoice_date?: string | null
+          org_id: string
+          proposal_id: string
+          retainer_amount: number
+          status?: string | null
+          updated_at?: string | null
+          used_hours?: number | null
+        }
+        Update: {
+          client_id?: string
+          contract_end_date?: string | null
+          contract_start_date?: string
+          created_at?: string | null
+          hourly_rate_extra?: number
+          id?: string
+          included_hours?: number
+          last_invoice_date?: string | null
+          next_invoice_date?: string | null
+          org_id?: string
+          proposal_id?: string
+          retainer_amount?: number
+          status?: string | null
+          updated_at?: string | null
+          used_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retainer_contracts_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -971,6 +1246,53 @@ export type Database = {
             columns: ["practice_area_id"]
             isOneToOne: false
             referencedRelation: "practice_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_services: {
+        Row: {
+          base_price: number
+          billing_frequency: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          org_id: string
+          proposal_id: string
+          service_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number
+          billing_frequency?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          org_id: string
+          proposal_id: string
+          service_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          billing_frequency?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          org_id?: string
+          proposal_id?: string
+          service_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_services_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -1108,6 +1430,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_recurring_revenue_metrics: {
+        Args: { org_uuid: string; target_date?: string }
+        Returns: undefined
+      }
       calculate_revenue_metrics: {
         Args: { org_uuid: string; target_date?: string }
         Returns: undefined
