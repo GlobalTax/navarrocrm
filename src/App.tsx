@@ -11,6 +11,7 @@ import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
 import Cases from '@/pages/Cases';
+import Tasks from '@/pages/Tasks';
 import Proposals from '@/pages/Proposals';
 import Calendar from '@/pages/Calendar';
 import TimeTracking from '@/pages/TimeTracking';
@@ -45,6 +46,7 @@ function App() {
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
                 <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
                 <Route path="/proposals" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
                 <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                 <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
