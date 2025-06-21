@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,7 +17,8 @@ import {
   Sparkles,
   Users,
   FileText,
-  Calendar
+  Calendar,
+  AlertCircle
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
@@ -73,6 +75,7 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -85,13 +88,31 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
   }, [messages])
 
   useEffect(() => {
+    console.log('🔍 AIAssistant - isOpen:', isOpen, 'isMinimized:', isMinimized)
     if (isOpen && !isMinimized) {
-      inputRef.current?.focus()
+      console.log('🎯 AIAssistant - Intentando enfocar input...')
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus()
+          console.log('✅ AIAssistant - Input enfocado')
+        } else {
+          console.log('❌ AIAssistant - Input ref no disponible')
+        }
+      }, 100)
     }
   }, [isOpen, isMinimized])
 
   const sendMessage = async (content: string) => {
-    if (!content.trim() || isLoading) return
+    console.log('📤 AIAssistant - Enviando mensaje:', content)
+    console.log('📊 AIAssistant - Estado actual - isLoading:', isLoading, 'content.trim():', content.trim())
+    
+    if (!content.trim() || isLoading) {
+      console.log('⚠️ AIAssistant - Mensaje bloqueado. Contenido vacío o cargando')
+      setDebugInfo(`Bloqueado: contenido="${content.trim()}", isLoading=${isLoading}`)
+      return
+    }
+
+    setDebugInfo('Enviando mensaje...')
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -105,6 +126,9 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
     setIsLoading(true)
 
     try {
+      console.log('🚀 AIAssistant - Llamando a función Edge...')
+      setDebugInfo('Conectando con IA...')
+      
       const response = await supabase.functions.invoke('ai-assistant', {
         body: {
           message: content.trim(),
@@ -113,11 +137,14 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
             org_id: user?.org_id,
             current_page: window.location.pathname
           },
-          conversation_history: messages.slice(-5) // Solo los últimos 5 mensajes para contexto
+          conversation_history: messages.slice(-5)
         }
       })
 
+      console.log('📥 AIAssistant - Respuesta recibida:', response)
+
       if (response.error) {
+        console.error('❌ AIAssistant - Error en respuesta:', response.error)
         throw new Error(response.error.message)
       }
 
@@ -130,14 +157,14 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       }
 
       setMessages(prev => [...prev, assistantMessage])
+      setDebugInfo('¡Mensaje enviado correctamente!')
 
-      // Si la IA sugiere una acción específica, podríamos ejecutarla aquí
       if (response.data.action) {
         handleAIAction(response.data.action)
       }
 
     } catch (error) {
-      console.error('Error sending message:', error)
+      console.error('💥 AIAssistant - Error al enviar mensaje:', error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -146,33 +173,61 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       }
       setMessages(prev => [...prev, errorMessage])
       toast.error('Error al comunicarse con el asistente')
+      setDebugInfo(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     } finally {
       setIsLoading(false)
+      console.log('✅ AIAssistant - Proceso completado, isLoading ahora es false')
+      // Volver a enfocar el input después de enviar
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus()
+          console.log('🎯 AIAssistant - Input reenfocado después de envío')
+        }
+      }, 100)
     }
   }
 
   const handleAIAction = (action: any) => {
-    // Aquí podríamos implementar acciones específicas que la IA puede ejecutar
-    // Por ejemplo, abrir formularios, navegar a páginas específicas, etc.
-    console.log('AI Action:', action)
+    console.log('🎬 AIAssistant - Ejecutando acción IA:', action)
   }
 
   const handleSuggestionClick = (suggestion: string) => {
+    console.log('💡 AIAssistant - Clic en sugerencia:', suggestion)
     sendMessage(suggestion)
   }
 
   const handleQuickAction = (prompt: string) => {
+    console.log('⚡ AIAssistant - Acción rápida:', prompt)
     sendMessage(prompt)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('📝 AIAssistant - Submit formulario, mensaje:', inputMessage)
     sendMessage(inputMessage)
   }
 
-  // Nunca mostrar solo el botón flotante - siempre mostrar algo
-  if (!isOpen && !isMinimized) {
-    return null // Este caso ya no debería ocurrir
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    console.log('⌨️ AIAssistant - Cambio en input:', value)
+    setInputMessage(value)
+    setDebugInfo(`Escribiendo: "${value}"`)
+  }
+
+  const handleInputFocus = () => {
+    console.log('🎯 AIAssistant - Input enfocado por usuario')
+    setDebugInfo('Campo de texto activo')
+  }
+
+  const handleInputBlur = () => {
+    console.log('👋 AIAssistant - Input perdió el foco')
+  }
+
+  // Test simple para verificar si el componente responde
+  const testFunction = () => {
+    console.log('🧪 AIAssistant - Función de test ejecutada')
+    setDebugInfo('Test ejecutado - el componente responde')
+    toast.success('Test: El componente funciona correctamente')
   }
 
   if (isMinimized) {
@@ -238,6 +293,15 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
             <Button 
               variant="ghost" 
               size="sm" 
+              onClick={testFunction}
+              className="text-white hover:bg-white/20 h-7 w-7 p-0"
+              title="Test de funcionalidad"
+            >
+              <AlertCircle className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
               onClick={onMinimize}
               className="text-white hover:bg-white/20 h-7 w-7 p-0"
             >
@@ -248,6 +312,13 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0">
+        {/* Debug info */}
+        {debugInfo && (
+          <div className="px-4 py-2 bg-yellow-50 border-b text-xs text-yellow-800">
+            🔧 Debug: {debugInfo}
+          </div>
+        )}
+
         {/* Acciones rápidas */}
         {messages.length <= 1 && (
           <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -260,6 +331,7 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
                   size="sm"
                   onClick={() => handleQuickAction(action.prompt)}
                   className="text-xs border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+                  disabled={isLoading}
                 >
                   <action.icon className="h-3 w-3 mr-1" />
                   {action.label}
@@ -354,24 +426,48 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
             <Input
               ref={inputRef}
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Escribe tu pregunta aquí..."
+              onChange={handleInputChange}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              placeholder={isLoading ? "Procesando..." : "Escribe tu pregunta aquí..."}
               disabled={isLoading}
-              className="flex-1 border-blue-200 focus:border-blue-400"
+              className={`flex-1 border-blue-200 focus:border-blue-400 ${
+                isLoading ? 'bg-gray-100' : 'bg-white'
+              }`}
             />
             <Button 
               type="submit" 
               disabled={!inputMessage.trim() || isLoading}
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
+              className={`${
+                isLoading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             >
-              <Send className="h-4 w-4" />
+              {isLoading ? (
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </form>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1 justify-center">
-            <Sparkles className="h-3 w-3" />
-            Asistente IA - Siempre aquí para ayudarte
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              <Sparkles className="h-3 w-3" />
+              Asistente IA - Siempre aquí para ayudarte
+            </p>
+            {(isLoading || debugInfo) && (
+              <div className="flex items-center gap-1 text-xs">
+                {isLoading && (
+                  <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
+                )}
+                <span className="text-gray-400">
+                  {isLoading ? 'Pensando...' : 'Listo'}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
