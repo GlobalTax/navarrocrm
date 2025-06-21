@@ -43,6 +43,11 @@ serve(async (req) => {
       })
     }
 
+    console.log('🔑 [company-lookup] Credenciales encontradas:', {
+      clientId: eInformaClientId ? 'configurado' : 'faltante',
+      clientSecret: eInformaClientSecret ? 'configurado' : 'faltante'
+    })
+
     // Validar el body de la request
     let requestBody
     try {
@@ -121,25 +126,56 @@ async function fetchCompanyData(nif: string): Promise<CompanyData> {
   try {
     console.log('🔑 [company-lookup] Obteniendo token de acceso...')
     
+    // Preparar las credenciales para Basic Auth
+    const credentials = btoa(`${eInformaClientId}:${eInformaClientSecret}`)
+    console.log('🔐 [company-lookup] Credenciales preparadas para Basic Auth')
+    
+    // Preparar el body para el request de token
+    const tokenBody = new URLSearchParams({
+      'grant_type': 'client_credentials',
+      'scope': 'api_auth'
+    })
+    
+    console.log('📡 [company-lookup] Enviando request de token a:', 'https://developers.einforma.com/api/v1/oauth/token')
+    console.log('📋 [company-lookup] Body del request:', tokenBody.toString())
+    
     // Obtener token de acceso con la URL correcta de eInforma
     const tokenResponse = await fetch('https://developers.einforma.com/api/v1/oauth/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${eInformaClientId}:${eInformaClientSecret}`)}`
+        'Authorization': `Basic ${credentials}`,
+        'Accept': 'application/json'
       },
-      body: 'grant_type=client_credentials&scope=api_auth'
+      body: tokenBody.toString()
     })
 
     console.log('📊 [company-lookup] Respuesta de token - Status:', tokenResponse.status)
+    console.log('📊 [company-lookup] Headers de respuesta:', Object.fromEntries(tokenResponse.headers.entries()))
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text()
       console.error('❌ [company-lookup] Error obteniendo token:', errorText)
-      throw new Error('Error de autenticación con eInforma')
+      console.error('❌ [company-lookup] Status:', tokenResponse.status)
+      console.error('❌ [company-lookup] Status Text:', tokenResponse.statusText)
+      
+      // Proporcionar más contexto sobre el error
+      if (tokenResponse.status === 401) {
+        throw new Error('Credenciales de eInforma inválidas - verifica CLIENT_ID y CLIENT_SECRET')
+      } else if (tokenResponse.status === 400) {
+        throw new Error(`Error en la solicitud OAuth: ${errorText}`)
+      } else {
+        throw new Error(`Error HTTP ${tokenResponse.status}: ${errorText}`)
+      }
     }
 
     const tokenData = await tokenResponse.json()
+    console.log('📋 [company-lookup] Respuesta de token recibida:', {
+      hasAccessToken: !!tokenData.access_token,
+      tokenType: tokenData.token_type,
+      expiresIn: tokenData.expires_in
+    })
+    
     const accessToken = tokenData.access_token
     
     if (!accessToken) {
@@ -152,27 +188,31 @@ async function fetchCompanyData(nif: string): Promise<CompanyData> {
     // Buscar empresa con la URL correcta
     console.log('🔍 [company-lookup] Buscando empresa con NIF:', nif)
     
-    const searchResponse = await fetch(
-      `https://developers.einforma.com/api/v1/companies/search?nif=${encodeURIComponent(nif)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+    const searchUrl = `https://developers.einforma.com/api/v1/companies/search?nif=${encodeURIComponent(nif)}`
+    console.log('📡 [company-lookup] URL de búsqueda:', searchUrl)
+    
+    const searchResponse = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
-    )
+    })
 
     console.log('📊 [company-lookup] Respuesta de búsqueda - Status:', searchResponse.status)
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text()
       console.error('❌ [company-lookup] Error en búsqueda:', errorText)
+      console.error('❌ [company-lookup] Status:', searchResponse.status)
       
       if (searchResponse.status === 404) {
         throw new Error('COMPANY_NOT_FOUND')
+      } else if (searchResponse.status === 401) {
+        throw new Error('Token de acceso expirado o inválido')
+      } else {
+        throw new Error(`Error consultando eInforma: ${searchResponse.status} - ${errorText}`)
       }
-      throw new Error(`Error consultando eInforma: ${searchResponse.status}`)
     }
 
     const searchData = await searchResponse.json()
@@ -251,11 +291,14 @@ function getErrorMessage(error: string): string {
       return 'El formato del NIF/CIF introducido no es válido. Verifica que esté bien escrito'
     case 'Credenciales no configuradas':
       return 'Error de configuración del servicio. Contacta con el administrador'
-    case 'Error de autenticación con eInforma':
-      return 'Error de autenticación con el servicio eInforma. Verifica las credenciales'
-    case 'Token de acceso no válido':
-      return 'Error obteniendo token de acceso. Verifica las credenciales'
+    case 'Credenciales de eInforma inválidas - verifica CLIENT_ID y CLIENT_SECRET':
+      return 'Las credenciales de eInforma no son válidas. Verifica la configuración.'
+    case 'Token de acceso expirado o inválido':
+      return 'Error de autenticación con eInforma. Inténtalo de nuevo.'
     default:
+      if (error?.includes('Error consultando eInforma')) {
+        return 'Error al consultar los datos empresariales. Inténtalo de nuevo'
+      }
       return 'Error al consultar los datos empresariales. Inténtalo de nuevo'
   }
 }
