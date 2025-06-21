@@ -18,10 +18,10 @@ export const seedLegalFirmData = async () => {
 
     // 2. Crear usuarios del despacho
     const users = [
-      { email: 'partner@garcia-asociados.com', role: 'partner' },
-      { email: 'senior@garcia-asociados.com', role: 'senior' },
-      { email: 'junior@garcia-asociados.com', role: 'junior' },
-      { email: 'admin@garcia-asociados.com', role: 'admin' }
+      { id: crypto.randomUUID(), email: 'partner@garcia-asociados.com', role: 'partner' },
+      { id: crypto.randomUUID(), email: 'senior@garcia-asociados.com', role: 'senior' },
+      { id: crypto.randomUUID(), email: 'junior@garcia-asociados.com', role: 'junior' },
+      { id: crypto.randomUUID(), email: 'admin@garcia-asociados.com', role: 'admin' }
     ]
 
     const { data: createdUsers } = await supabase
@@ -183,7 +183,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![0].id,
         status: 'completed',
         priority: 'high',
-        due_date: new Date('2024-06-15'),
+        due_date: '2024-06-15T00:00:00Z',
         estimated_hours: 8,
         created_by: createdUsers![0].id
       },
@@ -194,7 +194,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![0].id,
         status: 'drafting',
         priority: 'urgent',
-        due_date: new Date('2024-06-25'),
+        due_date: '2024-06-25T00:00:00Z',
         estimated_hours: 12,
         created_by: createdUsers![0].id
       },
@@ -205,7 +205,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![0].id,
         status: 'pending',
         priority: 'urgent',
-        due_date: new Date('2024-06-30'),
+        due_date: '2024-06-30T00:00:00Z',
         estimated_hours: 2,
         created_by: createdUsers![0].id
       },
@@ -218,7 +218,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![1].id,
         status: 'investigation',
         priority: 'medium',
-        due_date: new Date('2024-07-10'),
+        due_date: '2024-07-10T00:00:00Z',
         estimated_hours: 6,
         created_by: createdUsers![1].id
       },
@@ -229,7 +229,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![1].id,
         status: 'drafting',
         priority: 'high',
-        due_date: new Date('2024-07-05'),
+        due_date: '2024-07-05T00:00:00Z',
         estimated_hours: 10,
         created_by: createdUsers![1].id
       },
@@ -242,7 +242,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![2].id,
         status: 'investigation',
         priority: 'high',
-        due_date: new Date('2024-07-20'),
+        due_date: '2024-07-20T00:00:00Z',
         estimated_hours: 15,
         created_by: createdUsers![0].id
       },
@@ -253,7 +253,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![2].id,
         status: 'pending',
         priority: 'medium',
-        due_date: new Date('2024-07-25'),
+        due_date: '2024-07-25T00:00:00Z',
         estimated_hours: 8,
         created_by: createdUsers![1].id
       },
@@ -266,7 +266,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![3].id,
         status: 'completed',
         priority: 'urgent',
-        due_date: new Date('2024-06-10'),
+        due_date: '2024-06-10T00:00:00Z',
         estimated_hours: 4,
         created_by: createdUsers![2].id
       },
@@ -277,7 +277,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![3].id,
         status: 'filing',
         priority: 'urgent',
-        due_date: new Date('2024-06-28'),
+        due_date: '2024-06-28T00:00:00Z',
         estimated_hours: 3,
         created_by: createdUsers![2].id
       },
@@ -290,7 +290,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![4].id,
         status: 'review',
         priority: 'medium',
-        due_date: new Date('2024-08-15'),
+        due_date: '2024-08-15T00:00:00Z',
         estimated_hours: 20,
         created_by: createdUsers![0].id
       },
@@ -301,7 +301,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![4].id,
         status: 'pending',
         priority: 'low',
-        due_date: new Date('2024-08-30'),
+        due_date: '2024-08-30T00:00:00Z',
         estimated_hours: 12,
         created_by: createdUsers![1].id
       },
@@ -314,7 +314,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![0].id,
         status: 'hearing',
         priority: 'urgent',
-        due_date: new Date('2024-06-24'),
+        due_date: '2024-06-24T00:00:00Z',
         estimated_hours: 6,
         created_by: createdUsers![0].id
       },
@@ -325,7 +325,7 @@ export const seedLegalFirmData = async () => {
         client_id: createdClients![4].id,
         status: 'drafting',
         priority: 'urgent',
-        due_date: new Date('2024-06-21'),
+        due_date: '2024-06-21T00:00:00Z',
         estimated_hours: 8,
         created_by: createdUsers![0].id
       }
@@ -398,8 +398,8 @@ export const seedLegalFirmData = async () => {
       {
         title: 'Vista oral - Constructora Mediterráneo',
         description: 'Comparecencia en Audiencia Provincial de Valencia - Sala 2ª',
-        start_datetime: new Date('2024-06-24T10:00:00'),
-        end_datetime: new Date('2024-06-24T12:00:00'),
+        start_datetime: '2024-06-24T10:00:00Z',
+        end_datetime: '2024-06-24T12:00:00Z',
         event_type: 'hearing',
         location: 'Audiencia Provincial de Valencia, Sala 2ª',
         client_id: createdClients![0].id,
@@ -410,8 +410,8 @@ export const seedLegalFirmData = async () => {
       {
         title: 'Reunión cliente - Divorcio López',
         description: 'Revisión propuesta convenio regulador y documentación',
-        start_datetime: new Date('2024-06-26T16:00:00'),
-        end_datetime: new Date('2024-06-26T17:30:00'),
+        start_datetime: '2024-06-26T16:00:00Z',
+        end_datetime: '2024-06-26T17:30:00Z',
         event_type: 'meeting',
         location: 'Despacho - Sala de reuniones',
         client_id: createdClients![1].id,
@@ -422,8 +422,8 @@ export const seedLegalFirmData = async () => {
       {
         title: 'Junta General - Gourmet Group',
         description: 'Asistencia a Junta General Extraordinaria para reestructuración',
-        start_datetime: new Date('2024-07-15T11:00:00'),
-        end_datetime: new Date('2024-07-15T13:00:00'),
+        start_datetime: '2024-07-15T11:00:00Z',
+        end_datetime: '2024-07-15T13:00:00Z',
         event_type: 'meeting',
         location: 'Sede social del cliente',
         client_id: createdClients![2].id,
@@ -434,8 +434,8 @@ export const seedLegalFirmData = async () => {
       {
         title: 'Juicio - Despido Fernández',
         description: 'Acto de juicio por despido improcedente',
-        start_datetime: new Date('2024-07-08T09:30:00'),
-        end_datetime: new Date('2024-07-08T11:00:00'),
+        start_datetime: '2024-07-08T09:30:00Z',
+        end_datetime: '2024-07-08T11:00:00Z',
         event_type: 'hearing',
         location: 'Juzgado de lo Social nº 2 - Sevilla',
         client_id: createdClients![3].id,

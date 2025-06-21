@@ -7,6 +7,7 @@ import { TasksBoard } from '@/components/tasks/TasksBoard'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
 import { SeedDataButton } from '@/components/dev/SeedDataButton'
+import { Button } from '@/components/ui/button'
 import { useTasks } from '@/hooks/useTasks'
 
 export type TaskViewMode = 'board' | 'list'
