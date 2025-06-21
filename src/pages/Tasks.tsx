@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { TasksHeader } from '@/components/tasks/TasksHeader'
 import { TasksStats } from '@/components/tasks/TasksStats'
@@ -5,6 +6,7 @@ import { TasksFilters } from '@/components/tasks/TasksFilters'
 import { TasksBoard } from '@/components/tasks/TasksBoard'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
+import { SeedDataButton } from '@/components/dev/SeedDataButton'
 import { useTasks } from '@/hooks/useTasks'
 
 export type TaskViewMode = 'board' | 'list'
@@ -107,13 +109,46 @@ const Tasks = () => {
     )
   }
 
+  // Mostrar botón de datos ficticios si no hay tareas
+  if (safeTasks.length === 0) {
+    return (
+      <div className="space-y-6">
+        <TasksHeader 
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          onCreateTask={handleCreateTask}
+        />
+        
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No hay gestiones legales
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Comienza creando tu primera gestión o pobla el sistema con datos ficticios para explorar las funcionalidades.
+            </p>
+            <div className="flex space-x-3">
+              <SeedDataButton />
+              <Button onClick={handleCreateTask}>
+                Crear primera gestión
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <TasksHeader 
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        onCreateTask={handleCreateTask}
-      />
+      <div className="flex items-center justify-between">
+        <TasksHeader 
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          onCreateTask={handleCreateTask}
+        />
+        <SeedDataButton />
+      </div>
       
       <TasksStats stats={taskStats} />
       
