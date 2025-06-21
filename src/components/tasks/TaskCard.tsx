@@ -12,6 +12,12 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
+  // Validación robusta de datos
+  if (!task) {
+    console.warn('⚠️ TaskCard received undefined task')
+    return null
+  }
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800'
@@ -28,7 +34,7 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
       case 'high': return 'Alta'
       case 'medium': return 'Media'
       case 'low': return 'Baja'
-      default: return priority
+      default: return priority || 'Sin prioridad'
     }
   }
 
@@ -39,7 +45,7 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
           <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-            {task.title}
+            {task.title || 'Sin título'}
           </h4>
           <Button
             variant="ghost"
@@ -77,10 +83,10 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
           </div>
         )}
 
-        {task.task_assignments && task.task_assignments.length > 0 && (
+        {task.task_assignments && Array.isArray(task.task_assignments) && task.task_assignments.length > 0 && (
           <div className="flex items-center text-sm text-gray-500 mb-2">
             <User className="h-4 w-4 mr-1" />
-            {task.task_assignments[0].user.email}
+            {task.task_assignments[0]?.user?.email || 'Usuario desconocido'}
             {task.task_assignments.length > 1 && (
               <span className="ml-1">+{task.task_assignments.length - 1}</span>
             )}
@@ -100,7 +106,7 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
           </div>
           
           {task.case && (
-            <span>Caso: {task.case.title}</span>
+            <span>Caso: {task.case.title || 'Sin título'}</span>
           )}
         </div>
       </CardContent>
