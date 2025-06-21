@@ -9,21 +9,28 @@ export const useSystemSetup = () => {
   useEffect(() => {
     const checkSetup = async () => {
       try {
+        console.log('🔧 [useSystemSetup] Verificando configuración del sistema...')
+        
         const { data, error } = await supabase
           .from('organizations')
           .select('id')
           .limit(1)
         
         if (error) {
-          console.log('No organizations found, system needs setup')
+          console.log('🔧 [useSystemSetup] Error consultando organizations:', error.message)
+          console.log('🔧 [useSystemSetup] Sistema necesita configuración')
           setIsSetup(false)
         } else {
-          setIsSetup(data && data.length > 0)
+          const hasOrganizations = data && data.length > 0
+          console.log('🔧 [useSystemSetup] Organizaciones encontradas:', hasOrganizations ? data.length : 0)
+          setIsSetup(hasOrganizations)
         }
       } catch (error) {
-        console.log('Error checking setup, assuming needs setup')
+        console.error('🔧 [useSystemSetup] Error crítico verificando setup:', error)
+        console.log('🔧 [useSystemSetup] Asumiendo que necesita configuración')
         setIsSetup(false)
       } finally {
+        console.log('🔧 [useSystemSetup] Finalizando verificación de setup')
         setLoading(false)
       }
     }
