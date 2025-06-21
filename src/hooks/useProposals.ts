@@ -105,7 +105,7 @@ export const useProposals = () => {
       if (!user?.org_id || !user?.id) throw new Error('Usuario no autenticado')
 
       // Preparar datos de propuesta
-      const proposalInsert = {
+      const proposalInsert: any = {
         org_id: user.org_id,
         created_by: user.id,
         ...proposalData,
