@@ -12,7 +12,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isOpen, isMinimized, toggle, minimize, close } = useAIAssistant()
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-gray-50">
       <div className="flex">
         <Sidebar />
         <div className="flex-1">
@@ -23,7 +23,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </div>
       
-      {/* AI Assistant - botón fijo en esquina inferior derecha */}
+      {/* AI Assistant - botón flotante fijo */}
       <div className="fixed bottom-6 right-6 z-50">
         <AIAssistant
           isOpen={isOpen}
