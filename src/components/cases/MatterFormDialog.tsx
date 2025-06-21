@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -92,9 +93,9 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
       description: formData.description,
       status: formData.status,
       client_id: formData.client_id,
-      practice_area: formData.practice_area || undefined,
-      responsible_solicitor_id: formData.responsible_solicitor_id || undefined,
-      originating_solicitor_id: formData.originating_solicitor_id || undefined,
+      practice_area: formData.practice_area === 'none' ? undefined : formData.practice_area,
+      responsible_solicitor_id: formData.responsible_solicitor_id === 'none' ? undefined : formData.responsible_solicitor_id,
+      originating_solicitor_id: formData.originating_solicitor_id === 'none' ? undefined : formData.originating_solicitor_id,
       billing_method: formData.billing_method,
       estimated_budget: formData.estimated_budget
     }
@@ -144,7 +145,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
                         <SelectValue placeholder="Seleccionar plantilla..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sin plantilla</SelectItem>
+                        <SelectItem value="none">Sin plantilla</SelectItem>
                         {templates.map((template) => (
                           <SelectItem key={template.id} value={template.id}>
                             <div className="flex items-center gap-2">
@@ -205,14 +206,14 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
                     <div className="grid gap-2">
                       <Label>Área de Práctica</Label>
                       <Select 
-                        value={formData.practice_area || ''} 
+                        value={formData.practice_area || 'none'} 
                         onValueChange={(value) => setFormData({...formData, practice_area: value})}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar área..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sin especificar</SelectItem>
+                          <SelectItem value="none">Sin especificar</SelectItem>
                           {practiceAreas.map((area) => (
                             <SelectItem key={area.id} value={area.name}>
                               {area.name}
@@ -224,14 +225,14 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
                     <div className="grid gap-2">
                       <Label>Abogado Responsable</Label>
                       <Select 
-                        value={formData.responsible_solicitor_id || ''} 
+                        value={formData.responsible_solicitor_id || 'none'} 
                         onValueChange={(value) => setFormData({...formData, responsible_solicitor_id: value})}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar abogado..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sin asignar</SelectItem>
+                          <SelectItem value="none">Sin asignar</SelectItem>
                           {users.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
                               {user.email}
