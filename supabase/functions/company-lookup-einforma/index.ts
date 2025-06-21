@@ -39,9 +39,19 @@ serve(async (req) => {
 
     console.log('🔍 Buscando empresa con NIF:', nif)
 
-    // Validar formato NIF/CIF español
-    if (!isValidNifCif(nif)) {
+    // Validar formato NIF/CIF español con logging detallado
+    const isValidFormat = isValidNifCif(nif)
+    if (!isValidFormat) {
+      console.log('❌ Formato NIF/CIF inválido:', nif)
       throw new Error('Formato de NIF/CIF inválido')
+    }
+
+    console.log('✅ Formato NIF/CIF válido, procediendo con eInforma')
+
+    // Verificar que tenemos las credenciales de eInforma
+    if (!eInformaClientId || !eInformaClientSecret) {
+      console.error('❌ Faltan credenciales de eInforma')
+      throw new Error('Credenciales de eInforma no configuradas')
     }
 
     // Obtener token de acceso de eInforma
@@ -201,17 +211,17 @@ function validateCifCheckDigit(cif: string): boolean {
   
   console.log(`🔍 CIF: ${firstLetter}${numbers}${control}`)
   
-  // Calcular suma de control según algoritmo oficial
+  // Calcular suma según algoritmo oficial CIF
   let sum = 0
   
-  // Sumar dígitos en posiciones impares (índices pares en array 0-based)
+  // Posiciones impares (1-indexed) = índices pares (0-indexed)
   for (let i = 0; i < numbers.length; i += 2) {
     sum += parseInt(numbers[i])
   }
   
   console.log('📊 Suma posiciones impares:', sum)
   
-  // Para posiciones pares (índices impares), duplicar y sumar dígitos
+  // Posiciones pares (1-indexed) = índices impares (0-indexed)
   for (let i = 1; i < numbers.length; i += 2) {
     let doubled = parseInt(numbers[i]) * 2
     if (doubled > 9) {
@@ -223,26 +233,26 @@ function validateCifCheckDigit(cif: string): boolean {
   console.log('📊 Suma total:', sum)
   
   // Calcular dígito de control
-  const controlNumber = (10 - (sum % 10)) % 10
-  const controlLetter = 'JABCDEFGHI'[controlNumber]
+  const controlDigit = (10 - (sum % 10)) % 10
+  const controlLetter = 'JABCDEFGHI'[controlDigit]
   
-  console.log(`🔍 Control calculado: Número=${controlNumber}, Letra=${controlLetter}`)
+  console.log(`🔍 Control calculado: Dígito=${controlDigit}, Letra=${controlLetter}`)
   console.log(`🔍 Control recibido: ${control}`)
   
-  // Algunos CIF usan número, otros letra según el primer carácter
+  // Determinar si debe usar número o letra según el tipo de organización
   const useNumberControl = ['A', 'B', 'E', 'H'].includes(firstLetter)
   const useLetterControl = ['K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'W'].includes(firstLetter)
   
   if (useNumberControl) {
-    console.log('🔍 Validando con número de control')
-    return control === controlNumber.toString()
+    console.log('🔍 Validando con dígito de control')
+    return control === controlDigit.toString()
   } else if (useLetterControl) {
     console.log('🔍 Validando con letra de control')
     return control === controlLetter
   } else {
-    // Para otros casos, aceptar ambos
-    console.log('🔍 Validando con número O letra de control')
-    return control === controlNumber.toString() || control === controlLetter
+    // Para otros casos (C, D, F, G, J, V), puede ser cualquiera
+    console.log('🔍 Validando con dígito O letra de control')
+    return control === controlDigit.toString() || control === controlLetter
   }
 }
 
@@ -285,6 +295,8 @@ function getErrorMessage(error: string): string {
       return 'No se encontró ninguna empresa con este NIF/CIF en el Registro Mercantil'
     case 'Formato de NIF/CIF inválido':
       return 'El formato del NIF/CIF introducido no es válido. Verifica que esté bien escrito'
+    case 'Credenciales de eInforma no configuradas':
+      return 'Error de configuración del servicio. Contacta con el administrador'
     default:
       return 'Error al consultar los datos empresariales. Inténtalo de nuevo'
   }
