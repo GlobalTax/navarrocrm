@@ -1,10 +1,7 @@
-
 import { useState } from 'react'
 import { TasksHeader } from '@/components/tasks/TasksHeader'
 import { TasksStats } from '@/components/tasks/TasksStats'
-import { TasksFil
-
-ters } from '@/components/tasks/TasksFilters'
+import { TasksFilters } from '@/components/tasks/TasksFilters'
 import { TasksBoard } from '@/components/tasks/TasksBoard'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
