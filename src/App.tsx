@@ -1,117 +1,69 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AppProvider } from '@/contexts/AppContext'
-import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { MainLayout } from '@/components/layout/MainLayout'
-import { Toaster } from '@/components/ui/sonner'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
+import { QueryClient, QueryQueryKeyContext, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AppProvider } from '@/contexts/AppContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { SystemDiagnostics } from '@/components/SystemDiagnostics';
 
 // Pages
-import Index from '@/pages/Index'
-import Login from '@/pages/Login'
-import Dashboard from '@/pages/Dashboard'
-import Clients from '@/pages/Clients'
-import Cases from '@/pages/Cases'
-import TimeTracking from '@/pages/TimeTracking'
-import Calendar from '@/pages/Calendar'
-import Setup from '@/pages/Setup'
-import NotFound from '@/pages/NotFound'
-import Unauthorized from '@/pages/Unauthorized'
-import AIAdmin from '@/pages/AIAdmin'
+import Login from '@/pages/Login';
+import Dashboard from '@/pages/Dashboard';
+import Clients from '@/pages/Clients';
+import Cases from '@/pages/Cases';
+import Proposals from '@/pages/Proposals';
+import Calendar from '@/pages/Calendar';
+import TimeTracking from '@/pages/TimeTracking';
+import Setup from '@/pages/Setup';
+import AIAdmin from '@/pages/AIAdmin';
+import NotFound from '@/pages/NotFound';
+import Unauthorized from '@/pages/Unauthorized';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
       retry: 1,
-      refetchOnWindowFocus: false,
     },
   },
-})
+});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <Router>
-          <div className="min-h-screen bg-background">
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/setup" element={<Setup />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
+      <AuthProvider>
+        <AppProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50">
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/setup" element={<Setup />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                
+                {/* Protected routes */}
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                <Route path="/proposals" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
+                <Route path="/ai-admin" element={<ProtectedRoute><AIAdmin /></ProtectedRoute>} />
+                
+                {/* Fallback routes */}
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
               
-              {/* Protected routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Dashboard />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/clients"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Clients />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/cases"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Cases />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/time-tracking"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <TimeTracking />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/calendar"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Calendar />
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Fallback routes */}
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/404" replace />} />
-              
-              <Route 
-                path="/admin/ai-usage" 
-                element={
-                  <ProtectedRoute>
-                    <AIAdmin />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-            <Toaster />
-          </div>
-        </Router>
-      </AppProvider>
+              <Toaster position="bottom-right" />
+              <SystemDiagnostics />
+            </div>
+          </Router>
+        </AppProvider>
+      </AuthProvider>
     </QueryClientProvider>
-  )
+  );
 }
 
-export default App
+export default App;

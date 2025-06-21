@@ -742,6 +742,239 @@ export type Database = {
           },
         ]
       }
+      proposal_line_items: {
+        Row: {
+          billing_unit: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          proposal_id: string
+          quantity: number | null
+          service_catalog_id: string | null
+          sort_order: number | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          billing_unit?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          proposal_id: string
+          quantity?: number | null
+          service_catalog_id?: string | null
+          sort_order?: number | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          billing_unit?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          proposal_id?: string
+          quantity?: number | null
+          service_catalog_id?: string | null
+          sort_order?: number | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_proposal_line_items_proposal"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_proposal_line_items_service"
+            columns: ["service_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "service_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          accepted_at: string | null
+          assigned_to: string | null
+          client_id: string
+          created_at: string | null
+          created_by: string
+          currency: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          proposal_type: string | null
+          sent_at: string | null
+          status: string
+          title: string
+          total_amount: number | null
+          updated_at: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          assigned_to?: string | null
+          client_id: string
+          created_at?: string | null
+          created_by: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          proposal_type?: string | null
+          sent_at?: string | null
+          status?: string
+          title: string
+          total_amount?: number | null
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          assigned_to?: string | null
+          client_id?: string
+          created_at?: string | null
+          created_by?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          proposal_type?: string | null
+          sent_at?: string | null
+          status?: string
+          title?: string
+          total_amount?: number | null
+          updated_at?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_proposals_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_proposals_org"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_metrics: {
+        Row: {
+          average_deal_size: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          id: string
+          metric_date: string
+          org_id: string
+          proposals_lost: number | null
+          proposals_sent: number | null
+          proposals_won: number | null
+          total_revenue: number | null
+        }
+        Insert: {
+          average_deal_size?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          metric_date: string
+          org_id: string
+          proposals_lost?: number | null
+          proposals_sent?: number | null
+          proposals_won?: number | null
+          total_revenue?: number | null
+        }
+        Update: {
+          average_deal_size?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          metric_date?: string
+          org_id?: string
+          proposals_lost?: number | null
+          proposals_sent?: number | null
+          proposals_won?: number | null
+          total_revenue?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_revenue_metrics_org"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_catalog: {
+        Row: {
+          billing_unit: string | null
+          created_at: string | null
+          default_price: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          org_id: string
+          practice_area_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_unit?: string | null
+          created_at?: string | null
+          default_price?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          org_id: string
+          practice_area_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_unit?: string | null
+          created_at?: string | null
+          default_price?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          org_id?: string
+          practice_area_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_service_catalog_org"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_service_catalog_practice_area"
+            columns: ["practice_area_id"]
+            isOneToOne: false
+            referencedRelation: "practice_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           case_id: string | null
@@ -875,6 +1108,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_revenue_metrics: {
+        Args: { org_uuid: string; target_date?: string }
+        Returns: undefined
+      }
       generate_matter_number: {
         Args: { org_uuid: string }
         Returns: string
