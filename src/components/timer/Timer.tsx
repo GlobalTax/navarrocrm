@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -216,7 +215,7 @@ export const Timer = () => {
                 <SelectValue placeholder="Seleccionar caso..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin caso específico</SelectItem>
+                <SelectItem value="none">Sin caso específico</SelectItem>
                 {cases.map((case_) => (
                   <SelectItem key={case_.id} value={case_.id}>
                     {case_.title} ({case_.client?.name})

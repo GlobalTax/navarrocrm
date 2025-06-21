@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -148,7 +147,10 @@ export const useTimeEntries = () => {
       entry.case?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.case?.client?.name.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesCase = caseFilter === 'all' || entry.case_id === caseFilter
+    const matchesCase = caseFilter === 'all' || 
+      (caseFilter === 'none' && !entry.case_id) ||
+      entry.case_id === caseFilter
+    
     const matchesBillable = billableFilter === 'all' || 
       (billableFilter === 'billable' && entry.is_billable) ||
       (billableFilter === 'non-billable' && !entry.is_billable)

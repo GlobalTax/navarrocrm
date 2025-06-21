@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -124,7 +123,7 @@ export const TimeEntriesTable = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los casos</SelectItem>
-              <SelectItem value="">Sin caso asignado</SelectItem>
+              <SelectItem value="none">Sin caso asignado</SelectItem>
               {cases.map((case_) => (
                 <SelectItem key={case_.id} value={case_.id}>
                   {case_.title}
