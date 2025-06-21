@@ -1,7 +1,7 @@
 
 import { useState } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { AIUsageStatsCards, AIUs­ageByOrgCard } from '@/components/admin/AIUsageStats'
+import { AIUsageStatsCards, AIUsageByOrgCard } from '@/components/admin/AIUsageStats'
 import { AIUsageTable } from '@/components/admin/AIUsageTable'
 import { useAIUsage, useIsSuperAdmin } from '@/hooks/useAIUsage'
 import { Button } from '@/components/ui/button'
