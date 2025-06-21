@@ -7,7 +7,7 @@ import { useSystemSetup } from '@/hooks/useSystemSetup'
 const Index = () => {
   const { user, loading: authLoading } = useAuth()
   const { isSetup, loading: setupLoading } = useSystemSetup()
-  const [emergencyRedirect, setEmergencyRedirect] = useState(false)
+  const [emergencyRedirect, setEmergencyRedirect] = useState<string | false>(false)
   const [debugInfo, setDebugInfo] = useState<string>('')
 
   useEffect(() => {
