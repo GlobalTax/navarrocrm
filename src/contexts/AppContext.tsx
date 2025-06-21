@@ -31,7 +31,7 @@ interface AppState {
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
-// Caché global para evitar consultas repetidas
+// Caché global optimizado
 const setupCache = {
   isSetup: null as boolean | null,
   timestamp: 0,
@@ -57,6 +57,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const initializationStarted = useRef(false)
   const lastAuthEvent = useRef<string | null>(null)
+  const profileFetchInProgress = useRef<Set<string>>(new Set())
 
   // Estado combinado de carga
   const isInitializing = authLoading || setupLoading
@@ -67,21 +68,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     console.log('🚀 [AppContext] Inicializando aplicación...')
     
+    // Verificar y limpiar sesiones corruptas
+    cleanCorruptedSessions()
+    
     // Inicializar verificación de setup con caché
     checkSystemSetup()
     
-    // Configurar listener de autenticación
+    // Configurar listener de autenticación con manejo mejorado
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const eventKey = `${event}-${session?.user?.id || 'null'}`
+      const eventKey = `${event}-${session?.user?.id || 'null'}-${Date.now()}`
       
-      // Evitar procesamiento duplicado
+      // Evitar procesamiento duplicado con timestamp
       if (lastAuthEvent.current === eventKey) {
         console.log('🔄 [AppContext] Evento duplicado ignorado:', event)
         return
       }
       
       lastAuthEvent.current = eventKey
-      console.log('🔄 [AppContext] Cambio de estado auth:', event)
+      console.log('🔄 [AppContext] Cambio de estado auth:', event, session ? 'con sesión' : 'sin sesión')
+      
+      // Validar sesión antes de usarla
+      if (session && !isValidSession(session)) {
+        console.warn('⚠️ [AppContext] Sesión inválida detectada, limpiando...')
+        await cleanCorruptedSessions()
+        setSession(null)
+        setUser(null)
+        setAuthLoading(false)
+        return
+      }
       
       setSession(session)
       
@@ -93,15 +107,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     })
 
-    // Obtener sesión inicial
+    // Obtener sesión inicial con validación
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
         console.error('❌ [AppContext] Error obteniendo sesión inicial:', error)
+        await cleanCorruptedSessions()
         setAuthLoading(false)
         return
       }
 
       console.log('📋 [AppContext] Sesión inicial:', session ? 'Encontrada' : 'No encontrada')
+      
+      // Validar sesión inicial
+      if (session && !isValidSession(session)) {
+        console.warn('⚠️ [AppContext] Sesión inicial inválida, limpiando...')
+        await cleanCorruptedSessions()
+        setSession(null)
+        setAuthLoading(false)
+        return
+      }
+      
       setSession(session)
       
       if (session?.user) {
@@ -115,6 +140,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       subscription.unsubscribe()
     }
   }, [])
+
+  const isValidSession = (session: Session): boolean => {
+    try {
+      // Verificar que la sesión tenga los campos básicos
+      if (!session.access_token || !session.user?.id) {
+        return false
+      }
+      
+      // Verificar que no esté expirada (con margen de 5 minutos)
+      const now = Math.floor(Date.now() / 1000)
+      const expiresAt = session.expires_at || 0
+      if (expiresAt > 0 && (expiresAt - now) < 300) { // 5 minutos de margen
+        console.log('⏰ [AppContext] Sesión expira pronto o ya expiró')
+        return false
+      }
+      
+      return true
+    } catch (error) {
+      console.error('❌ [AppContext] Error validando sesión:', error)
+      return false
+    }
+  }
+
+  const cleanCorruptedSessions = async () => {
+    try {
+      console.log('🧹 [AppContext] Limpiando sesiones corruptas...')
+      
+      // Limpiar localStorage de Supabase
+      const supabaseKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('sb-') || key.includes('supabase')
+      )
+      
+      supabaseKeys.forEach(key => {
+        localStorage.removeItem(key)
+        console.log('🗑️ [AppContext] Eliminado:', key)
+      })
+      
+      // Limpiar cachés
+      profileCache.clear()
+      setupCache.isSetup = null
+      setupCache.timestamp = 0
+      
+      console.log('✅ [AppContext] Limpieza completada')
+    } catch (error) {
+      console.error('❌ [AppContext] Error limpiando sesiones:', error)
+    }
+  }
 
   const checkSystemSetup = async () => {
     try {
@@ -130,19 +202,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.log('🔧 [AppContext] Verificando configuración del sistema...')
       setSetupLoading(true)
       
-      // Consulta optimizada con timeout
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      // Consulta con timeout mejorado usando Promise.race
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+      })
+
+      const queryPromise = supabase
+        .from('organizations')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
 
       try {
-        const { data, error } = await supabase
-          .from('organizations')
-          .select('id')
-          .limit(1)
-          .abortSignal(controller.signal)
-          .maybeSingle()
-
-        clearTimeout(timeoutId)
+        const result = await Promise.race([queryPromise, timeoutPromise])
+        const { data, error } = result
 
         const systemIsSetup = !error && data !== null
         
@@ -153,9 +226,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.log('✅ [AppContext] Setup verificado:', systemIsSetup)
         setIsSetup(systemIsSetup)
       } catch (fetchError: any) {
-        clearTimeout(timeoutId)
-        
-        if (fetchError.name === 'AbortError') {
+        if (fetchError.message === 'TIMEOUT') {
           console.warn('⏰ [AppContext] Timeout en verificación setup - asumiendo configurado')
           setupCache.isSetup = true
           setupCache.timestamp = now
@@ -176,7 +247,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   const handleUserProfile = async (authUser: User, userSession: Session) => {
+    // Evitar consultas duplicadas
+    if (profileFetchInProgress.current.has(authUser.id)) {
+      console.log('👤 [AppContext] Consulta de perfil ya en progreso para:', authUser.id)
+      return
+    }
+
     try {
+      profileFetchInProgress.current.add(authUser.id)
+      
       // Verificar caché de perfil
       const cached = profileCache.get(authUser.id)
       if (cached && (Date.now() - cached.timestamp) < 30000) { // 30 segundos
@@ -188,21 +267,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       console.log('👤 [AppContext] Consultando perfil:', authUser.id)
       
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 3000)
+      // Timeout mejorado usando Promise.race
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('TIMEOUT')), 8000) // Aumentado a 8 segundos
+      })
+
+      const queryPromise = supabase
+        .from('users')
+        .select('role, org_id')
+        .eq('id', authUser.id)
+        .single()
 
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('role, org_id')
-          .eq('id', authUser.id)
-          .abortSignal(controller.signal)
-          .single()
-
-        clearTimeout(timeoutId)
+        const result = await Promise.race([queryPromise, timeoutPromise])
+        const { data, error } = result
 
         if (error) {
-          console.warn('⚠️ [AppContext] Error consultando perfil, usando usuario básico:', error.message)
+          console.warn('⚠️ [AppContext] Error consultando perfil:', error.message)
           throw error
         }
 
@@ -221,7 +302,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.log('✅ [AppContext] Perfil cargado:', { role: data.role, org_id: data.org_id })
         setUser(enrichedUser)
       } catch (fetchError: any) {
-        clearTimeout(timeoutId)
+        if (fetchError.message === 'TIMEOUT') {
+          console.warn('⏰ [AppContext] Timeout en consulta de perfil')
+        }
         
         // Usar usuario básico como fallback
         console.log('⚠️ [AppContext] Usando usuario básico como fallback')
@@ -238,18 +321,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('❌ [AppContext] Error manejando perfil:', error)
       setUser(authUser as AuthUser)
     } finally {
+      profileFetchInProgress.current.delete(authUser.id)
       setAuthLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
     console.log('🔐 [AppContext] Iniciando sesión para:', email)
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) {
-      console.error('❌ [AppContext] Error en signIn:', error.message)
+    
+    // Limpiar estado previo
+    setAuthLoading(true)
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (error) {
+        console.error('❌ [AppContext] Error en signIn:', error.message)
+        
+        // Si hay error de credenciales, limpiar sesiones corruptas
+        if (error.message.includes('Invalid') || error.message.includes('credentials')) {
+          await cleanCorruptedSessions()
+        }
+        
+        throw error
+      }
+      
+      console.log('✅ [AppContext] Sign in exitoso')
+    } catch (error) {
+      setAuthLoading(false)
       throw error
     }
   }
@@ -284,7 +386,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const signOut = async () => {
     console.log('🚪 [AppContext] Cerrando sesión')
-    // Limpiar cachés
+    
+    // Limpiar cachés antes del sign out
     profileCache.clear()
     setupCache.isSetup = null
     setupCache.timestamp = 0
@@ -292,8 +395,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { error } = await supabase.auth.signOut()
     if (error) {
       console.error('❌ [AppContext] Error en signOut:', error.message)
-      throw error
     }
+    
+    // Limpiar estado local
+    setUser(null)
+    setSession(null)
+    
+    // Limpiar localStorage como medida adicional
+    await cleanCorruptedSessions()
   }
 
   const value: AppState = {

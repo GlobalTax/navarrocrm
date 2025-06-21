@@ -19,11 +19,14 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  // Redirección automática
+  // Redirección automática mejorada
   useEffect(() => {
-    if (isInitializing) return
+    if (isInitializing) {
+      console.log('🔄 [Login] Esperando inicialización...')
+      return
+    }
 
-    // Si hay usuario/sesión y el sistema está configurado, redirigir
+    // Si hay usuario/sesión válida y el sistema está configurado, redirigir
     if ((session || user) && isSetup !== false) {
       console.log('🔐 [Login] Usuario autenticado, redirigiendo a:', from)
       navigate(from, { replace: true })
@@ -53,15 +56,31 @@ export default function Login() {
     setLoading(true)
 
     try {
+      console.log('🔐 [Login] Intentando login para:', email)
       await signIn(email, password)
+      
+      toast({
+        title: "¡Bienvenido!",
+        description: "Has iniciado sesión correctamente",
+      })
+      
       // La redirección se manejará automáticamente por el useEffect
     } catch (error: any) {
       console.error('❌ [Login] Error en login:', error)
+      
+      let errorMessage = "Error al iniciar sesión. Inténtalo de nuevo."
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "Email o contraseña incorrectos"
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Por favor, confirma tu email antes de iniciar sesión"
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = "Demasiados intentos. Espera unos minutos antes de intentar de nuevo"
+      }
+      
       toast({
         title: "Error de autenticación",
-        description: error.message === 'Invalid login credentials' 
-          ? "Email o contraseña incorrectos" 
-          : "Error al iniciar sesión. Inténtalo de nuevo.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -70,13 +89,13 @@ export default function Login() {
   }
 
   // Mostrar loading mientras se inicializa o si ya está autenticado
-  if (isInitializing || (session || user) && isSetup !== false) {
+  if (isInitializing || ((session || user) && isSetup !== false)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {isInitializing ? 'Inicializando...' : 'Redirigiendo al dashboard...'}
+            {isInitializing ? 'Verificando autenticación...' : 'Accediendo al dashboard...'}
           </p>
         </div>
       </div>
@@ -104,6 +123,7 @@ export default function Login() {
                 required
                 placeholder="tu@email.com"
                 disabled={loading}
+                autoComplete="email"
               />
             </div>
             
@@ -117,6 +137,7 @@ export default function Login() {
                 required
                 placeholder="••••••••"
                 disabled={loading}
+                autoComplete="current-password"
               />
             </div>
             
@@ -127,6 +148,21 @@ export default function Login() {
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
+            
+            {/* Botón de debug para limpiar datos corruptos */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-xs"
+                onClick={() => {
+                  localStorage.clear()
+                  window.location.reload()
+                }}
+              >
+                🔧 Limpiar datos (debug)
+              </Button>
+            )}
           </form>
         </CardContent>
       </Card>
