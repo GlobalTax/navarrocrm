@@ -19,7 +19,6 @@ import {
 import { ChatInput } from '@/components/ui/chat-input'
 import { ChatMessageList } from '@/components/ui/chat-message-list'
 import { Button } from '@/components/ui/button'
-import { QuickActions } from './QuickActions'
 import { ChatSuggestions } from './ChatSuggestions'
 import { useAIChat } from './useAIChat'
 import { AIAssistantProps } from './types'
@@ -31,11 +30,6 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
   const handleSuggestionClick = (suggestion: string) => {
     console.log('💡 AIAssistant - Clic en sugerencia:', suggestion)
     sendMessage(suggestion)
-  }
-
-  const handleQuickAction = (prompt: string) => {
-    console.log('⚡ AIAssistant - Acción rápida:', prompt)
-    sendMessage(prompt)
   }
 
   const handleSubmit = (e: FormEvent) => {
@@ -63,14 +57,6 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       </ExpandableChatHeader>
 
       <ExpandableChatBody>
-        {/* Quick Actions */}
-        {messages.length <= 1 && (
-          <QuickActions
-            onActionClick={handleQuickAction}
-            isLoading={isLoading}
-          />
-        )}
-
         <ChatMessageList>
           {messages.map((message) => (
             <div key={message.id} className="space-y-2">

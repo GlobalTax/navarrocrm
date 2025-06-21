@@ -1,6 +1,5 @@
 
 import { TodayAgenda } from './TodayAgenda'
-import { QuickActions } from './QuickActions'
 import { PerformanceChart } from './PerformanceChart'
 import { RecentActivity } from './RecentActivity'
 
@@ -10,7 +9,6 @@ export const DashboardLayout = () => {
       {/* Columna izquierda - Agenda */}
       <div className="lg:col-span-4 space-y-6">
         <TodayAgenda />
-        <QuickActions />
       </div>
       
       {/* Columna central - Gráficos */}
