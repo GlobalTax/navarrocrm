@@ -54,8 +54,9 @@ const Tasks = () => {
     
     // Filtro de prioridad mejorado para términos legales
     if (filters.priority !== 'all') {
-      if (filters.priority === 'critical' && task.priority !== 'critical') return false
-      if (filters.priority === 'urgent' && !['urgent', 'critical'].includes(task.priority)) return false
+      // Handle critical as a special case that maps to urgent priority
+      if (filters.priority === 'critical' && task.priority !== 'urgent') return false
+      if (filters.priority === 'urgent' && task.priority !== 'urgent') return false
       if (filters.priority === 'high' && task.priority !== 'high') return false
       if (filters.priority === 'medium' && task.priority !== 'medium') return false
       if (filters.priority === 'low' && task.priority !== 'low') return false
