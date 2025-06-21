@@ -12,6 +12,7 @@ import {
   FileText, Clock, Euro
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Client {
   id: string
@@ -52,6 +53,7 @@ interface ClientNote {
   note_type: string
   created_at: string
   user_id: string
+  is_private: boolean
 }
 
 interface ClientDetailDialogProps {
@@ -106,15 +108,18 @@ const getContactPreferenceIcon = (preference: string) => {
 }
 
 export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialogProps) => {
+  const { user } = useAuth()
+
   const { data: cases = [] } = useQuery({
     queryKey: ['client-cases', client?.id],
     queryFn: async () => {
-      if (!client?.id) return []
+      if (!client?.id || !user?.org_id) return []
       
       const { data, error } = await supabase
         .from('cases')
         .select('id, title, status, created_at')
         .eq('client_id', client.id)
+        .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -123,17 +128,17 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
       }
       return data || []
     },
-    enabled: !!client?.id,
+    enabled: !!client?.id && !!user?.org_id,
   })
 
   const { data: notes = [] } = useQuery({
     queryKey: ['client-notes', client?.id],
     queryFn: async () => {
-      if (!client?.id) return []
+      if (!client?.id || !user?.org_id) return []
       
       const { data, error } = await supabase
         .from('client_notes')
-        .select('id, title, content, note_type, created_at, user_id')
+        .select('id, title, content, note_type, created_at, user_id, is_private')
         .eq('client_id', client.id)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -144,7 +149,7 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
       }
       return data || []
     },
-    enabled: !!client?.id,
+    enabled: !!client?.id && !!user?.org_id,
   })
 
   if (!client) return null
@@ -449,6 +454,11 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
                             <Badge variant="outline" className="text-xs">
                               {note.note_type}
                             </Badge>
+                            {note.is_private && (
+                              <Badge variant="secondary" className="text-xs">
+                                Privada
+                              </Badge>
+                            )}
                           </div>
                           {note.content && (
                             <p className="text-sm text-gray-600 mb-2">{note.content}</p>
