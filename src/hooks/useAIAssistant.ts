@@ -2,31 +2,29 @@
 import { useState } from 'react'
 
 export const useAIAssistant = () => {
-  const [isOpen, setIsOpen] = useState(true) // Siempre abierto por defecto
+  const [isOpen, setIsOpen] = useState(false) // Cambiado a false por defecto
   const [isMinimized, setIsMinimized] = useState(false)
 
   console.log('🪝 useAIAssistant - Estado actual:', { isOpen, isMinimized })
 
   const toggle = () => {
     console.log('🔄 useAIAssistant - Toggle llamado')
-    if (isOpen && !isMinimized) {
-      console.log('📦 useAIAssistant - Minimizando...')
-      setIsMinimized(true)
-    } else {
-      console.log('📖 useAIAssistant - Maximizando...')
-      setIsOpen(true)
+    setIsOpen(!isOpen)
+    if (!isOpen) {
       setIsMinimized(false)
     }
   }
 
   const minimize = () => {
     console.log('📦 useAIAssistant - Minimize llamado')
-    setIsMinimized(true)
+    setIsOpen(false)
+    setIsMinimized(false)
   }
 
   const close = () => {
-    console.log('📦 useAIAssistant - Close llamado (convertido a minimize)')
-    setIsMinimized(true) // En lugar de cerrar, solo minimizar
+    console.log('❌ useAIAssistant - Close llamado')
+    setIsOpen(false)
+    setIsMinimized(false)
   }
 
   const maximize = () => {

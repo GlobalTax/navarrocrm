@@ -1,25 +1,30 @@
 
-import { useState, useRef, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useRef, useEffect, FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { 
-  MessageCircle, 
-  Send, 
-  Minimize2, 
-  Maximize2, 
-  X, 
   Bot, 
   User, 
   Sparkles,
   Users,
   FileText,
   Calendar,
-  AlertCircle
+  Send,
+  CornerDownLeft
 } from 'lucide-react'
+import { 
+  ExpandableChat,
+  ExpandableChatHeader,
+  ExpandableChatBody,
+  ExpandableChatFooter,
+} from '@/components/ui/expandable-chat'
+import {
+  ChatBubble,
+  ChatBubbleAvatar,
+  ChatBubbleMessage,
+} from '@/components/ui/chat-bubble'
+import { ChatInput } from '@/components/ui/chat-input'
+import { ChatMessageList } from '@/components/ui/chat-message-list'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
@@ -75,44 +80,14 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string>('')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  useEffect(() => {
-    console.log('🔍 AIAssistant - isOpen:', isOpen, 'isMinimized:', isMinimized)
-    if (isOpen && !isMinimized) {
-      console.log('🎯 AIAssistant - Intentando enfocar input...')
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus()
-          console.log('✅ AIAssistant - Input enfocado')
-        } else {
-          console.log('❌ AIAssistant - Input ref no disponible')
-        }
-      }, 100)
-    }
-  }, [isOpen, isMinimized])
 
   const sendMessage = async (content: string) => {
     console.log('📤 AIAssistant - Enviando mensaje:', content)
-    console.log('📊 AIAssistant - Estado actual - isLoading:', isLoading, 'content.trim():', content.trim())
     
     if (!content.trim() || isLoading) {
       console.log('⚠️ AIAssistant - Mensaje bloqueado. Contenido vacío o cargando')
-      setDebugInfo(`Bloqueado: contenido="${content.trim()}", isLoading=${isLoading}`)
       return
     }
-
-    setDebugInfo('Enviando mensaje...')
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -127,7 +102,6 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
 
     try {
       console.log('🚀 AIAssistant - Llamando a función Edge...')
-      setDebugInfo('Conectando con IA...')
       
       const response = await supabase.functions.invoke('ai-assistant', {
         body: {
@@ -157,7 +131,6 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       }
 
       setMessages(prev => [...prev, assistantMessage])
-      setDebugInfo('¡Mensaje enviado correctamente!')
 
       if (response.data.action) {
         handleAIAction(response.data.action)
@@ -173,17 +146,8 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       }
       setMessages(prev => [...prev, errorMessage])
       toast.error('Error al comunicarse con el asistente')
-      setDebugInfo(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     } finally {
       setIsLoading(false)
-      console.log('✅ AIAssistant - Proceso completado, isLoading ahora es false')
-      // Volver a enfocar el input después de enviar
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus()
-          console.log('🎯 AIAssistant - Input reenfocado después de envío')
-        }
-      }, 100)
     }
   }
 
@@ -201,124 +165,34 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
     sendMessage(prompt)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     console.log('📝 AIAssistant - Submit formulario, mensaje:', inputMessage)
     sendMessage(inputMessage)
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    console.log('⌨️ AIAssistant - Cambio en input:', value)
-    setInputMessage(value)
-    setDebugInfo(`Escribiendo: "${value}"`)
-  }
-
-  const handleInputFocus = () => {
-    console.log('🎯 AIAssistant - Input enfocado por usuario')
-    setDebugInfo('Campo de texto activo')
-  }
-
-  const handleInputBlur = () => {
-    console.log('👋 AIAssistant - Input perdió el foco')
-  }
-
-  // Test simple para verificar si el componente responde
-  const testFunction = () => {
-    console.log('🧪 AIAssistant - Función de test ejecutada')
-    setDebugInfo('Test ejecutado - el componente responde')
-    toast.success('Test: El componente funciona correctamente')
-  }
-
-  if (isMinimized) {
-    return (
-      <Card className="fixed bottom-4 right-4 w-80 shadow-xl border-2 border-blue-200 z-50 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-indigo-600">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-white">
-              <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse shadow-lg" />
-              <CardTitle className="text-sm font-semibold">🤖 Asistente Jurídico IA</CardTitle>
-            </div>
-            <div className="flex gap-1">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={onToggle}
-                className="text-white hover:bg-white/20 h-7 w-7 p-0"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <Sparkles className="h-6 w-6 text-blue-600 animate-pulse" />
-            </div>
-            <p className="text-sm text-gray-700 font-medium">¿Necesitas ayuda?</p>
-            <p className="text-xs text-gray-500 mb-3">Haz clic para expandir el chat</p>
-            <Button 
-              onClick={onToggle} 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              size="sm"
-            >
-              💬 Abrir Chat
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
+  if (!isOpen) {
+    return null
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[600px] shadow-xl border-2 border-blue-200 z-50 flex flex-col bg-white">
-      <CardHeader className="pb-2 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8 border-2 border-white">
-              <AvatarFallback className="bg-white text-blue-700 font-bold">
-                <Bot className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-sm font-semibold">🤖 Asistente Jurídico IA</CardTitle>
-              <div className="flex items-center gap-1">
-                <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs text-blue-100">Siempre disponible</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={testFunction}
-              className="text-white hover:bg-white/20 h-7 w-7 p-0"
-              title="Test de funcionalidad"
-            >
-              <AlertCircle className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onMinimize}
-              className="text-white hover:bg-white/20 h-7 w-7 p-0"
-            >
-              <Minimize2 className="h-4 w-4" />
-            </Button>
-          </div>
+    <ExpandableChat
+      size="lg"
+      position="bottom-right"
+      icon={<Bot className="h-6 w-6" />}
+    >
+      <ExpandableChatHeader className="flex-col text-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600">
+        <div className="flex items-center justify-center gap-2 text-white">
+          <Bot className="h-6 w-6" />
+          <h1 className="text-lg font-semibold">🤖 Asistente Jurídico IA</h1>
         </div>
-      </CardHeader>
+        <div className="flex items-center justify-center gap-1 mt-1">
+          <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
+          <p className="text-sm text-blue-100">Siempre disponible para ayudarte</p>
+        </div>
+      </ExpandableChatHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0">
-        {/* Debug info */}
-        {debugInfo && (
-          <div className="px-4 py-2 bg-yellow-50 border-b text-xs text-yellow-800">
-            🔧 Debug: {debugInfo}
-          </div>
-        )}
-
+      <ExpandableChatBody>
         {/* Acciones rápidas */}
         {messages.length <= 1 && (
           <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -341,135 +215,87 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
           </div>
         )}
 
-        {/* Mensajes */}
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className="space-y-2">
-                <div
-                  className={`flex gap-3 ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  {message.role === 'assistant' && (
-                    <Avatar className="h-6 w-6 border border-blue-200">
-                      <AvatarFallback className="bg-blue-100 text-blue-700">
-                        <Bot className="h-3 w-3" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  
-                  <div
-                    className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-900 border border-gray-200'
-                    }`}
-                  >
-                    {message.content}
-                  </div>
+        <ChatMessageList>
+          {messages.map((message) => (
+            <div key={message.id} className="space-y-2">
+              <ChatBubble variant={message.role === 'user' ? 'sent' : 'received'}>
+                <ChatBubbleAvatar
+                  src={message.role === 'user' ? undefined : undefined}
+                  fallback={message.role === 'user' ? 'TU' : 'IA'}
+                  className="h-8 w-8"
+                />
+                <ChatBubbleMessage variant={message.role === 'user' ? 'sent' : 'received'}>
+                  {message.content}
+                </ChatBubbleMessage>
+              </ChatBubble>
 
-                  {message.role === 'user' && (
-                    <Avatar className="h-6 w-6 border border-gray-200">
-                      <AvatarFallback className="bg-gray-200 text-gray-700">
-                        <User className="h-3 w-3" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-
-                {/* Sugerencias */}
-                {message.role === 'assistant' && message.suggestions && (
-                  <div className="ml-9 space-y-1">
-                    <p className="text-xs text-gray-500">💡 Sugerencias:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {message.suggestions.map((suggestion, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="cursor-pointer hover:bg-blue-50 hover:border-blue-300 text-xs"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          {suggestion}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {isLoading && (
-              <div className="flex items-center gap-3">
-                <Avatar className="h-6 w-6 border border-blue-200">
-                  <AvatarFallback className="bg-blue-100 text-blue-700">
-                    <Bot className="h-3 w-3" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
-                  <div className="flex items-center gap-1 text-blue-600">
-                    <div className="animate-bounce">●</div>
-                    <div className="animate-bounce" style={{ animationDelay: '0.1s' }}>●</div>
-                    <div className="animate-bounce" style={{ animationDelay: '0.2s' }}>●</div>
+              {/* Sugerencias */}
+              {message.role === 'assistant' && message.suggestions && (
+                <div className="ml-10 space-y-1">
+                  <p className="text-xs text-gray-500">💡 Sugerencias:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {message.suggestions.map((suggestion, index) => (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className="cursor-pointer hover:bg-blue-50 hover:border-blue-300 text-xs"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
+              )}
+            </div>
+          ))}
+          
+          {isLoading && (
+            <ChatBubble variant="received">
+              <ChatBubbleAvatar fallback="IA" className="h-8 w-8" />
+              <ChatBubbleMessage isLoading />
+            </ChatBubble>
+          )}
+        </ChatMessageList>
+      </ExpandableChatBody>
 
-        {/* Input de mensaje */}
-        <div className="p-4 border-t bg-gray-50">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input
-              ref={inputRef}
-              value={inputMessage}
-              onChange={handleInputChange}
-              onFocus={handleInputFocus}
-              onBlur={handleInputBlur}
-              placeholder={isLoading ? "Procesando..." : "Escribe tu pregunta aquí..."}
-              disabled={isLoading}
-              className={`flex-1 border-blue-200 focus:border-blue-400 ${
-                isLoading ? 'bg-gray-100' : 'bg-white'
-              }`}
-            />
+      <ExpandableChatFooter>
+        <form
+          onSubmit={handleSubmit}
+          className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring p-1"
+        >
+          <ChatInput
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder={isLoading ? "Procesando..." : "Escribe tu pregunta aquí..."}
+            disabled={isLoading}
+            className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
+          />
+          <div className="flex items-center p-3 pt-0 justify-between">
+            <div className="flex items-center gap-1 text-xs">
+              <Sparkles className="h-3 w-3 text-blue-600" />
+              <span className="text-gray-500">
+                {isLoading ? 'Pensando...' : 'Asistente IA listo'}
+              </span>
+            </div>
             <Button 
               type="submit" 
+              size="sm" 
+              className="ml-auto gap-1.5"
               disabled={!inputMessage.trim() || isLoading}
-              size="sm"
-              className={`${
-                isLoading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
             >
               {isLoading ? (
                 <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
               ) : (
-                <Send className="h-4 w-4" />
+                <>
+                  Enviar
+                  <CornerDownLeft className="size-3.5" />
+                </>
               )}
             </Button>
-          </form>
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-xs text-gray-500 flex items-center gap-1">
-              <Sparkles className="h-3 w-3" />
-              Asistente IA - Siempre aquí para ayudarte
-            </p>
-            {(isLoading || debugInfo) && (
-              <div className="flex items-center gap-1 text-xs">
-                {isLoading && (
-                  <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
-                )}
-                <span className="text-gray-400">
-                  {isLoading ? 'Pensando...' : 'Listo'}
-                </span>
-              </div>
-            )}
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </form>
+      </ExpandableChatFooter>
+    </ExpandableChat>
   )
 }

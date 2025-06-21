@@ -9,7 +9,7 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isOpen, isMinimized, toggle, minimize, close } = useAIAssistant()
+  const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,15 +23,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </div>
       
-      {/* AI Assistant - botón flotante fijo */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <AIAssistant
-          isOpen={isOpen}
-          isMinimized={isMinimized}
-          onToggle={toggle}
-          onMinimize={minimize}
-        />
-      </div>
+      {/* AI Assistant with new modern interface */}
+      <AIAssistant
+        isOpen={isOpen}
+        isMinimized={isMinimized}
+        onToggle={toggle}
+        onMinimize={minimize}
+      />
     </div>
   )
 }
