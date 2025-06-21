@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
 import { 
   Clock, 
@@ -18,7 +18,7 @@ import { ActiveTimer } from '@/components/dashboard/ActiveTimer'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user } = useApp()
   const [stats, setStats] = useState({
     totalTimeEntries: 0,
     totalBillableHours: 0,
