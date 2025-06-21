@@ -21,8 +21,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Timeout más agresivo para consultas de perfil
-const PROFILE_FETCH_TIMEOUT = 3000 // 3 segundos
+// Timeouts más robustos
+const PROFILE_FETCH_TIMEOUT = 5000 // 5 segundos
+const INIT_TIMEOUT = 8000 // 8 segundos para inicialización
 const MAX_RETRIES = 2
 
 export const useAuth = () => {
@@ -47,16 +48,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initializeAuth = async () => {
       try {
-        console.log('🔐 [AuthContext] Inicializando con timeout de 5s...')
+        console.log('🔐 [AuthContext] Inicializando con timeout robusto de 8s...')
         
         // Timeout de seguridad para inicialización
         initTimeout = setTimeout(() => {
           if (!initializationComplete.current && isMounted) {
-            console.warn('⚠️ [AuthContext] Timeout de inicialización - usando sesión básica')
+            console.warn('⚠️ [AuthContext] Timeout de inicialización - usando fallback seguro')
             setLoading(false)
             initializationComplete.current = true
           }
-        }, 5000)
+        }, INIT_TIMEOUT)
 
         const { data: { session }, error } = await supabase.auth.getSession()
         
@@ -77,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(session)
           if (session?.user) {
             console.log('👤 [AuthContext] Usuario en sesión:', session.user.id)
-            await fetchUserProfileWithTimeout(session.user)
+            await fetchUserProfileWithTimeout(session.user, session)
           } else {
             console.log('🚫 [AuthContext] Sin usuario en sesión')
             setUser(null)
@@ -115,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session)
         if (session?.user) {
           console.log('👤 [AuthContext] Nuevo usuario autenticado:', session.user.id)
-          await fetchUserProfileWithTimeout(session.user)
+          await fetchUserProfileWithTimeout(session.user, session)
         } else {
           console.log('🚫 [AuthContext] Usuario desautenticado')
           setUser(null)
@@ -133,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [])
 
-  const fetchUserProfileWithTimeout = async (authUser: User, retryCount = 0): Promise<void> => {
+  const fetchUserProfileWithTimeout = async (authUser: User, userSession: Session, retryCount = 0): Promise<void> => {
     // Evitar consultas duplicadas para el mismo usuario
     if (fetchingProfile.current === authUser.id) {
       console.log('👤 [AuthContext] Consulta de perfil ya en curso para:', authUser.id)
@@ -170,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             org_id: data.org_id
           })
         } else {
-          console.log('⚠️ [AuthContext] No se encontró perfil, usando usuario básico')
+          console.log('⚠️ [AuthContext] No se encontró perfil, usando usuario básico de sesión')
           setUser(authUser as AuthUser)
         }
       } catch (fetchError: any) {
@@ -189,13 +190,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (retryCount < MAX_RETRIES && error.message !== 'Timeout en consulta de perfil') {
         console.log(`🔄 [AuthContext] Reintentando consulta de perfil en 1s...`)
         setTimeout(() => {
-          fetchUserProfileWithTimeout(authUser, retryCount + 1)
+          fetchUserProfileWithTimeout(authUser, userSession, retryCount + 1)
         }, 1000)
         return
       }
       
-      // Si fallan todos los intentos, usar usuario básico
-      console.log('⚠️ [AuthContext] Usando usuario básico tras fallos en consulta de perfil')
+      // Si fallan todos los intentos, usar usuario básico de la sesión
+      console.log('⚠️ [AuthContext] Usando usuario básico de sesión tras fallos en consulta de perfil')
       setUser(authUser as AuthUser)
     } finally {
       fetchingProfile.current = null

@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useSystemSetup } from '@/hooks/useSystemSetup'
 
 const Index = () => {
-  const { user, loading: authLoading } = useAuth()
+  const { user, session, loading: authLoading } = useAuth()
   const { isSetup, loading: setupLoading } = useSystemSetup()
   const [emergencyRedirect, setEmergencyRedirect] = useState<string | false>(false)
   const [debugInfo, setDebugInfo] = useState<string>('')
@@ -15,37 +15,39 @@ const Index = () => {
       authLoading,
       setupLoading,
       user: user ? `Usuario: ${user.id}` : 'Sin usuario',
+      session: session ? `Sesión: ${session.user.id}` : 'Sin sesión',
       isSetup,
       emergencyRedirect
     }
     
     console.log('🏠 [Index] Estado actual:', currentState)
-    setDebugInfo(`Auth: ${authLoading ? 'Cargando' : 'Listo'}, Setup: ${setupLoading ? 'Cargando' : 'Listo'}, User: ${user ? 'Sí' : 'No'}`)
-  }, [authLoading, setupLoading, user, isSetup, emergencyRedirect])
+    setDebugInfo(`Auth: ${authLoading ? 'Cargando' : 'Listo'}, Setup: ${setupLoading ? 'Cargando' : 'Listo'}, Session: ${session ? 'Sí' : 'No'}`)
+  }, [authLoading, setupLoading, user, session, isSetup, emergencyRedirect])
 
-  // Timeout de emergencia reducido y más inteligente
+  // Timeout de emergencia mejorado
   useEffect(() => {
     if (authLoading || setupLoading) {
-      console.log('⏰ [Index] Iniciando timeout de emergencia (8s)')
+      console.log('⏰ [Index] Iniciando timeout de emergencia (12s)')
       
       const emergencyTimeout = setTimeout(() => {
-        console.error('🚨 [Index] TIMEOUT EMERGENCIA: Estado después de 8 segundos:', {
+        console.error('🚨 [Index] TIMEOUT EMERGENCIA: Estado después de 12 segundos:', {
           authLoading,
           setupLoading,
           userExists: !!user,
+          sessionExists: !!session,
           isSetup
         })
         
-        // Lógica de redirección más inteligente
-        if (!authLoading && !user) {
-          console.log('🔐 [Index] Forzar redirección a login - no hay usuario')
+        // Lógica de redirección más inteligente basada en session
+        if (!authLoading && !session) {
+          console.log('🔐 [Index] Forzar redirección a login - no hay sesión')
           setEmergencyRedirect('login')
           return
         }
         
-        if (!authLoading && user) {
-          // Si hay usuario, ir a dashboard independientemente del setup
-          console.log('📊 [Index] Forzar redirección a dashboard - usuario presente')
+        if (!authLoading && session) {
+          // Si hay sesión válida, ir a dashboard independientemente del perfil de usuario
+          console.log('📊 [Index] Forzar redirección a dashboard - sesión válida presente')
           setEmergencyRedirect('dashboard')
           return
         }
@@ -53,14 +55,14 @@ const Index = () => {
         // Fallback por defecto
         console.log('🔐 [Index] Forzar redirección a login por timeout general')
         setEmergencyRedirect('login')
-      }, 8000) // Reducido a 8 segundos
+      }, 12000) // Aumentado a 12 segundos
 
       return () => {
         console.log('⏰ [Index] Cancelando timeout de emergencia')
         clearTimeout(emergencyTimeout)
       }
     }
-  }, [authLoading, setupLoading, user, isSetup])
+  }, [authLoading, setupLoading, user, session, isSetup])
 
   // Redirección de emergencia específica
   if (emergencyRedirect) {
@@ -83,7 +85,7 @@ const Index = () => {
             {debugInfo}
           </p>
           <div className="text-xs text-gray-300">
-            Si esto toma más de 8 segundos, serás redirigido automáticamente
+            Si esto toma más de 12 segundos, serás redirigido automáticamente
           </div>
         </div>
       </div>
@@ -96,15 +98,27 @@ const Index = () => {
     return <Navigate to="/setup" replace />
   }
 
-  // 2. Verificar autenticación
-  if (!user) {
-    console.log('🔐 [Index] Usuario no autenticado → /login')
+  // 2. Verificar autenticación (priorizar session sobre user)
+  if (!session && !user) {
+    console.log('🔐 [Index] Sin sesión ni usuario → /login')
     return <Navigate to="/login" replace />
   }
 
-  // 3. Todo correcto → dashboard
-  console.log('✅ [Index] Todo configurado → /dashboard')
-  return <Navigate to="/dashboard" replace />
+  // 3. Si hay sesión válida, permitir acceso aunque no haya perfil completo
+  if (session) {
+    console.log('✅ [Index] Sesión válida encontrada → /dashboard')
+    return <Navigate to="/dashboard" replace />
+  }
+
+  // 4. Fallback: si hay usuario pero no sesión
+  if (user) {
+    console.log('✅ [Index] Usuario encontrado → /dashboard')
+    return <Navigate to="/dashboard" replace />
+  }
+
+  // 5. Fallback final
+  console.log('🔐 [Index] Fallback final → /login')
+  return <Navigate to="/login" replace />
 }
 
 export default Index

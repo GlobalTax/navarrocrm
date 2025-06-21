@@ -13,7 +13,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { user, signIn, loading: authLoading } = useAuth()
+  const { user, session, signIn, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
@@ -21,21 +21,22 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  // Redirección automática si el usuario ya está autenticado
+  // Redirección automática mejorada - priorizar session
   useEffect(() => {
-    if (!authLoading && !setupLoading && user && isSetup !== false) {
-      console.log('🔐 [Login] Usuario ya autenticado, redirigiendo a:', from)
-      navigate(from, { replace: true })
+    if (!authLoading && !setupLoading) {
+      // Si hay sesión válida o usuario, redirigir
+      if ((session || user) && isSetup !== false) {
+        console.log('🔐 [Login] Usuario/sesión encontrada, redirigiendo a:', from)
+        navigate(from, { replace: true })
+      }
+      
+      // Si el sistema no está configurado, ir a setup
+      if (isSetup === false) {
+        console.log('🔧 [Login] Sistema no configurado, redirigiendo a setup')
+        navigate('/setup', { replace: true })
+      }
     }
-  }, [user, authLoading, setupLoading, isSetup, navigate, from])
-
-  // Redirect to setup if system is not configured
-  useEffect(() => {
-    if (!setupLoading && isSetup === false) {
-      console.log('🔧 [Login] Sistema no configurado, redirigiendo a setup')
-      navigate('/setup', { replace: true })
-    }
-  }, [isSetup, setupLoading, navigate])
+  }, [session, user, authLoading, setupLoading, isSetup, navigate, from])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,9 +56,12 @@ export default function Login() {
       await signIn(email, password)
       // La redirección se manejará automáticamente por el useEffect
     } catch (error: any) {
+      console.error('❌ [Login] Error en login:', error)
       toast({
         title: "Error de autenticación",
-        description: "Email o contraseña incorrectos",
+        description: error.message === 'Invalid login credentials' 
+          ? "Email o contraseña incorrectos" 
+          : "Error al iniciar sesión. Inténtalo de nuevo.",
         variant: "destructive",
       })
     } finally {
@@ -79,25 +83,25 @@ export default function Login() {
     )
   }
 
-  // Si el usuario ya está autenticado, mostrar mensaje de redirección
-  if (user && isSetup !== false) {
+  // Si hay sesión/usuario y sistema configurado, mostrar redirección
+  if ((session || user) && isSetup !== false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirigiendo...</p>
+          <p className="text-gray-600">Redirigiendo al dashboard...</p>
         </div>
       </div>
     )
   }
 
-  // Si el sistema no está configurado, mostrar mensaje
+  // Si el sistema no está configurado, mostrar redirección a setup
   if (isSetup === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirigiendo al setup...</p>
+          <p className="text-gray-600">Redirigiendo al setup inicial...</p>
         </div>
       </div>
     )

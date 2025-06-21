@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
-const SETUP_CHECK_TIMEOUT = 3000 // 3 segundos para ser más rápido
+const SETUP_CHECK_TIMEOUT = 10000 // Aumentado a 10 segundos para ser más robusto
 
 export const useSystemSetup = () => {
   const [isSetup, setIsSetup] = useState<boolean | null>(null)
@@ -15,7 +15,7 @@ export const useSystemSetup = () => {
       try {
         console.log('🔧 [useSystemSetup] Verificando configuración del sistema...')
         
-        // Crear timeout de seguridad
+        // Crear timeout de seguridad más robusto
         const timeoutPromise = new Promise<never>((_, reject) => {
           timeoutId = setTimeout(() => {
             reject(new Error('TIMEOUT'))
@@ -52,11 +52,11 @@ export const useSystemSetup = () => {
         if (timeoutId) clearTimeout(timeoutId)
         
         if (error.message === 'TIMEOUT') {
-          console.warn('⏰ [useSystemSetup] Timeout en verificación - asumiendo sistema configurado')
-          setIsSetup(true) // Asumir configurado por defecto en caso de timeout
+          console.warn('⏰ [useSystemSetup] Timeout en verificación - asumiendo sistema configurado por robustez')
+          setIsSetup(true) // Fallback robusto: asumir configurado
         } else {
           console.error('🔧 [useSystemSetup] Error crítico verificando setup:', error)
-          setIsSetup(true) // Asumir configurado en caso de error
+          setIsSetup(true) // Fallback robusto: asumir configurado
         }
       } finally {
         console.log('🔧 [useSystemSetup] Finalizando verificación de setup')
