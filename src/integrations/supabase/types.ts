@@ -9,6 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_usage_logs: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string | null
+          duration_ms: number | null
+          error_message: string | null
+          estimated_cost: number | null
+          function_name: string
+          id: string
+          model_used: string | null
+          org_id: string
+          prompt_tokens: number | null
+          success: boolean | null
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          estimated_cost?: number | null
+          function_name?: string
+          id?: string
+          model_used?: string | null
+          org_id: string
+          prompt_tokens?: number | null
+          success?: boolean | null
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          estimated_cost?: number | null
+          function_name?: string
+          id?: string
+          model_used?: string | null
+          org_id?: string
+          prompt_tokens?: number | null
+          success?: boolean | null
+          total_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_logs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           case_id: string | null
@@ -744,6 +800,41 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          org_id: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          org_id?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          org_id?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string | null
@@ -792,13 +883,23 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      is_super_admin: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       is_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "super_admin"
+        | "admin"
+        | "manager"
+        | "senior"
+        | "junior"
+        | "finance"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -913,6 +1014,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "super_admin",
+        "admin",
+        "manager",
+        "senior",
+        "junior",
+        "finance",
+      ],
+    },
   },
 } as const

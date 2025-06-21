@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -17,6 +16,7 @@ import Calendar from '@/pages/Calendar'
 import Setup from '@/pages/Setup'
 import NotFound from '@/pages/NotFound'
 import Unauthorized from '@/pages/Unauthorized'
+import AIAdmin from '@/pages/AIAdmin'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +95,15 @@ function App() {
               {/* Fallback routes */}
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<Navigate to="/404" replace />} />
+              
+              <Route 
+                path="/admin/ai-usage" 
+                element={
+                  <ProtectedRoute>
+                    <AIAdmin />
+                  </ProtectedRoute>
+                } 
+              />
             </Routes>
             <Toaster />
           </div>
