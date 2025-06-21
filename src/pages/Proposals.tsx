@@ -40,7 +40,7 @@ export default function Proposals() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="flex items-center gap-2">
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>Cargando propuestas...</span>
@@ -50,66 +50,60 @@ export default function Proposals() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Propuestas</h1>
-            <p className="text-gray-600 mt-1">Gestiona tus propuestas comerciales y seguimiento de ventas</p>
-          </div>
-          <Button onClick={() => setIsNewProposalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Propuesta
-          </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Propuestas</h1>
+          <p className="text-gray-600 mt-1">Gestiona tus propuestas comerciales y seguimiento de ventas</p>
         </div>
-
-        {/* Métricas */}
-        <div className="mb-6">
-          <ProposalMetrics />
-        </div>
-
-        {/* Filtros */}
-        <div className="mb-6">
-          <ProposalFilters filters={filters} onFiltersChange={setFilters} />
-        </div>
-
-        {/* Lista de Propuestas */}
-        <div className="space-y-4">
-          {filteredProposals.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg mb-4">
-                {proposals.length === 0 ? 'No hay propuestas creadas aún' : 'No se encontraron propuestas con los filtros aplicados'}
-              </div>
-              {proposals.length === 0 && (
-                <Button onClick={() => setIsNewProposalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crear primera propuesta
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredProposals.map(proposal => (
-                <ProposalCard
-                  key={proposal.id}
-                  proposal={proposal}
-                  onStatusChange={handleStatusChange}
-                  onView={handleViewProposal}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Dialog para nueva propuesta */}
-        <NewProposalDialog
-          open={isNewProposalOpen}
-          onOpenChange={setIsNewProposalOpen}
-          onSubmit={createProposal.mutate}
-          isCreating={isCreating}
-        />
+        <Button onClick={() => setIsNewProposalOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nueva Propuesta
+        </Button>
       </div>
+
+      {/* Métricas */}
+      <ProposalMetrics />
+
+      {/* Filtros */}
+      <ProposalFilters filters={filters} onFiltersChange={setFilters} />
+
+      {/* Lista de Propuestas */}
+      <div className="space-y-4">
+        {filteredProposals.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg mb-4">
+              {proposals.length === 0 ? 'No hay propuestas creadas aún' : 'No se encontraron propuestas con los filtros aplicados'}
+            </div>
+            {proposals.length === 0 && (
+              <Button onClick={() => setIsNewProposalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear primera propuesta
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProposals.map(proposal => (
+              <ProposalCard
+                key={proposal.id}
+                proposal={proposal}
+                onStatusChange={handleStatusChange}
+                onView={handleViewProposal}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Dialog para nueva propuesta */}
+      <NewProposalDialog
+        open={isNewProposalOpen}
+        onOpenChange={setIsNewProposalOpen}
+        onSubmit={createProposal.mutate}
+        isCreating={isCreating}
+      />
     </div>
   )
 }

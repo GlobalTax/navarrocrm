@@ -1,7 +1,6 @@
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { supabase } from '@/integrations/supabase/client'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
@@ -30,15 +29,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <DashboardHeader user={user} />
-        <DashboardMetrics stats={stats} />
-        <DashboardLayout />
-        {stats.error && (
-          <DashboardError error={stats.error} onRetry={fetchStats} />
-        )}
-      </div>
+    <div className="space-y-6">
+      <DashboardHeader user={user} />
+      <DashboardMetrics stats={stats} />
+      <DashboardLayout />
+      {stats.error && (
+        <DashboardError error={stats.error} onRetry={fetchStats} />
+      )}
     </div>
   )
 }
