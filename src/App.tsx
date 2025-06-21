@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AppProvider } from '@/contexts/AppContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 // Pages
 import Login from '@/pages/Login';
@@ -42,15 +43,63 @@ function App() {
                 <Route path="/setup" element={<Setup />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 
-                {/* Protected routes */}
-                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-                <Route path="/proposals" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
-                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                <Route path="/time-tracking" element={<ProtectedRoute><TimeTracking /></ProtectedRoute>} />
-                <Route path="/ai-admin" element={<ProtectedRoute><AIAdmin /></ProtectedRoute>} />
+                {/* Protected routes wrapped in MainLayout */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Dashboard />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/clients" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Clients />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/cases" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Cases />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/tasks" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Tasks />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/proposals" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Proposals />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/calendar" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Calendar />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/time-tracking" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <TimeTracking />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/ai-admin" element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AIAdmin />
+                    </MainLayout>
+                  </ProtectedRoute>
+                } />
                 
                 {/* Fallback routes */}
                 <Route path="/404" element={<NotFound />} />
