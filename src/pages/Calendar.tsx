@@ -50,8 +50,11 @@ export default function Calendar() {
   }, [events])
 
   const handleNewEvent = (date?: Date) => {
-    if (date) {
+    // Validate and safely set the selected date
+    if (date && date instanceof Date && !isNaN(date.getTime())) {
       setSelectedDate(date)
+    } else {
+      setSelectedDate(new Date()) // fallback to current date
     }
     setIsNewEventOpen(true)
   }

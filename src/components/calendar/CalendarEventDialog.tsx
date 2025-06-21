@@ -25,6 +25,14 @@ export function CalendarEventDialog({
   cases, 
   selectedDate 
 }: CalendarEventDialogProps) {
+  // Safely handle selectedDate to ensure it's a valid Date object
+  const getDefaultDate = () => {
+    if (selectedDate && selectedDate instanceof Date && !isNaN(selectedDate.getTime())) {
+      return selectedDate.toISOString().split('T')[0]
+    }
+    return new Date().toISOString().split('T')[0]
+  }
+
   const [formData, setFormData] = useState<CreateCalendarEventData & { 
     date: string
     time: string
@@ -37,9 +45,9 @@ export function CalendarEventDialog({
   }>({
     title: '',
     description: '',
-    date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+    date: getDefaultDate(),
     time: '',
-    end_date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+    end_date: getDefaultDate(),
     end_time: '',
     event_type: 'meeting',
     location: '',
@@ -56,40 +64,70 @@ export function CalendarEventDialog({
   })
 
   const handleSubmit = () => {
-    if (!formData.title || !formData.date || !formData.time) {
+    if (!formData.title || !formData.date) {
       return
     }
 
-    // Construir las fechas completas
-    const startDateTime = `${formData.date}T${formData.time}:00.000Z`
-    const endDateTime = formData.end_date && formData.end_time 
-      ? `${formData.end_date}T${formData.end_time}:00.000Z`
-      : `${formData.date}T${formData.time}:00.000Z`
+    // Safely construct dates with validation
+    let startDateTime: string
+    let endDateTime: string
 
-    const eventData: CreateCalendarEventData = {
-      title: formData.title,
-      description: formData.description || null,
-      start_datetime: startDateTime,
-      end_datetime: endDateTime,
-      event_type: formData.event_type,
-      location: formData.location || null,
-      is_all_day: formData.is_all_day,
-      reminder_minutes: formData.reminders[0] || null,
-      client_id: formData.client_id || null,
-      case_id: formData.case_id || null,
-      status: 'scheduled'
+    try {
+      if (formData.is_all_day) {
+        // For all-day events, use noon to avoid timezone issues
+        startDateTime = `${formData.date}T12:00:00.000Z`
+        endDateTime = formData.end_date 
+          ? `${formData.end_date}T12:00:00.000Z`
+          : `${formData.date}T12:00:00.000Z`
+      } else {
+        // For timed events, require time
+        if (!formData.time) {
+          console.error('Time is required for non-all-day events')
+          return
+        }
+        
+        startDateTime = `${formData.date}T${formData.time}:00.000Z`
+        endDateTime = formData.end_date && formData.end_time 
+          ? `${formData.end_date}T${formData.end_time}:00.000Z`
+          : `${formData.date}T${formData.time}:00.000Z`
+      }
+
+      // Validate the constructed dates
+      const startDate = new Date(startDateTime)
+      const endDate = new Date(endDateTime)
+      
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error('Invalid date/time values provided')
+        return
+      }
+
+      const eventData: CreateCalendarEventData = {
+        title: formData.title,
+        description: formData.description || null,
+        start_datetime: startDateTime,
+        end_datetime: endDateTime,
+        event_type: formData.event_type,
+        location: formData.location || null,
+        is_all_day: formData.is_all_day,
+        reminder_minutes: formData.reminders[0] || null,
+        client_id: formData.client_id || null,
+        case_id: formData.case_id || null,
+        status: 'scheduled'
+      }
+
+      onSubmit(eventData)
+    } catch (error) {
+      console.error('Error creating event data:', error)
     }
-
-    onSubmit(eventData)
   }
 
   const resetForm = () => {
     setFormData({
       title: '',
       description: '',
-      date: '',
+      date: getDefaultDate(),
       time: '',
-      end_date: '',
+      end_date: getDefaultDate(),
       end_time: '',
       event_type: 'meeting',
       location: '',
