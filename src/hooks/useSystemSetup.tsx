@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
-const SETUP_CHECK_TIMEOUT = 2000 // Reducido a 2 segundos
+const SETUP_CHECK_TIMEOUT = 3000 // 3 segundos para ser más rápido
 
 export const useSystemSetup = () => {
   const [isSetup, setIsSetup] = useState<boolean | null>(null)
@@ -15,46 +15,48 @@ export const useSystemSetup = () => {
       try {
         console.log('🔧 [useSystemSetup] Verificando configuración del sistema...')
         
-        // Timeout de seguridad más agresivo
-        const controller = new AbortController()
-        timeoutId = setTimeout(() => {
-          console.warn('⏰ [useSystemSetup] Timeout en verificación - asumiendo sistema configurado')
-          controller.abort()
-        }, SETUP_CHECK_TIMEOUT)
+        // Crear timeout de seguridad
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('TIMEOUT'))
+          }, SETUP_CHECK_TIMEOUT)
+        })
         
-        // Consulta más eficiente - solo verificamos si existe alguna organización
-        const { data, error } = await supabase
+        // Consulta optimizada para verificar si existe alguna organización
+        const queryPromise = supabase
           .from('organizations')
           .select('id')
           .limit(1)
-          .single()
-          .abortSignal(controller.signal)
+          .maybeSingle()
+        
+        // Ejecutar con timeout
+        const result = await Promise.race([queryPromise, timeoutPromise])
         
         clearTimeout(timeoutId)
         
+        const { data, error } = result
+        
         if (error) {
-          if (error.code === 'PGRST116') {
-            // No hay datos - sistema no configurado
-            console.log('🔧 [useSystemSetup] No se encontraron organizaciones - sistema necesita configuración')
-            setIsSetup(false)
-          } else {
-            console.log('🔧 [useSystemSetup] Error consultando organizations:', error.message)
-            // En caso de error, asumir que está configurado para no bloquear
-            setIsSetup(true)
-          }
-        } else {
+          console.log('🔧 [useSystemSetup] Error consultando organizations:', error.message)
+          // En caso de error, asumir que está configurado para no bloquear
+          setIsSetup(true)
+        } else if (data) {
           console.log('🔧 [useSystemSetup] Sistema configurado correctamente')
           setIsSetup(true)
+        } else {
+          // No hay datos - sistema no configurado
+          console.log('🔧 [useSystemSetup] No se encontraron organizaciones - sistema necesita configuración')
+          setIsSetup(false)
         }
       } catch (error: any) {
         if (timeoutId) clearTimeout(timeoutId)
         
-        if (error.name === 'AbortError') {
-          console.warn('🔧 [useSystemSetup] Verificación cancelada por timeout - asumiendo configurado')
-          setIsSetup(true) // Cambio: asumir configurado por defecto
+        if (error.message === 'TIMEOUT') {
+          console.warn('⏰ [useSystemSetup] Timeout en verificación - asumiendo sistema configurado')
+          setIsSetup(true) // Asumir configurado por defecto en caso de timeout
         } else {
           console.error('🔧 [useSystemSetup] Error crítico verificando setup:', error)
-          setIsSetup(true) // Cambio: asumir configurado en caso de error
+          setIsSetup(true) // Asumir configurado en caso de error
         }
       } finally {
         console.log('🔧 [useSystemSetup] Finalizando verificación de setup')
