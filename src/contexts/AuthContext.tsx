@@ -35,49 +35,94 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) {
-        fetchUserProfile(session.user)
-      } else {
-        setLoading(false)
+    const initializeAuth = async () => {
+      try {
+        console.log('🔐 Inicializando autenticación...')
+        
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('❌ Error obteniendo sesión inicial:', error)
+          if (isMounted) {
+            setLoading(false)
+          }
+          return
+        }
+
+        console.log('📋 Sesión inicial:', session ? 'Encontrada' : 'No encontrada')
+        
+        if (isMounted) {
+          setSession(session)
+          if (session?.user) {
+            await fetchUserProfile(session.user)
+          } else {
+            setUser(null)
+            setLoading(false)
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error en inicialización de auth:', error)
+        if (isMounted) {
+          setUser(null)
+          setSession(null)
+          setLoading(false)
+        }
       }
-    })
+    }
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-      if (session?.user) {
-        await fetchUserProfile(session.user)
-      } else {
-        setUser(null)
-        setLoading(false)
+      console.log('🔄 Cambio de auth:', event, session ? 'Session activa' : 'Sin session')
+      
+      if (isMounted) {
+        setSession(session)
+        if (session?.user) {
+          await fetchUserProfile(session.user)
+        } else {
+          setUser(null)
+          setLoading(false)
+        }
       }
     })
 
-    return () => subscription.unsubscribe()
+    initializeAuth()
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchUserProfile = async (authUser: User) => {
     try {
-      const { data } = await supabase
+      console.log('👤 Obteniendo perfil de usuario:', authUser.id)
+      
+      const { data, error } = await supabase
         .from('users')
         .select('role, org_id')
         .eq('id', authUser.id)
         .single()
 
-      if (data) {
+      if (error) {
+        console.error('❌ Error obteniendo perfil:', error)
+        // Si no se puede obtener el perfil, usar el usuario básico
+        setUser(authUser as AuthUser)
+      } else if (data) {
+        console.log('✅ Perfil obtenido:', data)
         setUser({
           ...authUser,
           role: data.role as UserRole,
           org_id: data.org_id
         })
       } else {
+        console.log('⚠️ No se encontró perfil, usando usuario básico')
         setUser(authUser as AuthUser)
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error)
+      console.error('❌ Error en fetchUserProfile:', error)
       setUser(authUser as AuthUser)
     } finally {
       setLoading(false)
