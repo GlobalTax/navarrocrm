@@ -35,7 +35,7 @@ export const TasksFilters = ({ filters, onFiltersChange }: TasksFiltersProps) =>
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos los estados</SelectItem>
+          <SelectItem value="all">Todos los estados</SelectItem>
           <SelectItem value="pending">Pendiente</SelectItem>
           <SelectItem value="in_progress">En Progreso</SelectItem>
           <SelectItem value="completed">Completada</SelectItem>
@@ -48,7 +48,7 @@ export const TasksFilters = ({ filters, onFiltersChange }: TasksFiltersProps) =>
           <SelectValue placeholder="Prioridad" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todas las prioridades</SelectItem>
+          <SelectItem value="all">Todas las prioridades</SelectItem>
           <SelectItem value="low">Baja</SelectItem>
           <SelectItem value="medium">Media</SelectItem>
           <SelectItem value="high">Alta</SelectItem>

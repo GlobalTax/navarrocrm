@@ -25,7 +25,7 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
             <SelectValue placeholder="Seleccionar caso" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sin caso</SelectItem>
+            <SelectItem value="none">Sin caso</SelectItem>
             {cases?.map((caseItem) => (
               <SelectItem key={caseItem.id} value={caseItem.id}>
                 {caseItem.title}
@@ -42,7 +42,7 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
             <SelectValue placeholder="Seleccionar cliente" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sin cliente</SelectItem>
+            <SelectItem value="none">Sin cliente</SelectItem>
             {clients?.map((client) => (
               <SelectItem key={client.id} value={client.id}>
                 {client.name}

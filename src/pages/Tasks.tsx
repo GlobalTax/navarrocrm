@@ -16,9 +16,9 @@ const Tasks = () => {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<any>(null)
   const [filters, setFilters] = useState({
-    status: '',
-    priority: '',
-    assignee: '',
+    status: 'all',
+    priority: 'all',
+    assignee: 'all',
     search: ''
   })
 
@@ -39,8 +39,9 @@ const Tasks = () => {
       console.warn('⚠️ Filtering out invalid task:', task)
       return false
     }
-    if (filters.status && task.status !== filters.status) return false
-    if (filters.priority && task.priority !== filters.priority) return false
+    // Cambiar la lógica de filtrado para manejar los nuevos valores
+    if (filters.status && filters.status !== 'all' && task.status !== filters.status) return false
+    if (filters.priority && filters.priority !== 'all' && task.priority !== filters.priority) return false
     if (filters.search && !task.title?.toLowerCase().includes(filters.search.toLowerCase())) return false
     return true
   })
