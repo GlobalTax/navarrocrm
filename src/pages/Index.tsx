@@ -23,37 +23,37 @@ const Index = () => {
     setDebugInfo(`Auth: ${authLoading ? 'Cargando' : 'Listo'}, Setup: ${setupLoading ? 'Cargando' : 'Listo'}, User: ${user ? 'Sí' : 'No'}`)
   }, [authLoading, setupLoading, user, isSetup, emergencyRedirect])
 
-  // Timeout de emergencia más largo y con mejor logging
+  // Timeout de emergencia reducido y más inteligente
   useEffect(() => {
     if (authLoading || setupLoading) {
-      console.log('⏰ [Index] Iniciando timeout de emergencia (15s)')
+      console.log('⏰ [Index] Iniciando timeout de emergencia (8s)')
       
       const emergencyTimeout = setTimeout(() => {
-        console.error('🚨 [Index] TIMEOUT EMERGENCIA: Estado después de 15 segundos:', {
+        console.error('🚨 [Index] TIMEOUT EMERGENCIA: Estado después de 8 segundos:', {
           authLoading,
           setupLoading,
           userExists: !!user,
           isSetup
         })
         
-        // Si auth está cargado pero setup no, ir a setup
-        if (!authLoading && setupLoading && isSetup === null) {
-          console.log('🔧 [Index] Forzar redirección a setup por timeout')
-          setEmergencyRedirect('setup')
+        // Lógica de redirección más inteligente
+        if (!authLoading && !user) {
+          console.log('🔐 [Index] Forzar redirección a login - no hay usuario')
+          setEmergencyRedirect('login')
           return
         }
         
-        // Si hay usuario pero algo está bloqueado, ir a dashboard
-        if (!authLoading && user && isSetup !== false) {
-          console.log('📊 [Index] Forzar redirección a dashboard por timeout')
+        if (!authLoading && user) {
+          // Si hay usuario, ir a dashboard independientemente del setup
+          console.log('📊 [Index] Forzar redirección a dashboard - usuario presente')
           setEmergencyRedirect('dashboard')
           return
         }
         
-        // En otros casos, ir a login
-        console.log('🔐 [Index] Forzar redirección a login por timeout')
+        // Fallback por defecto
+        console.log('🔐 [Index] Forzar redirección a login por timeout general')
         setEmergencyRedirect('login')
-      }, 15000)
+      }, 8000) // Reducido a 8 segundos
 
       return () => {
         console.log('⏰ [Index] Cancelando timeout de emergencia')
@@ -83,7 +83,7 @@ const Index = () => {
             {debugInfo}
           </p>
           <div className="text-xs text-gray-300">
-            Si esto toma más de 15 segundos, serás redirigido automáticamente
+            Si esto toma más de 8 segundos, serás redirigido automáticamente
           </div>
         </div>
       </div>

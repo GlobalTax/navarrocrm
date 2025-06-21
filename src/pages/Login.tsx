@@ -13,7 +13,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { user, signIn, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
@@ -21,9 +21,18 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard'
 
+  // Redirección automática si el usuario ya está autenticado
+  useEffect(() => {
+    if (!authLoading && !setupLoading && user && isSetup !== false) {
+      console.log('🔐 [Login] Usuario ya autenticado, redirigiendo a:', from)
+      navigate(from, { replace: true })
+    }
+  }, [user, authLoading, setupLoading, isSetup, navigate, from])
+
   // Redirect to setup if system is not configured
   useEffect(() => {
     if (!setupLoading && isSetup === false) {
+      console.log('🔧 [Login] Sistema no configurado, redirigiendo a setup')
       navigate('/setup', { replace: true })
     }
   }, [isSetup, setupLoading, navigate])
@@ -44,7 +53,7 @@ export default function Login() {
 
     try {
       await signIn(email, password)
-      navigate(from, { replace: true })
+      // La redirección se manejará automáticamente por el useEffect
     } catch (error: any) {
       toast({
         title: "Error de autenticación",
@@ -56,17 +65,33 @@ export default function Login() {
     }
   }
 
-  if (setupLoading) {
+  // Mostrar loading mientras se verifica el estado
+  if (authLoading || setupLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando configuración...</p>
+          <p className="text-gray-600">
+            {setupLoading ? 'Verificando configuración...' : 'Verificando autenticación...'}
+          </p>
         </div>
       </div>
     )
   }
 
+  // Si el usuario ya está autenticado, mostrar mensaje de redirección
+  if (user && isSetup !== false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirigiendo...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Si el sistema no está configurado, mostrar mensaje
   if (isSetup === false) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
