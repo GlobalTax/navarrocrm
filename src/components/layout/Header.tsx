@@ -3,36 +3,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useApp } from '@/contexts/AppContext'
 import { LogOut, User, Search, Bell } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
-
-const getBreadcrumbs = (pathname: string) => {
-  const paths = pathname.split('/').filter(Boolean)
-  const breadcrumbs = [{ name: 'Inicio', href: '/dashboard' }]
-  
-  const pathMap: Record<string, string> = {
-    dashboard: 'Panel de Control',
-    clients: 'Clientes',
-    cases: 'Casos',
-    tasks: 'Tareas',
-    'time-tracking': 'Registro de Tiempo'
-  }
-  
-  paths.forEach((path, index) => {
-    if (pathMap[path]) {
-      breadcrumbs.push({
-        name: pathMap[path],
-        href: '/' + paths.slice(0, index + 1).join('/')
-      })
-    }
-  })
-  
-  return breadcrumbs
-}
 
 export const Header = () => {
   const { user, signOut } = useApp()
-  const location = useLocation()
-  const breadcrumbs = getBreadcrumbs(location.pathname)
 
   const handleSignOut = async () => {
     try {
@@ -44,8 +17,7 @@ export const Header = () => {
 
   return (
     <header className="bg-white border-b border-gray-200">
-      {/* Top section with search and user actions */}
-      <div className="px-6 py-3 border-b border-gray-100">
+      <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Search bar */}
           <div className="relative">
@@ -89,27 +61,6 @@ export const Header = () => {
             </Button>
           </div>
         </div>
-      </div>
-      
-      {/* Breadcrumbs */}
-      <div className="px-6 py-2">
-        <nav className="flex items-center text-sm text-gray-600">
-          {breadcrumbs.map((crumb, index) => (
-            <div key={crumb.href} className="flex items-center">
-              {index > 0 && <span className="mx-2">/</span>}
-              {index === breadcrumbs.length - 1 ? (
-                <span className="font-medium text-gray-900">{crumb.name}</span>
-              ) : (
-                <a 
-                  href={crumb.href} 
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  {crumb.name}
-                </a>
-              )}
-            </div>
-          ))}
-        </nav>
       </div>
     </header>
   )
