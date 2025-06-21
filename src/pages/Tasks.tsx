@@ -22,7 +22,9 @@ const Tasks = () => {
     search: ''
   })
 
-  const { tasks, taskStats, isLoading } = useTasks()
+  const { tasks, taskStats, isLoading, error } = useTasks()
+
+  console.log('🔍 Tasks page state:', { tasks: tasks?.length, taskStats, isLoading, error })
 
   const filteredTasks = tasks?.filter(task => {
     if (filters.status && task.status !== filters.status) return false
@@ -39,6 +41,19 @@ const Tasks = () => {
   const handleEditTask = (task: any) => {
     setSelectedTask(task)
     setIsTaskDialogOpen(true)
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-red-500 mb-2">Error al cargar las tareas</div>
+            <div className="text-gray-500 text-sm">{error.message}</div>
+          </div>
+        </div>
+      </MainLayout>
+    )
   }
 
   if (isLoading) {
