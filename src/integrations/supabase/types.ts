@@ -97,32 +97,59 @@ export type Database = {
       }
       cases: {
         Row: {
+          billing_method: string | null
           client_id: string
           created_at: string | null
+          date_closed: string | null
+          date_opened: string | null
           description: string | null
+          estimated_budget: number | null
           id: string
+          matter_number: string | null
           org_id: string
+          originating_solicitor_id: string | null
+          practice_area: string | null
+          responsible_solicitor_id: string | null
           status: string
+          template_id: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          billing_method?: string | null
           client_id: string
           created_at?: string | null
+          date_closed?: string | null
+          date_opened?: string | null
           description?: string | null
+          estimated_budget?: number | null
           id?: string
+          matter_number?: string | null
           org_id: string
+          originating_solicitor_id?: string | null
+          practice_area?: string | null
+          responsible_solicitor_id?: string | null
           status?: string
+          template_id?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          billing_method?: string | null
           client_id?: string
           created_at?: string | null
+          date_closed?: string | null
+          date_opened?: string | null
           description?: string | null
+          estimated_budget?: number | null
           id?: string
+          matter_number?: string | null
           org_id?: string
+          originating_solicitor_id?: string | null
+          practice_area?: string | null
+          responsible_solicitor_id?: string | null
           status?: string
+          template_id?: string | null
           title?: string
           updated_at?: string | null
         }
@@ -139,6 +166,27 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cases_originating_solicitor_id_fkey"
+            columns: ["originating_solicitor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cases_responsible_solicitor_id_fkey"
+            columns: ["responsible_solicitor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cases_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "matter_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -360,6 +408,228 @@ export type Database = {
           },
         ]
       }
+      matter_notifications: {
+        Row: {
+          case_id: string
+          created_at: string | null
+          event_type: string
+          id: string
+          is_enabled: boolean | null
+          notification_type: string
+          org_id: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          is_enabled?: boolean | null
+          notification_type: string
+          org_id: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          is_enabled?: boolean | null
+          notification_type?: string
+          org_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_notifications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matter_permissions: {
+        Row: {
+          case_id: string
+          created_at: string | null
+          id: string
+          org_id: string
+          permission_type: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string | null
+          id?: string
+          org_id: string
+          permission_type: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string | null
+          id?: string
+          org_id?: string
+          permission_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_permissions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_permissions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matter_stages: {
+        Row: {
+          case_id: string
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          org_id: string
+          sort_order: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          case_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          org_id: string
+          sort_order?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          case_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          sort_order?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_stages_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_stages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matter_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          default_billing_method: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          practice_area_id: string | null
+          template_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          default_billing_method?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          practice_area_id?: string | null
+          template_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          default_billing_method?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          practice_area_id?: string | null
+          template_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matter_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matter_templates_practice_area_id_fkey"
+            columns: ["practice_area_id"]
+            isOneToOne: false
+            referencedRelation: "practice_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string | null
@@ -380,6 +650,41 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      practice_areas: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_areas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       time_entries: {
         Row: {
@@ -479,6 +784,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_matter_number: {
+        Args: { org_uuid: string }
+        Returns: string
+      }
       get_user_org_id: {
         Args: Record<PropertyKey, never>
         Returns: string
