@@ -16,3 +16,11 @@ export const navigation = [
   { name: 'Calendario', href: '/calendar', icon: Calendar },
   { name: 'Registro de Tiempo', href: '/time-tracking', icon: Timer },
 ]
+
+export const quickActions = [
+  { name: 'Crear cliente', href: '/clients' },
+  { name: 'Crear expediente', href: '/cases' },
+  { name: 'Programar cita', href: '/calendar' },
+  { name: 'Iniciar timer', href: '/time-tracking' },
+  { name: 'Generar factura', href: '#' }
+]

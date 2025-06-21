@@ -1,6 +1,7 @@
 
 import { SidebarHeader } from './sidebar/SidebarHeader'
 import { NavigationMenu } from './sidebar/NavigationMenu'
+import { QuickActionsSection } from './sidebar/QuickActionsSection'
 import { AIAssistantSection } from './sidebar/AIAssistantSection'
 
 export function Sidebar() {
@@ -11,6 +12,7 @@ export function Sidebar() {
         
         <nav className="flex-1 px-2 space-y-1">
           <NavigationMenu />
+          <QuickActionsSection />
           <AIAssistantSection />
         </nav>
       </div>
