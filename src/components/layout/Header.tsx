@@ -13,6 +13,7 @@ const getBreadcrumbs = (pathname: string) => {
     dashboard: 'Panel de Control',
     clients: 'Clientes',
     cases: 'Casos',
+    tasks: 'Tareas',
     'time-tracking': 'Registro de Tiempo'
   }
   
@@ -43,22 +44,16 @@ export const Header = () => {
 
   return (
     <header className="bg-white border-b border-gray-200">
-      {/* Top section with user info and actions */}
+      {/* Top section with search and user actions */}
       <div className="px-6 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-gray-800">
-              CRM Legal Pro
-            </h1>
-            
-            {/* Search bar */}
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="Buscar clientes, casos..." 
-                className="pl-10 w-80"
-              />
-            </div>
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input 
+              placeholder="Buscar clientes, casos..." 
+              className="pl-10 w-80"
+            />
           </div>
           
           <div className="flex items-center gap-3">
