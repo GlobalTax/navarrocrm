@@ -9,6 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_datetime: string
+          event_type: string
+          id: string
+          is_all_day: boolean
+          location: string | null
+          org_id: string
+          reminder_minutes: number | null
+          start_datetime: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_datetime: string
+          event_type?: string
+          id?: string
+          is_all_day?: boolean
+          location?: string | null
+          org_id: string
+          reminder_minutes?: number | null
+          start_datetime: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_datetime?: string
+          event_type?: string
+          id?: string
+          is_all_day?: boolean
+          location?: string | null
+          org_id?: string
+          reminder_minutes?: number | null
+          start_datetime?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           client_id: string
