@@ -2,7 +2,9 @@
 import { useState } from 'react'
 import { TasksHeader } from '@/components/tasks/TasksHeader'
 import { TasksStats } from '@/components/tasks/TasksStats'
-import { TasksFilters } from '@/components/tasks/TasksFilters'
+import { TasksFil
+
+ters } from '@/components/tasks/TasksFilters'
 import { TasksBoard } from '@/components/tasks/TasksBoard'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
@@ -23,14 +25,13 @@ const Tasks = () => {
 
   const { tasks, taskStats, isLoading, error } = useTasks()
 
-  console.log('🔍 Tasks page state:', { 
+  console.log('🔍 Legal Tasks page state:', { 
     tasks: tasks?.length, 
     taskStats, 
     isLoading, 
     error: error?.message 
   })
 
-  // Validación adicional para prevenir errores de renderizado
   const safeTasks = Array.isArray(tasks) ? tasks : []
   
   const filteredTasks = safeTasks.filter(task => {
@@ -38,9 +39,31 @@ const Tasks = () => {
       console.warn('⚠️ Filtering out invalid task:', task)
       return false
     }
-    // Cambiar la lógica de filtrado para manejar los nuevos valores
-    if (filters.status && filters.status !== 'all' && task.status !== filters.status) return false
-    if (filters.priority && filters.priority !== 'all' && task.priority !== filters.priority) return false
+
+    // Mapear filtros a estados legales
+    const statusMapping: { [key: string]: string[] } = {
+      'all': ['pending', 'investigation', 'drafting', 'review', 'filing', 'hearing', 'completed', 'in_progress'],
+      'pending': ['pending'],
+      'investigation': ['investigation', 'in_progress'],
+      'drafting': ['drafting'],
+      'review': ['review'],
+      'filing': ['filing'],
+      'hearing': ['hearing'],
+      'completed': ['completed']
+    }
+
+    const allowedStatuses = statusMapping[filters.status] || [filters.status]
+    if (filters.status !== 'all' && !allowedStatuses.includes(task.status)) return false
+    
+    // Filtro de prioridad mejorado para términos legales
+    if (filters.priority !== 'all') {
+      if (filters.priority === 'critical' && task.priority !== 'critical') return false
+      if (filters.priority === 'urgent' && !['urgent', 'critical'].includes(task.priority)) return false
+      if (filters.priority === 'high' && task.priority !== 'high') return false
+      if (filters.priority === 'medium' && task.priority !== 'medium') return false
+      if (filters.priority === 'low' && task.priority !== 'low') return false
+    }
+    
     if (filters.search && !task.title?.toLowerCase().includes(filters.search.toLowerCase())) return false
     return true
   })
@@ -55,17 +78,17 @@ const Tasks = () => {
       console.warn('⚠️ Attempted to edit invalid task:', task)
       return
     }
-    console.log('🔍 Editing task:', task)
+    console.log('🔍 Editing legal task:', task)
     setSelectedTask(task)
     setIsTaskDialogOpen(true)
   }
 
   if (error) {
-    console.error('❌ Tasks page error:', error)
+    console.error('❌ Legal Tasks page error:', error)
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-red-500 mb-2">Error al cargar las tareas</div>
+          <div className="text-red-500 mb-2">Error al cargar las gestiones legales</div>
           <div className="text-gray-500 text-sm">{error.message}</div>
           <button 
             onClick={() => window.location.reload()} 
@@ -81,7 +104,7 @@ const Tasks = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Cargando tareas...</div>
+        <div className="text-gray-500">Cargando gestiones legales...</div>
       </div>
     )
   }

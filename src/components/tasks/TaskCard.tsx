@@ -2,7 +2,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, User, MessageSquare, Paperclip, Edit, AlertTriangle } from 'lucide-react'
+import { Calendar, User, FileText, Clock, Edit, AlertTriangle, Scale, Gavel } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -12,46 +12,102 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
-  // Validación robusta de datos
-  if (!task) {
-    console.warn('⚠️ TaskCard received undefined task')
+  if (!task || !task.id) {
+    console.warn('⚠️ TaskCard received invalid task')
     return null
   }
 
-  if (!task.id) {
-    console.warn('⚠️ TaskCard received task without id:', task)
-    return null
-  }
-
-  const getPriorityColor = (priority: string) => {
+  const getLegalPriorityConfig = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800'
-      case 'high': return 'bg-orange-100 text-orange-800'
-      case 'medium': return 'bg-yellow-100 text-yellow-800'
-      case 'low': return 'bg-green-100 text-green-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'critical': 
+        return { 
+          color: 'bg-red-100 text-red-800 border-red-200', 
+          label: 'Vencimiento Crítico',
+          icon: Scale
+        }
+      case 'urgent': 
+        return { 
+          color: 'bg-red-100 text-red-800 border-red-200', 
+          label: 'Urgente (24-48h)',
+          icon: AlertTriangle
+        }
+      case 'high': 
+        return { 
+          color: 'bg-orange-100 text-orange-800 border-orange-200', 
+          label: 'Alta (esta semana)',
+          icon: Clock
+        }
+      case 'medium': 
+        return { 
+          color: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
+          label: 'Normal (este mes)',
+          icon: FileText
+        }
+      case 'low': 
+        return { 
+          color: 'bg-green-100 text-green-800 border-green-200', 
+          label: 'Baja',
+          icon: FileText
+        }
+      default: 
+        return { 
+          color: 'bg-gray-100 text-gray-800 border-gray-200', 
+          label: priority || 'Sin prioridad',
+          icon: FileText
+        }
     }
   }
 
-  const getPriorityLabel = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'Urgente'
-      case 'high': return 'Alta'
-      case 'medium': return 'Media'
-      case 'low': return 'Baja'
-      default: return priority || 'Sin prioridad'
+  const getLegalStatusColor = (status: string) => {
+    const statusMapping: { [key: string]: string } = {
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'investigation': 'bg-blue-100 text-blue-800',
+      'drafting': 'bg-purple-100 text-purple-800',
+      'review': 'bg-orange-100 text-orange-800',
+      'filing': 'bg-green-100 text-green-800',
+      'hearing': 'bg-red-100 text-red-800',
+      'completed': 'bg-gray-100 text-gray-800',
+      // Mapeo de estados genéricos
+      'in_progress': 'bg-blue-100 text-blue-800'
     }
+    return statusMapping[status] || 'bg-gray-100 text-gray-800'
   }
 
+  const getLegalStatusLabel = (status: string) => {
+    const statusLabels: { [key: string]: string } = {
+      'pending': 'Pendiente',
+      'investigation': 'Investigación',
+      'drafting': 'Redacción',
+      'review': 'Revisión',
+      'filing': 'Presentación',
+      'hearing': 'Audiencia',
+      'completed': 'Completada',
+      // Mapeo de estados genéricos
+      'in_progress': 'En Proceso'
+    }
+    return statusLabels[status] || status
+  }
+
+  const priorityConfig = getLegalPriorityConfig(task.priority)
+  const PriorityIcon = priorityConfig.icon
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
+  const isCriticalDeadline = task.priority === 'critical' || task.priority === 'urgent'
 
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer group">
-      <CardContent className="p-4">
+    <Card className={`hover:shadow-md transition-shadow cursor-pointer group ${isCriticalDeadline ? 'ring-1 ring-red-200' : ''}`}>
+      <CardContent className="p-3">
         <div className="flex items-start justify-between mb-2">
-          <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-            {task.title || 'Sin título'}
-          </h4>
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm leading-tight">
+              {task.title || 'Sin título'}
+            </h4>
+            {isCriticalDeadline && (
+              <div className="flex items-center text-red-600 text-xs mt-1">
+                <Gavel className="h-3 w-3 mr-1" />
+                Plazo procesal crítico
+              </div>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -59,62 +115,72 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
               e.stopPropagation()
               onEdit()
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-3 w-3" />
           </Button>
         </div>
 
         {task.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+          <p className="text-xs text-gray-600 mb-2 line-clamp-2">
             {task.description}
           </p>
         )}
 
-        <div className="flex items-center justify-between mb-3">
-          <Badge className={getPriorityColor(task.priority)}>
-            {getPriorityLabel(task.priority)}
+        <div className="space-y-2 mb-3">
+          <div className="flex items-center justify-between">
+            <Badge className={`${priorityConfig.color} text-xs px-2 py-0.5`}>
+              <PriorityIcon className="h-3 w-3 mr-1" />
+              {priorityConfig.label}
+            </Badge>
+            
+            {isOverdue && (
+              <div className="flex items-center text-red-600 text-xs">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Vencida
+              </div>
+            )}
+          </div>
+
+          <Badge className={`${getLegalStatusColor(task.status)} text-xs`}>
+            {getLegalStatusLabel(task.status)}
           </Badge>
-          
-          {isOverdue && (
-            <div className="flex items-center text-red-600 text-xs">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              Vencida
-            </div>
-          )}
         </div>
 
         {task.due_date && (
-          <div className="flex items-center text-sm text-gray-500 mb-2">
-            <Calendar className="h-4 w-4 mr-1" />
-            {format(new Date(task.due_date), 'dd MMM yyyy', { locale: es })}
+          <div className="flex items-center text-xs text-gray-500 mb-2">
+            <Calendar className="h-3 w-3 mr-1" />
+            <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
+              {format(new Date(task.due_date), 'dd MMM yyyy', { locale: es })}
+            </span>
           </div>
         )}
 
         {task.task_assignments && Array.isArray(task.task_assignments) && task.task_assignments.length > 0 && (
-          <div className="flex items-center text-sm text-gray-500 mb-2">
-            <User className="h-4 w-4 mr-1" />
-            {task.task_assignments[0]?.user?.email || 'Usuario desconocido'}
+          <div className="flex items-center text-xs text-gray-500 mb-2">
+            <User className="h-3 w-3 mr-1" />
+            <span className="truncate">
+              {task.task_assignments[0]?.user?.email || 'Usuario desconocido'}
+            </span>
             {task.task_assignments.length > 1 && (
               <span className="ml-1">+{task.task_assignments.length - 1}</span>
             )}
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-gray-400">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t">
+          <div className="flex items-center space-x-2">
             <div className="flex items-center">
-              <MessageSquare className="h-3 w-3 mr-1" />
-              0
-            </div>
-            <div className="flex items-center">
-              <Paperclip className="h-3 w-3 mr-1" />
-              0
+              <FileText className="h-3 w-3 mr-1" />
+              <span>0 docs</span>
             </div>
           </div>
           
           {task.case && (
-            <span>Caso: {task.case.title || 'Sin título'}</span>
+            <div className="flex items-center">
+              <Gavel className="h-3 w-3 mr-1" />
+              <span className="truncate max-w-20">{task.case.title || 'Sin título'}</span>
+            </div>
           )}
         </div>
       </CardContent>
