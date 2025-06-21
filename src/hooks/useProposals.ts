@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuthContext } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 
 export interface Proposal {
@@ -55,7 +55,7 @@ export interface CreateProposalData {
 }
 
 export const useProposals = () => {
-  const { user } = useAuthContext()
+  const { user } = useApp()
   const queryClient = useQueryClient()
 
   const { data: proposals = [], isLoading, error } = useQuery({

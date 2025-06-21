@@ -29,6 +29,10 @@ export default function Proposals() {
     return true
   })
 
+  const handleStatusChange = (id: string, status: any) => {
+    updateProposalStatus.mutate({ id, status })
+  }
+
   const handleViewProposal = (proposal: any) => {
     // TODO: Implementar vista de detalles de propuesta
     console.log('Ver propuesta:', proposal)
@@ -90,7 +94,7 @@ export default function Proposals() {
                 <ProposalCard
                   key={proposal.id}
                   proposal={proposal}
-                  onStatusChange={updateProposalStatus.mutate}
+                  onStatusChange={handleStatusChange}
                   onView={handleViewProposal}
                 />
               ))}

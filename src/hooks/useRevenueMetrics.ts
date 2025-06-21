@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuthContext } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 
 export interface RevenueMetrics {
   id: string
@@ -17,7 +17,7 @@ export interface RevenueMetrics {
 }
 
 export const useRevenueMetrics = (dateRange?: { from: Date; to: Date }) => {
-  const { user } = useAuthContext()
+  const { user } = useApp()
 
   const { data: metrics = [], isLoading } = useQuery({
     queryKey: ['revenue-metrics', user?.org_id, dateRange],
