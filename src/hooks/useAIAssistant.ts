@@ -2,13 +2,12 @@
 import { useState } from 'react'
 
 export const useAIAssistant = () => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true) // Siempre abierto por defecto
   const [isMinimized, setIsMinimized] = useState(false)
 
   const toggle = () => {
     if (isOpen && !isMinimized) {
-      setIsOpen(false)
-      setIsMinimized(false)
+      setIsMinimized(true) // Solo minimizar, no cerrar completamente
     } else {
       setIsOpen(true)
       setIsMinimized(false)
@@ -20,7 +19,11 @@ export const useAIAssistant = () => {
   }
 
   const close = () => {
-    setIsOpen(false)
+    setIsMinimized(true) // En lugar de cerrar, solo minimizar
+  }
+
+  const maximize = () => {
+    setIsOpen(true)
     setIsMinimized(false)
   }
 
@@ -29,6 +32,7 @@ export const useAIAssistant = () => {
     isMinimized,
     toggle,
     minimize,
-    close
+    close,
+    maximize
   }
 }

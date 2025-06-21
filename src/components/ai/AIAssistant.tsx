@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -171,64 +170,78 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
     sendMessage(inputMessage)
   }
 
-  if (!isOpen) {
-    return (
-      <Button
-        onClick={onToggle}
-        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 z-50"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </Button>
-    )
+  // Nunca mostrar solo el botón flotante - siempre mostrar algo
+  if (!isOpen && !isMinimized) {
+    return null // Este caso ya no debería ocurrir
   }
 
   if (isMinimized) {
     return (
-      <Card className="fixed bottom-4 right-4 w-80 shadow-lg z-50">
-        <CardHeader className="pb-2">
+      <Card className="fixed bottom-4 right-4 w-80 shadow-xl border-2 border-blue-200 z-50 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardHeader className="pb-3 bg-gradient-to-r from-blue-600 to-indigo-600">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-              <CardTitle className="text-sm">Asistente IA</CardTitle>
+            <div className="flex items-center gap-2 text-white">
+              <div className="h-3 w-3 bg-green-400 rounded-full animate-pulse shadow-lg" />
+              <CardTitle className="text-sm font-semibold">🤖 Asistente Jurídico IA</CardTitle>
             </div>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" onClick={onToggle}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onToggle}
+                className="text-white hover:bg-white/20 h-7 w-7 p-0"
+              >
                 <Maximize2 className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={onToggle}>
-                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </CardHeader>
+        <CardContent className="p-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Sparkles className="h-6 w-6 text-blue-600 animate-pulse" />
+            </div>
+            <p className="text-sm text-gray-700 font-medium">¿Necesitas ayuda?</p>
+            <p className="text-xs text-gray-500 mb-3">Haz clic para expandir el chat</p>
+            <Button 
+              onClick={onToggle} 
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              size="sm"
+            >
+              💬 Abrir Chat
+            </Button>
+          </div>
+        </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 h-[600px] shadow-lg z-50 flex flex-col">
-      <CardHeader className="pb-2 border-b">
+    <Card className="fixed bottom-4 right-4 w-96 h-[600px] shadow-xl border-2 border-blue-200 z-50 flex flex-col bg-white">
+      <CardHeader className="pb-2 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-blue-100 text-blue-700">
+            <Avatar className="h-8 w-8 border-2 border-white">
+              <AvatarFallback className="bg-white text-blue-700 font-bold">
                 <Bot className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-sm">Asistente IA</CardTitle>
+              <CardTitle className="text-sm font-semibold">🤖 Asistente Jurídico IA</CardTitle>
               <div className="flex items-center gap-1">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-xs text-gray-500">En línea</span>
+                <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-xs text-blue-100">Siempre disponible</span>
               </div>
             </div>
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" onClick={onMinimize}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onMinimize}
+              className="text-white hover:bg-white/20 h-7 w-7 p-0"
+            >
               <Minimize2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onToggle}>
-              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -237,8 +250,8 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
       <CardContent className="flex-1 flex flex-col p-0">
         {/* Acciones rápidas */}
         {messages.length <= 1 && (
-          <div className="p-4 border-b bg-gray-50">
-            <p className="text-xs text-gray-600 mb-2">Acciones rápidas:</p>
+          <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+            <p className="text-xs text-blue-700 mb-2 font-medium">🚀 Acciones rápidas:</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_ACTIONS.map((action) => (
                 <Button
@@ -246,7 +259,7 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
                   variant="outline"
                   size="sm"
                   onClick={() => handleQuickAction(action.prompt)}
-                  className="text-xs"
+                  className="text-xs border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                 >
                   <action.icon className="h-3 w-3 mr-1" />
                   {action.label}
@@ -267,7 +280,7 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
                   }`}
                 >
                   {message.role === 'assistant' && (
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-6 w-6 border border-blue-200">
                       <AvatarFallback className="bg-blue-100 text-blue-700">
                         <Bot className="h-3 w-3" />
                       </AvatarFallback>
@@ -277,15 +290,15 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
                   <div
                     className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-900 border border-gray-200'
                     }`}
                   >
                     {message.content}
                   </div>
 
                   {message.role === 'user' && (
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-6 w-6 border border-gray-200">
                       <AvatarFallback className="bg-gray-200 text-gray-700">
                         <User className="h-3 w-3" />
                       </AvatarFallback>
@@ -296,13 +309,13 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
                 {/* Sugerencias */}
                 {message.role === 'assistant' && message.suggestions && (
                   <div className="ml-9 space-y-1">
-                    <p className="text-xs text-gray-500">Sugerencias:</p>
+                    <p className="text-xs text-gray-500">💡 Sugerencias:</p>
                     <div className="flex flex-wrap gap-1">
                       {message.suggestions.map((suggestion, index) => (
                         <Badge
                           key={index}
                           variant="outline"
-                          className="cursor-pointer hover:bg-gray-100 text-xs"
+                          className="cursor-pointer hover:bg-blue-50 hover:border-blue-300 text-xs"
                           onClick={() => handleSuggestionClick(suggestion)}
                         >
                           {suggestion}
@@ -316,13 +329,13 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
             
             {isLoading && (
               <div className="flex items-center gap-3">
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-6 w-6 border border-blue-200">
                   <AvatarFallback className="bg-blue-100 text-blue-700">
                     <Bot className="h-3 w-3" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="bg-gray-100 rounded-lg px-3 py-2">
-                  <div className="flex items-center gap-1">
+                <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
+                  <div className="flex items-center gap-1 text-blue-600">
                     <div className="animate-bounce">●</div>
                     <div className="animate-bounce" style={{ animationDelay: '0.1s' }}>●</div>
                     <div className="animate-bounce" style={{ animationDelay: '0.2s' }}>●</div>
@@ -336,27 +349,28 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
         </ScrollArea>
 
         {/* Input de mensaje */}
-        <div className="p-4 border-t">
+        <div className="p-4 border-t bg-gray-50">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               ref={inputRef}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Escribe tu mensaje..."
+              placeholder="Escribe tu pregunta aquí..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 border-blue-200 focus:border-blue-400"
             />
             <Button 
               type="submit" 
               disabled={!inputMessage.trim() || isLoading}
               size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               <Send className="h-4 w-4" />
             </Button>
           </form>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1 justify-center">
             <Sparkles className="h-3 w-3" />
-            Powered by IA - Asistente Jurídico
+            Asistente IA - Siempre aquí para ayudarte
           </p>
         </div>
       </CardContent>
