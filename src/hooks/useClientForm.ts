@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import type { ClientFormData } from '@/components/clients/ClientFormTabs'
 import type { CompanyData } from '@/hooks/useCompanyLookup'
@@ -77,7 +77,7 @@ const defaultValues: ClientFormData = {
 }
 
 export const useClientForm = (client: Client | null, onClose: () => void) => {
-  const { user } = useAuth()
+  const { user } = useApp()
   const isEditing = !!client
 
   const form = useForm<ClientFormData>({
