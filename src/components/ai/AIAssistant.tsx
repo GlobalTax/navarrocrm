@@ -1,15 +1,12 @@
 
-import { useState, useRef, useEffect, FormEvent } from 'react'
-import { Button } from '@/components/ui/button'
+import { useState, FormEvent } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { 
   Bot, 
-  User, 
   Sparkles,
   Users,
   FileText,
   Calendar,
-  Send,
   CornerDownLeft
 } from 'lucide-react'
 import { 
@@ -25,6 +22,7 @@ import {
 } from '@/components/ui/chat-bubble'
 import { ChatInput } from '@/components/ui/chat-input'
 import { ChatMessageList } from '@/components/ui/chat-message-list'
+import { Button } from '@/components/ui/button'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
@@ -169,10 +167,6 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
     e.preventDefault()
     console.log('📝 AIAssistant - Submit formulario, mensaje:', inputMessage)
     sendMessage(inputMessage)
-  }
-
-  if (!isOpen) {
-    return null
   }
 
   return (
