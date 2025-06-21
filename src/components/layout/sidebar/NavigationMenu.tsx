@@ -19,10 +19,6 @@ export const NavigationMenu = () => {
             )
           }
         >
-          <item.icon
-            className="mr-3 flex-shrink-0 h-6 w-6"
-            aria-hidden="true"
-          />
           {item.name}
         </NavLink>
       ))}
