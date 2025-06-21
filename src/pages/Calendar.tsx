@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Loader2 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Plus, Loader2, Clock, Users, AlertCircle } from 'lucide-react'
 import { useCalendarEvents, CreateCalendarEventData } from '@/hooks/useCalendarEvents'
 import { useClients } from '@/hooks/useClients'
 import { useCases } from '@/hooks/useCases'
@@ -28,6 +29,10 @@ export default function Calendar() {
     time: string
     end_date: string
     end_time: string
+    attendees: string[]
+    matter: string
+    reminders: number[]
+    repeat: boolean
   }>({
     title: '',
     description: '',
@@ -42,7 +47,11 @@ export default function Calendar() {
     client_id: null,
     case_id: null,
     start_datetime: '',
-    end_datetime: ''
+    end_datetime: '',
+    attendees: [],
+    matter: '',
+    reminders: [15],
+    repeat: false
   })
 
   // Transformar eventos para el componente FullScreenCalendar
@@ -115,7 +124,7 @@ export default function Calendar() {
       event_type: newEvent.event_type,
       location: newEvent.location || null,
       is_all_day: newEvent.is_all_day,
-      reminder_minutes: newEvent.reminder_minutes,
+      reminder_minutes: newEvent.reminders[0] || null,
       client_id: newEvent.client_id || null,
       case_id: newEvent.case_id || null,
       status: 'scheduled'
@@ -138,10 +147,35 @@ export default function Calendar() {
           client_id: null,
           case_id: null,
           start_datetime: '',
-          end_datetime: ''
+          end_datetime: '',
+          attendees: [],
+          matter: '',
+          reminders: [15],
+          repeat: false
         })
       }
     })
+  }
+
+  const addReminder = () => {
+    setNewEvent(prev => ({
+      ...prev,
+      reminders: [...prev.reminders, 15]
+    }))
+  }
+
+  const updateReminder = (index: number, value: number) => {
+    setNewEvent(prev => ({
+      ...prev,
+      reminders: prev.reminders.map((r, i) => i === index ? value : r)
+    }))
+  }
+
+  const removeReminder = (index: number) => {
+    setNewEvent(prev => ({
+      ...prev,
+      reminders: prev.reminders.filter((_, i) => i !== index)
+    }))
   }
 
   if (isLoading) {
@@ -166,175 +200,277 @@ export default function Calendar() {
           />
         </div>
 
-        {/* Dialog para nuevo evento */}
+        {/* Dialog para nuevo evento mejorado */}
         <Dialog open={isNewEventOpen} onOpenChange={setIsNewEventOpen}>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nuevo Evento</DialogTitle>
+              <DialogTitle className="text-xl font-semibold">Nuevo Evento</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="title">Título *</Label>
-                <Input
-                  id="title"
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                  placeholder="Título del evento"
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={newEvent.description}
-                  onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-                  placeholder="Descripción opcional"
-                  rows={3}
-                />
-              </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-4">
+              {/* Columna principal - Detalles del evento */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Detalles del evento</h3>
+                  
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="title" className="text-sm font-medium">
+                        Título <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="title"
+                        value={newEvent.title}
+                        onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                        placeholder="Título del evento"
+                        className="text-base"
+                      />
+                      <p className="text-sm text-gray-500">Este campo es obligatorio.</p>
+                    </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="all-day"
-                  checked={newEvent.is_all_day}
-                  onCheckedChange={(checked) => setNewEvent({...newEvent, is_all_day: checked})}
-                />
-                <Label htmlFor="all-day">Evento de todo el día</Label>
-              </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="start-time" className="text-sm font-medium">
+                          Hora de inicio <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="date"
+                            value={newEvent.date}
+                            onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                            className="flex-1"
+                          />
+                          {!newEvent.is_all_day && (
+                            <Input
+                              type="time"
+                              value={newEvent.time}
+                              onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                              className="w-32"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="grid gap-2">
+                        <Label htmlFor="end-time" className="text-sm font-medium">
+                          Hora de fin <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="date"
+                            value={newEvent.end_date}
+                            onChange={(e) => setNewEvent({...newEvent, end_date: e.target.value})}
+                            className="flex-1"
+                          />
+                          {!newEvent.is_all_day && (
+                            <Input
+                              type="time"
+                              value={newEvent.end_time}
+                              onChange={(e) => setNewEvent({...newEvent, end_time: e.target.value})}
+                              className="w-32"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="date">Fecha de inicio *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={newEvent.date}
-                    onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                  />
-                </div>
-                
-                {!newEvent.is_all_day && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="time">Hora de inicio *</Label>
-                    <Input
-                      id="time"
-                      type="time"
-                      value={newEvent.time}
-                      onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
-                    />
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="all-day"
+                          checked={newEvent.is_all_day}
+                          onCheckedChange={(checked) => setNewEvent({...newEvent, is_all_day: checked as boolean})}
+                        />
+                        <Label htmlFor="all-day" className="text-sm">Todo el día</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="repeat"
+                          checked={newEvent.repeat}
+                          onCheckedChange={(checked) => setNewEvent({...newEvent, repeat: checked as boolean})}
+                        />
+                        <Label htmlFor="repeat" className="text-sm">Repetir</Label>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="location" className="text-sm font-medium">Ubicación</Label>
+                      <Input
+                        id="location"
+                        value={newEvent.location}
+                        onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                        placeholder="Ubicación del evento"
+                      />
+                    </div>
                   </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="end-date">Fecha de fin</Label>
-                  <Input
-                    id="end-date"
-                    type="date"
-                    value={newEvent.end_date}
-                    onChange={(e) => setNewEvent({...newEvent, end_date: e.target.value})}
-                  />
                 </div>
-                
-                {!newEvent.is_all_day && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="end-time">Hora de fin</Label>
-                    <Input
-                      id="end-time"
-                      type="time"
-                      value={newEvent.end_time}
-                      onChange={(e) => setNewEvent({...newEvent, end_time: e.target.value})}
-                    />
+
+                {/* Asunto/Expediente */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Asunto</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="client" className="text-sm font-medium">Cliente</Label>
+                      <Select value={newEvent.client_id || ''} onValueChange={(value) => setNewEvent({...newEvent, client_id: value || null})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sin cliente</SelectItem>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="case" className="text-sm font-medium">Expediente</Label>
+                      <Select value={newEvent.case_id || ''} onValueChange={(value) => setNewEvent({...newEvent, case_id: value || null})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar expediente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sin expediente</SelectItem>
+                          {cases.map((case_item) => (
+                            <SelectItem key={case_item.id} value={case_item.id}>
+                              {case_item.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="type">Tipo de evento</Label>
-                <Select value={newEvent.event_type} onValueChange={(value: any) => setNewEvent({...newEvent, event_type: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="meeting">Reunión</SelectItem>
-                    <SelectItem value="consultation">Consulta</SelectItem>
-                    <SelectItem value="deadline">Plazo Legal</SelectItem>
-                    <SelectItem value="task">Tarea</SelectItem>
-                    <SelectItem value="court">Audiencia/Juzgado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* Recordatorios */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-medium">Recordatorios</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {newEvent.reminders.map((reminder, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <Select 
+                          value={reminder.toString()} 
+                          onValueChange={(value) => updateReminder(index, parseInt(value))}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5 minutos antes</SelectItem>
+                            <SelectItem value="15">15 minutos antes</SelectItem>
+                            <SelectItem value="30">30 minutos antes</SelectItem>
+                            <SelectItem value="60">1 hora antes</SelectItem>
+                            <SelectItem value="1440">1 día antes</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {newEvent.reminders.length > 1 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => removeReminder(index)}
+                          >
+                            ×
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={addReminder}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      + Añadir nuevo recordatorio
+                    </Button>
+                  </div>
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="location">Ubicación</Label>
-                <Input
-                  id="location"
-                  value={newEvent.location}
-                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                  placeholder="Ubicación del evento"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="client">Cliente</Label>
-                  <Select value={newEvent.client_id || ''} onValueChange={(value) => setNewEvent({...newEvent, client_id: value || null})}>
+                {/* Tipo de evento */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Tipo de evento</h3>
+                  <Select value={newEvent.event_type} onValueChange={(value: any) => setNewEvent({...newEvent, event_type: value})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar cliente" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Sin cliente</SelectItem>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="meeting">Reunión</SelectItem>
+                      <SelectItem value="consultation">Consulta</SelectItem>
+                      <SelectItem value="deadline">Plazo Legal</SelectItem>
+                      <SelectItem value="task">Tarea</SelectItem>
+                      <SelectItem value="court">Audiencia/Juzgado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="case">Caso</Label>
-                  <Select value={newEvent.case_id || ''} onValueChange={(value) => setNewEvent({...newEvent, case_id: value || null})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar caso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Sin caso</SelectItem>
-                      {cases.map((case_item) => (
-                        <SelectItem key={case_item.id} value={case_item.id}>
-                          {case_item.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* Descripción */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Descripción</h3>
+                  <Textarea
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                    placeholder="Descripción del evento"
+                    rows={4}
+                  />
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="reminder">Recordatorio (minutos antes)</Label>
-                <Select 
-                  value={newEvent.reminder_minutes?.toString() || ''} 
-                  onValueChange={(value) => setNewEvent({...newEvent, reminder_minutes: value ? parseInt(value) : null})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sin recordatorio" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Sin recordatorio</SelectItem>
-                    <SelectItem value="5">5 minutos</SelectItem>
-                    <SelectItem value="15">15 minutos</SelectItem>
-                    <SelectItem value="30">30 minutos</SelectItem>
-                    <SelectItem value="60">1 hora</SelectItem>
-                    <SelectItem value="1440">1 día</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Columna lateral - Invitar participantes */}
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-gray-600" />
+                    <h3 className="text-lg font-medium">Invitar participantes</h3>
+                  </div>
+                  
+                  <div className="grid gap-3">
+                    <Input
+                      placeholder="Buscar usuarios o contactos"
+                      className="text-sm"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Busca usuarios de la firma o contactos para invitar
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700">Participantes sugeridos</h4>
+                    <p className="text-sm text-gray-500">No hay sugerencias en este momento.</p>
+                  </div>
+                </div>
+
+                {/* Guardar en calendario */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Guardar en calendario</h3>
+                  <Select defaultValue="personal">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Mi calendario</SelectItem>
+                      <SelectItem value="firm">Calendario de la firma</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="add-to-firm" />
+                    <Label htmlFor="add-to-firm" className="text-sm">
+                      Añadir también al calendario de la firma
+                    </Label>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-6 border-t">
               <Button variant="outline" onClick={() => setIsNewEventOpen(false)}>
                 Cancelar
               </Button>
