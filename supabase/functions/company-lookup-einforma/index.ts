@@ -149,9 +149,13 @@ async function searchCompanyByNif(nif: string, accessToken: string): Promise<Com
 }
 
 function isValidNifCif(nif: string): boolean {
-  if (!nif || typeof nif !== 'string') return false
+  if (!nif || typeof nif !== 'string') {
+    console.log('❌ NIF vacío o no es string')
+    return false
+  }
   
   const cleanNif = nif.replace(/[\s-]/g, '').toUpperCase()
+  console.log('🔍 Validando NIF limpio:', cleanNif)
   
   // Validar formato básico (8-9 caracteres, números + letra)
   const nifRegex = /^[0-9]{8}[A-Z]$/
@@ -159,13 +163,23 @@ function isValidNifCif(nif: string): boolean {
   const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/
   
   if (nifRegex.test(cleanNif)) {
-    return validateNifCheckDigit(cleanNif)
+    console.log('🆔 Detectado como NIF, validando...')
+    const isValid = validateNifCheckDigit(cleanNif)
+    console.log('✅ NIF válido:', isValid)
+    return isValid
   } else if (cifRegex.test(cleanNif)) {
-    return validateCifCheckDigit(cleanNif)
+    console.log('🏢 Detectado como CIF, validando...')
+    const isValid = validateCifCheckDigit(cleanNif)
+    console.log('✅ CIF válido:', isValid)
+    return isValid
   } else if (nieRegex.test(cleanNif)) {
-    return validateNieCheckDigit(cleanNif)
+    console.log('🌍 Detectado como NIE, validando...')
+    const isValid = validateNieCheckDigit(cleanNif)
+    console.log('✅ NIE válido:', isValid)
+    return isValid
   }
   
+  console.log('❌ Formato no reconocido')
   return false
 }
 
@@ -174,7 +188,10 @@ function validateNifCheckDigit(nif: string): boolean {
   const numbers = nif.slice(0, 8)
   const letter = nif.slice(8)
   
-  return letters[parseInt(numbers) % 23] === letter
+  const expectedLetter = letters[parseInt(numbers) % 23]
+  console.log(`🔍 NIF: ${numbers} -> Esperada: ${expectedLetter}, Recibida: ${letter}`)
+  
+  return expectedLetter === letter
 }
 
 function validateCifCheckDigit(cif: string): boolean {
@@ -182,24 +199,49 @@ function validateCifCheckDigit(cif: string): boolean {
   const numbers = cif.slice(1, 8)
   const control = cif[8]
   
+  console.log(`🔍 CIF: ${firstLetter}${numbers}${control}`)
+  
+  // Calcular suma de control según algoritmo oficial
   let sum = 0
-  for (let i = 0; i < numbers.length; i++) {
-    let digit = parseInt(numbers[i])
-    if (i % 2 === 1) { // Posiciones pares (1-indexed)
-      digit *= 2
-      if (digit > 9) digit = Math.floor(digit / 10) + (digit % 10)
-    }
-    sum += digit
+  
+  // Sumar dígitos en posiciones impares (índices pares en array 0-based)
+  for (let i = 0; i < numbers.length; i += 2) {
+    sum += parseInt(numbers[i])
   }
   
+  console.log('📊 Suma posiciones impares:', sum)
+  
+  // Para posiciones pares (índices impares), duplicar y sumar dígitos
+  for (let i = 1; i < numbers.length; i += 2) {
+    let doubled = parseInt(numbers[i]) * 2
+    if (doubled > 9) {
+      doubled = Math.floor(doubled / 10) + (doubled % 10)
+    }
+    sum += doubled
+  }
+  
+  console.log('📊 Suma total:', sum)
+  
+  // Calcular dígito de control
   const controlNumber = (10 - (sum % 10)) % 10
   const controlLetter = 'JABCDEFGHI'[controlNumber]
   
-  // Algunos CIF usan número, otros letra
-  const organizationTypes = ['N', 'P', 'Q', 'R', 'S', 'W']
-  if (organizationTypes.includes(firstLetter)) {
+  console.log(`🔍 Control calculado: Número=${controlNumber}, Letra=${controlLetter}`)
+  console.log(`🔍 Control recibido: ${control}`)
+  
+  // Algunos CIF usan número, otros letra según el primer carácter
+  const useNumberControl = ['A', 'B', 'E', 'H'].includes(firstLetter)
+  const useLetterControl = ['K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'W'].includes(firstLetter)
+  
+  if (useNumberControl) {
+    console.log('🔍 Validando con número de control')
+    return control === controlNumber.toString()
+  } else if (useLetterControl) {
+    console.log('🔍 Validando con letra de control')
     return control === controlLetter
   } else {
+    // Para otros casos, aceptar ambos
+    console.log('🔍 Validando con número O letra de control')
     return control === controlNumber.toString() || control === controlLetter
   }
 }
@@ -207,6 +249,9 @@ function validateCifCheckDigit(cif: string): boolean {
 function validateNieCheckDigit(nie: string): boolean {
   const niePrefix = { 'X': '0', 'Y': '1', 'Z': '2' }
   const transformedNie = niePrefix[nie[0] as keyof typeof niePrefix] + nie.slice(1)
+  
+  console.log(`🔍 NIE transformado: ${nie} -> ${transformedNie}`)
+  
   return validateNifCheckDigit(transformedNie)
 }
 
