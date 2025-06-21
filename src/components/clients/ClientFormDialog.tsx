@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import { ClientFormTabs, type ClientFormData } from './ClientFormTabs'
+import { NifLookup } from './NifLookup'
+import type { CompanyData } from '@/hooks/useCompanyLookup'
 
 const clientSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -139,6 +140,35 @@ export const ClientFormDialog = ({ client, open, onClose }: ClientFormDialogProp
     }
   }, [client, form])
 
+  const handleCompanyFound = (companyData: CompanyData) => {
+    console.log('🏢 ClientFormDialog - Datos de empresa recibidos:', companyData)
+    
+    // Auto-completar campos del formulario con los datos de la empresa
+    form.setValue('name', companyData.name)
+    form.setValue('dni_nif', companyData.nif)
+    form.setValue('client_type', 'empresa')
+    form.setValue('status', companyData.status)
+    
+    if (companyData.address_street) {
+      form.setValue('address_street', companyData.address_street)
+    }
+    if (companyData.address_city) {
+      form.setValue('address_city', companyData.address_city)
+    }
+    if (companyData.address_postal_code) {
+      form.setValue('address_postal_code', companyData.address_postal_code)
+    }
+    if (companyData.business_sector) {
+      form.setValue('business_sector', companyData.business_sector)
+    }
+    if (companyData.legal_representative) {
+      form.setValue('legal_representative', companyData.legal_representative)
+    }
+
+    // Mostrar confirmación visual
+    toast.success('Formulario completado con datos oficiales del Registro Mercantil')
+  }
+
   const onSubmit = async (data: ClientFormData) => {
     if (!user?.org_id) {
       toast.error('Error: No se pudo identificar la organización')
@@ -206,6 +236,28 @@ export const ClientFormDialog = ({ client, open, onClose }: ClientFormDialogProp
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            
+            {/* Sección de búsqueda empresarial */}
+            {!isEditing && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Building2 className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">Búsqueda Empresarial</h3>
+                  <Badge variant="secondary" className="text-xs">
+                    Registro Mercantil
+                  </Badge>
+                </div>
+                <p className="text-sm text-blue-700 mb-4">
+                  Introduce el NIF/CIF para auto-completar los datos oficiales de la empresa
+                </p>
+                <NifLookup
+                  onCompanyFound={handleCompanyFound}
+                  initialNif={form.watch('dni_nif')}
+                  disabled={form.formState.isSubmitting}
+                />
+              </div>
+            )}
+
             <ClientFormTabs form={form} />
 
             <div className="flex justify-end gap-3 pt-4 border-t">
