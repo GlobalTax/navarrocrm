@@ -21,12 +21,12 @@ export const useTaskQueries = () => {
         .from('tasks')
         .select(`
           *,
-          task_assignments:task_assignments(
+          task_assignments:task_assignments!task_assignments_task_id_fkey(
             *,
-            user:users(email, role)
+            user:users!task_assignments_user_id_fkey(email, role)
           ),
-          case:cases(title),
-          client:clients(name),
+          case:cases!tasks_case_id_fkey(title),
+          client:clients!tasks_client_id_fkey(name),
           created_by_user:users!tasks_created_by_fkey(email)
         `)
         .order('created_at', { ascending: false })
@@ -74,16 +74,16 @@ export const useTaskQueries = () => {
             code: error.code
           })
           
-          // Si la función no existe, calcular las estadísticas manualmente
-          if (error.code === '42883' || error.message?.includes('does not exist')) {
-            console.log('⚠️ get_task_stats function does not exist, calculating manually...')
+          // Si la función no existe o hay problemas de RLS, calcular las estadísticas manualmente
+          if (error.code === '42883' || error.code === '42501' || error.message?.includes('does not exist')) {
+            console.log('⚠️ RPC function issue, calculating manually...')
             return await calculateTaskStatsManually(user.org_id)
           }
           
           throw error
         }
 
-        console.log('✅ Task stats fetched:', data)
+        console.log('✅ Task stats fetched via RPC:', data)
         const result = Array.isArray(data) ? data[0] : data
         return result || {
           total_tasks: 0,

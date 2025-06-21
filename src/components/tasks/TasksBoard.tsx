@@ -27,7 +27,13 @@ export const TasksBoard = ({ tasks, onEditTask }: TasksBoardProps) => {
   ]
 
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => task?.status === status) || []
+    return tasks.filter(task => {
+      if (!task || !task.id) {
+        console.warn('⚠️ Invalid task found:', task)
+        return false
+      }
+      return task.status === status
+    }) || []
   }
 
   return (
@@ -47,7 +53,7 @@ export const TasksBoard = ({ tasks, onEditTask }: TasksBoardProps) => {
             <div className="space-y-3">
               {columnTasks.map(task => {
                 if (!task || !task.id) {
-                  console.warn('⚠️ Invalid task in column:', column.id, task)
+                  console.warn('⚠️ Skipping invalid task in column:', column.id, task)
                   return null
                 }
                 
@@ -59,6 +65,12 @@ export const TasksBoard = ({ tasks, onEditTask }: TasksBoardProps) => {
                   />
                 )
               })}
+              
+              {columnTasks.length === 0 && (
+                <div className="text-center py-8 text-gray-400">
+                  <p className="text-sm">No hay tareas en esta columna</p>
+                </div>
+              )}
             </div>
           </div>
         )

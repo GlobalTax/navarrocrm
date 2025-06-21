@@ -18,6 +18,11 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
     return null
   }
 
+  if (!task.id) {
+    console.warn('⚠️ TaskCard received task without id:', task)
+    return null
+  }
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent': return 'bg-red-100 text-red-800'
@@ -50,7 +55,10 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit()
+            }}
             className="opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <Edit className="h-4 w-4" />

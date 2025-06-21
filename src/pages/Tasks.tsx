@@ -31,13 +31,19 @@ const Tasks = () => {
     error: error?.message 
   })
 
-  const filteredTasks = tasks?.filter(task => {
-    if (!task) return false
+  // Validación adicional para prevenir errores de renderizado
+  const safeTasks = Array.isArray(tasks) ? tasks : []
+  
+  const filteredTasks = safeTasks.filter(task => {
+    if (!task || !task.id) {
+      console.warn('⚠️ Filtering out invalid task:', task)
+      return false
+    }
     if (filters.status && task.status !== filters.status) return false
     if (filters.priority && task.priority !== filters.priority) return false
     if (filters.search && !task.title?.toLowerCase().includes(filters.search.toLowerCase())) return false
     return true
-  }) || []
+  })
 
   const handleCreateTask = () => {
     setSelectedTask(null)
@@ -45,6 +51,10 @@ const Tasks = () => {
   }
 
   const handleEditTask = (task: any) => {
+    if (!task || !task.id) {
+      console.warn('⚠️ Attempted to edit invalid task:', task)
+      return
+    }
     console.log('🔍 Editing task:', task)
     setSelectedTask(task)
     setIsTaskDialogOpen(true)
