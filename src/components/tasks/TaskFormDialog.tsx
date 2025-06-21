@@ -21,9 +21,9 @@ interface TaskFormDialogProps {
 export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) => {
   const { user } = useApp()
   const { createTask, updateTask, isCreating, isUpdating } = useTasks()
-  const { data: clients } = useClients()
-  const { data: cases } = useCases()
-  const { data: users } = useUsers()
+  const { clients } = useClients()
+  const { cases } = useCases()
+  const { users } = useUsers()
 
   const [formData, setFormData] = useState({
     title: '',
