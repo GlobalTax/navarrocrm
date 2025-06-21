@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
@@ -12,8 +11,6 @@ import { ClientExportDialog } from '@/components/clients/ClientExportDialog'
 import { ClientMetricsDashboard } from '@/components/clients/ClientMetricsDashboard'
 import { ClientsList } from '@/components/clients/ClientsList'
 import { ClientCardView } from '@/components/clients/ClientCardView'
-import { AIAssistant } from '@/components/ai/AIAssistant'
-import { useAIAssistant } from '@/hooks/useAIAssistant'
 import { Client, useClients } from '@/hooks/useClients'
 
 const Clients = () => {
@@ -27,7 +24,6 @@ const Clients = () => {
   const [activeTab, setActiveTab] = useState('list')
 
   const { clients, refetch } = useClients()
-  const aiAssistant = useAIAssistant()
 
   const handleCreateClient = () => {
     setSelectedClient(null)
@@ -232,14 +228,6 @@ const Clients = () => {
           open={isExportDialogOpen}
           onClose={() => setIsExportDialogOpen(false)}
           clients={clients}
-        />
-
-        {/* Asistente de IA */}
-        <AIAssistant
-          isOpen={aiAssistant.isOpen}
-          onToggle={aiAssistant.toggle}
-          onMinimize={aiAssistant.minimize}
-          isMinimized={aiAssistant.isMinimized}
         />
       </div>
     </MainLayout>
