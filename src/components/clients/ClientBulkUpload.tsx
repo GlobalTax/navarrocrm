@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -12,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Upload, FileText, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import Papa from 'papaparse'
 
 interface BulkUploadData {
@@ -56,7 +55,7 @@ const COLUMN_MAPPINGS = {
 }
 
 export const ClientBulkUpload = ({ open, onClose, onSuccess }: ClientBulkUploadProps) => {
-  const { user } = useAuth()
+  const { user } = useApp()
   const [file, setFile] = useState<File | null>(null)
   const [parsedData, setParsedData] = useState<BulkUploadData[]>([])
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({})

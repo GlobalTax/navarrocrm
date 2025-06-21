@@ -1,7 +1,6 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 
 export interface User {
   id: string
@@ -13,7 +12,7 @@ export interface User {
 }
 
 export const useUsers = () => {
-  const { user } = useAuth()
+  const { user } = useApp()
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users', user?.org_id],

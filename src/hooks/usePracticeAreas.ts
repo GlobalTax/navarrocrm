@@ -1,7 +1,6 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 
 export interface PracticeArea {
   id: string
@@ -13,7 +12,7 @@ export interface PracticeArea {
 }
 
 export const usePracticeAreas = () => {
-  const { user } = useAuth()
+  const { user } = useApp()
 
   const { data: practiceAreas = [], isLoading, error } = useQuery({
     queryKey: ['practice-areas', user?.org_id],

@@ -1,8 +1,7 @@
-
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 import { useToast } from '@/hooks/use-toast'
 
 export interface Case {
@@ -49,7 +48,7 @@ export interface CreateCaseData {
 }
 
 export const useCases = () => {
-  const { user } = useAuth()
+  const { user } = useApp()
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')

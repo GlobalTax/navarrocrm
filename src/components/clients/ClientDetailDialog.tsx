@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -12,7 +11,7 @@ import {
   FileText, Clock, Euro
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
+import { useApp } from '@/contexts/AppContext'
 
 interface Client {
   id: string
@@ -108,7 +107,7 @@ const getContactPreferenceIcon = (preference: string) => {
 }
 
 export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialogProps) => {
-  const { user } = useAuth()
+  const { user } = useApp()
 
   const { data: cases = [] } = useQuery({
     queryKey: ['client-cases', client?.id],
