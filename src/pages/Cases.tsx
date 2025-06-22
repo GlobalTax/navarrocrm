@@ -1,17 +1,12 @@
 
 import { useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardHeader } from '@/components/ui/card'
-
-import { CaseTable } from '@/components/cases/CaseTable'
-import { CaseDetailDialog } from '@/components/cases/CaseDetailDialog'
-import { MatterWizard } from '@/components/cases/wizard/MatterWizard'
+import { CasesPageContainer } from '@/components/cases/CasesPageContainer'
 import { CasesHeader } from '@/components/cases/CasesHeader'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesFilters } from '@/components/cases/CasesFilters'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
-import { CaseDeleteDialog } from '@/components/cases/CaseDeleteDialog'
-import { CaseArchiveDialog } from '@/components/cases/CaseArchiveDialog'
+import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
+import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
 import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
@@ -112,101 +107,67 @@ export default function Cases() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        <CasesHeader 
-          templates={templates}
-          onNewCase={() => setIsWizardOpen(true)}
-        />
+    <CasesPageContainer>
+      <CasesHeader 
+        templates={templates}
+        onNewCase={() => setIsWizardOpen(true)}
+      />
 
-        <CasesStats cases={filteredCases} />
+      <CasesStats cases={filteredCases} />
 
-        <CasesFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          practiceAreaFilter={practiceAreaFilter}
-          setPracticeAreaFilter={setPracticeAreaFilter}
-          solicitorFilter={solicitorFilter}
-          setSolicitorFilter={setSolicitorFilter}
-          practiceAreas={practiceAreas}
-          users={users}
-        />
+      <CasesFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        practiceAreaFilter={practiceAreaFilter}
+        setPracticeAreaFilter={setPracticeAreaFilter}
+        solicitorFilter={solicitorFilter}
+        setSolicitorFilter={setSolicitorFilter}
+        practiceAreas={practiceAreas}
+        users={users}
+      />
 
-        <CasesBulkActions selectedCases={selectedCases} />
+      <CasesBulkActions selectedCases={selectedCases} />
 
-        <Card>
-          <CardHeader>
-            <Tabs defaultValue="matters" className="w-full">
-              <TabsList>
-                <TabsTrigger value="matters">
-                  Expedientes ({filteredCases.length})
-                </TabsTrigger>
-                <TabsTrigger value="stages">
-                  Etapas
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="matters">
-                <CaseTable
-                  cases={filteredCases}
-                  onViewCase={handleViewCase}
-                  onEditCase={handleEditCase}
-                  onDeleteCase={handleDeleteCase}
-                  onArchiveCase={handleArchiveCase}
-                  selectedCases={selectedCases}
-                  onSelectCase={handleSelectCase}
-                  onSelectAll={handleSelectAll}
-                />
-              </TabsContent>
-              
-              <TabsContent value="stages">
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>La gestión de etapas estará disponible próximamente</p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardHeader>
-        </Card>
+      <CasesTabsContent
+        filteredCases={filteredCases}
+        onViewCase={handleViewCase}
+        onEditCase={handleEditCase}
+        onDeleteCase={handleDeleteCase}
+        onArchiveCase={handleArchiveCase}
+        selectedCases={selectedCases}
+        onSelectCase={handleSelectCase}
+        onSelectAll={handleSelectAll}
+      />
 
-        <CaseDetailDialog
-          case_={selectedCase}
-          open={isDetailOpen}
-          onClose={() => setIsDetailOpen(false)}
-        />
-
-        <MatterWizard
-          open={isWizardOpen}
-          onOpenChange={setIsWizardOpen}
-          onSubmit={createCase}
-          isLoading={isCreating}
-          isSuccess={isCreateSuccess}
-          onResetCreate={createCaseReset}
-        />
-
-        <CaseDeleteDialog
-          case_={caseToDelete}
-          open={isDeleteDialogOpen}
-          onClose={() => {
-            setIsDeleteDialogOpen(false)
-            setCaseToDelete(null)
-          }}
-          onConfirm={handleConfirmDelete}
-          isDeleting={isDeleting}
-        />
-
-        <CaseArchiveDialog
-          case_={caseToArchive}
-          open={isArchiveDialogOpen}
-          onClose={() => {
-            setIsArchiveDialogOpen(false)
-            setCaseToArchive(null)
-          }}
-          onConfirm={handleConfirmArchive}
-          isArchiving={isArchiving}
-        />
-      </div>
-    </div>
+      <CasesDialogManager
+        selectedCase={selectedCase}
+        isDetailOpen={isDetailOpen}
+        onDetailClose={() => setIsDetailOpen(false)}
+        isWizardOpen={isWizardOpen}
+        onWizardOpenChange={setIsWizardOpen}
+        onSubmit={createCase}
+        isCreating={isCreating}
+        isCreateSuccess={isCreateSuccess}
+        onResetCreate={createCaseReset}
+        caseToDelete={caseToDelete}
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        onDeleteDialogClose={() => {
+          setIsDeleteDialogOpen(false)
+          setCaseToDelete(null)
+        }}
+        onConfirmDelete={handleConfirmDelete}
+        isDeleting={isDeleting}
+        caseToArchive={caseToArchive}
+        isArchiveDialogOpen={isArchiveDialogOpen}
+        onArchiveDialogClose={() => {
+          setIsArchiveDialogOpen(false)
+          setCaseToArchive(null)
+        }}
+        onConfirmArchive={handleConfirmArchive}
+        isArchiving={isArchiving}
+      />
+    </CasesPageContainer>
   )
 }
