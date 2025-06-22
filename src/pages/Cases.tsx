@@ -5,7 +5,7 @@ import { Card, CardHeader } from '@/components/ui/card'
 
 import { CaseTable } from '@/components/cases/CaseTable'
 import { CaseDetailDialog } from '@/components/cases/CaseDetailDialog'
-import { MatterFormDialog } from '@/components/cases/MatterFormDialog'
+import { MatterWizard } from '@/components/cases/wizard/MatterWizard'
 import { CasesHeader } from '@/components/cases/CasesHeader'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesFilters } from '@/components/cases/CasesFilters'
@@ -37,7 +37,7 @@ export default function Cases() {
 
   const [selectedCase, setSelectedCase] = useState<Case | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isWizardOpen, setIsWizardOpen] = useState(false)
   const [selectedCases, setSelectedCases] = useState<string[]>([])
 
   const handleViewCase = (case_: Case) => {
@@ -47,7 +47,7 @@ export default function Cases() {
 
   const handleEditCase = (case_: Case) => {
     setSelectedCase(case_)
-    setIsFormOpen(true)
+    setIsWizardOpen(true)
   }
 
   const handleSelectCase = (caseId: string, selected: boolean) => {
@@ -82,7 +82,7 @@ export default function Cases() {
       <div className="max-w-7xl mx-auto p-6">
         <CasesHeader 
           templates={templates}
-          onNewCase={() => setIsFormOpen(true)}
+          onNewCase={() => setIsWizardOpen(true)}
         />
 
         <CasesStats cases={filteredCases} />
@@ -140,9 +140,9 @@ export default function Cases() {
           onClose={() => setIsDetailOpen(false)}
         />
 
-        <MatterFormDialog
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
+        <MatterWizard
+          open={isWizardOpen}
+          onOpenChange={setIsWizardOpen}
           onSubmit={createCase}
           isLoading={isCreating}
         />
