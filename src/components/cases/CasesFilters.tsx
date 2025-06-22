@@ -51,9 +51,11 @@ export function CasesFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="active">Activos</SelectItem>
                 <SelectItem value="open">Abierto</SelectItem>
                 <SelectItem value="on_hold">En espera</SelectItem>
                 <SelectItem value="closed">Cerrado</SelectItem>
+                <SelectItem value="archived">Archivados</SelectItem>
               </SelectContent>
             </Select>
             

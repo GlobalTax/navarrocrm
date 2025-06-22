@@ -4,8 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, Trash2, FileText } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { MoreHorizontal, Eye, Edit, Trash2, FileText, Archive, ArchiveRestore } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Case } from '@/hooks/useCases'
@@ -15,6 +15,7 @@ interface CaseTableProps {
   onViewCase: (case_: Case) => void
   onEditCase: (case_: Case) => void
   onDeleteCase?: (case_: Case) => void
+  onArchiveCase?: (case_: Case) => void
   selectedCases: string[]
   onSelectCase: (caseId: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
@@ -25,7 +26,7 @@ const getStatusColor = (status: string) => {
     case 'open': return 'bg-green-100 text-green-800'
     case 'closed': return 'bg-gray-100 text-gray-800'
     case 'on_hold': return 'bg-yellow-100 text-yellow-800'
-    case 'archived': return 'bg-red-100 text-red-800'
+    case 'archived': return 'bg-purple-100 text-purple-800'
     default: return 'bg-blue-100 text-blue-800'
   }
 }
@@ -45,6 +46,7 @@ export function CaseTable({
   onViewCase, 
   onEditCase, 
   onDeleteCase,
+  onArchiveCase,
   selectedCases,
   onSelectCase,
   onSelectAll
@@ -84,7 +86,7 @@ export function CaseTable({
             </TableRow>
           ) : (
             cases.map((case_) => (
-              <TableRow key={case_.id}>
+              <TableRow key={case_.id} className={case_.status === 'archived' ? 'opacity-60' : ''}>
                 <TableCell>
                   <Checkbox
                     checked={selectedCases.includes(case_.id)}
@@ -98,6 +100,9 @@ export function CaseTable({
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{case_.title}</span>
+                    {case_.status === 'archived' && (
+                      <Archive className="h-4 w-4 text-purple-500" />
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>{case_.client?.name}</TableCell>
@@ -140,6 +145,22 @@ export function CaseTable({
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {onArchiveCase && (
+                        <DropdownMenuItem onClick={() => onArchiveCase(case_)}>
+                          {case_.status === 'archived' ? (
+                            <>
+                              <ArchiveRestore className="h-4 w-4 mr-2" />
+                              Desarchivar
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="h-4 w-4 mr-2" />
+                              Archivar
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      )}
                       {onDeleteCase && (
                         <DropdownMenuItem 
                           onClick={() => onDeleteCase(case_)}

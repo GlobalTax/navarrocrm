@@ -10,6 +10,8 @@ import { CasesHeader } from '@/components/cases/CasesHeader'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesFilters } from '@/components/cases/CasesFilters'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
+import { CaseDeleteDialog } from '@/components/cases/CaseDeleteDialog'
+import { CaseArchiveDialog } from '@/components/cases/CaseArchiveDialog'
 import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
@@ -30,7 +32,11 @@ export default function Cases() {
     createCase,
     isCreating,
     isCreateSuccess,
-    createCaseReset
+    createCaseReset,
+    deleteCase,
+    isDeleting,
+    archiveCase,
+    isArchiving
   } = useCases()
 
   const { practiceAreas = [] } = usePracticeAreas()
@@ -41,6 +47,10 @@ export default function Cases() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
   const [selectedCases, setSelectedCases] = useState<string[]>([])
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
+  const [caseToDelete, setCaseToDelete] = useState<Case | null>(null)
+  const [caseToArchive, setCaseToArchive] = useState<Case | null>(null)
 
   const handleViewCase = (case_: Case) => {
     setSelectedCase(case_)
@@ -50,6 +60,28 @@ export default function Cases() {
   const handleEditCase = (case_: Case) => {
     setSelectedCase(case_)
     setIsWizardOpen(true)
+  }
+
+  const handleDeleteCase = (case_: Case) => {
+    setCaseToDelete(case_)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleArchiveCase = (case_: Case) => {
+    setCaseToArchive(case_)
+    setIsArchiveDialogOpen(true)
+  }
+
+  const handleConfirmDelete = (caseId: string) => {
+    deleteCase(caseId)
+    setIsDeleteDialogOpen(false)
+    setCaseToDelete(null)
+  }
+
+  const handleConfirmArchive = (caseId: string) => {
+    archiveCase(caseId)
+    setIsArchiveDialogOpen(false)
+    setCaseToArchive(null)
   }
 
   const handleSelectCase = (caseId: string, selected: boolean) => {
@@ -121,6 +153,8 @@ export default function Cases() {
                   cases={filteredCases}
                   onViewCase={handleViewCase}
                   onEditCase={handleEditCase}
+                  onDeleteCase={handleDeleteCase}
+                  onArchiveCase={handleArchiveCase}
                   selectedCases={selectedCases}
                   onSelectCase={handleSelectCase}
                   onSelectAll={handleSelectAll}
@@ -149,6 +183,28 @@ export default function Cases() {
           isLoading={isCreating}
           isSuccess={isCreateSuccess}
           onResetCreate={createCaseReset}
+        />
+
+        <CaseDeleteDialog
+          case_={caseToDelete}
+          open={isDeleteDialogOpen}
+          onClose={() => {
+            setIsDeleteDialogOpen(false)
+            setCaseToDelete(null)
+          }}
+          onConfirm={handleConfirmDelete}
+          isDeleting={isDeleting}
+        />
+
+        <CaseArchiveDialog
+          case_={caseToArchive}
+          open={isArchiveDialogOpen}
+          onClose={() => {
+            setIsArchiveDialogOpen(false)
+            setCaseToArchive(null)
+          }}
+          onConfirm={handleConfirmArchive}
+          isArchiving={isArchiving}
         />
       </div>
     </div>

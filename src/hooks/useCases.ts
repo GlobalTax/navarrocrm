@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -53,7 +52,7 @@ export const useCases = () => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('active') // Changed default to 'active'
   const [practiceAreaFilter, setPracticeAreaFilter] = useState<string>('all')
   const [solicitorFilter, setSolicitorFilter] = useState<string>('all')
 
@@ -142,13 +141,100 @@ export const useCases = () => {
     },
   })
 
+  const deleteCaseMutation = useMutation({
+    mutationFn: async (caseId: string) => {
+      console.log('🗑️ Eliminando expediente:', caseId)
+      
+      const { error } = await supabase
+        .from('cases')
+        .delete()
+        .eq('id', caseId)
+
+      if (error) {
+        console.error('❌ Error eliminando expediente:', error)
+        throw error
+      }
+
+      console.log('✅ Expediente eliminado exitosamente')
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] })
+      toast({ 
+        title: 'Expediente eliminado', 
+        description: 'El expediente ha sido eliminado permanentemente.' 
+      })
+    },
+    onError: (error: any) => {
+      console.error('❌ Error al eliminar expediente:', error)
+      toast({ 
+        title: 'Error al eliminar expediente', 
+        description: error.message || 'Ha ocurrido un error inesperado', 
+        variant: 'destructive' 
+      })
+    },
+  })
+
+  const archiveCaseMutation = useMutation({
+    mutationFn: async (caseId: string) => {
+      console.log('📦 Cambiando estado de archivo del expediente:', caseId)
+      
+      // First get the current status
+      const { data: currentCase, error: fetchError } = await supabase
+        .from('cases')
+        .select('status')
+        .eq('id', caseId)
+        .single()
+
+      if (fetchError) {
+        console.error('❌ Error obteniendo expediente:', fetchError)
+        throw fetchError
+      }
+
+      const newStatus = currentCase.status === 'archived' ? 'open' : 'archived'
+      
+      const { error } = await supabase
+        .from('cases')
+        .update({ status: newStatus })
+        .eq('id', caseId)
+
+      if (error) {
+        console.error('❌ Error cambiando estado de archivo:', error)
+        throw error
+      }
+
+      console.log('✅ Estado de archivo cambiado exitosamente')
+      return { oldStatus: currentCase.status, newStatus }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] })
+      const action = data.newStatus === 'archived' ? 'archivado' : 'desarchivado'
+      toast({ 
+        title: `Expediente ${action}`, 
+        description: `El expediente ha sido ${action} correctamente.` 
+      })
+    },
+    onError: (error: any) => {
+      console.error('❌ Error al cambiar estado de archivo:', error)
+      toast({ 
+        title: 'Error al cambiar estado', 
+        description: error.message || 'Ha ocurrido un error inesperado', 
+        variant: 'destructive' 
+      })
+    },
+  })
+
   const filteredCases = cases.filter(case_ => {
     const matchesSearch = case_.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_.matter_number?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesStatus = statusFilter === 'all' || case_.status === statusFilter
+    // Updated status filter logic
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && case_.status !== 'archived') ||
+      (statusFilter === 'archived' && case_.status === 'archived') ||
+      case_.status === statusFilter
+      
     const matchesPracticeArea = practiceAreaFilter === 'all' || case_.practice_area === practiceAreaFilter
     const matchesSolicitor = solicitorFilter === 'all' || 
       case_.responsible_solicitor_id === solicitorFilter ||
@@ -175,5 +261,9 @@ export const useCases = () => {
     isCreating: createCaseMutation.isPending,
     isCreateSuccess: createCaseMutation.isSuccess,
     createCaseReset: createCaseMutation.reset,
+    deleteCase: deleteCaseMutation.mutate,
+    isDeleting: deleteCaseMutation.isPending,
+    archiveCase: archiveCaseMutation.mutate,
+    isArchiving: archiveCaseMutation.isPending,
   }
 }
