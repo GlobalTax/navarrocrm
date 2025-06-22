@@ -35,12 +35,7 @@ interface ProposalCardProps {
   onView: (proposal: Proposal) => void
 }
 
-export function ProposalCard({ proposal, onStatusChange, onView }: Propos
-
-
-
-
-ardProps) {
+export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft': return 'bg-gray-100 text-gray-800'
