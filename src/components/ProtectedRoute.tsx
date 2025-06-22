@@ -13,29 +13,34 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
   redirectTo = '/login'
 }) => {
-  const { user, session, isSetup, isInitializing } = useApp()
+  const { user, session, isSetup, authLoading, setupLoading } = useApp()
   const location = useLocation()
 
-  // Mostrar loading mientras se inicializa
-  if (isInitializing) {
+  // Mostrar loading solo durante la carga crítica de auth
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando acceso...</p>
+          {setupLoading && (
+            <p className="text-sm text-gray-500 mt-2">
+              Cargando configuración...
+            </p>
+          )}
         </div>
       </div>
     )
   }
 
-  // Si el sistema no está configurado, redirigir al setup
-  if (isSetup === false) {
-    return <Navigate to="/setup" replace />
-  }
-
   // Si no hay usuario/sesión, redirigir al login
   if (!user && !session) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />
+  }
+
+  // Si definitivamente no hay setup, redirigir (pero no bloquear si está cargando)
+  if (isSetup === false && !setupLoading) {
+    return <Navigate to="/setup" replace />
   }
 
   // Verificar roles si se especificaron

@@ -3,11 +3,6 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AppState, AuthUser } from './types'
-import { clearAuthCaches } from './utils/authCache'
-import { isValidSession, cleanCorruptedSessions } from './utils/sessionValidator'
-import { checkSystemSetup } from './utils/systemSetup'
-import { handleUserProfile } from './utils/profileHandler'
-import { useAuthActions } from './hooks/useAuthActions'
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
@@ -27,87 +22,69 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [setupLoading, setSetupLoading] = useState(true)
   
   const initializationStarted = useRef(false)
-  const lastAuthEvent = useRef<string | null>(null)
-  const profileFetchInProgress = useRef<Set<string>>(new Set())
+  const profileEnrichmentInProgress = useRef(false)
 
-  // Estado combinado de carga
-  const isInitializing = authLoading || setupLoading
-
-  // Get auth actions
-  const authActions = useAuthActions()
+  // Estado combinado de carga inicial - solo para inicialización crítica
+  const isInitializing = authLoading && setupLoading
 
   useEffect(() => {
     if (initializationStarted.current) return
     initializationStarted.current = true
 
-    console.log('🚀 [AppContext] Inicializando aplicación...')
+    console.log('🚀 [AppContext] Inicialización rápida...')
     
-    // Verificar y limpiar sesiones corruptas
-    cleanCorruptedSessions()
-    
-    // Inicializar verificación de setup con caché
+    // Inicializar setup de forma no bloqueante
     initializeSystemSetup()
     
-    // Configurar listener de autenticación con manejo mejorado
+    // Configurar listener de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const eventKey = `${event}-${session?.user?.id || 'null'}-${Date.now()}`
-      
-      // Evitar procesamiento duplicado con timestamp
-      if (lastAuthEvent.current === eventKey) {
-        console.log('🔄 [AppContext] Evento duplicado ignorado:', event)
-        return
-      }
-      
-      lastAuthEvent.current = eventKey
-      console.log('🔄 [AppContext] Cambio de estado auth:', event, session ? 'con sesión' : 'sin sesión')
-      
-      // Validar sesión antes de usarla
-      if (session && !isValidSession(session)) {
-        console.warn('⚠️ [AppContext] Sesión inválida detectada, limpiando...')
-        await cleanCorruptedSessions()
-        setSession(null)
-        setUser(null)
-        setAuthLoading(false)
-        return
-      }
+      console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
       
       setSession(session)
       
       if (session?.user) {
-        await handleUserProfileUpdate(session.user, session)
+        // Configurar usuario básico inmediatamente
+        const basicUser = session.user as AuthUser
+        setUser(basicUser)
+        
+        // Enriquecer perfil en segundo plano sin bloquear
+        enrichUserProfileAsync(session.user, session)
       } else {
         setUser(null)
-        setAuthLoading(false)
       }
+      
+      setAuthLoading(false)
     })
 
-    // Obtener sesión inicial con validación
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+    // Obtener sesión inicial con timeout rápido
+    const sessionTimeout = setTimeout(() => {
+      console.log('⏰ [AppContext] Timeout de sesión inicial - continuando sin bloquear')
+      setAuthLoading(false)
+    }, 2000) // Solo 2 segundos de timeout
+
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      clearTimeout(sessionTimeout)
+      
       if (error) {
-        console.error('❌ [AppContext] Error obteniendo sesión inicial:', error)
-        await cleanCorruptedSessions()
+        console.warn('⚠️ [AppContext] Error obteniendo sesión, continuando:', error.message)
         setAuthLoading(false)
         return
       }
 
       console.log('📋 [AppContext] Sesión inicial:', session ? 'Encontrada' : 'No encontrada')
       
-      // Validar sesión inicial
-      if (session && !isValidSession(session)) {
-        console.warn('⚠️ [AppContext] Sesión inicial inválida, limpiando...')
-        await cleanCorruptedSessions()
-        setSession(null)
-        setAuthLoading(false)
-        return
-      }
-      
       setSession(session)
       
       if (session?.user) {
-        await handleUserProfileUpdate(session.user, session)
-      } else {
-        setAuthLoading(false)
+        const basicUser = session.user as AuthUser
+        setUser(basicUser)
+        enrichUserProfileAsync(session.user, session)
       }
+      
+      setAuthLoading(false)
+    }).catch(() => {
+      clearTimeout(sessionTimeout)
+      setAuthLoading(false)
     })
 
     return () => {
@@ -115,45 +92,138 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [])
 
+  // Verificación de setup no bloqueante
   const initializeSystemSetup = async () => {
     try {
-      setSetupLoading(true)
-      const systemIsSetup = await checkSystemSetup()
+      console.log('🔧 [AppContext] Verificando setup...')
+      
+      const timeoutPromise = new Promise<boolean>((resolve) => {
+        setTimeout(() => {
+          console.log('⏰ [AppContext] Timeout setup - asumiendo configurado')
+          resolve(true)
+        }, 2000) // Timeout rápido de 2s
+      })
+
+      const queryPromise = supabase
+        .from('organizations')
+        .select('id')
+        .limit(1)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) {
+            console.log('🔧 [AppContext] Error setup, asumiendo configurado:', error.message)
+            return true
+          }
+          const setupComplete = data !== null
+          console.log('🔧 [AppContext] Setup verificado:', setupComplete)
+          return setupComplete
+        })
+
+      const systemIsSetup = await Promise.race([queryPromise, timeoutPromise])
       setIsSetup(systemIsSetup)
     } catch (error) {
-      console.error('❌ [AppContext] Error inicializando setup:', error)
+      console.warn('⚠️ [AppContext] Error verificando setup, asumiendo configurado:', error)
       setIsSetup(true) // Fallback seguro
     } finally {
       setSetupLoading(false)
     }
   }
 
-  const handleUserProfileUpdate = async (authUser: User, userSession: Session) => {
+  // Enriquecimiento de perfil en segundo plano
+  const enrichUserProfileAsync = async (authUser: User, userSession: Session) => {
+    if (profileEnrichmentInProgress.current) {
+      console.log('👤 [AppContext] Enriquecimiento ya en progreso')
+      return
+    }
+
     try {
-      const enrichedUser = await handleUserProfile(authUser, userSession, profileFetchInProgress.current)
-      setUser(enrichedUser)
+      profileEnrichmentInProgress.current = true
+      console.log('👤 [AppContext] Enriqueciendo perfil en segundo plano:', authUser.id)
+      
+      const { data, error } = await Promise.race([
+        supabase
+          .from('users')
+          .select('role, org_id')
+          .eq('id', authUser.id)
+          .single(),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('TIMEOUT')), 3000)
+        })
+      ])
+
+      if (!error && data) {
+        const enrichedUser: AuthUser = {
+          ...authUser,
+          role: data.role,
+          org_id: data.org_id
+        }
+        
+        console.log('✅ [AppContext] Perfil enriquecido:', { role: data.role, org_id: data.org_id })
+        setUser(enrichedUser)
+      } else {
+        console.log('⚠️ [AppContext] Manteniendo usuario básico:', error?.message || 'Sin datos')
+      }
     } catch (error: any) {
-      console.error('❌ [AppContext] Error actualizando perfil:', error)
-      setUser(authUser as AuthUser)
+      console.log('⚠️ [AppContext] Error enriqueciendo perfil, manteniendo básico:', error.message)
     } finally {
-      setAuthLoading(false)
+      profileEnrichmentInProgress.current = false
     }
   }
 
-  // Enhanced sign actions with proper loading states
+  // Acciones de autenticación simplificadas
   const signIn = async (email: string, password: string) => {
-    setAuthLoading(true)
-    try {
-      await authActions.signIn(email, password)
-    } catch (error) {
-      setAuthLoading(false)
+    console.log('🔐 [AppContext] Iniciando sesión para:', email)
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    
+    if (error) {
+      console.error('❌ [AppContext] Error en signIn:', error.message)
       throw error
+    }
+    
+    console.log('✅ [AppContext] Sign in exitoso')
+  }
+
+  const signUp = async (email: string, password: string, role: string, orgId: string) => {
+    console.log('📝 [AppContext] Registrando usuario:', email)
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    if (error) {
+      console.error('❌ [AppContext] Error en signUp:', error.message)
+      throw error
+    }
+
+    if (data.user) {
+      console.log('👤 [AppContext] Creando perfil para:', data.user.id)
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: data.user.id,
+          email,
+          role,
+          org_id: orgId
+        })
+      if (profileError) {
+        console.error('❌ [AppContext] Error creando perfil:', profileError.message)
+        throw profileError
+      }
     }
   }
 
   const signOut = async () => {
-    await authActions.signOut()
-    // Limpiar estado local
+    console.log('🚪 [AppContext] Cerrando sesión')
+    
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('❌ [AppContext] Error en signOut:', error.message)
+    }
+    
+    // Limpiar estado local inmediatamente
     setUser(null)
     setSession(null)
   }
@@ -166,7 +236,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setupLoading,
     isInitializing,
     signIn,
-    signUp: authActions.signUp,
+    signUp,
     signOut,
   }
 

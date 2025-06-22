@@ -10,6 +10,25 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Configuración optimizada para conexiones más rápidas
+    storageKey: 'sb-auth-token',
+    storage: window.localStorage,
+    flowType: 'pkce'
+  },
+  // Configuración global optimizada
+  global: {
+    headers: {
+      'x-client-info': '@supabase/ssr@0.0.1'
+    }
+  },
+  // Configuración de red optimizada
+  db: {
+    schema: 'public'
+  },
+  // Reducir timeouts para conexiones más rápidas
+  realtime: {
+    timeout: 5000,
+    heartbeatIntervalMs: 30000
   }
 });

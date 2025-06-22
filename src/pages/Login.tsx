@@ -12,34 +12,36 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { session, user, isSetup, signIn, isInitializing } = useApp()
+  const { session, user, isSetup, signIn, authLoading, setupLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
 
   const from = location.state?.from?.pathname || '/'
 
-  // Redirección automática mejorada
+  // Redirección simplificada y más rápida
   useEffect(() => {
-    if (isInitializing) {
-      console.log('🔄 [Login] Esperando inicialización...')
+    // Solo esperar la carga crítica de auth, no el setup
+    if (authLoading) {
+      console.log('🔄 [Login] Esperando autenticación...')
       return
     }
 
-    // Si hay usuario/sesión válida y el sistema está configurado, redirigir
-    if ((session || user) && isSetup !== false) {
-      console.log('🔐 [Login] Usuario autenticado, redirigiendo a:', from)
+    // Si hay usuario/sesión válida, redirigir inmediatamente
+    if (session || user) {
+      // No esperar a que termine de cargar el setup, redirigir ya
+      console.log('🔐 [Login] Usuario autenticado, redirigiendo inmediatamente')
       navigate(from, { replace: true })
       return
     }
     
-    // Si el sistema no está configurado, ir a setup
-    if (isSetup === false) {
+    // Solo si definitivamente no hay setup y ya terminó de cargar, ir a setup
+    if (isSetup === false && !setupLoading) {
       console.log('🔧 [Login] Sistema no configurado, redirigiendo a setup')
       navigate('/setup', { replace: true })
       return
     }
-  }, [session, user, isSetup, isInitializing, navigate, from])
+  }, [session, user, isSetup, authLoading, setupLoading, navigate, from])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,15 +90,22 @@ export default function Login() {
     }
   }
 
-  // Mostrar loading mientras se inicializa o si ya está autenticado
-  if (isInitializing || ((session || user) && isSetup !== false)) {
+  // Mostrar loading solo durante la carga inicial crítica
+  const showLoading = authLoading || ((session || user) && !setupLoading)
+  
+  if (showLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {isInitializing ? 'Verificando autenticación...' : 'Accediendo al dashboard...'}
+            {authLoading ? 'Verificando autenticación...' : 'Accediendo...'}
           </p>
+          {setupLoading && (
+            <p className="text-sm text-gray-500 mt-2">
+              Verificando configuración en segundo plano...
+            </p>
+          )}
         </div>
       </div>
     )
@@ -148,22 +157,17 @@ export default function Login() {
             >
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
-            
-            {/* Botón de debug para limpiar datos corruptos */}
-            {process.env.NODE_ENV === 'development' && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full text-xs"
-                onClick={() => {
-                  localStorage.clear()
-                  window.location.reload()
-                }}
-              >
-                🔧 Limpiar datos (debug)
-              </Button>
-            )}
           </form>
+          
+          {/* Mostrar el estado de verificación del setup si está cargando */}
+          {setupLoading && (
+            <div className="mt-4 text-center text-sm text-gray-500">
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400"></div>
+                Verificando configuración del sistema...
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
