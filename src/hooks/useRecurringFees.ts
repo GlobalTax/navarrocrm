@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -86,7 +85,7 @@ export const useRecurringFees = (filters?: {
         .from('recurring_fees')
         .select(`
           *,
-          client:clients!recurring_fees_client_id_fkey(name, email)
+          clients!inner(name, email)
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
@@ -107,13 +106,13 @@ export const useRecurringFees = (filters?: {
       const { data, error } = await query
 
       if (error) throw error
+      
       return (data || []).map(item => ({
         ...item,
-        client: item.client && Array.isArray(item.client) 
-          ? { name: item.client[0]?.name || '', email: item.client[0]?.email }
-          : item.client 
-          ? { name: item.client.name || '', email: item.client.email }
-          : undefined
+        client: item.clients ? { 
+          name: item.clients.name || '', 
+          email: item.clients.email 
+        } : undefined
       })) as RecurringFee[]
     },
     enabled: !!user?.org_id
@@ -132,15 +131,23 @@ export const useRecurringFee = (id: string) => {
         .from('recurring_fees')
         .select(`
           *,
-          client:clients!recurring_fees_client_id_fkey(name, email, phone),
-          proposal:proposals(title, proposal_number)
+          clients!inner(name, email, phone),
+          proposals(title, proposal_number)
         `)
         .eq('id', id)
         .eq('org_id', user.org_id)
         .single()
 
       if (error) throw error
-      return data
+      
+      return {
+        ...data,
+        client: data.clients ? {
+          name: data.clients.name || '',
+          email: data.clients.email,
+          phone: data.clients.phone
+        } : undefined
+      }
     },
     enabled: !!user?.org_id && !!id
   })

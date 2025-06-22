@@ -18,7 +18,7 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
       client_id: proposal.client_id,
       proposal_id: proposal.id,
       name: `Cuota recurrente - ${proposal.title}`,
-      description: proposal.description,
+      description: proposal.description || '',
       amount: proposal.retainer_amount || proposal.total_amount,
       frequency: proposal.recurring_frequency || 'monthly',
       start_date: proposal.contract_start_date || new Date().toISOString().split('T')[0],
@@ -85,12 +85,7 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
 
       // Si se acepta una propuesta recurrente, crear la cuota recurrente
       if (status === 'won') {
-        // Crear objeto proposal con el status correcto para la función
-        const proposalWithCorrectStatus = {
-          ...data,
-          status: status as 'won' // Cast explícito para typescript
-        }
-        await createRecurringFeeOnAcceptance(proposalWithCorrectStatus)
+        await createRecurringFeeOnAcceptance(data)
       }
 
       return data
