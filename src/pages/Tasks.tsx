@@ -87,34 +87,6 @@ const Tasks = () => {
     )
   }
 
-  // Mostrar estado vacío si no hay tareas
-  if (safeTasks.length === 0) {
-    return (
-      <div className="space-y-6">
-        <TasksHeader 
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          onCreateTask={handleCreateTask}
-        />
-        
-        <div className="flex flex-col items-center justify-center h-64 space-y-4">
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No hay tareas
-            </h3>
-            <p className="text-gray-500 mb-6">
-              Comienza creando tu primera tarea para organizar tu trabajo.
-            </p>
-            <Button onClick={handleCreateTask} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Crear primera tarea
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
       <TasksHeader 
@@ -130,17 +102,36 @@ const Tasks = () => {
         onFiltersChange={setFilters}
       />
 
-      {viewMode === 'board' ? (
-        <TasksBoardKanban 
-          tasks={filteredTasks}
-          onEditTask={handleEditTask}
-          onCreateTask={handleCreateTask}
-        />
+      {safeTasks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No hay tareas
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Comienza creando tu primera tarea para organizar tu trabajo.
+            </p>
+            <Button onClick={handleCreateTask} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Crear primera tarea
+            </Button>
+          </div>
+        </div>
       ) : (
-        <TasksList 
-          tasks={filteredTasks}
-          onEditTask={handleEditTask}
-        />
+        <>
+          {viewMode === 'board' ? (
+            <TasksBoardKanban 
+              tasks={filteredTasks}
+              onEditTask={handleEditTask}
+              onCreateTask={handleCreateTask}
+            />
+          ) : (
+            <TasksList 
+              tasks={filteredTasks}
+              onEditTask={handleEditTask}
+            />
+          )}
+        </>
       )}
 
       <TaskFormDialog

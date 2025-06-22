@@ -7,7 +7,7 @@ import { TaskStats } from './types'
 export const useTaskQueries = () => {
   const { user } = useApp()
 
-  const { data: tasks, isLoading, error } = useQuery({
+  const { data: tasks = [], isLoading, error } = useQuery({
     queryKey: ['tasks', user?.org_id],
     queryFn: async () => {
       console.log('🔄 Fetching tasks for org:', user?.org_id)
@@ -99,7 +99,7 @@ export const useTaskQueries = () => {
   })
 
   return {
-    tasks,
+    tasks: Array.isArray(tasks) ? tasks : [],
     taskStats,
     isLoading,
     error,
