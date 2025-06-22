@@ -42,9 +42,9 @@ export const integrationTestService = {
         .select('*')
         .eq('org_id', orgId)
         .eq('integration_type', 'outlook')
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') throw error
+      if (error) throw error
 
       if (!data) {
         return {
@@ -141,20 +141,27 @@ export const integrationTestService = {
 
   async testEdgeFunctions(): Promise<TestResult> {
     try {
-      const response = await fetch('https://jzbbbwfnzpwxmuhpbdya.supabase.co/functions/v1/outlook-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6YmJid2ZuenB3eG11aHBiZHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0NDMxODgsImV4cCI6MjA2NjAxOTE4OH0.NMClKY9QPN77oFVhIv4i0EzGaKvFxX6wJj06l2dTr-8`
-        },
-        body: JSON.stringify({ action: 'ping' })
-      })
-
-      if (response.status === 404) {
+      // Obtener el token de sesión actual
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
         return {
           name: 'Edge Functions',
           status: 'warning',
-          message: 'Función no desplegada'
+          message: 'Sin sesión activa'
+        }
+      }
+
+      const response = await supabase.functions.invoke('outlook-auth', {
+        body: { action: 'ping' }
+      })
+
+      if (response.error) {
+        return {
+          name: 'Edge Functions',
+          status: 'warning',
+          message: 'Función no disponible',
+          details: response.error.message
         }
       }
 

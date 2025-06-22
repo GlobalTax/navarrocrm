@@ -7,76 +7,97 @@ import { ConnectionStatus, ConnectionStatusType } from './types'
 export const useConnectionStatus = () => {
   const { user } = useApp()
 
-  const { data: status, isLoading, refetch } = useQuery({
+  const { data: status, refetch, isLoading } = useQuery({
     queryKey: ['connection-status', user?.org_id, user?.id],
     queryFn: async (): Promise<ConnectionStatus> => {
-      if (!user?.org_id) {
+      if (!user?.org_id || !user?.id) {
         return {
           isConfigured: false,
           isUserConnected: false,
           hasValidToken: false,
-          error: 'Usuario sin organización'
+          error: 'Usuario o organización no disponible'
         }
       }
 
-      // Check organization configuration
-      const { data: orgConfig } = await supabase
-        .from('organization_integrations')
-        .select('*')
-        .eq('org_id', user.org_id)
-        .eq('integration_type', 'outlook')
-        .eq('is_enabled', true)
-        .single()
+      try {
+        // Verificar configuración de la organización
+        const { data: orgConfig, error: orgError } = await supabase
+          .from('organization_integrations')
+          .select('*')
+          .eq('org_id', user.org_id)
+          .eq('integration_type', 'outlook')
+          .maybeSingle()
 
-      const isConfigured = !!(orgConfig?.outlook_client_id && orgConfig?.outlook_tenant_id)
+        if (orgError) {
+          console.error('Error fetching org config:', orgError)
+          return {
+            isConfigured: false,
+            isUserConnected: false,
+            hasValidToken: false,
+            error: `Error de configuración: ${orgError.message}`
+          }
+        }
 
-      if (!isConfigured) {
+        const isConfigured = !!(orgConfig?.outlook_client_id && orgConfig?.outlook_tenant_id && orgConfig?.is_enabled)
+
+        // Verificar tokens del usuario
+        const { data: userTokens, error: tokenError } = await supabase
+          .from('user_outlook_tokens')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('org_id', user.org_id)
+          .eq('is_active', true)
+
+        if (tokenError) {
+          console.error('Error fetching user tokens:', tokenError)
+          return {
+            isConfigured,
+            isUserConnected: false,
+            hasValidToken: false,
+            error: `Error de tokens: ${tokenError.message}`
+          }
+        }
+
+        const isUserConnected = (userTokens?.length || 0) > 0
+        const hasValidToken = userTokens?.[0] 
+          ? new Date(userTokens[0].token_expires_at) > new Date()
+          : false
+
+        return {
+          isConfigured,
+          isUserConnected,
+          hasValidToken,
+          lastSync: userTokens?.[0]?.last_used_at || undefined
+        }
+      } catch (error) {
+        console.error('Unexpected error in useConnectionStatus:', error)
         return {
           isConfigured: false,
           isUserConnected: false,
           hasValidToken: false,
-          error: 'Configuración de organización incompleta'
+          error: error instanceof Error ? error.message : 'Error desconocido'
         }
-      }
-
-      // Check user tokens
-      const { data: userTokens } = await supabase
-        .from('user_outlook_tokens')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('org_id', user.org_id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-
-      const userToken = userTokens?.[0]
-      const isUserConnected = !!userToken
-      const hasValidToken = userToken ? new Date(userToken.token_expires_at) > new Date() : false
-
-      return {
-        isConfigured: true,
-        isUserConnected,
-        hasValidToken,
-        lastSync: userToken?.last_used_at,
-        error: userToken && !hasValidToken ? 'Token expirado' : undefined
       }
     },
     enabled: !!user?.org_id && !!user?.id,
-    refetchInterval: 30000 // Refetch every 30 seconds
+    retry: 1,
+    refetchOnWindowFocus: false
   })
 
   const getOverallStatus = (): ConnectionStatusType => {
     if (isLoading) return 'loading'
-    if (!status?.isConfigured) return 'not-configured'
-    if (!status?.isUserConnected) return 'not-connected'
-    if (!status?.hasValidToken) return 'token-expired'
+    if (!status) return 'not-configured'
+    if (status.error) return 'not-configured'
+    if (!status.isConfigured) return 'not-configured'
+    if (!status.isUserConnected) return 'not-connected'
+    if (!status.hasValidToken) return 'token-expired'
     return 'connected'
   }
 
   return {
     status,
-    isLoading,
+    overallStatus: getOverallStatus(),
     refetch,
-    overallStatus: getOverallStatus()
+    isLoading
   }
 }

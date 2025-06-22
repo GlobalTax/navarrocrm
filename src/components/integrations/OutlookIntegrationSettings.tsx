@@ -34,18 +34,25 @@ export const OutlookIntegrationSettings = () => {
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle')
   
   // Obtener configuración actual
-  const { data: config, isLoading } = useQuery({
-    queryKey: ['outlook-integration-config'],
+  const { data: config, isLoading, error } = useQuery({
+    queryKey: ['outlook-integration-config', user?.org_id],
     queryFn: async () => {
+      if (!user?.org_id) {
+        throw new Error('Organización no disponible')
+      }
+
       const { data, error } = await supabase
         .from('organization_integrations')
         .select('*')
+        .eq('org_id', user.org_id)
         .eq('integration_type', 'outlook')
         .maybeSingle()
       
       if (error) throw error
       return data
-    }
+    },
+    enabled: !!user?.org_id,
+    retry: 1
   })
 
   // Mutación para guardar configuración
@@ -90,12 +97,14 @@ export const OutlookIntegrationSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['outlook-integration-config'] })
+      queryClient.invalidateQueries({ queryKey: ['connection-status'] })
       toast({
         title: "Configuración guardada",
         description: "La integración con Outlook ha sido configurada correctamente",
       })
     },
     onError: (error: any) => {
+      console.error('Error saving config:', error)
       toast({
         title: "Error",
         description: error.message || "No se pudo guardar la configuración",
@@ -105,7 +114,11 @@ export const OutlookIntegrationSettings = () => {
   })
 
   const testConnection = async () => {
-    if (!config?.outlook_client_id || !config?.outlook_tenant_id) {
+    const formData = new FormData(document.querySelector('form') as HTMLFormElement)
+    const clientId = formData.get('outlook_client_id') as string
+    const tenantId = formData.get('outlook_tenant_id') as string
+
+    if (!clientId || !tenantId) {
       toast({
         title: "Configuración incompleta",
         description: "Por favor, completa todos los campos antes de probar la conexión",
@@ -118,22 +131,21 @@ export const OutlookIntegrationSettings = () => {
     setConnectionStatus('idle')
 
     try {
-      const { data, error } = await supabase.functions.invoke('outlook-auth', {
-        body: {
-          action: 'get_auth_url',
-          org_id: config.org_id
-        }
-      })
-
-      if (error) throw error
-      if (data?.auth_url) {
+      // Test basic connection with a simple query
+      const testUrl = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid_configuration`
+      const response = await fetch(testUrl)
+      
+      if (response.ok) {
         setConnectionStatus('success')
         toast({
           title: "Conexión exitosa",
           description: "La configuración de Azure AD es correcta",
         })
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
     } catch (error: any) {
+      console.error('Connection test failed:', error)
       setConnectionStatus('error')
       toast({
         title: "Error de conexión",
@@ -160,6 +172,17 @@ export const OutlookIntegrationSettings = () => {
     }
 
     saveConfigMutation.mutate(newConfig)
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Error cargando la configuración: {error.message}
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   if (isLoading) {

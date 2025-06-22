@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, Circle, ArrowRight, ExternalLink } from 'lucide-react'
+import { CheckCircle, Circle, ArrowRight } from 'lucide-react'
 import { useApp } from '@/contexts/AppContext'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -33,7 +33,7 @@ export const QuickSetupGuide = () => {
         .select('*')
         .eq('org_id', user.org_id)
         .eq('integration_type', 'outlook')
-        .single()
+        .maybeSingle()
 
       // Check user tokens
       const { data: userTokens } = await supabase
