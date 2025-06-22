@@ -10,6 +10,7 @@ export const navigation = [
   { name: 'Calendario', href: '/calendar' },
   { name: 'Tiempo', href: '/time-tracking' },
   { name: 'Workflows', href: '/workflows' },
+  { name: 'IA Avanzada', href: '/advanced-ai' },
   { name: 'Integraciones', href: '/integrations' },
   { name: 'IA Admin', href: '/ai-admin' },
 ]
@@ -87,6 +88,13 @@ export const navigationItems: NavigationItem[] = [
     path: '/workflows',
     color: 'text-yellow-600',
     requiredRoles: ['partner', 'area_manager']
+  },
+  {
+    title: 'IA Avanzada',
+    icon: Brain,
+    path: '/advanced-ai',
+    color: 'text-purple-600',
+    requiredRoles: ['partner', 'area_manager', 'senior']
   },
   {
     title: 'Dashboard IA',

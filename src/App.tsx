@@ -16,6 +16,7 @@ import Calendar from './pages/Calendar'
 import TimeTracking from './pages/TimeTracking'
 import IntegrationSettings from './pages/IntegrationSettings'
 import AIAdmin from './pages/AIAdmin'
+import AdvancedAI from './pages/AdvancedAI'
 import Workflows from './pages/Workflows'
 import IntelligentDashboard from './pages/IntelligentDashboard'
 import Unauthorized from './pages/Unauthorized'
@@ -119,6 +120,16 @@ function App() {
                 <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
                   <MainLayout>
                     <IntelligentDashboard />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/advanced-ai"
+              element={
+                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
+                  <MainLayout>
+                    <AdvancedAI />
                   </MainLayout>
                 </ProtectedRoute>
               }
