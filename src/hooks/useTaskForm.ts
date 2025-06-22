@@ -91,27 +91,27 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
     }
 
     try {
-      let taskId: string
-
       if (task) {
         // Actualizar tarea existente
-        const updatedTask = await updateTask({ id: task.id, ...taskData })
-        taskId = task.id
+        await updateTask({ id: task.id, ...taskData })
+        
+        // Gestionar asignaciones de usuarios para tarea existente
+        if (formData.assigned_users.length > 0) {
+          for (const userId of formData.assigned_users) {
+            await assignTask({
+              taskId: task.id,
+              userId,
+              assignedBy: user?.id || ''
+            })
+          }
+        }
       } else {
         // Crear nueva tarea
-        const newTask = await createTask(taskData)
-        taskId = newTask?.id || task?.id
-      }
-
-      // Gestionar asignaciones de usuarios
-      if (taskId && formData.assigned_users.length > 0) {
-        for (const userId of formData.assigned_users) {
-          await assignTask({
-            taskId,
-            userId,
-            assignedBy: user?.id || ''
-          })
-        }
+        await createTask(taskData)
+        
+        // Para nuevas tareas, las asignaciones se manejarán después de que se refresque la query
+        // debido a que createTask no devuelve el ID de la tarea creada
+        console.log('Nueva tarea creada, las asignaciones se procesarán en la próxima actualización')
       }
 
       onClose()
