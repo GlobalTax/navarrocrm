@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useApp } from '@/contexts/AppContext'
 import { LogOut, User, Search, Bell } from 'lucide-react'
+import { HeaderClock } from './HeaderClock'
 
 export const Header = () => {
   const { user, signOut } = useApp()
@@ -36,6 +37,9 @@ export const Header = () => {
                 3
               </span>
             </Button>
+            
+            {/* Header Clock */}
+            <HeaderClock />
             
             {/* User info */}
             <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-50">
