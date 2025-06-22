@@ -76,6 +76,42 @@ export const useProposalProfessional = () => {
 
     setIsSaving(true)
     try {
+      // Convert data to JSON-compatible format
+      const pricingTiersData = {
+        phases: proposalData.phases.map(phase => ({
+          id: phase.id,
+          name: phase.name,
+          description: phase.description,
+          services: phase.services.map(service => ({
+            id: service.id,
+            name: service.name,
+            description: service.description,
+            quantity: service.quantity,
+            unitPrice: service.unitPrice,
+            total: service.total
+          })),
+          estimatedHours: phase.estimatedHours || 0,
+          deliverables: phase.deliverables,
+          paymentPercentage: phase.paymentPercentage,
+          estimatedDuration: phase.estimatedDuration || ''
+        })),
+        team: proposalData.team.map(member => ({
+          id: member.id,
+          name: member.name,
+          role: member.role,
+          experience: member.experience || ''
+        })),
+        companyInfo: {
+          name: proposalData.companyName,
+          description: proposalData.companyDescription
+        },
+        terms: {
+          paymentTerms: proposalData.paymentTerms,
+          confidentialityClause: proposalData.confidentialityClause,
+          expensesIncluded: proposalData.expensesIncluded
+        }
+      }
+
       // Create the proposal
       const { data: proposal, error: proposalError } = await supabase
         .from('proposals')
@@ -92,19 +128,7 @@ export const useProposalProfessional = () => {
           valid_until: new Date(Date.now() + proposalData.validityDays * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           introduction: proposalData.introduction,
           proposal_number: proposalData.projectReference,
-          pricing_tiers_data: {
-            phases: proposalData.phases,
-            team: proposalData.team,
-            companyInfo: {
-              name: proposalData.companyName,
-              description: proposalData.companyDescription
-            },
-            terms: {
-              paymentTerms: proposalData.paymentTerms,
-              confidentialityClause: proposalData.confidentialityClause,
-              expensesIncluded: proposalData.expensesIncluded
-            }
-          }
+          pricing_tiers_data: pricingTiersData
         })
         .select()
         .single()
