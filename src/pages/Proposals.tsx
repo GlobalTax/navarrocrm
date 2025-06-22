@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Plus, FileText, Calculator } from 'lucide-react'
@@ -11,6 +12,7 @@ import { Loader2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProposalBuilder } from '@/modules/proposals/components/ProposalBuilder'
 import ProposalDemoModule from '@/components/proposals/ProposalDemoModule'
+import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
@@ -24,6 +26,7 @@ export default function Proposals() {
   const [isNewProposalOpen, setIsNewProposalOpen] = useState(false)
   const [showEnhancedBuilder, setShowEnhancedBuilder] = useState(false)
   const [showProfessionalBuilder, setShowProfessionalBuilder] = useState(false)
+  const [showAdvancedProfessionalBuilder, setShowAdvancedProfessionalBuilder] = useState(false)
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -31,7 +34,7 @@ export default function Proposals() {
     dateTo: undefined as Date | undefined
   })
 
-  console.log('Current state:', { showEnhancedBuilder, showProfessionalBuilder, isLoading, user });
+  console.log('Current state:', { showEnhancedBuilder, showProfessionalBuilder, showAdvancedProfessionalBuilder, isLoading, user });
 
   // Filtrar propuestas
   const filteredProposals = proposals.filter(proposal => {
@@ -119,6 +122,15 @@ export default function Proposals() {
     )
   }
 
+  // Mostrar el nuevo ProfessionalProposalBuilder
+  if (showAdvancedProfessionalBuilder) {
+    return (
+      <ProfessionalProposalBuilder
+        onBack={() => setShowAdvancedProfessionalBuilder(false)}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -147,13 +159,23 @@ export default function Proposals() {
           </Button>
           <Button 
             onClick={() => {
-              console.log('Propuesta Profesional clicked');
+              console.log('Propuesta Profesional Simple clicked');
               setShowProfessionalBuilder(true);
             }}
-            variant="default"
+            variant="outline"
           >
             <Calculator className="h-4 w-4 mr-2" />
             Propuesta Profesional
+          </Button>
+          <Button 
+            onClick={() => {
+              console.log('Propuesta Profesional Completa clicked');
+              setShowAdvancedProfessionalBuilder(true);
+            }}
+            variant="default"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Propuesta Ejecutiva
           </Button>
         </div>
       </div>
@@ -186,9 +208,13 @@ export default function Proposals() {
                     <FileText className="h-4 w-4 mr-2" />
                     Propuesta Avanzada
                   </Button>
-                  <Button onClick={() => setShowProfessionalBuilder(true)}>
+                  <Button onClick={() => setShowProfessionalBuilder(true)} variant="outline">
                     <Calculator className="h-4 w-4 mr-2" />
                     Propuesta Profesional
+                  </Button>
+                  <Button onClick={() => setShowAdvancedProfessionalBuilder(true)}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Propuesta Ejecutiva
                   </Button>
                 </div>
               )}
