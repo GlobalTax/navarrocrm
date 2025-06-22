@@ -4,16 +4,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useClients } from '@/hooks/useClients'
 import { useCreateRecurringFee, useUpdateRecurringFee, type RecurringFee } from '@/hooks/useRecurringFees'
-import { X } from 'lucide-react'
+import { RecurringFeeBasicFields } from './form/RecurringFeeBasicFields'
+import { RecurringFeeHoursFields } from './form/RecurringFeeHoursFields'
+import { RecurringFeeBillingFields } from './form/RecurringFeeBillingFields'
+import { RecurringFeeTagsManager } from './form/RecurringFeeTagsManager'
+import { RecurringFeeOptionsFields } from './form/RecurringFeeOptionsFields'
 
 const formSchema = z.object({
   client_id: z.string().min(1, 'Cliente es requerido'),
@@ -42,13 +39,7 @@ interface RecurringFeeFormProps {
   onCancel?: () => void
 }
 
-const availableTags = [
-  'Fiscal', 'Laboral', 'Jurídico', 'Contable', 'Mercantil', 
-  'Premium', 'Urgente', 'Consultoría', 'Asesoría', 'Compliance'
-]
-
 export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: RecurringFeeFormProps) {
-  const { clients } = useClients()
   const createMutation = useCreateRecurringFee()
   const updateMutation = useUpdateRecurringFee()
   const [selectedTags, setSelectedTags] = React.useState<string[]>(recurringFee?.tags || [])
@@ -82,7 +73,6 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
   })
 
   const onSubmit = async (data: FormData) => {
-    // Asegurar que todos los campos requeridos estén presentes
     const formData = {
       client_id: data.client_id,
       name: data.name,
@@ -137,216 +127,28 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Cliente */}
-            <div className="space-y-2">
-              <Label htmlFor="client_id">Cliente *</Label>
-              <Select onValueChange={(value) => setValue('client_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.client_id && (
-                <p className="text-sm text-red-500">{errors.client_id.message}</p>
-              )}
-            </div>
+          <RecurringFeeBasicFields
+            register={register}
+            setValue={setValue}
+            errors={errors}
+            defaultClientId={recurringFee?.client_id}
+          />
 
-            {/* Nombre */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la cuota *</Label>
-              <Input
-                {...register('name')}
-                placeholder="Ej: Asesoría fiscal mensual"
-              />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </div>
+          <RecurringFeeHoursFields register={register} />
 
-            {/* Importe */}
-            <div className="space-y-2">
-              <Label htmlFor="amount">Importe (€) *</Label>
-              <Input
-                type="number"
-                step="0.01"
-                {...register('amount', { valueAsNumber: true })}
-                placeholder="0.00"
-              />
-              {errors.amount && (
-                <p className="text-sm text-red-500">{errors.amount.message}</p>
-              )}
-            </div>
+          <RecurringFeeBillingFields register={register} />
 
-            {/* Frecuencia */}
-            <div className="space-y-2">
-              <Label htmlFor="frequency">Frecuencia *</Label>
-              <Select onValueChange={(value) => setValue('frequency', value as any)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar frecuencia" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Mensual</SelectItem>
-                  <SelectItem value="quarterly">Trimestral</SelectItem>
-                  <SelectItem value="yearly">Anual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <RecurringFeeTagsManager
+            selectedTags={selectedTags}
+            onTagToggle={handleTagToggle}
+            onTagRemove={removeTag}
+          />
 
-            {/* Fecha de inicio */}
-            <div className="space-y-2">
-              <Label htmlFor="start_date">Fecha de inicio *</Label>
-              <Input
-                type="date"
-                {...register('start_date')}
-              />
-              {errors.start_date && (
-                <p className="text-sm text-red-500">{errors.start_date.message}</p>
-              )}
-            </div>
-
-            {/* Fecha de fin */}
-            <div className="space-y-2">
-              <Label htmlFor="end_date">Fecha de fin (opcional)</Label>
-              <Input
-                type="date"
-                {...register('end_date')}
-              />
-            </div>
-
-            {/* Horas incluidas */}
-            <div className="space-y-2">
-              <Label htmlFor="included_hours">Horas incluidas</Label>
-              <Input
-                type="number"
-                {...register('included_hours', { valueAsNumber: true })}
-                placeholder="0"
-              />
-            </div>
-
-            {/* Tarifa horas extra */}
-            <div className="space-y-2">
-              <Label htmlFor="hourly_rate_extra">Tarifa horas extra (€/h)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                {...register('hourly_rate_extra', { valueAsNumber: true })}
-                placeholder="0.00"
-              />
-            </div>
-
-            {/* Día de facturación */}
-            <div className="space-y-2">
-              <Label htmlFor="billing_day">Día de facturación</Label>
-              <Input
-                type="number"
-                min="1"
-                max="31"
-                {...register('billing_day', { valueAsNumber: true })}
-                placeholder="1"
-              />
-            </div>
-
-            {/* Términos de pago */}
-            <div className="space-y-2">
-              <Label htmlFor="payment_terms">Términos de pago (días)</Label>
-              <Input
-                type="number"
-                {...register('payment_terms', { valueAsNumber: true })}
-                placeholder="30"
-              />
-            </div>
-
-            {/* Prioridad */}
-            <div className="space-y-2">
-              <Label htmlFor="priority">Prioridad</Label>
-              <Select onValueChange={(value) => setValue('priority', value as any)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar prioridad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="medium">Media</SelectItem>
-                  <SelectItem value="low">Baja</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Descripción */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Descripción</Label>
-            <Textarea
-              {...register('description')}
-              placeholder="Descripción detallada de la cuota recurrente..."
-              rows={3}
-            />
-          </div>
-
-          {/* Etiquetas */}
-          <div className="space-y-2">
-            <Label>Etiquetas</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {availableTags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant={selectedTags.includes(tag) ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleTagToggle(tag)}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            {selectedTags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {selectedTags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="gap-1">
-                    {tag}
-                    <X 
-                      className="w-3 h-3 cursor-pointer" 
-                      onClick={() => removeTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Opciones automáticas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={watch('auto_invoice')}
-                onCheckedChange={(checked) => setValue('auto_invoice', checked)}
-              />
-              <Label>Facturación automática</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={watch('auto_send_notifications')}
-                onCheckedChange={(checked) => setValue('auto_send_notifications', checked)}
-              />
-              <Label>Notificaciones automáticas</Label>
-            </div>
-          </div>
-
-          {/* Notas internas */}
-          <div className="space-y-2">
-            <Label htmlFor="internal_notes">Notas internas</Label>
-            <Textarea
-              {...register('internal_notes')}
-              placeholder="Notas internas sobre esta cuota recurrente..."
-              rows={2}
-            />
-          </div>
+          <RecurringFeeOptionsFields
+            register={register}
+            watch={watch}
+            setValue={setValue}
+          />
 
           {/* Botones */}
           <div className="flex justify-end space-x-2">
