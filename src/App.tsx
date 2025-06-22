@@ -43,63 +43,24 @@ function App() {
                 <Route path="/setup" element={<Setup />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 
-                {/* Protected routes wrapped in MainLayout */}
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Dashboard />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/clients" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Clients />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/cases" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Cases />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/tasks" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Tasks />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/proposals" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Proposals />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/calendar" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Calendar />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/time-tracking" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <TimeTracking />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/ai-admin" element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <AIAdmin />
-                    </MainLayout>
-                  </ProtectedRoute>
-                } />
+                {/* Protected routes with nested structure */}
+                <Route 
+                  path="/" 
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Dashboard />} />
+                  <Route path="clients" element={<Clients />} />
+                  <Route path="cases" element={<Cases />} />
+                  <Route path="tasks" element={<Tasks />} />
+                  <Route path="proposals" element={<Proposals />} />
+                  <Route path="calendar" element={<Calendar />} />
+                  <Route path="time-tracking" element={<TimeTracking />} />
+                  <Route path="ai-admin" element={<AIAdmin />} />
+                </Route>
                 
                 {/* Fallback routes */}
                 <Route path="/404" element={<NotFound />} />

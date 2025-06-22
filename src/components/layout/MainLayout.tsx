@@ -1,14 +1,11 @@
 
+import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
-interface MainLayoutProps {
-  children: React.ReactNode
-}
-
-export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+export const MainLayout: React.FC = () => {
   const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
 
   return (
@@ -18,7 +15,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="flex-1">
           <Header />
           <main className="p-6">
-            {children}
+            <Outlet />
           </main>
         </div>
       </div>
