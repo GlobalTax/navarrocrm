@@ -1251,6 +1251,252 @@ export type Database = {
           },
         ]
       }
+      recurring_fee_hours: {
+        Row: {
+          billing_period_end: string
+          billing_period_start: string
+          created_at: string | null
+          extra_amount: number | null
+          extra_hours: number | null
+          hourly_rate: number | null
+          hours_used: number | null
+          id: string
+          included_hours: number
+          recurring_fee_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          billing_period_end: string
+          billing_period_start: string
+          created_at?: string | null
+          extra_amount?: number | null
+          extra_hours?: number | null
+          hourly_rate?: number | null
+          hours_used?: number | null
+          id?: string
+          included_hours?: number
+          recurring_fee_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          billing_period_end?: string
+          billing_period_start?: string
+          created_at?: string | null
+          extra_amount?: number | null
+          extra_hours?: number | null
+          hourly_rate?: number | null
+          hours_used?: number | null
+          id?: string
+          included_hours?: number
+          recurring_fee_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_fee_hours_recurring_fee_id_fkey"
+            columns: ["recurring_fee_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_fee_invoices: {
+        Row: {
+          base_amount: number
+          billing_period_end: string
+          billing_period_start: string
+          created_at: string | null
+          due_date: string
+          extra_hours_amount: number | null
+          id: string
+          invoice_date: string
+          invoice_number: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          recurring_fee_id: string
+          sent_at: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          base_amount: number
+          billing_period_end: string
+          billing_period_start: string
+          created_at?: string | null
+          due_date: string
+          extra_hours_amount?: number | null
+          id?: string
+          invoice_date: string
+          invoice_number?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          recurring_fee_id: string
+          sent_at?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          base_amount?: number
+          billing_period_end?: string
+          billing_period_start?: string
+          created_at?: string | null
+          due_date?: string
+          extra_hours_amount?: number | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          recurring_fee_id?: string
+          sent_at?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_fee_invoices_recurring_fee_id_fkey"
+            columns: ["recurring_fee_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_fee_notifications: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          message: string | null
+          notification_type: string
+          recipient_email: string
+          recurring_fee_id: string
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string | null
+          notification_type: string
+          recipient_email: string
+          recurring_fee_id: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          message?: string | null
+          notification_type?: string
+          recipient_email?: string
+          recurring_fee_id?: string
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_fee_notifications_recurring_fee_id_fkey"
+            columns: ["recurring_fee_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_fees: {
+        Row: {
+          amount: number
+          auto_invoice: boolean | null
+          auto_send_notifications: boolean | null
+          billing_day: number | null
+          client_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          end_date: string | null
+          frequency: string
+          hourly_rate_extra: number | null
+          id: string
+          included_hours: number | null
+          internal_notes: string | null
+          name: string
+          next_billing_date: string
+          org_id: string
+          payment_terms: number | null
+          priority: string | null
+          proposal_id: string | null
+          start_date: string
+          status: string
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          auto_invoice?: boolean | null
+          auto_send_notifications?: boolean | null
+          billing_day?: number | null
+          client_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          frequency?: string
+          hourly_rate_extra?: number | null
+          id?: string
+          included_hours?: number | null
+          internal_notes?: string | null
+          name: string
+          next_billing_date: string
+          org_id: string
+          payment_terms?: number | null
+          priority?: string | null
+          proposal_id?: string | null
+          start_date: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          auto_invoice?: boolean | null
+          auto_send_notifications?: boolean | null
+          billing_day?: number | null
+          client_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          frequency?: string
+          hourly_rate_extra?: number | null
+          id?: string
+          included_hours?: number | null
+          internal_notes?: string | null
+          name?: string
+          next_billing_date?: string
+          org_id?: string
+          payment_terms?: number | null
+          priority?: string | null
+          proposal_id?: string | null
+          start_date?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       recurring_invoices: {
         Row: {
           amount: number
@@ -2270,6 +2516,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_next_billing_date: {
+        Args: { input_date: string; frequency: string; billing_day?: number }
+        Returns: string
+      }
       calculate_recurring_revenue_metrics: {
         Args: { org_uuid: string; target_date?: string }
         Returns: undefined
@@ -2289,6 +2539,10 @@ export type Database = {
       generate_proposal_number: {
         Args: { org_uuid: string }
         Returns: string
+      }
+      generate_recurring_invoices: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       get_task_stats: {
         Args: { org_uuid: string }
