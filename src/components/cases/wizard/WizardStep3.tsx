@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { WizardFormData } from './MatterWizard'
+import { WizardFormData } from './types'
 import { useClients } from '@/hooks/useClients'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
@@ -10,6 +10,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface WizardStep3Props {
   formData: WizardFormData
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <span className="text-sm font-medium text-gray-700">{children}</span>
 }
 
 export function WizardStep3({ formData }: WizardStep3Props) {
@@ -59,7 +63,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
         </AlertDescription>
       </Alert>
 
-      {/* Información básica */}
+      {/* Basic information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -108,7 +112,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
         </CardContent>
       </Card>
 
-      {/* Equipo asignado */}
+      {/* Assigned team */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -144,7 +148,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
         </CardContent>
       </Card>
 
-      {/* Configuración de facturación */}
+      {/* Billing configuration */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -170,7 +174,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
         </CardContent>
       </Card>
 
-      {/* Próximos pasos */}
+      {/* Next steps */}
       <Card className="border-blue-200 bg-blue-50/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -203,8 +207,4 @@ export function WizardStep3({ formData }: WizardStep3Props) {
       </Card>
     </div>
   )
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <span className="text-sm font-medium text-gray-700">{children}</span>
 }

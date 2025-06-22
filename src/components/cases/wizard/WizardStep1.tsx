@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useClients } from '@/hooks/useClients'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useMatterTemplates } from '@/hooks/useMatterTemplates'
-import { WizardFormData } from './MatterWizard'
+import { WizardFormData } from './types'
 import { AlertCircle, FileText } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
@@ -28,7 +28,7 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
     if (templateId !== 'none') {
       const template = templates.find(t => t.id === templateId)
       if (template) {
-        // Auto-llenar campos basados en la plantilla
+        // Auto-fill fields based on template
         const updates: Partial<WizardFormData> = {}
         
         if (template.default_billing_method) {
@@ -52,7 +52,7 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
 
   return (
     <div className="space-y-6">
-      {/* Plantilla rápida */}
+      {/* Template selection */}
       {templates.length > 0 && (
         <Card className="border-blue-200 bg-blue-50/50">
           <CardHeader className="pb-3">
@@ -79,7 +79,7 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
         </Card>
       )}
 
-      {/* Información básica */}
+      {/* Basic information */}
       <Card>
         <CardHeader>
           <CardTitle>Información Básica</CardTitle>
@@ -161,7 +161,7 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
         </CardContent>
       </Card>
 
-      {/* Tips para el usuario */}
+      {/* Tips for user */}
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>

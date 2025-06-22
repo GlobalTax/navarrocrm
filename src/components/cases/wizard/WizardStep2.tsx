@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUsers } from '@/hooks/useUsers'
-import { WizardFormData } from './MatterWizard'
+import { WizardFormData } from './types'
 import { CreditCard, Users, Lightbulb } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
@@ -19,7 +19,7 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
 
   return (
     <div className="space-y-6">
-      {/* Asignación de equipo */}
+      {/* Team assignment */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
         </CardContent>
       </Card>
 
-      {/* Configuración de facturación */}
+      {/* Billing configuration */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
         </CardContent>
       </Card>
 
-      {/* Estado del expediente */}
+      {/* Case status */}
       <Card>
         <CardHeader>
           <CardTitle>Estado Inicial</CardTitle>
@@ -191,7 +191,7 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
         </CardContent>
       </Card>
 
-      {/* Recomendación inteligente */}
+      {/* Smart recommendation */}
       <Alert>
         <Lightbulb className="h-4 w-4" />
         <AlertDescription>
