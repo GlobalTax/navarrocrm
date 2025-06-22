@@ -5,7 +5,7 @@ export interface Proposal {
   client_id: string
   title: string
   description?: string
-  status: 'draft' | 'sent' | 'negotiating' | 'won' | 'lost' | 'expired'
+  status: 'draft' | 'sent' | 'negotiating' | 'won' | 'lost' | 'expired' | 'viewed' | 'accepted' | 'declined' | 'invoiced' | 'archived'
   total_amount: number
   currency: string
   proposal_type: 'service' | 'retainer' | 'project'
@@ -26,6 +26,12 @@ export interface Proposal {
   hourly_rate_extra?: number
   next_billing_date?: string
   billing_day?: number
+  // Nuevos campos
+  proposal_number?: string
+  introduction?: string
+  scope_of_work?: string
+  timeline?: string
+  pricing_tiers_data?: any
   created_at: string
   updated_at: string
   client?: {

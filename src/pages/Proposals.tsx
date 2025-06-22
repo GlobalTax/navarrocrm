@@ -10,10 +10,17 @@ import { RecurringProposalForm } from '@/components/proposals/RecurringProposalF
 import { RecurringRevenueMetrics } from '@/components/proposals/RecurringRevenueMetrics'
 import { Loader2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ProposalBuilder } from '@/modules/proposals/components/ProposalBuilder'
+import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
+import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
+import { useApp } from '@/contexts/AppContext'
 
 export default function Proposals() {
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
+  const { mutate: saveEnhancedProposal, isPending: isSavingEnhanced } = useSaveProposal()
+  const { user } = useApp()
   const [isNewProposalOpen, setIsNewProposalOpen] = useState(false)
+  const [showEnhancedBuilder, setShowEnhancedBuilder] = useState(false)
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -44,6 +51,19 @@ export default function Proposals() {
     console.log('Ver propuesta:', proposal)
   }
 
+  const handleSaveEnhancedProposal = (data: ProposalFormData) => {
+    if (!user || !user.org_id) {
+      console.error("User or org_id is not available. Cannot save proposal.");
+      return;
+    }
+    saveEnhancedProposal({
+      proposalData: data,
+      orgId: user.org_id,
+      userId: user.id,
+    });
+    setShowEnhancedBuilder(false);
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -51,6 +71,31 @@ export default function Proposals() {
           <Loader2 className="h-6 w-6 animate-spin" />
           <span>Cargando propuestas...</span>
         </div>
+      </div>
+    )
+  }
+
+  // Mostrar el ProposalBuilder si está activo
+  if (showEnhancedBuilder) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Avanzada</h1>
+            <p className="text-gray-600 mt-1">Crea propuestas comerciales con planes de precios personalizados</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEnhancedBuilder(false)}
+          >
+            Volver a Propuestas
+          </Button>
+        </div>
+        
+        <ProposalBuilder
+          onSave={handleSaveEnhancedProposal}
+          isSaving={isSavingEnhanced}
+        />
       </div>
     )
   }
@@ -63,22 +108,26 @@ export default function Proposals() {
           <h1 className="text-3xl font-bold text-gray-900">Propuestas</h1>
           <p className="text-gray-600 mt-1">Gestiona tus propuestas comerciales y contratos recurrentes</p>
         </div>
-        <Button onClick={() => setIsNewProposalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Propuesta
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowEnhancedBuilder(true)}
+            variant="default"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Propuesta Avanzada
+          </Button>
+          <Button onClick={() => setIsNewProposalOpen(true)} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Propuesta Rápida
+          </Button>
+        </div>
       </div>
 
       {/* Métricas de Ingresos Recurrentes */}
       <RecurringRevenueMetrics />
-
-      {/* Métricas Generales */}
       <ProposalMetrics />
-
-      {/* Filtros */}
       <ProposalFilters filters={filters} onFiltersChange={setFilters} />
 
-      {/* Tabs para Propuestas */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all">Todas ({filteredProposals.length})</TabsTrigger>
@@ -93,10 +142,16 @@ export default function Proposals() {
                 {proposals.length === 0 ? 'No hay propuestas creadas aún' : 'No se encontraron propuestas con los filtros aplicados'}
               </div>
               {proposals.length === 0 && (
-                <Button onClick={() => setIsNewProposalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crear primera propuesta
-                </Button>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => setShowEnhancedBuilder(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear Propuesta Avanzada
+                  </Button>
+                  <Button onClick={() => setIsNewProposalOpen(true)} variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear Propuesta Rápida
+                  </Button>
+                </div>
               )}
             </div>
           ) : (

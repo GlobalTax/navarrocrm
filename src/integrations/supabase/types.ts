@@ -869,15 +869,20 @@ export type Database = {
           hourly_rate_extra: number | null
           id: string
           included_hours: number | null
+          introduction: string | null
           is_recurring: boolean | null
           next_billing_date: string | null
           notes: string | null
           org_id: string
+          pricing_tiers_data: Json | null
+          proposal_number: string | null
           proposal_type: string | null
           recurring_frequency: string | null
           retainer_amount: number | null
+          scope_of_work: string | null
           sent_at: string | null
           status: string
+          timeline: string | null
           title: string
           total_amount: number | null
           updated_at: string | null
@@ -898,15 +903,20 @@ export type Database = {
           hourly_rate_extra?: number | null
           id?: string
           included_hours?: number | null
+          introduction?: string | null
           is_recurring?: boolean | null
           next_billing_date?: string | null
           notes?: string | null
           org_id: string
+          pricing_tiers_data?: Json | null
+          proposal_number?: string | null
           proposal_type?: string | null
           recurring_frequency?: string | null
           retainer_amount?: number | null
+          scope_of_work?: string | null
           sent_at?: string | null
           status?: string
+          timeline?: string | null
           title: string
           total_amount?: number | null
           updated_at?: string | null
@@ -927,15 +937,20 @@ export type Database = {
           hourly_rate_extra?: number | null
           id?: string
           included_hours?: number | null
+          introduction?: string | null
           is_recurring?: boolean | null
           next_billing_date?: string | null
           notes?: string | null
           org_id?: string
+          pricing_tiers_data?: Json | null
+          proposal_number?: string | null
           proposal_type?: string | null
           recurring_frequency?: string | null
           retainer_amount?: number | null
+          scope_of_work?: string | null
           sent_at?: string | null
           status?: string
+          timeline?: string | null
           title?: string
           total_amount?: number | null
           updated_at?: string | null
@@ -1740,6 +1755,10 @@ export type Database = {
         Args: { org_uuid: string }
         Returns: string
       }
+      generate_proposal_number: {
+        Args: { org_uuid: string }
+        Returns: string
+      }
       get_task_stats: {
         Args: { org_uuid: string }
         Returns: {
@@ -1772,6 +1791,14 @@ export type Database = {
         | "senior"
         | "junior"
         | "finance"
+      proposal_status:
+        | "draft"
+        | "sent"
+        | "viewed"
+        | "accepted"
+        | "declined"
+        | "invoiced"
+        | "archived"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "pending" | "in_progress" | "completed" | "cancelled"
     }
@@ -1896,6 +1923,15 @@ export const Constants = {
         "senior",
         "junior",
         "finance",
+      ],
+      proposal_status: [
+        "draft",
+        "sent",
+        "viewed",
+        "accepted",
+        "declined",
+        "invoiced",
+        "archived",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["pending", "in_progress", "completed", "cancelled"],
