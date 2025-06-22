@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, FileText, Calculator } from 'lucide-react'
 import { useProposals } from '@/hooks/useProposals'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
 import { ProposalFilters } from '@/components/proposals/ProposalFilters'
@@ -10,6 +10,7 @@ import { RecurringRevenueMetrics } from '@/components/proposals/RecurringRevenue
 import { Loader2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProposalBuilder } from '@/modules/proposals/components/ProposalBuilder'
+import ProposalDemoModule from '@/components/proposals/ProposalDemoModule'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
@@ -22,6 +23,7 @@ export default function Proposals() {
   const { user } = useApp()
   const [isNewProposalOpen, setIsNewProposalOpen] = useState(false)
   const [showEnhancedBuilder, setShowEnhancedBuilder] = useState(false)
+  const [showProfessionalBuilder, setShowProfessionalBuilder] = useState(false)
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -29,7 +31,7 @@ export default function Proposals() {
     dateTo: undefined as Date | undefined
   })
 
-  console.log('Current state:', { showEnhancedBuilder, isLoading, user });
+  console.log('Current state:', { showEnhancedBuilder, showProfessionalBuilder, isLoading, user });
 
   // Filtrar propuestas
   const filteredProposals = proposals.filter(proposal => {
@@ -50,7 +52,6 @@ export default function Proposals() {
   }
 
   const handleViewProposal = (proposal: any) => {
-    // TODO: Implementar vista de detalles de propuesta
     console.log('Ver propuesta:', proposal)
   }
 
@@ -108,6 +109,16 @@ export default function Proposals() {
     )
   }
 
+  // Mostrar el ProposalDemoModule si está activo
+  if (showProfessionalBuilder) {
+    console.log('Showing ProposalDemoModule');
+    return (
+      <ProposalDemoModule
+        onBack={() => setShowProfessionalBuilder(false)}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -118,18 +129,31 @@ export default function Proposals() {
         </div>
         <div className="flex gap-2">
           <Button 
+            onClick={() => setIsNewProposalOpen(true)} 
+            variant="outline"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Propuesta Rápida
+          </Button>
+          <Button 
             onClick={() => {
               console.log('Propuesta Avanzada clicked');
               setShowEnhancedBuilder(true);
             }}
-            variant="default"
+            variant="outline"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4 mr-2" />
             Propuesta Avanzada
           </Button>
-          <Button onClick={() => setIsNewProposalOpen(true)} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Propuesta Rápida
+          <Button 
+            onClick={() => {
+              console.log('Propuesta Profesional clicked');
+              setShowProfessionalBuilder(true);
+            }}
+            variant="default"
+          >
+            <Calculator className="h-4 w-4 mr-2" />
+            Propuesta Profesional
           </Button>
         </div>
       </div>
@@ -154,13 +178,17 @@ export default function Proposals() {
               </div>
               {proposals.length === 0 && (
                 <div className="flex gap-2 justify-center">
-                  <Button onClick={() => setShowEnhancedBuilder(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Crear Propuesta Avanzada
-                  </Button>
                   <Button onClick={() => setIsNewProposalOpen(true)} variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
-                    Crear Propuesta Rápida
+                    Propuesta Rápida
+                  </Button>
+                  <Button onClick={() => setShowEnhancedBuilder(true)} variant="outline">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Propuesta Avanzada
+                  </Button>
+                  <Button onClick={() => setShowProfessionalBuilder(true)}>
+                    <Calculator className="h-4 w-4 mr-2" />
+                    Propuesta Profesional
                   </Button>
                 </div>
               )}
