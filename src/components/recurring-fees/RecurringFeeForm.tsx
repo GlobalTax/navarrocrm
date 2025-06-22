@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -57,7 +58,7 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isValid }
+    formState: { errors }
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -81,8 +82,23 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
   })
 
   const onSubmit = async (data: FormData) => {
+    // Asegurar que todos los campos requeridos estén presentes
     const formData = {
-      ...data,
+      client_id: data.client_id,
+      name: data.name,
+      description: data.description || '',
+      amount: data.amount,
+      frequency: data.frequency,
+      start_date: data.start_date,
+      end_date: data.end_date || undefined,
+      billing_day: data.billing_day,
+      included_hours: data.included_hours,
+      hourly_rate_extra: data.hourly_rate_extra,
+      auto_invoice: data.auto_invoice,
+      auto_send_notifications: data.auto_send_notifications,
+      payment_terms: data.payment_terms,
+      priority: data.priority,
+      internal_notes: data.internal_notes || undefined,
       tags: selectedTags,
       next_billing_date: data.start_date,
       status: 'active' as const
@@ -341,7 +357,7 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
             )}
             <Button 
               type="submit" 
-              disabled={!isValid || createMutation.isPending || updateMutation.isPending}
+              disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending ? 'Guardando...' : 
                recurringFee ? 'Actualizar' : 'Crear Cuota'}

@@ -10,7 +10,7 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
   const queryClient = useQueryClient()
 
   // Función para crear cuota recurrente cuando se acepta una propuesta
-  const createRecurringFeeOnAcceptance = async (proposal: Proposal) => {
+  const createRecurringFeeOnAcceptance = async (proposal: any) => {
     if (!proposal.is_recurring || !user?.id) return
 
     const recurringFeeData = {
@@ -85,7 +85,12 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
 
       // Si se acepta una propuesta recurrente, crear la cuota recurrente
       if (status === 'won') {
-        await createRecurringFeeOnAcceptance(data)
+        // Crear objeto proposal con el status correcto para la función
+        const proposalWithCorrectStatus = {
+          ...data,
+          status: status as 'won' // Cast explícito para typescript
+        }
+        await createRecurringFeeOnAcceptance(proposalWithCorrectStatus)
       }
 
       return data

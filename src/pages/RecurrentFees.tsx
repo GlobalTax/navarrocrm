@@ -112,9 +112,7 @@ const RecurrentFees = () => {
   }
 
   const handleFormCancel = () => {
-    set
-
-owForm(false)
+    setShowForm(false)
     setEditingFee(null)
   }
 

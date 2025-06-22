@@ -86,7 +86,7 @@ export const useRecurringFees = (filters?: {
         .from('recurring_fees')
         .select(`
           *,
-          client:clients(name, email)
+          client:clients!recurring_fees_client_id_fkey(name, email)
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
@@ -109,7 +109,11 @@ export const useRecurringFees = (filters?: {
       if (error) throw error
       return (data || []).map(item => ({
         ...item,
-        client: item.client ? { name: item.client.name, email: item.client.email } : undefined
+        client: item.client && Array.isArray(item.client) 
+          ? { name: item.client[0]?.name || '', email: item.client[0]?.email }
+          : item.client 
+          ? { name: item.client.name || '', email: item.client.email }
+          : undefined
       })) as RecurringFee[]
     },
     enabled: !!user?.org_id
@@ -128,7 +132,7 @@ export const useRecurringFee = (id: string) => {
         .from('recurring_fees')
         .select(`
           *,
-          client:clients(name, email, phone),
+          client:clients!recurring_fees_client_id_fkey(name, email, phone),
           proposal:proposals(title, proposal_number)
         `)
         .eq('id', id)
@@ -336,7 +340,7 @@ export const useCreateRecurringFeeFromProposal = () => {
         client_id: proposal.client_id,
         proposal_id: proposal.id,
         name: `Cuota recurrente - ${proposal.title}`,
-        description: proposal.description,
+        description: proposal.description || '',
         amount: proposal.retainer_amount || proposal.total_amount,
         frequency: proposal.recurring_frequency as 'monthly' | 'quarterly' | 'yearly',
         start_date: proposal.contract_start_date || new Date().toISOString().split('T')[0],
