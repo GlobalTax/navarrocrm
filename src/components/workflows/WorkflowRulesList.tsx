@@ -88,7 +88,7 @@ export const WorkflowRulesList: React.FC<WorkflowRulesListProps> = ({
                   {getTriggerLabel(rule.trigger_type)}
                 </Badge>
                 <span className="text-sm text-gray-500">
-                  {rule.conditions.length} condición(es), {rule.actions.length} acción(es)
+                  {Array.isArray(rule.conditions) ? rule.conditions.length : 0} condición(es), {Array.isArray(rule.actions) ? rule.actions.length : 0} acción(es)
                 </span>
                 <span className="text-sm text-gray-500">
                   Prioridad: {rule.priority}

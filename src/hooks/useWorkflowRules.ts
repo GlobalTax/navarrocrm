@@ -1,27 +1,16 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
+import type { Tables } from '@/integrations/supabase/types'
 import { useApp } from '@/contexts/AppContext'
 import { useToast } from '@/hooks/use-toast'
 
-export interface WorkflowRuleDB {
-  id: string
-  name: string
-  description?: string
-  trigger_type: 'case_created' | 'client_added' | 'task_overdue' | 'proposal_sent' | 'time_logged'
-  conditions: any[]
-  actions: any[]
-  is_active: boolean
-  priority: number
-  org_id: string
-  created_by: string
-  created_at: string
-  updated_at: string
-}
+export type WorkflowRuleDB = Tables<'workflow_rules'>
+export type WorkflowTemplateDB = Tables<'workflow_templates'>
 
 export const useWorkflowRules = () => {
   const [rules, setRules] = useState<WorkflowRuleDB[]>([])
-  const [templates, setTemplates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<WorkflowTemplateDB[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useApp()
   const { toast } = useToast()

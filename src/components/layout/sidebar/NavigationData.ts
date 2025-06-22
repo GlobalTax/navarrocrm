@@ -1,11 +1,15 @@
+
+import { Home, Users, FolderOpen, CheckSquare, FileText, Calendar, Clock, Zap, Brain, Settings } from 'lucide-react'
+
 export const navigation = [
-  { name: 'Dashboard', href: '/dashboard' },
+  { name: 'Dashboard', href: '/' },
   { name: 'Clientes', href: '/clients' },
   { name: 'Expedientes', href: '/cases' },
   { name: 'Tareas', href: '/tasks' },
   { name: 'Propuestas', href: '/proposals' },
   { name: 'Calendario', href: '/calendar' },
   { name: 'Tiempo', href: '/time-tracking' },
+  { name: 'Workflows', href: '/workflows' },
   { name: 'Integraciones', href: '/integrations' },
   { name: 'IA Admin', href: '/ai-admin' },
 ]
@@ -18,6 +22,14 @@ export const quickActions = [
   { name: 'Iniciar timer', href: '/time-tracking' },
   { name: 'Generar factura', href: '#' }
 ]
+
+interface NavigationItem {
+  title: string
+  icon: any
+  path: string
+  color: string
+  requiredRoles: string[]
+}
 
 export const navigationItems: NavigationItem[] = [
   {
