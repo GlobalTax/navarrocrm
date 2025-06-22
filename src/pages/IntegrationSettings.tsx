@@ -2,8 +2,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { OutlookIntegrationSettings } from '@/components/integrations/OutlookIntegrationSettings'
 import { UserOutlookSettings } from '@/components/integrations/UserOutlookSettings'
+import { IntegrationTestPanel } from '@/components/integrations/IntegrationTestPanel'
+import { ConnectionStatusCard } from '@/components/integrations/ConnectionStatusCard'
+import { QuickSetupGuide } from '@/components/integrations/QuickSetupGuide'
 import { useApp } from '@/contexts/AppContext'
-import { Settings, User } from 'lucide-react'
+import { Settings, User, TestTube, Zap } from 'lucide-react'
 
 export default function IntegrationSettings() {
   const { user } = useApp()
@@ -18,6 +21,16 @@ export default function IntegrationSettings() {
         </p>
       </div>
 
+      {/* Estado rápido de conexión */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ConnectionStatusCard />
+        </div>
+        <div>
+          <QuickSetupGuide />
+        </div>
+      </div>
+
       <Tabs defaultValue={isAdmin ? "admin" : "user"} className="space-y-4">
         <TabsList>
           {isAdmin && (
@@ -30,6 +43,10 @@ export default function IntegrationSettings() {
             <User className="w-4 h-4 mr-2" />
             Mi Cuenta
           </TabsTrigger>
+          <TabsTrigger value="testing">
+            <TestTube className="w-4 h-4 mr-2" />
+            Testing
+          </TabsTrigger>
         </TabsList>
 
         {isAdmin && (
@@ -40,6 +57,10 @@ export default function IntegrationSettings() {
 
         <TabsContent value="user">
           <UserOutlookSettings />
+        </TabsContent>
+
+        <TabsContent value="testing">
+          <IntegrationTestPanel />
         </TabsContent>
       </Tabs>
     </div>
