@@ -16,6 +16,17 @@ interface WorkflowBuilderProps {
   onCancel: () => void
 }
 
+interface WorkflowCondition {
+  field: string
+  operator: string
+  value: string
+}
+
+interface WorkflowAction {
+  type: string
+  parameters: Record<string, any>
+}
+
 const triggerOptions = [
   { value: 'case_created', label: 'Caso Creado' },
   { value: 'client_added', label: 'Cliente Añadido' },
@@ -40,6 +51,21 @@ const actionTypes = [
   { value: 'assign_user', label: 'Asignar Usuario' }
 ]
 
+// Helper functions to safely convert Json to arrays
+const safeConditionsArray = (conditions: any): WorkflowCondition[] => {
+  if (Array.isArray(conditions)) {
+    return conditions as WorkflowCondition[]
+  }
+  return []
+}
+
+const safeActionsArray = (actions: any): WorkflowAction[] => {
+  if (Array.isArray(actions)) {
+    return actions as WorkflowAction[]
+  }
+  return []
+}
+
 export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   rule,
   onSave,
@@ -51,8 +77,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     trigger_type: rule?.trigger_type || '',
     priority: rule?.priority || 0,
     is_active: rule?.is_active ?? true,
-    conditions: rule?.conditions || [],
-    actions: rule?.actions || []
+    conditions: safeConditionsArray(rule?.conditions),
+    actions: safeActionsArray(rule?.actions)
   })
 
   const addCondition = () => {
@@ -62,7 +88,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     }))
   }
 
-  const updateCondition = (index: number, updates: any) => {
+  const updateCondition = (index: number, updates: Partial<WorkflowCondition>) => {
     setFormData(prev => ({
       ...prev,
       conditions: prev.conditions.map((cond, i) => 
@@ -85,7 +111,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     }))
   }
 
-  const updateAction = (index: number, updates: any) => {
+  const updateAction = (index: number, updates: Partial<WorkflowAction>) => {
     setFormData(prev => ({
       ...prev,
       actions: prev.actions.map((action, i) => 
