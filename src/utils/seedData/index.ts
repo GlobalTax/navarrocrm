@@ -1,4 +1,5 @@
 
+import { supabase } from '@/integrations/supabase/client'
 import type { SeedResult } from './types'
 import { createOrganization } from './organizationData'
 import { createUsers } from './userData'
