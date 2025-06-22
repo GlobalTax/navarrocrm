@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Card,
@@ -298,11 +297,11 @@ const RecurrentFees = () => {
 
   // Filtros
   const cuotasFiltradas = cuotas.filter((c) => {
-    if (filtros.estado && c.estado !== filtros.estado) return false;
+    if (filtros.estado && filtros.estado !== "all" && c.estado !== filtros.estado) return false;
     if (filtros.cliente && !c.cliente.toLowerCase().includes(filtros.cliente.toLowerCase())) return false;
-    if (filtros.frecuencia && c.frecuencia !== filtros.frecuencia) return false;
-    if (filtros.prioridad && c.prioridad !== filtros.prioridad) return false;
-    if (filtros.etiqueta && !c.etiquetas.includes(filtros.etiqueta)) return false;
+    if (filtros.frecuencia && filtros.frecuencia !== "all" && c.frecuencia !== filtros.frecuencia) return false;
+    if (filtros.prioridad && filtros.prioridad !== "all" && c.prioridad !== filtros.prioridad) return false;
+    if (filtros.etiqueta && filtros.etiqueta !== "all" && !c.etiquetas.includes(filtros.etiqueta)) return false;
     return true;
   });
 
@@ -397,11 +396,11 @@ const RecurrentFees = () => {
               }
             />
             <Select
-              value={filtros.estado ?? ""}
+              value={filtros.estado ?? "all"}
               onValueChange={(v) =>
                 setFiltros((f) => ({
                   ...f,
-                  estado: v ? (v as EstadoCuota) : undefined,
+                  estado: v === "all" ? undefined : (v as EstadoCuota),
                 }))
               }
             >
@@ -409,7 +408,7 @@ const RecurrentFees = () => {
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="activa">Activa</SelectItem>
                 <SelectItem value="pausada">Pausada</SelectItem>
                 <SelectItem value="cancelada">Cancelada</SelectItem>
@@ -417,11 +416,11 @@ const RecurrentFees = () => {
               </SelectContent>
             </Select>
             <Select
-              value={filtros.frecuencia ?? ""}
+              value={filtros.frecuencia ?? "all"}
               onValueChange={(v) =>
                 setFiltros((f) => ({
                   ...f,
-                  frecuencia: v ? (v as Frecuencia) : undefined,
+                  frecuencia: v === "all" ? undefined : (v as Frecuencia),
                 }))
               }
             >
@@ -429,18 +428,18 @@ const RecurrentFees = () => {
                 <SelectValue placeholder="Frecuencia" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="mensual">Mensual</SelectItem>
                 <SelectItem value="trimestral">Trimestral</SelectItem>
                 <SelectItem value="anual">Anual</SelectItem>
               </SelectContent>
             </Select>
             <Select
-              value={filtros.prioridad ?? ""}
+              value={filtros.prioridad ?? "all"}
               onValueChange={(v) =>
                 setFiltros((f) => ({
                   ...f,
-                  prioridad: v ? (v as Prioridad) : undefined,
+                  prioridad: v === "all" ? undefined : (v as Prioridad),
                 }))
               }
             >
@@ -448,18 +447,18 @@ const RecurrentFees = () => {
                 <SelectValue placeholder="Prioridad" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="alta">Alta</SelectItem>
                 <SelectItem value="media">Media</SelectItem>
                 <SelectItem value="baja">Baja</SelectItem>
               </SelectContent>
             </Select>
             <Select
-              value={filtros.etiqueta ?? ""}
+              value={filtros.etiqueta ?? "all"}
               onValueChange={(v) =>
                 setFiltros((f) => ({
                   ...f,
-                  etiqueta: v ? v : undefined,
+                  etiqueta: v === "all" ? undefined : v,
                 }))
               }
             >
@@ -467,7 +466,7 @@ const RecurrentFees = () => {
                 <SelectValue placeholder="Etiqueta" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {etiquetasDisponibles.map((et) => (
                   <SelectItem key={et} value={et}>
                     {et}
