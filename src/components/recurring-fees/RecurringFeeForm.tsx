@@ -11,6 +11,7 @@ import { RecurringFeeHoursFields } from './form/RecurringFeeHoursFields'
 import { RecurringFeeBillingFields } from './form/RecurringFeeBillingFields'
 import { RecurringFeeTagsManager } from './form/RecurringFeeTagsManager'
 import { RecurringFeeOptionsFields } from './form/RecurringFeeOptionsFields'
+import { RecurringFeeFormData } from './form/types'
 
 const formSchema = z.object({
   client_id: z.string().min(1, 'Cliente es requerido'),
@@ -31,8 +32,6 @@ const formSchema = z.object({
   tags: z.array(z.string()).optional()
 })
 
-type FormData = z.infer<typeof formSchema>
-
 interface RecurringFeeFormProps {
   recurringFee?: RecurringFee
   onSuccess?: () => void
@@ -50,7 +49,7 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
     setValue,
     watch,
     formState: { errors }
-  } = useForm<FormData>({
+  } = useForm<RecurringFeeFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       client_id: recurringFee?.client_id || '',
@@ -72,7 +71,7 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
     }
   })
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: RecurringFeeFormData) => {
     const formData = {
       client_id: data.client_id,
       name: data.name,

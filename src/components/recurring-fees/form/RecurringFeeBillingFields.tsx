@@ -3,14 +3,10 @@ import React from 'react'
 import { UseFormRegister } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-
-interface FormData {
-  billing_day: number
-  payment_terms: number
-}
+import { RecurringFeeFormData } from './types'
 
 interface RecurringFeeBillingFieldsProps {
-  register: UseFormRegister<FormData>
+  register: UseFormRegister<RecurringFeeFormData>
 }
 
 export function RecurringFeeBillingFields({ register }: RecurringFeeBillingFieldsProps) {

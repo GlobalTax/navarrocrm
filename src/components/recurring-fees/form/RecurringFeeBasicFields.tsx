@@ -6,22 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useClients } from '@/hooks/useClients'
-
-interface FormData {
-  client_id: string
-  name: string
-  description?: string
-  amount: number
-  frequency: 'monthly' | 'quarterly' | 'yearly'
-  start_date: string
-  end_date?: string
-  priority: 'high' | 'medium' | 'low'
-}
+import { RecurringFeeFormData } from './types'
 
 interface RecurringFeeBasicFieldsProps {
-  register: UseFormRegister<FormData>
-  setValue: UseFormSetValue<FormData>
-  errors: FieldErrors<FormData>
+  register: UseFormRegister<RecurringFeeFormData>
+  setValue: UseFormSetValue<RecurringFeeFormData>
+  errors: FieldErrors<RecurringFeeFormData>
   defaultClientId?: string
 }
 

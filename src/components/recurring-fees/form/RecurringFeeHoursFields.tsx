@@ -3,14 +3,10 @@ import React from 'react'
 import { UseFormRegister } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-
-interface FormData {
-  included_hours: number
-  hourly_rate_extra: number
-}
+import { RecurringFeeFormData } from './types'
 
 interface RecurringFeeHoursFieldsProps {
-  register: UseFormRegister<FormData>
+  register: UseFormRegister<RecurringFeeFormData>
 }
 
 export function RecurringFeeHoursFields({ register }: RecurringFeeHoursFieldsProps) {

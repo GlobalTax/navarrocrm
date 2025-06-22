@@ -4,17 +4,12 @@ import { UseFormRegister, UseFormWatch, UseFormSetValue } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-
-interface FormData {
-  auto_invoice: boolean
-  auto_send_notifications: boolean
-  internal_notes?: string
-}
+import { RecurringFeeFormData } from './types'
 
 interface RecurringFeeOptionsFieldsProps {
-  register: UseFormRegister<FormData>
-  watch: UseFormWatch<FormData>
-  setValue: UseFormSetValue<FormData>
+  register: UseFormRegister<RecurringFeeFormData>
+  watch: UseFormWatch<RecurringFeeFormData>
+  setValue: UseFormSetValue<RecurringFeeFormData>
 }
 
 export function RecurringFeeOptionsFields({ 
