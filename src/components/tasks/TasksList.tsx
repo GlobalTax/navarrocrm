@@ -2,7 +2,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Edit, Calendar, User, AlertTriangle } from 'lucide-react'
+import { Edit, Calendar, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -60,9 +60,8 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
             <TableHead>Tarea</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead>Prioridad</TableHead>
-            <TableHead>Asignada a</TableHead>
             <TableHead>Fecha límite</TableHead>
-            <TableHead>Caso/Cliente</TableHead>
+            <TableHead>Horas estimadas</TableHead>
             <TableHead className="w-[100px]">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -96,21 +95,6 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {task.task_assignments && task.task_assignments.length > 0 ? (
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 mr-1 text-gray-400" />
-                      <span className="text-sm">
-                        {task.task_assignments[0].user.email}
-                        {task.task_assignments.length > 1 && (
-                          <span className="text-gray-400"> +{task.task_assignments.length - 1}</span>
-                        )}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 text-sm">Sin asignar</span>
-                  )}
-                </TableCell>
-                <TableCell>
                   {task.due_date ? (
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1 text-gray-400" />
@@ -123,14 +107,9 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm">
-                    {task.case && (
-                      <div className="text-blue-600">Caso: {task.case.title}</div>
-                    )}
-                    {task.client && (
-                      <div className="text-gray-600">{task.client.name}</div>
-                    )}
-                  </div>
+                  <span className="text-sm text-gray-600">
+                    {task.estimated_hours || 0}h
+                  </span>
                 </TableCell>
                 <TableCell>
                   <Button

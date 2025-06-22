@@ -6,8 +6,8 @@ import { TasksFilters } from '@/components/tasks/TasksFilters'
 import { TasksBoard } from '@/components/tasks/TasksBoard'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
-import { SeedDataButton } from '@/components/dev/SeedDataButton'
 import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
 
 export type TaskViewMode = 'board' | 'list'
@@ -25,7 +25,7 @@ const Tasks = () => {
 
   const { tasks, taskStats, isLoading, error } = useTasks()
 
-  console.log('🔍 Legal Tasks page state:', { 
+  console.log('🔍 Tasks page state:', { 
     tasks: tasks?.length, 
     taskStats, 
     isLoading, 
@@ -40,31 +40,8 @@ const Tasks = () => {
       return false
     }
 
-    // Mapear filtros a estados legales
-    const statusMapping: { [key: string]: string[] } = {
-      'all': ['pending', 'investigation', 'drafting', 'review', 'filing', 'hearing', 'completed', 'in_progress'],
-      'pending': ['pending'],
-      'investigation': ['investigation', 'in_progress'],
-      'drafting': ['drafting'],
-      'review': ['review'],
-      'filing': ['filing'],
-      'hearing': ['hearing'],
-      'completed': ['completed']
-    }
-
-    const allowedStatuses = statusMapping[filters.status] || [filters.status]
-    if (filters.status !== 'all' && !allowedStatuses.includes(task.status)) return false
-    
-    // Filtro de prioridad mejorado para términos legales
-    if (filters.priority !== 'all') {
-      // Handle critical as a special case that maps to urgent priority
-      if (filters.priority === 'critical' && task.priority !== 'urgent') return false
-      if (filters.priority === 'urgent' && task.priority !== 'urgent') return false
-      if (filters.priority === 'high' && task.priority !== 'high') return false
-      if (filters.priority === 'medium' && task.priority !== 'medium') return false
-      if (filters.priority === 'low' && task.priority !== 'low') return false
-    }
-    
+    if (filters.status !== 'all' && task.status !== filters.status) return false
+    if (filters.priority !== 'all' && task.priority !== filters.priority) return false
     if (filters.search && !task.title?.toLowerCase().includes(filters.search.toLowerCase())) return false
     return true
   })
@@ -79,17 +56,17 @@ const Tasks = () => {
       console.warn('⚠️ Attempted to edit invalid task:', task)
       return
     }
-    console.log('🔍 Editing legal task:', task)
+    console.log('🔍 Editing task:', task)
     setSelectedTask(task)
     setIsTaskDialogOpen(true)
   }
 
   if (error) {
-    console.error('❌ Legal Tasks page error:', error)
+    console.error('❌ Tasks page error:', error)
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-red-500 mb-2">Error al cargar las gestiones legales</div>
+          <div className="text-red-500 mb-2">Error al cargar las tareas</div>
           <div className="text-gray-500 text-sm">{error.message}</div>
           <button 
             onClick={() => window.location.reload()} 
@@ -105,12 +82,12 @@ const Tasks = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Cargando gestiones legales...</div>
+        <div className="text-gray-500">Cargando tareas...</div>
       </div>
     )
   }
 
-  // Mostrar botón de datos ficticios si no hay tareas
+  // Mostrar estado vacío si no hay tareas
   if (safeTasks.length === 0) {
     return (
       <div className="space-y-6">
@@ -123,17 +100,15 @@ const Tasks = () => {
         <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <div className="text-center">
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No hay gestiones legales
+              No hay tareas
             </h3>
             <p className="text-gray-500 mb-6">
-              Comienza creando tu primera gestión o pobla el sistema con datos ficticios para explorar las funcionalidades.
+              Comienza creando tu primera tarea para organizar tu trabajo.
             </p>
-            <div className="flex space-x-3">
-              <SeedDataButton />
-              <Button onClick={handleCreateTask}>
-                Crear primera gestión
-              </Button>
-            </div>
+            <Button onClick={handleCreateTask} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Crear primera tarea
+            </Button>
           </div>
         </div>
       </div>
@@ -142,14 +117,11 @@ const Tasks = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <TasksHeader 
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          onCreateTask={handleCreateTask}
-        />
-        <SeedDataButton />
-      </div>
+      <TasksHeader 
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        onCreateTask={handleCreateTask}
+      />
       
       <TasksStats stats={taskStats} />
       

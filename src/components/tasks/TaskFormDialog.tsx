@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { useTaskForm } from '@/hooks/useTaskForm'
 import { TaskBasicFields } from './form/TaskBasicFields'
 import { TaskDateFields } from './form/TaskDateFields'
-import { TaskAssignmentFields } from './form/TaskAssignmentFields'
 
 interface TaskFormDialogProps {
   isOpen: boolean
@@ -37,11 +36,6 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
           />
 
           <TaskDateFields
-            formData={formData}
-            onInputChange={handleInputChange}
-          />
-
-          <TaskAssignmentFields
             formData={formData}
             onInputChange={handleInputChange}
           />

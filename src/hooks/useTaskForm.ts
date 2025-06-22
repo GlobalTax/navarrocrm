@@ -11,9 +11,6 @@ interface TaskFormData {
   due_date: string
   start_date: string
   estimated_hours: number
-  case_id: string
-  client_id: string
-  assigned_to: string
 }
 
 interface UseTaskFormProps {
@@ -33,10 +30,7 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
     status: 'pending',
     due_date: '',
     start_date: '',
-    estimated_hours: 0,
-    case_id: '',
-    client_id: '',
-    assigned_to: ''
+    estimated_hours: 0
   })
 
   useEffect(() => {
@@ -48,10 +42,7 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
         status: task.status || 'pending',
         due_date: task.due_date ? task.due_date.split('T')[0] : '',
         start_date: task.start_date ? task.start_date.split('T')[0] : '',
-        estimated_hours: task.estimated_hours || 0,
-        case_id: task.case_id || '',
-        client_id: task.client_id || '',
-        assigned_to: task.task_assignments?.[0]?.user_id || ''
+        estimated_hours: task.estimated_hours || 0
       })
     } else {
       setFormData({
@@ -61,10 +52,7 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
         status: 'pending',
         due_date: '',
         start_date: '',
-        estimated_hours: 0,
-        case_id: '',
-        client_id: '',
-        assigned_to: ''
+        estimated_hours: 0
       })
     }
   }, [task, isOpen])
@@ -84,8 +72,8 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
       due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
       start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
       estimated_hours: Number(formData.estimated_hours),
-      case_id: formData.case_id || null,
-      client_id: formData.client_id || null,
+      case_id: null,
+      client_id: null,
       created_by: user?.id,
       org_id: user?.org_id
     }

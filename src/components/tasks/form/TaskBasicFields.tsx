@@ -19,10 +19,10 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="title">Título de la gestión legal</Label>
+        <Label htmlFor="title">Título de la tarea</Label>
         <Input
           id="title"
-          placeholder="ej. Redactar demanda de divorcio contencioso"
+          placeholder="ej. Revisar contrato de servicios"
           value={formData.title}
           onChange={(e) => onInputChange('title', e.target.value)}
           required
@@ -30,10 +30,10 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Descripción detallada</Label>
+        <Label htmlFor="description">Descripción</Label>
         <Textarea
           id="description"
-          placeholder="Descripción detallada de la gestión, documentos necesarios, particularidades del caso..."
+          placeholder="Descripción detallada de la tarea..."
           value={formData.description}
           onChange={(e) => onInputChange('description', e.target.value)}
           rows={3}
@@ -42,7 +42,7 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="status">Estado procesal</Label>
+          <Label htmlFor="status">Estado</Label>
           <Select value={formData.status} onValueChange={(value) => onInputChange('status', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar estado" />
@@ -51,43 +51,25 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
               <SelectItem value="pending">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  Pendiente de asignación
+                  Pendiente
                 </div>
               </SelectItem>
-              <SelectItem value="investigation">
+              <SelectItem value="in_progress">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  Investigación y análisis
-                </div>
-              </SelectItem>
-              <SelectItem value="drafting">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                  Redacción de escritos
-                </div>
-              </SelectItem>
-              <SelectItem value="review">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                  Revisión y supervisión
-                </div>
-              </SelectItem>
-              <SelectItem value="filing">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  Presentación/Tramitación
-                </div>
-              </SelectItem>
-              <SelectItem value="hearing">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                  Comparecencia/Audiencia
+                  En progreso
                 </div>
               </SelectItem>
               <SelectItem value="completed">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   Completada
+                </div>
+              </SelectItem>
+              <SelectItem value="cancelled">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  Cancelada
                 </div>
               </SelectItem>
             </SelectContent>
@@ -95,34 +77,28 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="priority">Urgencia legal</Label>
+          <Label htmlFor="priority">Prioridad</Label>
           <Select value={formData.priority} onValueChange={(value) => onInputChange('priority', value)}>
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar urgencia" />
+              <SelectValue placeholder="Seleccionar prioridad" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="critical">
-                <div className="flex items-center gap-2">
-                  <Scale className="h-3 w-3 text-red-600" />
-                  <span className="text-red-600 font-medium">Vencimiento crítico</span>
-                </div>
-              </SelectItem>
               <SelectItem value="urgent">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-3 w-3 text-red-500" />
-                  Urgente (24-48 horas)
+                  Urgente
                 </div>
               </SelectItem>
               <SelectItem value="high">
                 <div className="flex items-center gap-2">
                   <Clock className="h-3 w-3 text-orange-500" />
-                  Alta (esta semana)
+                  Alta
                 </div>
               </SelectItem>
               <SelectItem value="medium">
                 <div className="flex items-center gap-2">
                   <FileText className="h-3 w-3 text-yellow-500" />
-                  Normal (este mes)
+                  Media
                 </div>
               </SelectItem>
               <SelectItem value="low">
