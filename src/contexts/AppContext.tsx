@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
-import { AppState, AuthUser } from './types'
+import { AppState, AuthUser, UserRole } from './types'
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
@@ -154,7 +154,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!error && data) {
         const enrichedUser: AuthUser = {
           ...authUser,
-          role: data.role,
+          role: data.role as UserRole,
           org_id: data.org_id
         }
         
@@ -187,7 +187,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     console.log('✅ [AppContext] Sign in exitoso')
   }
 
-  const signUp = async (email: string, password: string, role: string, orgId: string) => {
+  const signUp = async (email: string, password: string, role: UserRole, orgId: string) => {
     console.log('📝 [AppContext] Registrando usuario:', email)
     const { data, error } = await supabase.auth.signUp({
       email,
