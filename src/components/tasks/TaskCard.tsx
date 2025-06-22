@@ -2,16 +2,19 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar, User, FileText, Clock, Edit, AlertTriangle, Scale, Gavel } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Calendar, User, FileText, Clock, Edit, AlertTriangle, Scale, Gavel, MessageSquare, CheckSquare } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 interface TaskCardProps {
   task: any
   onEdit: () => void
+  onStatusChange?: (newStatus: string) => void
+  showStatusSelector?: boolean
 }
 
-export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
+export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = false }: TaskCardProps) => {
   if (!task || !task.id) {
     console.warn('⚠️ TaskCard received invalid task')
     return null
@@ -67,8 +70,8 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
       'filing': 'bg-green-100 text-green-800',
       'hearing': 'bg-red-100 text-red-800',
       'completed': 'bg-gray-100 text-gray-800',
-      // Mapeo de estados genéricos
-      'in_progress': 'bg-blue-100 text-blue-800'
+      'in_progress': 'bg-blue-100 text-blue-800',
+      'cancelled': 'bg-gray-300 text-gray-700'
     }
     return statusMapping[status] || 'bg-gray-100 text-gray-800'
   }
@@ -82,8 +85,8 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
       'filing': 'Presentación',
       'hearing': 'Audiencia',
       'completed': 'Completada',
-      // Mapeo de estados genéricos
-      'in_progress': 'En Proceso'
+      'in_progress': 'En Proceso',
+      'cancelled': 'Cancelada'
     }
     return statusLabels[status] || status
   }
@@ -92,6 +95,11 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
   const PriorityIcon = priorityConfig.icon
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
   const isCriticalDeadline = task.priority === 'critical' || task.priority === 'urgent'
+
+  // Contadores para elementos relacionados
+  const subtasksCount = task.subtasks?.length || 0
+  const completedSubtasks = task.subtasks?.filter((st: any) => st.completed).length || 0
+  const commentsCount = task.comments?.length || 0
 
   return (
     <Card className={`hover:shadow-md transition-shadow cursor-pointer group ${isCriticalDeadline ? 'ring-1 ring-red-200' : ''}`}>
@@ -142,9 +150,27 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
             )}
           </div>
 
-          <Badge className={`${getLegalStatusColor(task.status)} text-xs`}>
-            {getLegalStatusLabel(task.status)}
-          </Badge>
+          {showStatusSelector && onStatusChange ? (
+            <Select value={task.status} onValueChange={onStatusChange}>
+              <SelectTrigger className="h-6 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pendiente</SelectItem>
+                <SelectItem value="investigation">Investigación</SelectItem>
+                <SelectItem value="drafting">Redacción</SelectItem>
+                <SelectItem value="review">Revisión</SelectItem>
+                <SelectItem value="filing">Presentación</SelectItem>
+                <SelectItem value="hearing">Audiencia</SelectItem>
+                <SelectItem value="completed">Completada</SelectItem>
+                <SelectItem value="cancelled">Cancelada</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <Badge className={`${getLegalStatusColor(task.status)} text-xs`}>
+              {getLegalStatusLabel(task.status)}
+            </Badge>
+          )}
         </div>
 
         {task.due_date && (
@@ -169,7 +195,19 @@ export const TaskCard = ({ task, onEdit }: TaskCardProps) => {
         )}
 
         <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            {subtasksCount > 0 && (
+              <div className="flex items-center">
+                <CheckSquare className="h-3 w-3 mr-1" />
+                <span>{completedSubtasks}/{subtasksCount}</span>
+              </div>
+            )}
+            {commentsCount > 0 && (
+              <div className="flex items-center">
+                <MessageSquare className="h-3 w-3 mr-1" />
+                <span>{commentsCount}</span>
+              </div>
+            )}
             <div className="flex items-center">
               <FileText className="h-3 w-3 mr-1" />
               <span>0 docs</span>

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { TasksHeader } from '@/components/tasks/TasksHeader'
 import { TasksStats } from '@/components/tasks/TasksStats'
 import { TasksFilters } from '@/components/tasks/TasksFilters'
-import { TasksBoard } from '@/components/tasks/TasksBoard'
+import { TasksBoardKanban } from '@/components/tasks/TasksBoardKanban'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
 import { Button } from '@/components/ui/button'
@@ -131,9 +131,10 @@ const Tasks = () => {
       />
 
       {viewMode === 'board' ? (
-        <TasksBoard 
+        <TasksBoardKanban 
           tasks={filteredTasks}
           onEditTask={handleEditTask}
+          onCreateTask={handleCreateTask}
         />
       ) : (
         <TasksList 

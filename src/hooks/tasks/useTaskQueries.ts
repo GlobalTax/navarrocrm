@@ -27,7 +27,12 @@ export const useTaskQueries = () => {
           ),
           case:cases!tasks_case_id_fkey(title),
           client:clients!tasks_client_id_fkey(name),
-          created_by_user:users!tasks_created_by_fkey(email)
+          created_by_user:users!tasks_created_by_fkey(email),
+          subtasks:task_subtasks(*),
+          comments:task_comments(
+            *,
+            user:users!task_comments_user_id_fkey(email)
+          )
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
@@ -75,13 +80,15 @@ export const useTaskQueries = () => {
       const stats = {
         total_tasks: tasks?.length || 0,
         pending_tasks: tasks?.filter(t => t.status === 'pending').length || 0,
-        in_progress_tasks: tasks?.filter(t => t.status === 'in_progress').length || 0,
+        in_progress_tasks: tasks?.filter(t => 
+          ['in_progress', 'investigation', 'drafting', 'review', 'filing', 'hearing'].includes(t.status)
+        ).length || 0,
         completed_tasks: tasks?.filter(t => t.status === 'completed').length || 0,
         overdue_tasks: tasks?.filter(t => 
           t.due_date && new Date(t.due_date) < now && t.status !== 'completed'
         ).length || 0,
         high_priority_tasks: tasks?.filter(t => 
-          t.priority === 'high' || t.priority === 'urgent'
+          ['high', 'urgent', 'critical'].includes(t.priority)
         ).length || 0
       }
 

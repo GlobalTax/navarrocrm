@@ -1732,6 +1732,44 @@ export type Database = {
           },
         ]
       }
+      task_subtasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          sort_order: number
+          task_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          task_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          task_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_templates: {
         Row: {
           created_at: string
@@ -2134,8 +2172,17 @@ export type Database = {
         | "declined"
         | "invoiced"
         | "archived"
-      task_priority: "low" | "medium" | "high" | "urgent"
-      task_status: "pending" | "in_progress" | "completed" | "cancelled"
+      task_priority: "low" | "medium" | "high" | "urgent" | "critical"
+      task_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "investigation"
+        | "drafting"
+        | "review"
+        | "filing"
+        | "hearing"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2268,8 +2315,18 @@ export const Constants = {
         "invoiced",
         "archived",
       ],
-      task_priority: ["low", "medium", "high", "urgent"],
-      task_status: ["pending", "in_progress", "completed", "cancelled"],
+      task_priority: ["low", "medium", "high", "urgent", "critical"],
+      task_status: [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "investigation",
+        "drafting",
+        "review",
+        "filing",
+        "hearing",
+      ],
     },
   },
 } as const
