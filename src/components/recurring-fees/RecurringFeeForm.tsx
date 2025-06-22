@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -48,7 +47,7 @@ const availableTags = [
 ]
 
 export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: RecurringFeeFormProps) {
-  const { data: clients = [] } = useClients()
+  const { clients } = useClients()
   const createMutation = useCreateRecurringFee()
   const updateMutation = useUpdateRecurringFee()
   const [selectedTags, setSelectedTags] = React.useState<string[]>(recurringFee?.tags || [])
@@ -85,7 +84,8 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
     const formData = {
       ...data,
       tags: selectedTags,
-      next_billing_date: data.start_date // La fecha inicial será la primera facturación
+      next_billing_date: data.start_date,
+      status: 'active' as const
     }
 
     if (recurringFee) {

@@ -1,44 +1,77 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
+import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import type { Proposal } from '@/types/proposals'
 
 export const useUpdateProposalStatus = (proposals: Proposal[]) => {
+  const { user } = useApp()
   const queryClient = useQueryClient()
 
-  const createRetainerContract = async (proposal: any) => {
-    const { error } = await supabase
-      .from('retainer_contracts')
-      .insert({
-        org_id: proposal.org_id,
-        proposal_id: proposal.id,
-        client_id: proposal.client_id,
-        retainer_amount: proposal.retainer_amount || 0,
-        included_hours: proposal.included_hours || 0,
-        hourly_rate_extra: proposal.hourly_rate_extra || 0,
-        contract_start_date: proposal.contract_start_date,
-        contract_end_date: proposal.contract_end_date,
-        next_invoice_date: proposal.next_billing_date
-      })
+  // Función para crear cuota recurrente cuando se acepta una propuesta
+  const createRecurringFeeOnAcceptance = async (proposal: Proposal) => {
+    if (!proposal.is_recurring || !user?.id) return
 
-    if (error) {
-      console.error('Error creating retainer contract:', error)
-      toast.error('Error al crear contrato retainer')
+    const recurringFeeData = {
+      org_id: proposal.org_id,
+      client_id: proposal.client_id,
+      proposal_id: proposal.id,
+      name: `Cuota recurrente - ${proposal.title}`,
+      description: proposal.description,
+      amount: proposal.retainer_amount || proposal.total_amount,
+      frequency: proposal.recurring_frequency || 'monthly',
+      start_date: proposal.contract_start_date || new Date().toISOString().split('T')[0],
+      end_date: proposal.contract_end_date,
+      next_billing_date: proposal.next_billing_date || proposal.contract_start_date || new Date().toISOString().split('T')[0],
+      billing_day: proposal.billing_day || 1,
+      included_hours: proposal.included_hours || 0,
+      hourly_rate_extra: proposal.hourly_rate_extra || 0,
+      auto_invoice: true,
+      auto_send_notifications: true,
+      payment_terms: 30,
+      priority: 'medium',
+      status: 'active',
+      created_by: user.id
+    }
+
+    // Verificar si ya existe una cuota recurrente para esta propuesta
+    const { data: existingFee } = await supabase
+      .from('recurring_fees')
+      .select('id')
+      .eq('proposal_id', proposal.id)
+      .single()
+
+    if (!existingFee) {
+      const { error } = await supabase
+        .from('recurring_fees')
+        .insert(recurringFeeData)
+
+      if (error) {
+        console.error('Error creating recurring fee:', error)
+        toast.error('Error al crear cuota recurrente automática')
+      } else {
+        toast.success('✅ Cuota recurrente creada automáticamente')
+      }
     }
   }
 
   const updateProposalStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: Proposal['status'] }) => {
-      const proposal = proposals.find(p => p.id === id)
-      const updateData: any = { status }
-      
-      if (status === 'sent' && !proposal?.sent_at) {
-        updateData.sent_at = new Date().toISOString()
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: any = { 
+        status,
+        updated_at: new Date().toISOString()
       }
-      
+
+      // Si se acepta la propuesta, agregar fechas relevantes
       if (status === 'won') {
         updateData.accepted_at = new Date().toISOString()
+        
+        // Si no tiene fecha de inicio de contrato, usar la fecha actual
+        const proposal = proposals.find(p => p.id === id)
+        if (proposal?.is_recurring && !proposal.contract_start_date) {
+          updateData.contract_start_date = new Date().toISOString().split('T')[0]
+        }
       }
 
       const { data, error } = await supabase
@@ -50,20 +83,26 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
 
       if (error) throw error
 
-      // Si la propuesta es de tipo retainer y recurrente, crear el contrato
-      if (status === 'won' && data.proposal_type === 'retainer' && data.is_recurring) {
-        await createRetainerContract(data)
+      // Si se acepta una propuesta recurrente, crear la cuota recurrente
+      if (status === 'won') {
+        await createRecurringFeeOnAcceptance(data)
       }
 
       return data
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['proposals'] })
-      toast.success('Estado actualizado')
+      queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
+      
+      const statusText = variables.status === 'won' ? 'aceptada' : 
+                        variables.status === 'lost' ? 'rechazada' : 
+                        'actualizada'
+      
+      toast.success(`Propuesta ${statusText} correctamente`)
     },
     onError: (error) => {
       console.error('Error updating proposal status:', error)
-      toast.error('Error al actualizar estado')
+      toast.error('Error al actualizar el estado de la propuesta')
     }
   })
 

@@ -1,179 +1,232 @@
 
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Eye, Send, Check, X, Clock, Repeat, Calendar } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ProposalRecurringFeeButton } from './ProposalRecurringFeeButton'
+import type { Proposal } from '@/types/proposals'
+import { 
+  MoreHorizontal, 
+  Calendar, 
+  User, 
+  Clock, 
+  Euro,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Edit,
+  Eye,
+  Repeat
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import type { Proposal } from '@/types/proposals'
 
 interface ProposalCardProps {
   proposal: Proposal
-  onStatusChange: (id: string, status: Proposal['status']) => void
+  onStatusChange: (id: string, status: string) => void
   onView: (proposal: Proposal) => void
 }
 
-const statusConfig = {
-  draft: { 
-    label: 'Borrador', 
-    color: 'bg-gray-500 text-white',
-    icon: Clock
-  },
-  sent: { 
-    label: 'Enviada', 
-    color: 'bg-blue-500 text-white',
-    icon: Send
-  },
-  negotiating: { 
-    label: 'Negociando', 
-    color: 'bg-yellow-500 text-white',
-    icon: Clock
-  },
-  won: { 
-    label: 'Ganada', 
-    color: 'bg-green-500 text-white',
-    icon: Check
-  },
-  lost: { 
-    label: 'Perdida', 
-    color: 'bg-red-500 text-white',
-    icon: X
-  },
-  expired: { 
-    label: 'Expirada', 
-    color: 'bg-gray-600 text-white',
-    icon: Clock
+export function ProposalCard({ proposal, onStatusChange, onView }: Propos
+
+
+
+
+ardProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'bg-gray-100 text-gray-800'
+      case 'sent': return 'bg-blue-100 text-blue-800'
+      case 'won': return 'bg-green-100 text-green-800'
+      case 'lost': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
   }
-}
 
-const frequencyLabels = {
-  monthly: 'Mensual',
-  quarterly: 'Trimestral',
-  yearly: 'Anual'
-}
-
-export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardProps) {
-  const config = statusConfig[proposal.status]
-  const StatusIcon = config.icon
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'draft': return 'Borrador'
+      case 'sent': return 'Enviada'
+      case 'won': return 'Ganada'
+      case 'lost': return 'Perdida'
+      default: return status
+    }
+  }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-lg leading-none">{proposal.title}</h3>
-              {proposal.is_recurring && (
-                <Badge variant="outline" className="text-xs">
-                  <Repeat className="h-3 w-3 mr-1" />
-                  {proposal.recurring_frequency && frequencyLabels[proposal.recurring_frequency]}
-                </Badge>
-              )}
+          <div className="flex-1">
+            <CardTitle className="text-lg mb-2 flex items-center gap-2">
+              {proposal.is_recurring && <Repeat className="w-4 h-4 text-blue-500" />}
+              {proposal.title}
+            </CardTitle>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <User className="w-3 h-3" />
+                {proposal.client?.name}
+              </div>
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {format(new Date(proposal.created_at), 'dd/MM/yyyy', { locale: es })}
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {proposal.client?.name}
-            </p>
           </div>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
+                <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => onView(proposal)}>
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="w-4 h-4 mr-2" />
                 Ver detalles
               </DropdownMenuItem>
-              {proposal.status === 'draft' && (
-                <DropdownMenuItem onClick={() => onStatusChange(proposal.id, 'sent')}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar
+              <DropdownMenuItem>
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
+              {proposal.status !== 'won' && (
+                <DropdownMenuItem 
+                  onClick={() => onStatusChange(proposal.id, 'won')}
+                  className="text-green-600"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Marcar como ganada
                 </DropdownMenuItem>
               )}
-              {(proposal.status === 'sent' || proposal.status === 'negotiating') && (
-                <>
-                  <DropdownMenuItem onClick={() => onStatusChange(proposal.id, 'won')}>
-                    <Check className="h-4 w-4 mr-2" />
-                    Marcar como ganada
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onStatusChange(proposal.id, 'lost')}>
-                    <X className="h-4 w-4 mr-2" />
-                    Marcar como perdida
-                  </DropdownMenuItem>
-                </>
+              {proposal.status !== 'lost' && (
+                <DropdownMenuItem 
+                  onClick={() => onStatusChange(proposal.id, 'lost')}
+                  className="text-red-600"
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Marcar como perdida
+                </DropdownMenuItem>
+              )}
+              {proposal.status !== 'sent' && proposal.status !== 'won' && proposal.status !== 'lost' && (
+                <DropdownMenuItem onClick={() => onStatusChange(proposal.id, 'sent')}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Marcar como enviada
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
-      
-      <CardContent className="py-3">
-        <div className="flex items-center justify-between mb-3">
-          <Badge className={config.color}>
-            <StatusIcon className="h-3 w-3 mr-1" />
-            {config.label}
-          </Badge>
-          <span className="font-semibold text-lg">
-            €{proposal.total_amount.toLocaleString()}
-            {proposal.is_recurring && proposal.recurring_frequency && (
-              <span className="text-xs text-muted-foreground ml-1">
-                /{proposal.recurring_frequency === 'monthly' ? 'mes' : 
-                  proposal.recurring_frequency === 'quarterly' ? 'trim' : 'año'}
-              </span>
-            )}
-          </span>
-        </div>
-        
-        {proposal.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-            {proposal.description}
-          </p>
-        )}
-        
-        <div className="text-xs text-muted-foreground space-y-1">
-          <div>Creada: {format(new Date(proposal.created_at), 'dd MMM yyyy', { locale: es })}</div>
-          {proposal.sent_at && (
-            <div>Enviada: {format(new Date(proposal.sent_at), 'dd MMM yyyy', { locale: es })}</div>
-          )}
-          {proposal.valid_until && (
-            <div>Válida hasta: {format(new Date(proposal.valid_until), 'dd MMM yyyy', { locale: es })}</div>
-          )}
-          {proposal.is_recurring && proposal.contract_start_date && (
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Inicio: {format(new Date(proposal.contract_start_date), 'dd MMM yyyy', { locale: es })}
-            </div>
-          )}
-          {proposal.is_recurring && proposal.next_billing_date && (
-            <div className="flex items-center gap-1 text-blue-600">
-              <Calendar className="h-3 w-3" />
-              Próxima factura: {format(new Date(proposal.next_billing_date), 'dd MMM yyyy', { locale: es })}
-            </div>
-          )}
+
+      <CardContent className="space-y-4">
+        {/* Información principal */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Importe total</p>
+            <p className="text-xl font-bold text-green-600">
+              {proposal.total_amount?.toFixed(2)} €
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Estado</p>
+            <Badge className={getStatusColor(proposal.status)}>
+              {getStatusText(proposal.status)}
+            </Badge>
+          </div>
         </div>
 
-        {proposal.proposal_type === 'retainer' && proposal.retainer_amount && (
-          <div className="mt-2 text-xs bg-blue-50 p-2 rounded">
-            <div className="font-medium">Retainer: €{proposal.retainer_amount.toLocaleString()}</div>
-            {proposal.included_hours && (
-              <div>Incluye {proposal.included_hours}h • Extra: €{proposal.hourly_rate_extra || 0}/h</div>
+        {/* Información de recurrencia */}
+        {proposal.is_recurring && (
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <p className="text-sm font-medium text-blue-900 mb-1">Propuesta Recurrente</p>
+            <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
+              {proposal.recurring_frequency && (
+                <div>
+                  <span>Frecuencia: </span>
+                  <span className="font-medium">
+                    {proposal.recurring_frequency === 'monthly' ? 'Mensual' :
+                     proposal.recurring_frequency === 'quarterly' ? 'Trimestral' :
+                     proposal.recurring_frequency === 'yearly' ? 'Anual' : proposal.recurring_frequency}
+                  </span>
+                </div>
+              )}
+              {proposal.retainer_amount > 0 && (
+                <div>
+                  <span>Retainer: </span>
+                  <span className="font-medium">{proposal.retainer_amount.toFixed(2)} €</span>
+                </div>
+              )}
+              {proposal.included_hours > 0 && (
+                <div>
+                  <span>Horas: </span>
+                  <span className="font-medium">{proposal.included_hours}h</span>
+                </div>
+              )}
+              {proposal.contract_start_date && (
+                <div>
+                  <span>Inicio: </span>
+                  <span className="font-medium">
+                    {format(new Date(proposal.contract_start_date), 'dd/MM/yyyy', { locale: es })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Fechas importantes */}
+        {(proposal.valid_until || proposal.sent_at || proposal.accepted_at) && (
+          <div className="space-y-2">
+            {proposal.valid_until && (
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-3 h-3 text-muted-foreground" />
+                <span className="text-muted-foreground">
+                  Válida hasta: {format(new Date(proposal.valid_until), 'dd/MM/yyyy', { locale: es })}
+                </span>
+              </div>
+            )}
+            {proposal.sent_at && (
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="w-3 h-3 text-blue-500" />
+                <span className="text-blue-600">
+                  Enviada: {format(new Date(proposal.sent_at), 'dd/MM/yyyy', { locale: es })}
+                </span>
+              </div>
+            )}
+            {proposal.accepted_at && (
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="w-3 h-3 text-green-500" />
+                <span className="text-green-600">
+                  Aceptada: {format(new Date(proposal.accepted_at), 'dd/MM/yyyy', { locale: es })}
+                </span>
+              </div>
             )}
           </div>
         )}
+
+        {/* Descripción */}
+        {proposal.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {proposal.description}
+          </p>
+        )}
+
+        {/* Botón para crear cuota recurrente */}
+        {proposal.is_recurring && proposal.status === 'won' && (
+          <ProposalRecurringFeeButton proposal={proposal} />
+        )}
       </CardContent>
-      
-      <CardFooter className="pt-3">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => onView(proposal)}
-          className="w-full"
-        >
-          Ver propuesta
-        </Button>
-      </CardFooter>
     </Card>
   )
 }

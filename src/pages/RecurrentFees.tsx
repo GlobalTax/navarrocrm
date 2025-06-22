@@ -42,7 +42,7 @@ const RecurrentFees = () => {
   const [deletingFee, setDeletingFee] = useState(null)
 
   const { data: recurringFees = [], isLoading } = useRecurringFees(filters)
-  const { data: clients = [] } = useClients()
+  const { clients } = useClients()
   const generateInvoicesMutation = useGenerateInvoices()
   const updateFeeMutation = useUpdateRecurringFee()
   const deleteFeeMutation = useDeleteRecurringFee()
@@ -112,7 +112,9 @@ const RecurrentFees = () => {
   }
 
   const handleFormCancel = () => {
-    setShowForm(false)
+    set
+
+owForm(false)
     setEditingFee(null)
   }
 

@@ -30,6 +30,44 @@ export const useCreateProposal = () => {
     }
   }
 
+  // Nueva función para crear cuota recurrente automáticamente
+  const createRecurringFeeFromProposal = async (proposal: any) => {
+    if (!proposal.is_recurring || proposal.status !== 'won') return
+
+    const recurringFeeData = {
+      org_id: proposal.org_id,
+      client_id: proposal.client_id,
+      proposal_id: proposal.id,
+      name: `Cuota recurrente - ${proposal.title}`,
+      description: proposal.description,
+      amount: proposal.retainer_amount || proposal.total_amount,
+      frequency: proposal.recurring_frequency || 'monthly',
+      start_date: proposal.contract_start_date || new Date().toISOString().split('T')[0],
+      end_date: proposal.contract_end_date,
+      next_billing_date: proposal.next_billing_date || proposal.contract_start_date || new Date().toISOString().split('T')[0],
+      billing_day: proposal.billing_day || 1,
+      included_hours: proposal.included_hours || 0,
+      hourly_rate_extra: proposal.hourly_rate_extra || 0,
+      auto_invoice: true,
+      auto_send_notifications: true,
+      payment_terms: 30,
+      priority: 'medium',
+      status: 'active',
+      created_by: user?.id
+    }
+
+    const { error } = await supabase
+      .from('recurring_fees')
+      .insert(recurringFeeData)
+
+    if (error) {
+      console.error('Error creating recurring fee:', error)
+      toast.error('Error al crear cuota recurrente automática')
+    } else {
+      toast.success('Cuota recurrente creada automáticamente')
+    }
+  }
+
   const createProposal = useMutation({
     mutationFn: async (proposalData: CreateProposalData) => {
       if (!user?.org_id || !user?.id) throw new Error('Usuario no autenticado')
@@ -84,10 +122,16 @@ export const useCreateProposal = () => {
         await createRetainerContract(proposal)
       }
 
+      // Si es recurrente y está ganada, crear cuota recurrente automáticamente
+      if (proposal.is_recurring && proposal.status === 'won') {
+        await createRecurringFeeFromProposal(proposal)
+      }
+
       return proposal
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
       toast.success('Propuesta creada exitosamente')
     },
     onError: (error) => {

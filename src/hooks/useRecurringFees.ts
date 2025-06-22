@@ -107,7 +107,10 @@ export const useRecurringFees = (filters?: {
       const { data, error } = await query
 
       if (error) throw error
-      return data as RecurringFee[]
+      return (data || []).map(item => ({
+        ...item,
+        client: item.client ? { name: item.client.name, email: item.client.email } : undefined
+      })) as RecurringFee[]
     },
     enabled: !!user?.org_id
   })
@@ -301,6 +304,75 @@ export const useGenerateInvoices = () => {
       toast({
         title: 'Error',
         description: error.message || 'Error al generar facturas',
+        variant: 'destructive'
+      })
+    }
+  })
+}
+
+// Nuevo hook para crear cuota recurrente desde propuesta
+export const useCreateRecurringFeeFromProposal = () => {
+  const { user } = useApp()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (proposalId: string) => {
+      if (!user?.org_id || !user?.id) throw new Error('Usuario no autenticado')
+
+      // Obtener datos de la propuesta
+      const { data: proposal, error: proposalError } = await supabase
+        .from('proposals')
+        .select('*')
+        .eq('id', proposalId)
+        .eq('org_id', user.org_id)
+        .single()
+
+      if (proposalError) throw proposalError
+
+      // Crear cuota recurrente basada en la propuesta
+      const recurringFeeData = {
+        org_id: user.org_id,
+        client_id: proposal.client_id,
+        proposal_id: proposal.id,
+        name: `Cuota recurrente - ${proposal.title}`,
+        description: proposal.description,
+        amount: proposal.retainer_amount || proposal.total_amount,
+        frequency: proposal.recurring_frequency as 'monthly' | 'quarterly' | 'yearly',
+        start_date: proposal.contract_start_date || new Date().toISOString().split('T')[0],
+        end_date: proposal.contract_end_date,
+        next_billing_date: proposal.next_billing_date || proposal.contract_start_date || new Date().toISOString().split('T')[0],
+        billing_day: proposal.billing_day || 1,
+        included_hours: proposal.included_hours || 0,
+        hourly_rate_extra: proposal.hourly_rate_extra || 0,
+        auto_invoice: true,
+        auto_send_notifications: true,
+        payment_terms: 30,
+        priority: 'medium' as const,
+        status: 'active' as const,
+        created_by: user.id
+      }
+
+      const { data: result, error } = await supabase
+        .from('recurring_fees')
+        .insert(recurringFeeData)
+        .select()
+        .single()
+
+      if (error) throw error
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
+      toast({
+        title: 'Éxito',
+        description: 'Cuota recurrente creada desde propuesta'
+      })
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Error al crear la cuota desde propuesta',
         variant: 'destructive'
       })
     }
