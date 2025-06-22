@@ -162,12 +162,12 @@ export function CalendarEventForm({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="client" className="text-sm font-medium">Cliente</Label>
-              <Select value={formData.client_id || ''} onValueChange={(value) => setFormData({...formData, client_id: value || null})}>
+              <Select value={formData.client_id || 'none'} onValueChange={(value) => setFormData({...formData, client_id: value === 'none' ? null : value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin cliente</SelectItem>
+                  <SelectItem value="none">Sin cliente</SelectItem>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
@@ -179,12 +179,12 @@ export function CalendarEventForm({
 
             <div className="grid gap-2">
               <Label htmlFor="case" className="text-sm font-medium">Expediente</Label>
-              <Select value={formData.case_id || ''} onValueChange={(value) => setFormData({...formData, case_id: value || null})}>
+              <Select value={formData.case_id || 'none'} onValueChange={(value) => setFormData({...formData, case_id: value === 'none' ? null : value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar expediente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin expediente</SelectItem>
+                  <SelectItem value="none">Sin expediente</SelectItem>
                   {cases.map((case_item) => (
                     <SelectItem key={case_item.id} value={case_item.id}>
                       {case_item.title}
