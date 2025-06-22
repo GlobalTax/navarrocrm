@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, Loader2, Clock, Users, AlertCircle } from 'lucide-react'
+import { Plus, Loader2, Clock, Users, AlertCircle, Mail, Calendar } from 'lucide-react'
 import { CreateCalendarEventData } from '@/hooks/useCalendarEvents'
 
 interface CalendarEventFormProps {
@@ -19,6 +18,9 @@ interface CalendarEventFormProps {
     matter: string
     reminders: number[]
     repeat: boolean
+    sync_with_outlook?: boolean
+    auto_send_invitations?: boolean
+    attendees_emails?: string[]
   }
   setFormData: (data: any) => void
   onSubmit: () => void
@@ -35,6 +37,8 @@ export function CalendarEventForm({
   clients,
   cases 
 }: CalendarEventFormProps) {
+  const [newAttendeeEmail, setNewAttendeeEmail] = useState('')
+
   const addReminder = () => {
     setFormData((prev: any) => ({
       ...prev,
@@ -56,10 +60,28 @@ export function CalendarEventForm({
     }))
   }
 
+  const addAttendeeEmail = () => {
+    if (newAttendeeEmail && newAttendeeEmail.includes('@')) {
+      setFormData((prev: any) => ({
+        ...prev,
+        attendees_emails: [...(prev.attendees_emails || []), newAttendeeEmail]
+      }))
+      setNewAttendeeEmail('')
+    }
+  }
+
+  const removeAttendeeEmail = (index: number) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      attendees_emails: prev.attendees_emails?.filter((_: string, i: number) => i !== index) || []
+    }))
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-4">
       {/* Columna principal - Detalles del evento */}
       <div className="lg:col-span-2 space-y-6">
+        {/* ... keep existing code (event details section) */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Detalles del evento</h3>
           
@@ -196,6 +218,80 @@ export function CalendarEventForm({
           </div>
         </div>
 
+        {/* Nueva sección: Integración con Outlook */}
+        <div className="space-y-4 border-t pt-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-blue-600" />
+            <h3 className="text-lg font-medium">Integración con Outlook</h3>
+          </div>
+          
+          <div className="grid gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="sync-outlook"
+                checked={formData.sync_with_outlook || false}
+                onCheckedChange={(checked) => setFormData({...formData, sync_with_outlook: checked as boolean})}
+              />
+              <Label htmlFor="sync-outlook" className="text-sm">
+                Sincronizar con Outlook
+              </Label>
+            </div>
+            
+            {formData.sync_with_outlook && (
+              <div className="ml-6 space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="auto-invitations"
+                    checked={formData.auto_send_invitations || false}
+                    onCheckedChange={(checked) => setFormData({...formData, auto_send_invitations: checked as boolean})}
+                  />
+                  <Label htmlFor="auto-invitations" className="text-sm">
+                    Enviar invitaciones automáticamente
+                  </Label>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Participantes (emails)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="email@ejemplo.com"
+                      value={newAttendeeEmail}
+                      onChange={(e) => setNewAttendeeEmail(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addAttendeeEmail()}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={addAttendeeEmail}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  {formData.attendees_emails && formData.attendees_emails.length > 0 && (
+                    <div className="space-y-1">
+                      {formData.attendees_emails.map((email, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
+                          <span className="text-sm">{email}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAttendeeEmail(index)}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Recordatorios */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -317,6 +413,25 @@ export function CalendarEventForm({
             </Label>
           </div>
         </div>
+
+        {/* Estado de sincronización */}
+        {formData.sync_with_outlook && (
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-green-600" />
+              <h3 className="text-sm font-medium">Estado de Outlook</h3>
+            </div>
+            <div className="text-sm text-gray-600">
+              <p>✓ Sincronización activada</p>
+              {formData.auto_send_invitations && (
+                <p>✓ Invitaciones automáticas</p>
+              )}
+              {formData.attendees_emails && formData.attendees_emails.length > 0 && (
+                <p>👥 {formData.attendees_emails.length} participante(s)</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

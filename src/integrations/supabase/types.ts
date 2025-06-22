@@ -67,6 +67,8 @@ export type Database = {
       }
       calendar_events: {
         Row: {
+          attendees_emails: string[] | null
+          auto_send_invitations: boolean
           case_id: string | null
           client_id: string | null
           created_at: string
@@ -76,15 +78,23 @@ export type Database = {
           event_type: string
           id: string
           is_all_day: boolean
+          last_synced_at: string | null
           location: string | null
           org_id: string
+          outlook_calendar_id: string | null
+          outlook_id: string | null
+          outlook_meeting_url: string | null
           reminder_minutes: number | null
           start_datetime: string
           status: string
+          sync_status: string | null
+          sync_with_outlook: boolean
           title: string
           updated_at: string
         }
         Insert: {
+          attendees_emails?: string[] | null
+          auto_send_invitations?: boolean
           case_id?: string | null
           client_id?: string | null
           created_at?: string
@@ -94,15 +104,23 @@ export type Database = {
           event_type?: string
           id?: string
           is_all_day?: boolean
+          last_synced_at?: string | null
           location?: string | null
           org_id: string
+          outlook_calendar_id?: string | null
+          outlook_id?: string | null
+          outlook_meeting_url?: string | null
           reminder_minutes?: number | null
           start_datetime: string
           status?: string
+          sync_status?: string | null
+          sync_with_outlook?: boolean
           title: string
           updated_at?: string
         }
         Update: {
+          attendees_emails?: string[] | null
+          auto_send_invitations?: boolean
           case_id?: string | null
           client_id?: string | null
           created_at?: string
@@ -112,11 +130,17 @@ export type Database = {
           event_type?: string
           id?: string
           is_all_day?: boolean
+          last_synced_at?: string | null
           location?: string | null
           org_id?: string
+          outlook_calendar_id?: string | null
+          outlook_id?: string | null
+          outlook_meeting_url?: string | null
           reminder_minutes?: number | null
           start_datetime?: string
           status?: string
+          sync_status?: string | null
+          sync_with_outlook?: boolean
           title?: string
           updated_at?: string
         }
@@ -151,20 +175,80 @@ export type Database = {
           },
         ]
       }
+      calendar_sync_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_id: string | null
+          id: string
+          org_id: string
+          outlook_event_id: string | null
+          sync_data: Json | null
+          sync_direction: string
+          sync_status: string
+          sync_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          id?: string
+          org_id: string
+          outlook_event_id?: string | null
+          sync_data?: Json | null
+          sync_direction: string
+          sync_status?: string
+          sync_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_id?: string | null
+          id?: string
+          org_id?: string
+          outlook_event_id?: string | null
+          sync_data?: Json | null
+          sync_direction?: string
+          sync_status?: string
+          sync_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_sync_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_sync_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           billing_method: string | null
           client_id: string
+          communication_preferences: Json | null
           created_at: string | null
           date_closed: string | null
           date_opened: string | null
           description: string | null
           estimated_budget: number | null
           id: string
+          last_email_sent_at: string | null
           matter_number: string | null
           org_id: string
           originating_solicitor_id: string | null
           practice_area: string | null
+          primary_contact_email: string | null
           responsible_solicitor_id: string | null
           status: string
           template_id: string | null
@@ -174,16 +258,19 @@ export type Database = {
         Insert: {
           billing_method?: string | null
           client_id: string
+          communication_preferences?: Json | null
           created_at?: string | null
           date_closed?: string | null
           date_opened?: string | null
           description?: string | null
           estimated_budget?: number | null
           id?: string
+          last_email_sent_at?: string | null
           matter_number?: string | null
           org_id: string
           originating_solicitor_id?: string | null
           practice_area?: string | null
+          primary_contact_email?: string | null
           responsible_solicitor_id?: string | null
           status?: string
           template_id?: string | null
@@ -193,16 +280,19 @@ export type Database = {
         Update: {
           billing_method?: string | null
           client_id?: string
+          communication_preferences?: Json | null
           created_at?: string | null
           date_closed?: string | null
           date_opened?: string | null
           description?: string | null
           estimated_budget?: number | null
           id?: string
+          last_email_sent_at?: string | null
           matter_number?: string | null
           org_id?: string
           originating_solicitor_id?: string | null
           practice_area?: string | null
+          primary_contact_email?: string | null
           responsible_solicitor_id?: string | null
           status?: string
           template_id?: string | null
@@ -387,6 +477,7 @@ export type Database = {
           created_at: string | null
           dni_nif: string | null
           email: string | null
+          email_preferences: Json | null
           hourly_rate: number | null
           how_found_us: string | null
           id: string
@@ -398,8 +489,10 @@ export type Database = {
           payment_method: string | null
           phone: string | null
           preferred_language: string | null
+          preferred_meeting_time: string | null
           status: string | null
           tags: string[] | null
+          timezone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -413,6 +506,7 @@ export type Database = {
           created_at?: string | null
           dni_nif?: string | null
           email?: string | null
+          email_preferences?: Json | null
           hourly_rate?: number | null
           how_found_us?: string | null
           id?: string
@@ -424,8 +518,10 @@ export type Database = {
           payment_method?: string | null
           phone?: string | null
           preferred_language?: string | null
+          preferred_meeting_time?: string | null
           status?: string | null
           tags?: string[] | null
+          timezone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -439,6 +535,7 @@ export type Database = {
           created_at?: string | null
           dni_nif?: string | null
           email?: string | null
+          email_preferences?: Json | null
           hourly_rate?: number | null
           how_found_us?: string | null
           id?: string
@@ -450,13 +547,135 @@ export type Database = {
           payment_method?: string | null
           phone?: string | null
           preferred_language?: string | null
+          preferred_meeting_time?: string | null
           status?: string | null
           tags?: string[] | null
+          timezone?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "clients_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_template: string
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          subject_template: string
+          template_type: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          body_template: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          subject_template: string
+          template_type: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          body_template?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          subject_template?: string
+          template_type?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_threads: {
+        Row: {
+          case_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          last_message_at: string | null
+          message_count: number | null
+          org_id: string
+          outlook_thread_id: string | null
+          participants: string[] | null
+          status: string | null
+          thread_subject: string
+          updated_at: string
+        }
+        Insert: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          org_id: string
+          outlook_thread_id?: string | null
+          participants?: string[] | null
+          status?: string | null
+          thread_subject: string
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          org_id?: string
+          outlook_thread_id?: string | null
+          participants?: string[] | null
+          status?: string | null
+          thread_subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_threads_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -682,6 +901,65 @@ export type Database = {
             columns: ["practice_area_id"]
             isOneToOne: false
             referencedRelation: "practice_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_integrations: {
+        Row: {
+          auto_email_enabled: boolean
+          config_data: Json | null
+          created_at: string
+          email_integration_enabled: boolean
+          id: string
+          integration_type: string
+          is_enabled: boolean
+          last_sync_at: string | null
+          org_id: string
+          outlook_client_id: string | null
+          outlook_client_secret_encrypted: string | null
+          outlook_tenant_id: string | null
+          sync_frequency_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          auto_email_enabled?: boolean
+          config_data?: Json | null
+          created_at?: string
+          email_integration_enabled?: boolean
+          id?: string
+          integration_type?: string
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          org_id: string
+          outlook_client_id?: string | null
+          outlook_client_secret_encrypted?: string | null
+          outlook_tenant_id?: string | null
+          sync_frequency_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          auto_email_enabled?: boolean
+          config_data?: Json | null
+          created_at?: string
+          email_integration_enabled?: boolean
+          id?: string
+          integration_type?: string
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          org_id?: string
+          outlook_client_id?: string | null
+          outlook_client_secret_encrypted?: string | null
+          outlook_tenant_id?: string | null
+          sync_frequency_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_integrations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1668,6 +1946,59 @@ export type Database = {
           },
         ]
       }
+      user_outlook_tokens: {
+        Row: {
+          access_token_encrypted: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          org_id: string
+          outlook_email: string | null
+          refresh_token_encrypted: string
+          scope_permissions: string[] | null
+          token_expires_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          org_id: string
+          outlook_email?: string | null
+          refresh_token_encrypted: string
+          scope_permissions?: string[] | null
+          token_expires_at: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          org_id?: string
+          outlook_email?: string | null
+          refresh_token_encrypted?: string
+          scope_permissions?: string[] | null
+          token_expires_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_outlook_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1749,6 +2080,10 @@ export type Database = {
       }
       calculate_revenue_metrics: {
         Args: { org_uuid: string; target_date?: string }
+        Returns: undefined
+      }
+      cleanup_expired_tokens: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       generate_matter_number: {
