@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,6 +16,7 @@ import Calendar from '@/pages/Calendar';
 import TimeTracking from '@/pages/TimeTracking';
 import Setup from '@/pages/Setup';
 import AIAdmin from '@/pages/AIAdmin';
+import IntegrationSettings from '@/pages/IntegrationSettings';
 import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
 
@@ -109,6 +109,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <TimeTracking />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/integrations" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <IntegrationSettings />
                     </MainLayout>
                   </ProtectedRoute>
                 }

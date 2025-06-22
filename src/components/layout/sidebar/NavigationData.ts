@@ -1,12 +1,13 @@
-
 export const navigation = [
-  { name: 'Dashboard', href: '/' },
+  { name: 'Dashboard', href: '/dashboard' },
   { name: 'Clientes', href: '/clients' },
-  { name: 'Casos', href: '/cases' },
+  { name: 'Expedientes', href: '/cases' },
   { name: 'Tareas', href: '/tasks' },
   { name: 'Propuestas', href: '/proposals' },
   { name: 'Calendario', href: '/calendar' },
-  { name: 'Registro de Tiempo', href: '/time-tracking' },
+  { name: 'Tiempo', href: '/time-tracking' },
+  { name: 'Integraciones', href: '/integrations' },
+  { name: 'IA Admin', href: '/ai-admin' },
 ]
 
 export const quickActions = [
