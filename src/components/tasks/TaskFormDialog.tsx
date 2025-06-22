@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { useTaskForm } from '@/hooks/useTaskForm'
 import { TaskBasicFields } from './form/TaskBasicFields'
 import { TaskDateFields } from './form/TaskDateFields'
+import { TaskAssignmentFields } from './form/TaskAssignmentFields'
+import { TaskUserAssignmentFields } from './form/TaskUserAssignmentFields'
 
 interface TaskFormDialogProps {
   isOpen: boolean
@@ -22,7 +24,7 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {task ? 'Editar Tarea' : 'Nueva Tarea'}
@@ -36,6 +38,16 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
           />
 
           <TaskDateFields
+            formData={formData}
+            onInputChange={handleInputChange}
+          />
+
+          <TaskAssignmentFields
+            formData={formData}
+            onInputChange={handleInputChange}
+          />
+
+          <TaskUserAssignmentFields
             formData={formData}
             onInputChange={handleInputChange}
           />

@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, User, FileText, Clock, Edit, AlertTriangle, Scale, Gavel, MessageSquare, CheckSquare } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Calendar, User, FileText, Clock, Edit, AlertTriangle, Scale, Gavel, MessageSquare, CheckSquare, Users } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -100,6 +101,13 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
   const subtasksCount = task.subtasks?.length || 0
   const completedSubtasks = task.subtasks?.filter((st: any) => st.completed).length || 0
   const commentsCount = task.comments?.length || 0
+  const assignedUsers = task.task_assignments || []
+
+  const getUserInitials = (email: string) => {
+    if (!email) return '?'
+    const parts = email.split('@')[0].split('.')
+    return parts.map(part => part[0]?.toUpperCase()).join('').slice(0, 2)
+  }
 
   return (
     <Card className={`hover:shadow-md transition-shadow cursor-pointer group ${isCriticalDeadline ? 'ring-1 ring-red-200' : ''}`}>
@@ -182,15 +190,24 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
           </div>
         )}
 
-        {task.task_assignments && Array.isArray(task.task_assignments) && task.task_assignments.length > 0 && (
+        {/* Usuarios asignados */}
+        {assignedUsers.length > 0 && (
           <div className="flex items-center text-xs text-gray-500 mb-2">
-            <User className="h-3 w-3 mr-1" />
-            <span className="truncate">
-              {task.task_assignments[0]?.user?.email || 'Usuario desconocido'}
-            </span>
-            {task.task_assignments.length > 1 && (
-              <span className="ml-1">+{task.task_assignments.length - 1}</span>
-            )}
+            <Users className="h-3 w-3 mr-1" />
+            <div className="flex items-center space-x-1">
+              {assignedUsers.slice(0, 3).map((assignment: any, index: number) => (
+                <Avatar key={assignment.user_id || index} className="h-5 w-5">
+                  <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                    {getUserInitials(assignment.user?.email || '')}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {assignedUsers.length > 3 && (
+                <span className="text-xs text-gray-400">
+                  +{assignedUsers.length - 3}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
