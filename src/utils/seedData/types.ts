@@ -38,7 +38,7 @@ export interface SeedTask {
   description: string
   case_id: string
   client_id: string
-  status: string
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
   priority: 'low' | 'medium' | 'high' | 'urgent'
   due_date: string
   estimated_hours: number
