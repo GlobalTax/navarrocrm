@@ -3,7 +3,8 @@ import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { AppProvider } from './contexts/AppContext'
-import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { MainLayout } from './components/layout/MainLayout'
 import Login from './pages/Login'
 import Setup from './pages/Setup'
 import Dashboard from './pages/Dashboard'
@@ -15,11 +16,12 @@ import Calendar from './pages/Calendar'
 import TimeTracking from './pages/TimeTracking'
 import IntegrationSettings from './pages/IntegrationSettings'
 import AIAdmin from './pages/AIAdmin'
+import Workflows from './pages/Workflows'
+import IntelligentDashboard from './pages/IntelligentDashboard'
 import Unauthorized from './pages/Unauthorized'
 import NotFound from './pages/NotFound'
+import Index from './pages/Index'
 import { QueryClient } from './contexts/QueryContext'
-import IntelligentDashboard from './pages/IntelligentDashboard'
-import Workflows from './pages/Workflows'
 
 function App() {
   return (
@@ -30,28 +32,118 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/setup" element={<Setup />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route
-              path="/*"
+              path="/"
               element={
                 <ProtectedRoute>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/clients" element={<Clients />} />
-                    <Route path="/cases" element={<Cases />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/proposals" element={<Proposals />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/time-tracking" element={<TimeTracking />} />
-                    <Route path="/workflows" element={<Workflows />} />
-                    <Route path="/intelligent-dashboard" element={<IntelligentDashboard />} />
-                    <Route path="/integrations" element={<IntegrationSettings />} />
-                    <Route path="/ai-admin" element={<AIAdmin />} />
-                    <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <MainLayout>
+                    <Dashboard />
+                  </MainLayout>
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Clients />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cases"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Cases />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Tasks />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/proposals"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Proposals />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Calendar />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/time-tracking"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <TimeTracking />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/workflows"
+              element={
+                <ProtectedRoute allowedRoles={['partner', 'area_manager']}>
+                  <MainLayout>
+                    <Workflows />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/intelligent-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
+                  <MainLayout>
+                    <IntelligentDashboard />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/integrations"
+              element={
+                <ProtectedRoute allowedRoles={['partner', 'area_manager']}>
+                  <MainLayout>
+                    <IntegrationSettings />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ai-admin"
+              element={
+                <ProtectedRoute allowedRoles={['partner']}>
+                  <MainLayout>
+                    <AIAdmin />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
       </AppProvider>
