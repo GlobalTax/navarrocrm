@@ -45,19 +45,19 @@ export const useIntelligentWorkflows = () => {
   const createCaseWorkflowTasks = async (caseId: string, practiceArea: string) => {
     const taskTemplates = {
       'fiscal': [
-        { title: 'Revisar documentación fiscal', priority: 'high', estimatedHours: 2 },
-        { title: 'Preparar declaración', priority: 'medium', estimatedHours: 4 },
-        { title: 'Revisión final y presentación', priority: 'high', estimatedHours: 1 }
+        { description: 'Revisar documentación fiscal', priority: 'high' as const, estimatedHours: 2 },
+        { description: 'Preparar declaración', priority: 'medium' as const, estimatedHours: 4 },
+        { description: 'Revisión final y presentación', priority: 'high' as const, estimatedHours: 1 }
       ],
       'laboral': [
-        { title: 'Análisis de contrato laboral', priority: 'high', estimatedHours: 2 },
-        { title: 'Preparar documentación legal', priority: 'medium', estimatedHours: 3 },
-        { title: 'Seguimiento y cierre', priority: 'low', estimatedHours: 1 }
+        { description: 'Análisis de contrato laboral', priority: 'high' as const, estimatedHours: 2 },
+        { description: 'Preparar documentación legal', priority: 'medium' as const, estimatedHours: 3 },
+        { description: 'Seguimiento y cierre', priority: 'low' as const, estimatedHours: 1 }
       ],
       'mercantil': [
-        { title: 'Análisis de documentación societaria', priority: 'high', estimatedHours: 3 },
-        { title: 'Preparar acuerdos', priority: 'medium', estimatedHours: 5 },
-        { title: 'Tramitación registral', priority: 'high', estimatedHours: 2 }
+        { description: 'Análisis de documentación societaria', priority: 'high' as const, estimatedHours: 3 },
+        { description: 'Preparar acuerdos', priority: 'medium' as const, estimatedHours: 5 },
+        { description: 'Tramitación registral', priority: 'high' as const, estimatedHours: 2 }
       ]
     }
 
@@ -65,7 +65,8 @@ export const useIntelligentWorkflows = () => {
 
     for (const template of templates) {
       await supabase.from('tasks').insert({
-        title: template.title,
+        title: template.description,
+        description: template.description,
         case_id: caseId,
         priority: template.priority,
         estimated_hours: template.estimatedHours,
