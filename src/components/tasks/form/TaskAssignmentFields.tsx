@@ -16,17 +16,27 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
   const { clients } = useClients()
   const { cases } = useCases()
 
+  const handleCaseChange = (value: string) => {
+    const finalValue = value === 'none' ? '' : value
+    onInputChange('case_id', finalValue)
+  }
+
+  const handleClientChange = (value: string) => {
+    const finalValue = value === 'none' ? '' : value
+    onInputChange('client_id', finalValue)
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="case_id">Caso</Label>
-          <Select value={formData.case_id} onValueChange={(value) => onInputChange('case_id', value)}>
+          <Select value={formData.case_id || 'none'} onValueChange={handleCaseChange}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar caso" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin caso</SelectItem>
+              <SelectItem value="none">Sin caso</SelectItem>
               {cases?.map((caseItem) => (
                 <SelectItem key={caseItem.id} value={caseItem.id}>
                   {caseItem.title}
@@ -38,12 +48,12 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
 
         <div className="space-y-2">
           <Label htmlFor="client_id">Cliente</Label>
-          <Select value={formData.client_id} onValueChange={(value) => onInputChange('client_id', value)}>
+          <Select value={formData.client_id || 'none'} onValueChange={handleClientChange}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar cliente" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin cliente</SelectItem>
+              <SelectItem value="none">Sin cliente</SelectItem>
               {clients?.map((client) => (
                 <SelectItem key={client.id} value={client.id}>
                   {client.name}
