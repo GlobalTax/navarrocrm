@@ -9,8 +9,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ProposalFormData } from '../types/proposal.schema';
 import { useClients } from '@/hooks/useClients';
@@ -20,20 +18,40 @@ interface ProposalBasicInfoProps {
 }
 
 export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) => {
-  const { clients } = useClients();
+  console.log('ProposalBasicInfo rendering');
+  
+  const { clients, isLoading: clientsLoading } = useClients();
+
+  const formatDate = (date: Date) => {
+    try {
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return date.toLocaleDateString();
+    }
+  };
+
+  console.log('Clients data:', { clients, clientsLoading });
 
   return (
     <div className="space-y-6">
-      {/* Información básica */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título de la Propuesta</FormLabel>
+              <FormLabel>Título de la Propuesta *</FormLabel>
               <FormControl>
-                <Input placeholder="Propuesta de servicios..." {...field} />
+                <Input 
+                  placeholder="Propuesta de servicios..." 
+                  {...field} 
+                  value={field.value || ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -45,19 +63,29 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
           name="clientId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Cliente</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormLabel>Cliente *</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value || ''}
+                disabled={clientsLoading}
+              >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
+                    <SelectValue placeholder={clientsLoading ? "Cargando clientes..." : "Seleccionar cliente"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
+                  {clients && clients.length > 0 ? (
+                    clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-clients" disabled>
+                      No hay clientes disponibles
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -73,7 +101,10 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
           render={({ field }) => (
             <FormItem>
               <FormLabel>Moneda</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value || 'EUR'}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue />
@@ -107,7 +138,7 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP", { locale: es })
+                        formatDate(field.value)
                       ) : (
                         <span>Seleccionar fecha</span>
                       )}
@@ -131,7 +162,6 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
         />
       </div>
 
-      {/* Secciones de texto */}
       <FormField
         control={form.control}
         name="introduction"
@@ -143,6 +173,7 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
                 placeholder="Introducción de la propuesta..."
                 className="min-h-[100px]"
                 {...field} 
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
@@ -161,6 +192,7 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
                 placeholder="Descripción detallada del alcance..."
                 className="min-h-[120px]"
                 {...field} 
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
@@ -179,6 +211,7 @@ export const ProposalBasicInfo: React.FC<ProposalBasicInfoProps> = ({ form }) =>
                 placeholder="Cronograma y fechas importantes..."
                 className="min-h-[100px]"
                 {...field} 
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />

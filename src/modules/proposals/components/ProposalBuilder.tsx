@@ -15,7 +15,7 @@ interface ProposalBuilderProps {
 }
 
 export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSaving }) => {
-  console.log('ProposalBuilder rendering');
+  console.log('ProposalBuilder rendering, isSaving:', isSaving);
 
   const form = useForm<ProposalFormData>({
     resolver: zodResolver(proposalSchema),
@@ -41,76 +41,156 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
         totalPrice: 0
       }],
       currency: 'EUR',
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días
-    }
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    },
+    mode: 'onChange'
   });
 
+  // Watch form errors to help with debugging
+  const formErrors = form.formState.errors;
+  console.log('Form errors:', formErrors);
+  console.log('Form values:', form.watch());
+
   const addPricingTier = () => {
-    console.log('Adding pricing tier');
-    const currentTiers = form.getValues('pricingTiers');
-    form.setValue('pricingTiers', [...currentTiers, {
-      id: crypto.randomUUID(),
-      name: `Plan ${currentTiers.length + 1}`,
-      description: '',
-      services: [{
+    console.log('Adding new pricing tier');
+    try {
+      const currentTiers = form.getValues('pricingTiers') || [];
+      const newTier = {
         id: crypto.randomUUID(),
-        name: '',
+        name: `Plan ${currentTiers.length + 1}`,
         description: '',
-        quantity: 1,
-        unitPrice: 0,
-        billingCycle: 'once' as const,
-        taxable: true
-      }],
-      totalPrice: 0
-    }]);
+        services: [{
+          id: crypto.randomUUID(),
+          name: '',
+          description: '',
+          quantity: 1,
+          unitPrice: 0,
+          billingCycle: 'once' as const,
+          taxable: true
+        }],
+        totalPrice: 0
+      };
+      
+      form.setValue('pricingTiers', [...currentTiers, newTier]);
+      console.log('New tier added successfully');
+    } catch (error) {
+      console.error('Error adding pricing tier:', error);
+    }
   };
 
   const removePricingTier = (index: number) => {
-    const currentTiers = form.getValues('pricingTiers');
-    if (currentTiers.length > 1) {
-      form.setValue('pricingTiers', currentTiers.filter((_, i) => i !== index));
+    console.log('Removing pricing tier at index:', index);
+    try {
+      const currentTiers = form.getValues('pricingTiers') || [];
+      if (currentTiers.length > 1 && index >= 0 && index < currentTiers.length) {
+        const updatedTiers = currentTiers.filter((_, i) => i !== index);
+        form.setValue('pricingTiers', updatedTiers);
+        console.log('Tier removed successfully');
+      } else {
+        console.log('Cannot remove tier - insufficient tiers or invalid index');
+      }
+    } catch (error) {
+      console.error('Error removing pricing tier:', error);
     }
   };
 
   const addService = (tierIndex: number) => {
-    const currentTiers = form.getValues('pricingTiers');
-    const updatedTiers = [...currentTiers];
-    updatedTiers[tierIndex].services.push({
-      id: crypto.randomUUID(),
-      name: '',
-      description: '',
-      quantity: 1,
-      unitPrice: 0,
-      billingCycle: 'once',
-      taxable: true
-    });
-    form.setValue('pricingTiers', updatedTiers);
-  };
-
-  const removeService = (tierIndex: number, serviceIndex: number) => {
-    const currentTiers = form.getValues('pricingTiers');
-    const updatedTiers = [...currentTiers];
-    if (updatedTiers[tierIndex].services.length > 1) {
-      updatedTiers[tierIndex].services.splice(serviceIndex, 1);
-      form.setValue('pricingTiers', updatedTiers);
+    console.log('Adding service to tier:', tierIndex);
+    try {
+      const currentTiers = form.getValues('pricingTiers') || [];
+      if (tierIndex >= 0 && tierIndex < currentTiers.length) {
+        const updatedTiers = [...currentTiers];
+        const newService = {
+          id: crypto.randomUUID(),
+          name: '',
+          description: '',
+          quantity: 1,
+          unitPrice: 0,
+          billingCycle: 'once' as const,
+          taxable: true
+        };
+        
+        if (!updatedTiers[tierIndex].services) {
+          updatedTiers[tierIndex].services = [];
+        }
+        
+        updatedTiers[tierIndex].services.push(newService);
+        form.setValue('pricingTiers', updatedTiers);
+        console.log('Service added successfully');
+      }
+    } catch (error) {
+      console.error('Error adding service:', error);
     }
   };
 
-  const calculateTierTotal = (tierIndex: number) => {
-    const tier = form.watch(`pricingTiers.${tierIndex}`);
-    const total = tier.services.reduce((sum, service) => sum + (service.quantity * service.unitPrice), 0);
-    form.setValue(`pricingTiers.${tierIndex}.totalPrice`, total);
-    return total;
+  const removeService = (tierIndex: number, serviceIndex: number) => {
+    console.log('Removing service from tier:', tierIndex, 'service:', serviceIndex);
+    try {
+      const currentTiers = form.getValues('pricingTiers') || [];
+      if (tierIndex >= 0 && tierIndex < currentTiers.length) {
+        const updatedTiers = [...currentTiers];
+        const services = updatedTiers[tierIndex].services || [];
+        
+        if (services.length > 1 && serviceIndex >= 0 && serviceIndex < services.length) {
+          updatedTiers[tierIndex].services = services.filter((_, i) => i !== serviceIndex);
+          form.setValue('pricingTiers', updatedTiers);
+          console.log('Service removed successfully');
+        } else {
+          console.log('Cannot remove service - insufficient services or invalid index');
+        }
+      }
+    } catch (error) {
+      console.error('Error removing service:', error);
+    }
+  };
+
+  const calculateTierTotal = (tierIndex: number): number => {
+    try {
+      const tier = form.watch(`pricingTiers.${tierIndex}`);
+      if (!tier || !tier.services) {
+        console.log('No tier or services found for index:', tierIndex);
+        return 0;
+      }
+      
+      const total = tier.services.reduce((sum, service) => {
+        const quantity = service.quantity || 0;
+        const unitPrice = service.unitPrice || 0;
+        return sum + (quantity * unitPrice);
+      }, 0);
+      
+      // Update the tier's total price
+      form.setValue(`pricingTiers.${tierIndex}.totalPrice`, total);
+      
+      console.log(`Tier ${tierIndex} total calculated:`, total);
+      return total;
+    } catch (error) {
+      console.error('Error calculating tier total:', error);
+      return 0;
+    }
   };
 
   const onSubmit = (data: ProposalFormData) => {
-    console.log('Submitting proposal data:', data);
-    // Actualizar totales antes de guardar
-    data.pricingTiers.forEach((tier, index) => {
-      tier.totalPrice = tier.services.reduce((sum, service) => sum + (service.quantity * service.unitPrice), 0);
-    });
-    onSave(data);
+    console.log('Submitting proposal form with data:', data);
+    
+    try {
+      // Ensure all tier totals are updated before saving
+      data.pricingTiers.forEach((tier, index) => {
+        const total = tier.services.reduce((sum, service) => {
+          return sum + ((service.quantity || 0) * (service.unitPrice || 0));
+        }, 0);
+        tier.totalPrice = total;
+        console.log(`Final tier ${index} total:`, total);
+      });
+
+      console.log('Final proposal data:', data);
+      onSave(data);
+    } catch (error) {
+      console.error('Error in form submission:', error);
+    }
   };
+
+  const watchedTiers = form.watch('pricingTiers') || [];
+  console.log('Current pricing tiers:', watchedTiers.length);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -125,7 +205,7 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
               
               <PricingTierManager
                 form={form}
-                pricingTiers={form.watch('pricingTiers')}
+                pricingTiers={watchedTiers}
                 onAddTier={addPricingTier}
                 onRemoveTier={removePricingTier}
                 onAddService={addService}
@@ -133,7 +213,6 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
                 onCalculateTotal={calculateTierTotal}
               />
 
-              {/* Botones de acción */}
               <div className="flex justify-end space-x-4">
                 <Button type="button" variant="outline">
                   Cancelar
