@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/integrations/supabase/client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, XCircle, Settings, Mail, Calendar, AlertCircle } from 'lucide-react'
+import { useApp } from '@/contexts/AppContext'
 
 interface OutlookConfig {
   id?: string
@@ -27,6 +28,7 @@ interface OutlookConfig {
 
 export const OutlookIntegrationSettings = () => {
   const { toast } = useToast()
+  const { user } = useApp()
   const queryClient = useQueryClient()
   const [isTestingConnection, setIsTestingConnection] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -49,7 +51,12 @@ export const OutlookIntegrationSettings = () => {
   // Mutación para guardar configuración
   const saveConfigMutation = useMutation({
     mutationFn: async (newConfig: OutlookConfig) => {
+      if (!user?.org_id) {
+        throw new Error('No se pudo obtener el ID de la organización')
+      }
+
       const configData = {
+        org_id: user.org_id,
         integration_type: 'outlook',
         is_enabled: newConfig.is_enabled,
         outlook_client_id: newConfig.outlook_client_id,
