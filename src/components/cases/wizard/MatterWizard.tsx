@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { WizardStep1 } from './WizardStep1'
@@ -17,6 +17,8 @@ interface MatterWizardProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: CreateCaseData) => void
   isLoading?: boolean
+  isSuccess?: boolean
+  onResetCreate?: () => void
 }
 
 const STEPS = [
@@ -25,7 +27,14 @@ const STEPS = [
   { id: 3, title: 'Revisión', description: 'Confirmar y crear' }
 ]
 
-export function MatterWizard({ open, onOpenChange, onSubmit, isLoading }: MatterWizardProps) {
+export function MatterWizard({ 
+  open, 
+  onOpenChange, 
+  onSubmit, 
+  isLoading,
+  isSuccess,
+  onResetCreate
+}: MatterWizardProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<WizardFormData>({
     title: '',
@@ -41,6 +50,14 @@ export function MatterWizard({ open, onOpenChange, onSubmit, isLoading }: Matter
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Cerrar la ventana cuando la creación sea exitosa
+  useEffect(() => {
+    if (isSuccess) {
+      console.log('✅ Expediente creado exitosamente, cerrando wizard')
+      handleClose()
+    }
+  }, [isSuccess])
 
   const updateFormData = (updates: Partial<WizardFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -100,10 +117,14 @@ export function MatterWizard({ open, onOpenChange, onSubmit, isLoading }: Matter
       estimated_budget: formData.estimated_budget
     }
     
+    console.log('📤 Enviando datos del expediente:', submitData)
     onSubmit(submitData)
   }
 
   const handleClose = () => {
+    console.log('🚪 Cerrando wizard y reseteando estado')
+    
+    // Reset del formulario
     setCurrentStep(1)
     setFormData({
       title: '',
@@ -118,6 +139,13 @@ export function MatterWizard({ open, onOpenChange, onSubmit, isLoading }: Matter
       template_selection: 'none'
     })
     setErrors({})
+    
+    // Reset del estado de creación
+    if (onResetCreate) {
+      onResetCreate()
+    }
+    
+    // Cerrar el modal
     onOpenChange(false)
   }
 

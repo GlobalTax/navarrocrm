@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -87,33 +88,55 @@ export const useCases = () => {
     enabled: !!user?.org_id,
   })
 
-  const createCase = useMutation({
+  const createCaseMutation = useMutation({
     mutationFn: async (caseData: CreateCaseData) => {
+      console.log('📁 Creando expediente:', caseData)
+      
       // Generate matter number if not provided
-      const matterNumber = await supabase
+      const matterNumberResult = await supabase
         .rpc('generate_matter_number', { org_uuid: user?.org_id! })
+
+      if (matterNumberResult.error) {
+        console.error('❌ Error generando número de expediente:', matterNumberResult.error)
+        throw matterNumberResult.error
+      }
 
       const insertData = {
         ...caseData,
-        matter_number: matterNumber.data,
+        matter_number: matterNumberResult.data,
         org_id: user?.org_id!,
         date_opened: new Date().toISOString().split('T')[0],
       }
 
-      const { error } = await supabase
+      console.log('📁 Datos a insertar:', insertData)
+
+      const { data, error } = await supabase
         .from('cases')
         .insert(insertData)
+        .select()
+        .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error insertando expediente:', error)
+        throw error
+      }
+
+      console.log('✅ Expediente creado exitosamente:', data)
+      return data
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🎉 Expediente creado con éxito:', data)
       queryClient.invalidateQueries({ queryKey: ['cases'] })
-      toast({ title: 'Matter created successfully' })
-    },
-    onError: (error) => {
       toast({ 
-        title: 'Error creating matter', 
-        description: error.message, 
+        title: 'Expediente creado', 
+        description: `El expediente "${data.title}" ha sido creado correctamente.` 
+      })
+    },
+    onError: (error: any) => {
+      console.error('❌ Error al crear expediente:', error)
+      toast({ 
+        title: 'Error al crear expediente', 
+        description: error.message || 'Ha ocurrido un error inesperado', 
         variant: 'destructive' 
       })
     },
@@ -148,7 +171,9 @@ export const useCases = () => {
     setPracticeAreaFilter,
     solicitorFilter,
     setSolicitorFilter,
-    createCase: createCase.mutate,
-    isCreating: createCase.isPending,
+    createCase: createCaseMutation.mutate,
+    isCreating: createCaseMutation.isPending,
+    isCreateSuccess: createCaseMutation.isSuccess,
+    createCaseReset: createCaseMutation.reset,
   }
 }

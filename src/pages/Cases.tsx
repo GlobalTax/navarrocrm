@@ -28,7 +28,9 @@ export default function Cases() {
     solicitorFilter,
     setSolicitorFilter,
     createCase,
-    isCreating
+    isCreating,
+    isCreateSuccess,
+    createCaseReset
   } = useCases()
 
   const { practiceAreas = [] } = usePracticeAreas()
@@ -145,6 +147,8 @@ export default function Cases() {
           onOpenChange={setIsWizardOpen}
           onSubmit={createCase}
           isLoading={isCreating}
+          isSuccess={isCreateSuccess}
+          onResetCreate={createCaseReset}
         />
       </div>
     </div>
