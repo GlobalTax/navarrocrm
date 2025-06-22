@@ -184,12 +184,12 @@ export const IntegrationTestPanel = () => {
 
   const testEdgeFunctions = async (): Promise<TestResult> => {
     try {
-      // Test simple ping to outlook-auth function
-      const response = await fetch('/functions/v1/outlook-auth', {
+      // Test simple ping to outlook-auth function using the anon key
+      const response = await fetch('https://jzbbbwfnzpwxmuhpbdya.supabase.co/functions/v1/outlook-auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6YmJid2ZuenB3eG11aHBiZHlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA0NDMxODgsImV4cCI6MjA2NjAxOTE4OH0.NMClKY9QPN77oFVhIv4i0EzGaKvFxX6wJj06l2dTr-8`
         },
         body: JSON.stringify({ action: 'ping' })
       })
