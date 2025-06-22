@@ -1,34 +1,22 @@
 
 import { supabase } from '@/integrations/supabase/client'
 import { UserRole } from '../types'
-import { clearAuthCaches } from '../utils/authCache'
-import { cleanCorruptedSessions } from '../utils/sessionValidator'
 
 export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
     console.log('🔐 [AuthActions] Iniciando sesión para:', email)
     
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      
-      if (error) {
-        console.error('❌ [AuthActions] Error en signIn:', error.message)
-        
-        // Si hay error de credenciales, limpiar sesiones corruptas
-        if (error.message.includes('Invalid') || error.message.includes('credentials')) {
-          await cleanCorruptedSessions()
-        }
-        
-        throw error
-      }
-      
-      console.log('✅ [AuthActions] Sign in exitoso')
-    } catch (error) {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    
+    if (error) {
+      console.error('❌ [AuthActions] Error en signIn:', error.message)
       throw error
     }
+    
+    console.log('✅ [AuthActions] Sign in exitoso')
   }
 
   const signUp = async (email: string, password: string, role: UserRole, orgId: string) => {
@@ -62,16 +50,10 @@ export const useAuthActions = () => {
   const signOut = async () => {
     console.log('🚪 [AuthActions] Cerrando sesión')
     
-    // Limpiar cachés antes del sign out
-    clearAuthCaches()
-    
     const { error } = await supabase.auth.signOut()
     if (error) {
       console.error('❌ [AuthActions] Error en signOut:', error.message)
     }
-    
-    // Limpiar localStorage como medida adicional
-    await cleanCorruptedSessions()
   }
 
   return { signIn, signUp, signOut }

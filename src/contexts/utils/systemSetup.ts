@@ -1,21 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import { setupCache } from './authCache'
 
-export const checkSystemSetup = async (): Promise<boolean> => {
+export const initializeSystemSetup = async (
+  setIsSetup: (setup: boolean | null) => void,
+  setSetupLoading: (loading: boolean) => void
+) => {
   try {
-    // Verificar caché primero
-    const now = Date.now()
-    if (setupCache.isSetup !== null && (now - setupCache.timestamp) < setupCache.CACHE_DURATION) {
-      console.log('📋 [SystemSetup] Usando caché para setup:', setupCache.isSetup)
-      return setupCache.isSetup
-    }
-
-    console.log('🔧 [SystemSetup] Verificando configuración del sistema...')
+    console.log('🔧 [SystemSetup] Verificando setup...')
     
-    // Consulta con timeout mejorado usando Promise.race
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('TIMEOUT')), 8000)
+    const timeoutPromise = new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        console.log('⏰ [SystemSetup] Timeout setup - asumiendo configurado')
+        resolve(true)
+      }, 2000) // Timeout rápido de 2s
     })
 
     const queryPromise = supabase
@@ -23,34 +20,22 @@ export const checkSystemSetup = async (): Promise<boolean> => {
       .select('id')
       .limit(1)
       .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.log('🔧 [SystemSetup] Error setup, asumiendo configurado:', error.message)
+          return true
+        }
+        const setupComplete = data !== null
+        console.log('🔧 [SystemSetup] Setup verificado:', setupComplete)
+        return setupComplete
+      })
 
-    try {
-      const result = await Promise.race([queryPromise, timeoutPromise])
-      const { data, error } = result
-
-      const systemIsSetup = !error && data !== null
-      
-      // Actualizar caché
-      setupCache.isSetup = systemIsSetup
-      setupCache.timestamp = now
-      
-      console.log('✅ [SystemSetup] Setup verificado:', systemIsSetup)
-      return systemIsSetup
-    } catch (fetchError: any) {
-      if (fetchError.message === 'TIMEOUT') {
-        console.warn('⏰ [SystemSetup] Timeout en verificación setup - asumiendo configurado')
-        setupCache.isSetup = true
-        setupCache.timestamp = now
-        return true
-      } else {
-        throw fetchError
-      }
-    }
-  } catch (error: any) {
-    console.error('❌ [SystemSetup] Error verificando setup:', error)
-    // Fallback seguro
-    setupCache.isSetup = true
-    setupCache.timestamp = Date.now()
-    return true
+    const systemIsSetup = await Promise.race([queryPromise, timeoutPromise])
+    setIsSetup(systemIsSetup)
+  } catch (error) {
+    console.warn('⚠️ [SystemSetup] Error verificando setup, asumiendo configurado:', error)
+    setIsSetup(true) // Fallback seguro
+  } finally {
+    setSetupLoading(false)
   }
 }

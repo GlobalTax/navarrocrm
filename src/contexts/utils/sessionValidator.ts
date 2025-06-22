@@ -1,44 +1,36 @@
 
 import { Session } from '@supabase/supabase-js'
+import { supabase } from '@/integrations/supabase/client'
 
-export const isValidSession = (session: Session): boolean => {
-  try {
-    // Verificar que la sesión tenga los campos básicos
-    if (!session.access_token || !session.user?.id) {
-      return false
-    }
-    
-    // Verificar que no esté expirada (con margen de 5 minutos)
-    const now = Math.floor(Date.now() / 1000)
-    const expiresAt = session.expires_at || 0
-    if (expiresAt > 0 && (expiresAt - now) < 300) { // 5 minutos de margen
-      console.log('⏰ [SessionValidator] Sesión expira pronto o ya expiró')
-      return false
-    }
-    
-    return true
-  } catch (error) {
-    console.error('❌ [SessionValidator] Error validando sesión:', error)
-    return false
-  }
-}
+export const getInitialSession = async (
+  setSession: (session: Session | null) => void,
+  setAuthLoading: (loading: boolean) => void
+) => {
+  // Obtener sesión inicial con timeout rápido
+  const sessionTimeout = setTimeout(() => {
+    console.log('⏰ [SessionValidator] Timeout de sesión inicial - continuando sin bloquear')
+    setAuthLoading(false)
+  }, 2000) // Solo 2 segundos de timeout
 
-export const cleanCorruptedSessions = async () => {
   try {
-    console.log('🧹 [SessionValidator] Limpiando sesiones corruptas...')
+    const { data: { session }, error } = await supabase.auth.getSession()
     
-    // Limpiar localStorage de Supabase
-    const supabaseKeys = Object.keys(localStorage).filter(key => 
-      key.startsWith('sb-') || key.includes('supabase')
-    )
+    clearTimeout(sessionTimeout)
     
-    supabaseKeys.forEach(key => {
-      localStorage.removeItem(key)
-      console.log('🗑️ [SessionValidator] Eliminado:', key)
-    })
+    if (error) {
+      console.warn('⚠️ [SessionValidator] Error obteniendo sesión, continuando:', error.message)
+      setAuthLoading(false)
+      return null
+    }
+
+    console.log('📋 [SessionValidator] Sesión inicial:', session ? 'Encontrada' : 'No encontrada')
+    setSession(session)
+    setAuthLoading(false)
     
-    console.log('✅ [SessionValidator] Limpieza completada')
+    return session
   } catch (error) {
-    console.error('❌ [SessionValidator] Error limpiando sesiones:', error)
+    clearTimeout(sessionTimeout)
+    setAuthLoading(false)
+    return null
   }
 }
