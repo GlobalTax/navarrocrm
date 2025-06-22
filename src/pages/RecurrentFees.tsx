@@ -137,11 +137,11 @@ const RecurrentFees = () => {
   const [detalleCuota, setDetalleCuota] = useState<CuotaRecurrente | null>(null);
   const [hoy, setHoy] = useState(new Date());
   const [filtros, setFiltros] = useState<{
-    estado?: EstadoCuota;
+    estado?: EstadoCuota | "all";
     cliente?: string;
-    frecuencia?: Frecuencia;
-    prioridad?: Prioridad;
-    etiqueta?: string;
+    frecuencia?: Frecuencia | "all";
+    prioridad?: Prioridad | "all";
+    etiqueta?: string | "all";
   }>({});
 
   // Workflows automáticos: al avanzar el día, se generan cobros y se actualizan estados
