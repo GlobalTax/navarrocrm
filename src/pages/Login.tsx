@@ -17,7 +17,7 @@ export default function Login() {
   const location = useLocation()
   const { toast } = useToast()
 
-  const from = location.state?.from?.pathname || '/dashboard'
+  const from = location.state?.from?.pathname || '/'
 
   // Redirección más directa
   useEffect(() => {

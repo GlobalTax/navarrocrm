@@ -19,7 +19,7 @@ const Index = () => {
 
   // Redirecciones simplificadas y directas
   if (session || user) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/" replace />
   }
 
   if (isSetup === false) {

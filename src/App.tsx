@@ -1,5 +1,6 @@
+
 import React from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { AppProvider } from './contexts/AppContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -34,6 +35,10 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/setup" element={<Setup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            
+            {/* Redirección de dashboard legacy a la ruta principal */}
+            <Route path="/dashboard" element={<Navigate to="/" replace />} />
+            
             <Route
               path="/"
               element={
