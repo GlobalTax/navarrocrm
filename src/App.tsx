@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
@@ -23,6 +22,7 @@ import Unauthorized from './pages/Unauthorized'
 import NotFound from './pages/NotFound'
 import Index from './pages/Index'
 import { QueryClient } from './contexts/QueryContext'
+import RecurrentFees from './pages/RecurrentFees'
 
 function App() {
   return (
@@ -150,6 +150,16 @@ function App() {
                 <ProtectedRoute allowedRoles={['partner']}>
                   <MainLayout>
                     <AIAdmin />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recurrent-fees"
+              element={
+                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
+                  <MainLayout>
+                    <RecurrentFees />
                   </MainLayout>
                 </ProtectedRoute>
               }

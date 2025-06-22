@@ -1,5 +1,4 @@
-
-import { Home, Users, FolderOpen, CheckSquare, FileText, Calendar, Clock, Zap, Brain, Settings } from 'lucide-react'
+import { Home, Users, FolderOpen, CheckSquare, FileText, Calendar, Clock, Zap, Brain, Settings, Repeat } from 'lucide-react'
 
 export const navigation = [
   { name: 'Dashboard', href: '/' },
@@ -7,6 +6,7 @@ export const navigation = [
   { name: 'Expedientes', href: '/cases' },
   { name: 'Tareas', href: '/tasks' },
   { name: 'Propuestas', href: '/proposals' },
+  { name: 'Cuotas Recurrentes', href: '/recurrent-fees' },
   { name: 'Calendario', href: '/calendar' },
   { name: 'Tiempo', href: '/time-tracking' },
   { name: 'Workflows', href: '/workflows' },
@@ -66,6 +66,13 @@ export const navigationItems: NavigationItem[] = [
     icon: FileText,
     path: '/proposals',
     color: 'text-cyan-600',
+    requiredRoles: ['partner', 'area_manager', 'senior']
+  },
+  {
+    title: 'Cuotas Recurrentes',
+    icon: Repeat,
+    path: '/recurrent-fees',
+    color: 'text-emerald-600',
     requiredRoles: ['partner', 'area_manager', 'senior']
   },
   {
