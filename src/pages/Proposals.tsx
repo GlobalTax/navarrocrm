@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
@@ -16,6 +15,8 @@ import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
 
 export default function Proposals() {
+  console.log('Proposals page rendering');
+  
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
   const { mutate: saveEnhancedProposal, isPending: isSavingEnhanced } = useSaveProposal()
   const { user } = useApp()
@@ -27,6 +28,8 @@ export default function Proposals() {
     dateFrom: undefined as Date | undefined,
     dateTo: undefined as Date | undefined
   })
+
+  console.log('Current state:', { showEnhancedBuilder, isLoading, user });
 
   // Filtrar propuestas
   const filteredProposals = proposals.filter(proposal => {
@@ -52,6 +55,7 @@ export default function Proposals() {
   }
 
   const handleSaveEnhancedProposal = (data: ProposalFormData) => {
+    console.log('Handling save enhanced proposal:', data);
     if (!user || !user.org_id) {
       console.error("User or org_id is not available. Cannot save proposal.");
       return;
@@ -77,6 +81,7 @@ export default function Proposals() {
 
   // Mostrar el ProposalBuilder si está activo
   if (showEnhancedBuilder) {
+    console.log('Showing ProposalBuilder');
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -86,7 +91,10 @@ export default function Proposals() {
           </div>
           <Button 
             variant="outline" 
-            onClick={() => setShowEnhancedBuilder(false)}
+            onClick={() => {
+              console.log('Volver a propuestas clicked');
+              setShowEnhancedBuilder(false);
+            }}
           >
             Volver a Propuestas
           </Button>
@@ -110,7 +118,10 @@ export default function Proposals() {
         </div>
         <div className="flex gap-2">
           <Button 
-            onClick={() => setShowEnhancedBuilder(true)}
+            onClick={() => {
+              console.log('Propuesta Avanzada clicked');
+              setShowEnhancedBuilder(true);
+            }}
             variant="default"
           >
             <Plus className="h-4 w-4 mr-2" />

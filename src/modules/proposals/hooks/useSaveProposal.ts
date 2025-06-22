@@ -14,13 +14,17 @@ export const useSaveProposal = () => {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: ({ proposalData, orgId, userId }: SaveProposalPayload) => 
-      saveProposalService(proposalData, orgId, userId),
+    mutationFn: ({ proposalData, orgId, userId }: SaveProposalPayload) => {
+      console.log('Guardando propuesta:', { proposalData, orgId, userId });
+      return saveProposalService(proposalData, orgId, userId);
+    },
     onSuccess: (data) => {
+      console.log('Propuesta guardada exitosamente:', data);
       queryClient.invalidateQueries({ queryKey: ['proposals'] });
       toast.success(`Propuesta "${data.title}" guardada con éxito`);
     },
     onError: (error: Error) => {
+      console.error('Error al guardar propuesta:', error);
       toast.error(`Error al guardar: ${error.message}`);
     },
   });
