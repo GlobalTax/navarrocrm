@@ -8,11 +8,12 @@ export const initializeSystemSetup = async (
   try {
     console.log('🔧 [SystemSetup] Verificando setup...')
     
+    // Timeout más agresivo
     const timeoutPromise = new Promise<boolean>((resolve) => {
       setTimeout(() => {
         console.log('⏰ [SystemSetup] Timeout setup - asumiendo configurado')
         resolve(true)
-      }, 2000) // Timeout rápido de 2s
+      }, 1000) // Reducido a 1 segundo
     })
 
     const queryPromise = supabase
@@ -33,7 +34,7 @@ export const initializeSystemSetup = async (
     const systemIsSetup = await Promise.race([queryPromise, timeoutPromise])
     setIsSetup(systemIsSetup)
   } catch (error) {
-    console.warn('⚠️ [SystemSetup] Error verificando setup, asumiendo configurado:', error)
+    console.warn('⚠️ [SystemSetup] Error verificando setup:', error)
     setIsSetup(true) // Fallback seguro
   } finally {
     setSetupLoading(false)

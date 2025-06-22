@@ -2,7 +2,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { AppProvider } from '@/contexts/AppContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -24,8 +23,9 @@ import Unauthorized from '@/pages/Unauthorized';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 2 * 60 * 1000, // 2 minutes (reducido)
       retry: 1,
+      refetchOnWindowFocus: false, // Evitar re-fetches innecesarios
     },
   },
 });
@@ -33,45 +33,109 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppProvider>
-          <Router>
-            <div className="min-h-screen bg-gray-50">
-              <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/setup" element={<Setup />} />
-                <Route path="/unauthorized" element={<Unauthorized />} />
-                
-                {/* Protected routes with nested structure */}
-                <Route 
-                  path="/" 
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Dashboard />} />
-                  <Route path="clients" element={<Clients />} />
-                  <Route path="cases" element={<Cases />} />
-                  <Route path="tasks" element={<Tasks />} />
-                  <Route path="proposals" element={<Proposals />} />
-                  <Route path="calendar" element={<Calendar />} />
-                  <Route path="time-tracking" element={<TimeTracking />} />
-                  <Route path="ai-admin" element={<AIAdmin />} />
-                </Route>
-                
-                {/* Fallback routes */}
-                <Route path="/404" element={<NotFound />} />
-                <Route path="*" element={<Navigate to="/404" replace />} />
-              </Routes>
+      <AppProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/setup" element={<Setup />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
               
-              <Toaster position="bottom-right" />
-            </div>
-          </Router>
-        </AppProvider>
-      </AuthProvider>
+              {/* Protected routes - simplificadas */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Dashboard />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/clients" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Clients />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/cases" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Cases />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/tasks" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Tasks />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/proposals" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Proposals />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/calendar" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Calendar />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/time-tracking" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <TimeTracking />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/ai-admin" 
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <AIAdmin />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Root redirect */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              
+              {/* Fallback routes */}
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+            
+            <Toaster position="bottom-right" />
+          </div>
+        </Router>
+      </AppProvider>
     </QueryClientProvider>
   );
 }

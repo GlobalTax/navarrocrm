@@ -12,36 +12,22 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { session, user, isSetup, signIn, authLoading, setupLoading } = useApp()
+  const { session, user, signIn, authLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
 
-  const from = location.state?.from?.pathname || '/'
+  const from = location.state?.from?.pathname || '/dashboard'
 
-  // Redirección simplificada y más rápida
+  // Redirección más directa
   useEffect(() => {
-    // Solo esperar la carga crítica de auth, no el setup
-    if (authLoading) {
-      console.log('🔄 [Login] Esperando autenticación...')
-      return
-    }
+    if (authLoading) return
 
-    // Si hay usuario/sesión válida, redirigir inmediatamente
     if (session || user) {
-      // No esperar a que termine de cargar el setup, redirigir ya
-      console.log('🔐 [Login] Usuario autenticado, redirigiendo inmediatamente')
+      console.log('🔐 [Login] Usuario autenticado, redirigiendo')
       navigate(from, { replace: true })
-      return
     }
-    
-    // Solo si definitivamente no hay setup y ya terminó de cargar, ir a setup
-    if (isSetup === false && !setupLoading) {
-      console.log('🔧 [Login] Sistema no configurado, redirigiendo a setup')
-      navigate('/setup', { replace: true })
-      return
-    }
-  }, [session, user, isSetup, authLoading, setupLoading, navigate, from])
+  }, [session, user, authLoading, navigate, from])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,26 +44,21 @@ export default function Login() {
     setLoading(true)
 
     try {
-      console.log('🔐 [Login] Intentando login para:', email)
       await signIn(email, password)
       
       toast({
         title: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente",
       })
-      
-      // La redirección se manejará automáticamente por el useEffect
     } catch (error: any) {
-      console.error('❌ [Login] Error en login:', error)
+      console.error('❌ [Login] Error:', error)
       
-      let errorMessage = "Error al iniciar sesión. Inténtalo de nuevo."
+      let errorMessage = "Error al iniciar sesión"
       
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = "Email o contraseña incorrectos"
       } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = "Por favor, confirma tu email antes de iniciar sesión"
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = "Demasiados intentos. Espera unos minutos antes de intentar de nuevo"
+        errorMessage = "Por favor, confirma tu email"
       }
       
       toast({
@@ -90,22 +71,13 @@ export default function Login() {
     }
   }
 
-  // Mostrar loading solo durante la carga inicial crítica
-  const showLoading = authLoading || ((session || user) && !setupLoading)
-  
-  if (showLoading) {
+  // Loading simplificado
+  if (authLoading || ((session || user) && !loading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {authLoading ? 'Verificando autenticación...' : 'Accediendo...'}
-          </p>
-          {setupLoading && (
-            <p className="text-sm text-gray-500 mt-2">
-              Verificando configuración en segundo plano...
-            </p>
-          )}
+          <p className="text-gray-600">Accediendo...</p>
         </div>
       </div>
     )
@@ -158,16 +130,6 @@ export default function Login() {
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
           </form>
-          
-          {/* Mostrar el estado de verificación del setup si está cargando */}
-          {setupLoading && (
-            <div className="mt-4 text-center text-sm text-gray-500">
-              <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400"></div>
-                Verificando configuración del sistema...
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

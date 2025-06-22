@@ -15,7 +15,7 @@ export const enrichUserProfileAsync = async (
 
   try {
     profileEnrichmentInProgress.current = true
-    console.log('👤 [ProfileHandler] Enriqueciendo perfil en segundo plano:', authUser.id)
+    console.log('👤 [ProfileHandler] Enriqueciendo perfil:', authUser.id)
     
     const { data, error } = await Promise.race([
       supabase
@@ -24,7 +24,7 @@ export const enrichUserProfileAsync = async (
         .eq('id', authUser.id)
         .single(),
       new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('TIMEOUT')), 3000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 2000) // Reducido timeout
       })
     ])
 
@@ -39,9 +39,13 @@ export const enrichUserProfileAsync = async (
       setUser(enrichedUser)
     } else {
       console.log('⚠️ [ProfileHandler] Manteniendo usuario básico:', error?.message || 'Sin datos')
+      // Usar usuario básico si falla
+      setUser(authUser as AuthUser)
     }
   } catch (error: any) {
-    console.log('⚠️ [ProfileHandler] Error enriqueciendo perfil, manteniendo básico:', error.message)
+    console.log('⚠️ [ProfileHandler] Error enriqueciendo perfil:', error.message)
+    // Usar usuario básico si falla
+    setUser(authUser as AuthUser)
   } finally {
     profileEnrichmentInProgress.current = false
   }
