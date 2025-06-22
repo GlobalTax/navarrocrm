@@ -81,25 +81,6 @@ export const TasksStats = ({ stats }: TasksStatsProps) => {
       {legalStatItems.map((item) => {
         const IconComponent = item.icon
         
-        if (!IconComponent || typeof IconComponent !== 'function') {
-          console.warn('⚠️ Invalid icon component for:', item.label)
-          return (
-            <Card key={item.label}>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${item.bgColor}`}>
-                    <div className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-gray-900">{item.value}</p>
-                    <p className="text-xs text-gray-600">{item.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        }
-        
         return (
           <Card key={item.label} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
