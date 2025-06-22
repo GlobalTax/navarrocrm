@@ -50,4 +50,6 @@ export interface SeedResult {
   success: boolean
   orgId?: string
   error?: any
+  details?: any
+  message?: string
 }
