@@ -18,7 +18,7 @@ interface HeaderTimerDialogProps {
 }
 
 export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: HeaderTimerDialogProps) => {
-  const [selectedCaseId, setSelectedCaseId] = useState<string>('')
+  const [selectedCaseId, setSelectedCaseId] = useState<string>('none')
   const [description, setDescription] = useState('')
   const [isBillable, setIsBillable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -48,7 +48,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
       const minutes = Math.round(timerSeconds / 60)
       
       await createTimeEntry({
-        case_id: selectedCaseId || null,
+        case_id: selectedCaseId === 'none' ? null : selectedCaseId,
         description: description.trim(),
         duration_minutes: minutes,
         is_billable: isBillable
@@ -57,7 +57,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
       toast.success(`Tiempo registrado: ${minutes} minutos`)
       
       // Resetear formulario
-      setSelectedCaseId('')
+      setSelectedCaseId('none')
       setDescription('')
       setIsBillable(true)
       
@@ -101,7 +101,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
                 <SelectValue placeholder="Seleccionar caso..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin caso específico</SelectItem>
+                <SelectItem value="none">Sin caso específico</SelectItem>
                 {cases.map((case_) => (
                   <SelectItem key={case_.id} value={case_.id}>
                     {case_.title} ({case_.client?.name})
