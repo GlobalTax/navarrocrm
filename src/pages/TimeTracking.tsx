@@ -1,6 +1,7 @@
 
 import { Timer } from '@/components/timer/Timer'
 import { TimeEntriesTable } from '@/components/timer/TimeEntriesTable'
+import { DigitalClock } from '@/components/timer/DigitalClock'
 
 export default function TimeTracking() {
   return (
@@ -11,6 +12,11 @@ export default function TimeTracking() {
           <p className="text-gray-600 mt-2">
             Registra y controla el tiempo dedicado a cada proyecto y cliente
           </p>
+        </div>
+
+        {/* Reloj Digital */}
+        <div className="mb-6">
+          <DigitalClock />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
