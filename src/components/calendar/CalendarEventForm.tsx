@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, Loader2, Clock, Users, AlertCircle, Mail, Calendar } from 'lucide-react'
 import { CreateCalendarEventData } from '@/hooks/useCalendarEvents'
+import { EmailInvitationPreview } from '@/components/integrations/EmailInvitationPreview'
+import { OutlookSyncStatus } from '@/components/integrations/OutlookSyncStatus'
+import { AttendeeManager } from '@/components/integrations/AttendeeManager'
 
 interface CalendarEventFormProps {
   formData: CreateCalendarEventData & { 
@@ -60,20 +64,17 @@ export function CalendarEventForm({
     }))
   }
 
-  const addAttendeeEmail = () => {
-    if (newAttendeeEmail && newAttendeeEmail.includes('@')) {
-      setFormData((prev: any) => ({
-        ...prev,
-        attendees_emails: [...(prev.attendees_emails || []), newAttendeeEmail]
-      }))
-      setNewAttendeeEmail('')
-    }
-  }
-
-  const removeAttendeeEmail = (index: number) => {
+  const handleAttendeesChange = (newAttendees: string[]) => {
     setFormData((prev: any) => ({
       ...prev,
-      attendees_emails: prev.attendees_emails?.filter((_: string, i: number) => i !== index) || []
+      attendees_emails: newAttendees
+    }))
+  }
+
+  const handleInvitationToggle = (enabled: boolean) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      auto_send_invitations: enabled
     }))
   }
 
@@ -81,7 +82,7 @@ export function CalendarEventForm({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-4">
       {/* Columna principal - Detalles del evento */}
       <div className="lg:col-span-2 space-y-6">
-        {/* ... keep existing code (event details section) */}
+        {/* Detalles básicos del evento */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Detalles del evento</h3>
           
@@ -97,7 +98,6 @@ export function CalendarEventForm({
                 placeholder="Título del evento"
                 className="text-base"
               />
-              <p className="text-sm text-gray-500">Este campo es obligatorio.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -158,11 +158,11 @@ export function CalendarEventForm({
               
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="repeat"
-                  checked={formData.repeat}
-                  onCheckedChange={(checked) => setFormData({...formData, repeat: checked as boolean})}
+                  id="sync-outlook"
+                  checked={formData.sync_with_outlook || false}
+                  onCheckedChange={(checked) => setFormData({...formData, sync_with_outlook: checked as boolean})}
                 />
-                <Label htmlFor="repeat" className="text-sm">Repetir</Label>
+                <Label htmlFor="sync-outlook" className="text-sm">Sincronizar con Outlook</Label>
               </div>
             </div>
 
@@ -218,78 +218,32 @@ export function CalendarEventForm({
           </div>
         </div>
 
-        {/* Nueva sección: Integración con Outlook */}
-        <div className="space-y-4 border-t pt-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-medium">Integración con Outlook</h3>
-          </div>
-          
-          <div className="grid gap-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="sync-outlook"
-                checked={formData.sync_with_outlook || false}
-                onCheckedChange={(checked) => setFormData({...formData, sync_with_outlook: checked as boolean})}
-              />
-              <Label htmlFor="sync-outlook" className="text-sm">
-                Sincronizar con Outlook
-              </Label>
-            </div>
-            
-            {formData.sync_with_outlook && (
-              <div className="ml-6 space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="auto-invitations"
-                    checked={formData.auto_send_invitations || false}
-                    onCheckedChange={(checked) => setFormData({...formData, auto_send_invitations: checked as boolean})}
-                  />
-                  <Label htmlFor="auto-invitations" className="text-sm">
-                    Enviar invitaciones automáticamente
-                  </Label>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Participantes (emails)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="email@ejemplo.com"
-                      value={newAttendeeEmail}
-                      onChange={(e) => setNewAttendeeEmail(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addAttendeeEmail()}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={addAttendeeEmail}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  {formData.attendees_emails && formData.attendees_emails.length > 0 && (
-                    <div className="space-y-1">
-                      {formData.attendees_emails.map((email, index) => (
-                        <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
-                          <span className="text-sm">{email}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttendeeEmail(index)}
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Tipo de evento */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Tipo de evento</h3>
+          <Select value={formData.event_type} onValueChange={(value: any) => setFormData({...formData, event_type: value})}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="meeting">Reunión</SelectItem>
+              <SelectItem value="consultation">Consulta</SelectItem>
+              <SelectItem value="deadline">Plazo Legal</SelectItem>
+              <SelectItem value="task">Tarea</SelectItem>
+              <SelectItem value="court">Audiencia/Juzgado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Descripción */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Descripción</h3>
+          <Textarea
+            value={formData.description || ''}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            placeholder="Descripción del evento"
+            rows={4}
+          />
         </div>
 
         {/* Recordatorios */}
@@ -339,98 +293,38 @@ export function CalendarEventForm({
             </Button>
           </div>
         </div>
-
-        {/* Tipo de evento */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Tipo de evento</h3>
-          <Select value={formData.event_type} onValueChange={(value: any) => setFormData({...formData, event_type: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="meeting">Reunión</SelectItem>
-              <SelectItem value="consultation">Consulta</SelectItem>
-              <SelectItem value="deadline">Plazo Legal</SelectItem>
-              <SelectItem value="task">Tarea</SelectItem>
-              <SelectItem value="court">Audiencia/Juzgado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Descripción */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Descripción</h3>
-          <Textarea
-            value={formData.description || ''}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-            placeholder="Descripción del evento"
-            rows={4}
-          />
-        </div>
       </div>
 
-      {/* Columna lateral - Invitar participantes */}
+      {/* Columna lateral - Integraciones y participantes */}
       <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-medium">Invitar participantes</h3>
-          </div>
-          
-          <div className="grid gap-3">
-            <Input
-              placeholder="Buscar usuarios o contactos"
-              className="text-sm"
-            />
-            <p className="text-sm text-gray-500">
-              Busca usuarios de la firma o contactos para invitar
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700">Participantes sugeridos</h4>
-            <p className="text-sm text-gray-500">No hay sugerencias en este momento.</p>
-          </div>
-        </div>
-
-        {/* Guardar en calendario */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-medium">Guardar en calendario</h3>
-          <Select defaultValue="personal">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="personal">Mi calendario</SelectItem>
-              <SelectItem value="firm">Calendario de la firma</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox id="add-to-firm" />
-            <Label htmlFor="add-to-firm" className="text-sm">
-              Añadir también al calendario de la firma
-            </Label>
-          </div>
-        </div>
-
-        {/* Estado de sincronización */}
+        {/* Estado de Outlook */}
         {formData.sync_with_outlook && (
-          <div className="space-y-4 border-t pt-4">
-            <div className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-green-600" />
-              <h3 className="text-sm font-medium">Estado de Outlook</h3>
-            </div>
-            <div className="text-sm text-gray-600">
-              <p>✓ Sincronización activada</p>
-              {formData.auto_send_invitations && (
-                <p>✓ Invitaciones automáticas</p>
-              )}
-              {formData.attendees_emails && formData.attendees_emails.length > 0 && (
-                <p>👥 {formData.attendees_emails.length} participante(s)</p>
-              )}
-            </div>
-          </div>
+          <OutlookSyncStatus
+            syncEnabled={formData.sync_with_outlook}
+            emailEnabled={formData.auto_send_invitations || false}
+            connectionStatus="connected"
+          />
+        )}
+
+        {/* Gestión de participantes */}
+        <AttendeeManager
+          attendees={formData.attendees_emails || []}
+          onAttendeesChange={handleAttendeesChange}
+          disabled={isCreating}
+        />
+
+        {/* Preview de invitaciones */}
+        {formData.sync_with_outlook && (
+          <EmailInvitationPreview
+            eventTitle={formData.title}
+            eventDate={formData.date}
+            eventTime={formData.time}
+            eventLocation={formData.location}
+            eventDescription={formData.description}
+            attendees={formData.attendees_emails || []}
+            isEnabled={formData.auto_send_invitations || false}
+            onToggle={handleInvitationToggle}
+          />
         )}
       </div>
     </div>
