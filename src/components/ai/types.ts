@@ -15,7 +15,7 @@ export interface AIAssistantProps {
 }
 
 export interface QuickAction {
-  icon: React.ComponentType<{ className?: string }>
+  icon?: React.ComponentType<{ className?: string }>
   label: string
   prompt: string
 }
