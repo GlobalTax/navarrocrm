@@ -18,52 +18,17 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const { updateTask } = useTasks()
 
-  console.log('🔍 TasksBoardKanban received tasks:', tasks?.length || 0)
-  
-  if (!Array.isArray(tasks)) {
-    console.warn('⚠️ TasksBoardKanban received non-array tasks:', tasks)
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Error: Datos de tareas inválidos</p>
-      </div>
-    )
-  }
-
   const columns = [
     { 
       id: 'pending', 
-      title: 'Pendientes', 
+      title: 'Por Hacer', 
       color: 'border-yellow-200 bg-yellow-50',
       count: 0
     },
     { 
-      id: 'investigation', 
-      title: 'Investigación', 
-      color: 'border-purple-200 bg-purple-50',
-      count: 0
-    },
-    { 
-      id: 'drafting', 
-      title: 'Redacción', 
+      id: 'in_progress', 
+      title: 'En Curso', 
       color: 'border-blue-200 bg-blue-50',
-      count: 0
-    },
-    { 
-      id: 'review', 
-      title: 'Revisión', 
-      color: 'border-orange-200 bg-orange-50',
-      count: 0
-    },
-    { 
-      id: 'filing', 
-      title: 'Presentación', 
-      color: 'border-indigo-200 bg-indigo-50',
-      count: 0
-    },
-    { 
-      id: 'hearing', 
-      title: 'Audiencia', 
-      color: 'border-red-200 bg-red-50',
       count: 0
     },
     { 
@@ -71,23 +36,28 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
       title: 'Completadas', 
       color: 'border-green-200 bg-green-50',
       count: 0
-    },
-    { 
-      id: 'cancelled', 
-      title: 'Canceladas', 
-      color: 'border-gray-200 bg-gray-50',
-      count: 0
     }
   ]
 
   const getTasksByStatus = (status: string) => {
     return tasks.filter(task => {
-      if (!task || !task.id) {
-        console.warn('⚠️ Invalid task found:', task)
-        return false
+      if (!task || !task.id) return false
+      
+      // Mapear estados complejos a estados simples
+      const statusMapping: { [key: string]: string } = {
+        'pending': 'pending',
+        'investigation': 'in_progress',
+        'drafting': 'in_progress',
+        'review': 'in_progress',
+        'filing': 'in_progress',
+        'hearing': 'in_progress',
+        'in_progress': 'in_progress',
+        'completed': 'completed',
+        'cancelled': 'completed'
       }
-      return task.status === status
-    }) || []
+      
+      return statusMapping[task.status] === status
+    })
   }
 
   // Actualizar contadores
@@ -115,7 +85,7 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4 pb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {columns.map(column => {
           const columnTasks = getTasksByStatus(column.id)
           
@@ -125,55 +95,48 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
               className={`rounded-lg border-2 ${column.color} min-h-[500px] flex flex-col`}
             >
               <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
-                <h3 className="font-semibold text-gray-900 text-sm">{column.title}</h3>
+                <h3 className="font-semibold text-gray-900">{column.title}</h3>
                 <div className="flex items-center space-x-2">
-                  <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-600">
+                  <span className="bg-white px-2 py-1 rounded-full text-sm font-medium text-gray-600">
                     {column.count}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={onCreateTask}
-                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <Plus className="h-3 w-3" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               
-              <div className="flex-1 p-3 space-y-3 overflow-y-auto">
-                {columnTasks.map(task => {
-                  if (!task || !task.id) {
-                    console.warn('⚠️ Skipping invalid task in column:', column.id, task)
-                    return null
-                  }
-                  
-                  return (
-                    <div
-                      key={task.id}
-                      onClick={() => handleTaskClick(task)}
-                      className="cursor-pointer"
-                    >
-                      <TaskCard
-                        task={task}
-                        onEdit={() => onEditTask(task)}
-                        onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
-                        showStatusSelector={false}
-                      />
-                    </div>
-                  )
-                })}
+              <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+                {columnTasks.map(task => (
+                  <div
+                    key={task.id}
+                    onClick={() => handleTaskClick(task)}
+                    className="cursor-pointer"
+                  >
+                    <TaskCard
+                      task={task}
+                      onEdit={() => onEditTask(task)}
+                      onStatusChange={(newStatus) => handleStatusChange(task.id, newStatus)}
+                      showStatusSelector={false}
+                    />
+                  </div>
+                ))}
                 
                 {columnTasks.length === 0 && (
                   <div className="text-center py-8 text-gray-400">
-                    <p className="text-xs">No hay tareas</p>
+                    <p className="text-sm">No hay tareas</p>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={onCreateTask}
-                      className="mt-2 text-xs"
+                      className="mt-2 text-sm"
                     >
-                      <Plus className="h-3 w-3 mr-1" />
+                      <Plus className="h-4 w-4 mr-1" />
                       Añadir tarea
                     </Button>
                   </div>

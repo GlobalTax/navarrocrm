@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button'
-import { Plus, LayoutGrid, List, Scale, Gavel } from 'lucide-react'
+import { Plus, LayoutGrid, List } from 'lucide-react'
 import { TaskViewMode } from '@/pages/Tasks'
 
 interface TasksHeaderProps {
@@ -12,14 +12,8 @@ interface TasksHeaderProps {
 export const TasksHeader = ({ viewMode, setViewMode, onCreateTask }: TasksHeaderProps) => {
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
-          <Scale className="h-6 w-6 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestión de Tareas Legales</h1>
-            <p className="text-sm text-gray-600">Seguimiento de gestiones procesales y administrativas</p>
-          </div>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Tareas</h1>
       </div>
 
       <div className="flex items-center space-x-3">
@@ -31,7 +25,7 @@ export const TasksHeader = ({ viewMode, setViewMode, onCreateTask }: TasksHeader
             className="flex items-center space-x-2"
           >
             <LayoutGrid className="h-4 w-4" />
-            <span>Kanban Legal</span>
+            <span>Tablero</span>
           </Button>
           <Button
             variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -46,7 +40,7 @@ export const TasksHeader = ({ viewMode, setViewMode, onCreateTask }: TasksHeader
 
         <Button onClick={onCreateTask} className="flex items-center space-x-2">
           <Plus className="h-4 w-4" />
-          <span>Nueva Gestión</span>
+          <span>Nueva Tarea</span>
         </Button>
       </div>
     </div>

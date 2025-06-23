@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from '@/components/ui/card'
-import { CheckCircle, Clock, AlertTriangle, Target, Scale, Gavel, FileText, Calendar } from 'lucide-react'
+import { CheckCircle, Clock, AlertTriangle, Target, Play } from 'lucide-react'
 
 interface TasksStatsProps {
   stats?: {
@@ -14,8 +14,6 @@ interface TasksStatsProps {
 }
 
 export const TasksStats = ({ stats }: TasksStatsProps) => {
-  console.log('🔍 TasksStats received stats:', stats)
-  
   const safeStats = stats || {
     total_tasks: 0,
     pending_tasks: 0,
@@ -25,60 +23,47 @@ export const TasksStats = ({ stats }: TasksStatsProps) => {
     high_priority_tasks: 0
   }
 
-  const legalStatItems = [
+  const statItems = [
     {
-      label: 'Total Gestiones',
+      label: 'Total',
       value: safeStats.total_tasks,
       icon: Target,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Todas las tareas activas'
+      bgColor: 'bg-blue-50'
     },
     {
       label: 'Pendientes',
       value: safeStats.pending_tasks,
       icon: Clock,
       color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      description: 'Por asignar o iniciar'
+      bgColor: 'bg-yellow-50'
     },
     {
-      label: 'En Proceso',
+      label: 'En Curso',
       value: safeStats.in_progress_tasks,
-      icon: FileText,
+      icon: Play,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      description: 'Investigación y redacción'
+      bgColor: 'bg-blue-50'
     },
     {
       label: 'Completadas',
       value: safeStats.completed_tasks,
       icon: CheckCircle,
       color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      description: 'Gestiones finalizadas'
+      bgColor: 'bg-green-50'
     },
     {
-      label: 'Vencimientos',
+      label: 'Vencidas',
       value: safeStats.overdue_tasks,
       icon: AlertTriangle,
       color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      description: 'Plazos vencidos'
-    },
-    {
-      label: 'Críticas',
-      value: safeStats.high_priority_tasks,
-      icon: Scale,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      description: 'Urgencia alta/crítica'
+      bgColor: 'bg-red-50'
     }
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {legalStatItems.map((item) => {
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {statItems.map((item) => {
         const IconComponent = item.icon
         
         return (
@@ -88,10 +73,9 @@ export const TasksStats = ({ stats }: TasksStatsProps) => {
                 <div className={`p-2 rounded-lg ${item.bgColor}`}>
                   <IconComponent className={`h-5 w-5 ${item.color}`} />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xl font-bold text-gray-900">{item.value}</p>
-                  <p className="text-xs font-medium text-gray-700">{item.label}</p>
-                  <p className="text-xs text-gray-500">{item.description}</p>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{item.value}</p>
+                  <p className="text-sm font-medium text-gray-600">{item.label}</p>
                 </div>
               </div>
             </CardContent>

@@ -2,10 +2,9 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Calendar, User, FileText, Clock, Edit, AlertTriangle, Scale, Gavel, MessageSquare, CheckSquare, Users } from 'lucide-react'
-import { format } from 'date-fns'
+import { Calendar, Edit, MessageSquare, CheckSquare, Users } from 'lucide-react'
+import { format, isToday, isTomorrow } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 interface TaskCardProps {
@@ -16,87 +15,66 @@ interface TaskCardProps {
 }
 
 export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = false }: TaskCardProps) => {
-  if (!task || !task.id) {
-    console.warn('⚠️ TaskCard received invalid task')
-    return null
-  }
+  if (!task || !task.id) return null
 
-  const getLegalPriorityConfig = (priority: string) => {
+  const getPriorityConfig = (priority: string) => {
     switch (priority) {
-      case 'critical': 
-        return { 
-          color: 'bg-red-100 text-red-800 border-red-200', 
-          label: 'Vencimiento Crítico',
-          icon: Scale
-        }
-      case 'urgent': 
-        return { 
-          color: 'bg-red-100 text-red-800 border-red-200', 
-          label: 'Urgente (24-48h)',
-          icon: AlertTriangle
-        }
-      case 'high': 
-        return { 
-          color: 'bg-orange-100 text-orange-800 border-orange-200', 
-          label: 'Alta (esta semana)',
-          icon: Clock
-        }
-      case 'medium': 
-        return { 
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
-          label: 'Normal (este mes)',
-          icon: FileText
-        }
-      case 'low': 
-        return { 
-          color: 'bg-green-100 text-green-800 border-green-200', 
-          label: 'Baja',
-          icon: FileText
-        }
-      default: 
-        return { 
-          color: 'bg-gray-100 text-gray-800 border-gray-200', 
-          label: priority || 'Sin prioridad',
-          icon: FileText
-        }
+      case 'high': return { color: 'bg-red-100 text-red-800 border-red-200', label: '🔴 Alta' }
+      case 'medium': return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: '🟡 Media' }
+      case 'low': return { color: 'bg-green-100 text-green-800 border-green-200', label: '🟢 Baja' }
+      default: return { color: 'bg-gray-100 text-gray-800 border-gray-200', label: priority || 'Sin prioridad' }
     }
   }
 
-  const getLegalStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     const statusMapping: { [key: string]: string } = {
       'pending': 'bg-yellow-100 text-yellow-800',
-      'investigation': 'bg-blue-100 text-blue-800',
-      'drafting': 'bg-purple-100 text-purple-800',
-      'review': 'bg-orange-100 text-orange-800',
-      'filing': 'bg-green-100 text-green-800',
-      'hearing': 'bg-red-100 text-red-800',
-      'completed': 'bg-gray-100 text-gray-800',
       'in_progress': 'bg-blue-100 text-blue-800',
-      'cancelled': 'bg-gray-300 text-gray-700'
+      'completed': 'bg-green-100 text-green-800',
+      'investigation': 'bg-blue-100 text-blue-800',
+      'drafting': 'bg-blue-100 text-blue-800',
+      'review': 'bg-blue-100 text-blue-800',
+      'filing': 'bg-blue-100 text-blue-800',
+      'hearing': 'bg-blue-100 text-blue-800',
+      'cancelled': 'bg-gray-100 text-gray-800'
     }
     return statusMapping[status] || 'bg-gray-100 text-gray-800'
   }
 
-  const getLegalStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string) => {
     const statusLabels: { [key: string]: string } = {
-      'pending': 'Pendiente',
-      'investigation': 'Investigación',
-      'drafting': 'Redacción',
-      'review': 'Revisión',
-      'filing': 'Presentación',
-      'hearing': 'Audiencia',
+      'pending': 'Por Hacer',
+      'in_progress': 'En Curso',
       'completed': 'Completada',
-      'in_progress': 'En Proceso',
+      'investigation': 'En Curso',
+      'drafting': 'En Curso',
+      'review': 'En Curso',
+      'filing': 'En Curso',
+      'hearing': 'En Curso',
       'cancelled': 'Cancelada'
     }
     return statusLabels[status] || status
   }
 
-  const priorityConfig = getLegalPriorityConfig(task.priority)
-  const PriorityIcon = priorityConfig.icon
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
-  const isCriticalDeadline = task.priority === 'critical' || task.priority === 'urgent'
+  const formatSmartDate = (dateString: string | null) => {
+    if (!dateString) return { text: 'Sin fecha', color: 'text-gray-400' }
+    
+    const date = new Date(dateString)
+    const now = new Date()
+    const isOverdue = date < now && task.status !== 'completed'
+    
+    if (isToday(date)) return { text: 'Hoy', color: isOverdue ? 'text-red-600' : 'text-blue-600' }
+    if (isTomorrow(date)) return { text: 'Mañana', color: 'text-green-600' }
+    
+    return { 
+      text: format(date, 'dd/MM', { locale: es }), 
+      color: isOverdue ? 'text-red-600' : 'text-gray-600' 
+    }
+  }
 
+  const priorityConfig = getPriorityConfig(task.priority)
+  const smartDate = formatSmartDate(task.due_date)
+  
   // Contadores para elementos relacionados
   const subtasksCount = task.subtasks?.length || 0
   const completedSubtasks = task.subtasks?.filter((st: any) => st.completed).length || 0
@@ -110,20 +88,12 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
   }
 
   return (
-    <Card className={`hover:shadow-md transition-shadow cursor-pointer group ${isCriticalDeadline ? 'ring-1 ring-red-200' : ''}`}>
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex-1">
-            <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors text-sm leading-tight">
-              {task.title || 'Sin título'}
-            </h4>
-            {isCriticalDeadline && (
-              <div className="flex items-center text-red-600 text-xs mt-1">
-                <Gavel className="h-3 w-3 mr-1" />
-                Plazo procesal crítico
-              </div>
-            )}
-          </div>
+    <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
+            {task.title || 'Sin título'}
+          </h4>
           <Button
             variant="ghost"
             size="sm"
@@ -131,80 +101,52 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
               e.stopPropagation()
               onEdit()
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+            className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
           >
-            <Edit className="h-3 w-3" />
+            <Edit className="h-4 w-4" />
           </Button>
         </div>
 
         {task.description && (
-          <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
             {task.description}
           </p>
         )}
 
         <div className="space-y-2 mb-3">
-          <div className="flex items-center justify-between">
-            <Badge className={`${priorityConfig.color} text-xs px-2 py-0.5`}>
-              <PriorityIcon className="h-3 w-3 mr-1" />
-              {priorityConfig.label}
-            </Badge>
-            
-            {isOverdue && (
-              <div className="flex items-center text-red-600 text-xs">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                Vencida
-              </div>
-            )}
-          </div>
-
-          {showStatusSelector && onStatusChange ? (
-            <Select value={task.status} onValueChange={onStatusChange}>
-              <SelectTrigger className="h-6 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pendiente</SelectItem>
-                <SelectItem value="investigation">Investigación</SelectItem>
-                <SelectItem value="drafting">Redacción</SelectItem>
-                <SelectItem value="review">Revisión</SelectItem>
-                <SelectItem value="filing">Presentación</SelectItem>
-                <SelectItem value="hearing">Audiencia</SelectItem>
-                <SelectItem value="completed">Completada</SelectItem>
-                <SelectItem value="cancelled">Cancelada</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : (
-            <Badge className={`${getLegalStatusColor(task.status)} text-xs`}>
-              {getLegalStatusLabel(task.status)}
-            </Badge>
-          )}
+          <Badge className={`${priorityConfig.color} text-xs`}>
+            {priorityConfig.label}
+          </Badge>
+          
+          <Badge className={`${getStatusColor(task.status)} text-xs`}>
+            {getStatusLabel(task.status)}
+          </Badge>
         </div>
 
         {task.due_date && (
-          <div className="flex items-center text-xs text-gray-500 mb-2">
-            <Calendar className="h-3 w-3 mr-1" />
-            <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
-              {format(new Date(task.due_date), 'dd MMM yyyy', { locale: es })}
+          <div className="flex items-center text-sm mb-3">
+            <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+            <span className={smartDate.color}>
+              {smartDate.text}
             </span>
           </div>
         )}
 
         {/* Usuarios asignados */}
         {assignedUsers.length > 0 && (
-          <div className="flex items-center text-xs text-gray-500 mb-2">
-            <Users className="h-3 w-3 mr-1" />
+          <div className="flex items-center text-sm text-gray-500 mb-3">
+            <Users className="h-4 w-4 mr-1" />
             <div className="flex items-center space-x-1">
-              {assignedUsers.slice(0, 3).map((assignment: any, index: number) => (
-                <Avatar key={assignment.user_id || index} className="h-5 w-5">
+              {assignedUsers.slice(0, 2).map((assignment: any, index: number) => (
+                <Avatar key={assignment.user_id || index} className="h-6 w-6">
                   <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
                     {getUserInitials(assignment.user?.email || '')}
                   </AvatarFallback>
                 </Avatar>
               ))}
-              {assignedUsers.length > 3 && (
+              {assignedUsers.length > 2 && (
                 <span className="text-xs text-gray-400">
-                  +{assignedUsers.length - 3}
+                  +{assignedUsers.length - 2}
                 </span>
               )}
             </div>
@@ -225,18 +167,7 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
                 <span>{commentsCount}</span>
               </div>
             )}
-            <div className="flex items-center">
-              <FileText className="h-3 w-3 mr-1" />
-              <span>0 docs</span>
-            </div>
           </div>
-          
-          {task.case && (
-            <div className="flex items-center">
-              <Gavel className="h-3 w-3 mr-1" />
-              <span className="truncate max-w-20">{task.case.title || 'Sin título'}</span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

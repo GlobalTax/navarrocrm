@@ -1,9 +1,12 @@
 
+import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Edit, Calendar, AlertTriangle } from 'lucide-react'
-import { format } from 'date-fns'
+import { Checkbox } from '@/components/ui/checkbox'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Edit, Eye, Check, Trash2, MoreHorizontal, Calendar, ChevronUp, ChevronDown } from 'lucide-react'
+import { format, isToday, isTomorrow, isThisWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 interface TasksListProps {
@@ -12,71 +15,147 @@ interface TasksListProps {
 }
 
 export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
-  const getPriorityColor = (priority: string) => {
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([])
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+
+  const getPriorityBadge = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800'
-      case 'high': return 'bg-orange-100 text-orange-800'
-      case 'medium': return 'bg-yellow-100 text-yellow-800'
-      case 'low': return 'bg-green-100 text-green-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'high': return { color: 'bg-red-100 text-red-800 border-red-200', label: '🔴 Alta' }
+      case 'medium': return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: '🟡 Media' }
+      case 'low': return { color: 'bg-green-100 text-green-800 border-green-200', label: '🟢 Baja' }
+      default: return { color: 'bg-gray-100 text-gray-800 border-gray-200', label: priority }
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800'
-      case 'in_progress': return 'bg-blue-100 text-blue-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'cancelled': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'completed': return { color: 'bg-green-100 text-green-800', label: 'Completada' }
+      case 'in_progress': return { color: 'bg-blue-100 text-blue-800', label: 'En Curso' }
+      case 'pending': return { color: 'bg-yellow-100 text-yellow-800', label: 'Por Hacer' }
+      default: return { color: 'bg-gray-100 text-gray-800', label: status }
     }
   }
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Completada'
-      case 'in_progress': return 'En Progreso'
-      case 'pending': return 'Pendiente'
-      case 'cancelled': return 'Cancelada'
-      default: return status
+  const formatSmartDate = (dateString: string | null) => {
+    if (!dateString) return { text: 'Sin fecha', color: 'text-gray-400' }
+    
+    const date = new Date(dateString)
+    const now = new Date()
+    const isOverdue = date < now
+    
+    if (isToday(date)) return { text: 'Hoy', color: isOverdue ? 'text-red-600' : 'text-blue-600' }
+    if (isTomorrow(date)) return { text: 'Mañana', color: 'text-green-600' }
+    if (isThisWeek(date)) return { text: format(date, 'EEEE', { locale: es }), color: 'text-gray-600' }
+    
+    return { 
+      text: format(date, 'dd/MM/yyyy', { locale: es }), 
+      color: isOverdue ? 'text-red-600' : 'text-gray-600' 
     }
   }
 
-  const getPriorityLabel = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'Urgente'
-      case 'high': return 'Alta'
-      case 'medium': return 'Media'
-      case 'low': return 'Baja'
-      default: return priority
-    }
+  const handleSort = (key: string) => {
+    setSortConfig(current => ({
+      key,
+      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }))
   }
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (!sortConfig) return 0
+    
+    const { key, direction } = sortConfig
+    const aValue = a[key]
+    const bValue = b[key]
+    
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1
+    return 0
+  })
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedTasks(checked ? tasks.map(task => task.id) : [])
+  }
+
+  const handleSelectTask = (taskId: string, checked: boolean) => {
+    setSelectedTasks(current => 
+      checked 
+        ? [...current, taskId]
+        : current.filter(id => id !== taskId)
+    )
+  }
+
+  const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-gray-50 select-none"
+      onClick={() => handleSort(column)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{children}</span>
+        {sortConfig?.key === column && (
+          sortConfig.direction === 'asc' 
+            ? <ChevronUp className="h-4 w-4" />
+            : <ChevronDown className="h-4 w-4" />
+        )}
+      </div>
+    </TableHead>
+  )
 
   return (
     <div className="bg-white rounded-lg border">
+      {selectedTasks.length > 0 && (
+        <div className="border-b p-4 bg-blue-50">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-blue-700">
+              {selectedTasks.length} tarea(s) seleccionada(s)
+            </span>
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline">
+                <Check className="h-4 w-4 mr-1" />
+                Completar
+              </Button>
+              <Button size="sm" variant="outline">
+                <Trash2 className="h-4 w-4 mr-1" />
+                Eliminar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Tarea</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Prioridad</TableHead>
-            <TableHead>Fecha límite</TableHead>
-            <TableHead>Horas estimadas</TableHead>
+            <TableHead className="w-12">
+              <Checkbox
+                checked={selectedTasks.length === tasks.length && tasks.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+            </TableHead>
+            <SortableHeader column="title">Tarea</SortableHeader>
+            <SortableHeader column="status">Estado</SortableHeader>
+            <SortableHeader column="priority">Prioridad</SortableHeader>
+            <SortableHeader column="due_date">Vencimiento</SortableHeader>
             <TableHead className="w-[100px]">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tasks.map((task) => {
-            const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
+          {sortedTasks.map((task) => {
+            const priorityBadge = getPriorityBadge(task.priority)
+            const statusBadge = getStatusBadge(task.status)
+            const smartDate = formatSmartDate(task.due_date)
             
             return (
               <TableRow key={task.id} className="hover:bg-gray-50">
                 <TableCell>
+                  <Checkbox
+                    checked={selectedTasks.includes(task.id)}
+                    onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
+                  />
+                </TableCell>
+                
+                <TableCell>
                   <div>
-                    <div className="font-medium text-gray-900 flex items-center">
-                      {task.title}
-                      {isOverdue && <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />}
-                    </div>
+                    <div className="font-medium text-gray-900">{task.title}</div>
                     {task.description && (
                       <div className="text-sm text-gray-500 truncate max-w-xs">
                         {task.description}
@@ -84,41 +163,54 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                     )}
                   </div>
                 </TableCell>
+                
                 <TableCell>
-                  <Badge className={getStatusColor(task.status)}>
-                    {getStatusLabel(task.status)}
+                  <Badge className={statusBadge.color}>
+                    {statusBadge.label}
                   </Badge>
                 </TableCell>
+                
                 <TableCell>
-                  <Badge className={getPriorityColor(task.priority)}>
-                    {getPriorityLabel(task.priority)}
+                  <Badge className={priorityBadge.color}>
+                    {priorityBadge.label}
                   </Badge>
                 </TableCell>
+                
                 <TableCell>
-                  {task.due_date ? (
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                      <span className={`text-sm ${isOverdue ? 'text-red-600' : 'text-gray-600'}`}>
-                        {format(new Date(task.due_date), 'dd/MM/yyyy', { locale: es })}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 text-sm">Sin fecha</span>
-                  )}
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                    <span className={`text-sm ${smartDate.color}`}>
+                      {smartDate.text}
+                    </span>
+                  </div>
                 </TableCell>
+                
                 <TableCell>
-                  <span className="text-sm text-gray-600">
-                    {task.estimated_hours || 0}h
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEditTask(task)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver detalles
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEditTask(task)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Check className="h-4 w-4 mr-2" />
+                        Completar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             )
