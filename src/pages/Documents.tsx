@@ -122,8 +122,7 @@ const Documents = () => {
         description="Administra todos los documentos del despacho"
         primaryAction={{
           label: 'Subir Documento',
-          onClick: () => console.log('Upload document'),
-          icon: Upload
+          onClick: () => console.log('Upload document')
         }}
       />
 
