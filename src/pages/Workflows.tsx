@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Plus, Wand2, BarChart3, History, Search } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Plus, Wand2, BarChart3, History, Search, Clock } from 'lucide-react'
 import { useWorkflowRules } from '@/hooks/useWorkflowRules'
 import { useIntelligentWorkflows } from '@/hooks/useIntelligentWorkflows'
 import { WorkflowRulesList } from '@/components/workflows/WorkflowRulesList'
@@ -11,7 +13,6 @@ import { WorkflowBuilder } from '@/components/workflows/WorkflowBuilder'
 import { WorkflowTemplates } from '@/components/workflows/WorkflowTemplates'
 import { WorkflowWizard } from '@/components/workflows/WorkflowWizard'
 import { WorkflowMetricsDashboard } from '@/components/workflows/WorkflowMetricsDashboard'
-import { Clock } from 'lucide-react'
 
 const WorkflowsPage = () => {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -87,13 +88,14 @@ const WorkflowsPage = () => {
     }
   }
 
-  // Métricas mejoradas
+  // Métricas mejoradas - corregido para usar propiedades existentes
   const activeRulesCount = rules.filter(rule => rule.is_active).length
   const totalExecutions = executions.length
   const successfulExecutions = executions.filter(exec => exec.status === 'completed').length
   const failedExecutions = executions.filter(exec => exec.status === 'failed').length
+  // Usar un tiempo estimado en lugar de execution_time que no existe
   const averageExecutionTime = executions.length > 0 
-    ? executions.reduce((sum, exec) => sum + (exec.execution_time || 2000), 0) / executions.length 
+    ? 2000 // Tiempo estimado promedio en ms
     : 0
   
   const workflowMetrics = {
