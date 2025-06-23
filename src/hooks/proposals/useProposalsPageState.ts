@@ -2,38 +2,38 @@
 import { useState } from 'react'
 
 export const useProposalsPageState = () => {
-  const [isBasicBuilderOpen, setIsBasicBuilderOpen] = useState(false)
-  const [isProfessionalBuilderOpen, setIsProfessionalBuilderOpen] = useState(false)
+  const [isRecurrentBuilderOpen, setIsRecurrentBuilderOpen] = useState(false)
+  const [isSpecificBuilderOpen, setIsSpecificBuilderOpen] = useState(false)
 
-  const openBasicBuilder = () => {
-    console.log('Abriendo constructor básico')
-    setIsBasicBuilderOpen(true)
+  const openRecurrentBuilder = () => {
+    console.log('Abriendo constructor de propuesta recurrente')
+    setIsRecurrentBuilderOpen(true)
   }
   
-  const closeBasicBuilder = () => {
-    console.log('Cerrando constructor básico')
-    setIsBasicBuilderOpen(false)
+  const closeRecurrentBuilder = () => {
+    console.log('Cerrando constructor de propuesta recurrente')
+    setIsRecurrentBuilderOpen(false)
   }
   
-  const openProfessionalBuilder = () => {
-    console.log('Abriendo constructor profesional')
-    setIsProfessionalBuilderOpen(true)
+  const openSpecificBuilder = () => {
+    console.log('Abriendo constructor de propuesta puntual')
+    setIsSpecificBuilderOpen(true)
   }
   
-  const closeProfessionalBuilder = () => {
-    console.log('Cerrando constructor profesional')
-    setIsProfessionalBuilderOpen(false)
+  const closeSpecificBuilder = () => {
+    console.log('Cerrando constructor de propuesta puntual')
+    setIsSpecificBuilderOpen(false)
   }
 
   return {
     // States
-    isBasicBuilderOpen,
-    isProfessionalBuilderOpen,
+    isRecurrentBuilderOpen,
+    isSpecificBuilderOpen,
     
     // Actions
-    openBasicBuilder,
-    closeBasicBuilder,
-    openProfessionalBuilder,
-    closeProfessionalBuilder
+    openRecurrentBuilder,
+    closeRecurrentBuilder,
+    openSpecificBuilder,
+    closeSpecificBuilder
   }
 }

@@ -2,53 +2,94 @@
 import { ProposalBuilder } from '@/modules/proposals/components/ProposalBuilder'
 import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Repeat, FileText } from 'lucide-react'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 interface ProposalsBuilderManagerProps {
-  isBasicBuilderOpen: boolean
-  isProfessionalBuilderOpen: boolean
-  onCloseBasicBuilder: () => void
-  onCloseProfessionalBuilder: () => void
-  onSaveBasicProposal: (data: ProposalFormData) => void
-  isSavingBasic: boolean
+  isRecurrentBuilderOpen: boolean
+  isSpecificBuilderOpen: boolean
+  onCloseRecurrentBuilder: () => void
+  onCloseSpecificBuilder: () => void
+  onSaveRecurrentProposal: (data: ProposalFormData) => void
+  isSavingRecurrent: boolean
 }
 
 export const ProposalsBuilderManager = ({
-  isBasicBuilderOpen,
-  isProfessionalBuilderOpen,
-  onCloseBasicBuilder,
-  onCloseProfessionalBuilder,
-  onSaveBasicProposal,
-  isSavingBasic
+  isRecurrentBuilderOpen,
+  isSpecificBuilderOpen,
+  onCloseRecurrentBuilder,
+  onCloseSpecificBuilder,
+  onSaveRecurrentProposal,
+  isSavingRecurrent
 }: ProposalsBuilderManagerProps) => {
-  // Mostrar el constructor básico (ProposalBuilder + ProposalDemoModule unificados)
-  if (isBasicBuilderOpen) {
+  // Mostrar el constructor de propuestas recurrentes
+  if (isRecurrentBuilderOpen) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Básica</h1>
-            <p className="text-gray-600 mt-1">Constructor simplificado para propuestas comerciales</p>
+            <div className="flex items-center gap-3 mb-2">
+              <Repeat className="h-8 w-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Recurrente</h1>
+            </div>
+            <p className="text-gray-600">Servicios continuos como fiscal, contabilidad y laboral → Genera Cuotas Recurrentes</p>
           </div>
-          <Button variant="outline" onClick={onCloseBasicBuilder}>
+          <Button variant="outline" onClick={onCloseRecurrentBuilder}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
         </div>
         
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Repeat className="h-4 w-4 text-blue-600" />
+            <span className="font-semibold text-blue-900">Propuesta Recurrente</span>
+          </div>
+          <p className="text-sm text-blue-700">
+            Al ser aceptada, esta propuesta generará automáticamente una <strong>Cuota Recurrente</strong> 
+            que permitirá facturación periódica y control de horas incluidas.
+          </p>
+        </div>
+        
         <ProposalBuilder
-          onSave={onSaveBasicProposal}
-          isSaving={isSavingBasic}
+          onSave={onSaveRecurrentProposal}
+          isSaving={isSavingRecurrent}
         />
       </div>
     )
   }
 
-  // Mostrar el constructor profesional
-  if (isProfessionalBuilderOpen) {
+  // Mostrar el constructor de propuestas puntuales
+  if (isSpecificBuilderOpen) {
     return (
-      <ProfessionalProposalBuilder onBack={onCloseProfessionalBuilder} />
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <FileText className="h-8 w-8 text-green-600" />
+              <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Puntual</h1>
+            </div>
+            <p className="text-gray-600">Servicios específicos y proyectos únicos → Genera Expedientes</p>
+          </div>
+          <Button variant="outline" onClick={onCloseSpecificBuilder}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Button>
+        </div>
+        
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="h-4 w-4 text-green-600" />
+            <span className="font-semibold text-green-900">Propuesta Puntual</span>
+          </div>
+          <p className="text-sm text-green-700">
+            Al ser aceptada, esta propuesta generará automáticamente un <strong>Expediente</strong> 
+            para gestionar las tareas, documentos y seguimiento del proyecto.
+          </p>
+        </div>
+        
+        <ProfessionalProposalBuilder onBack={onCloseSpecificBuilder} />
+      </div>
     )
   }
 

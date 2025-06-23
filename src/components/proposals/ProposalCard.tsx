@@ -24,7 +24,10 @@ import {
   FileText,
   Edit,
   Eye,
-  Repeat
+  Repeat,
+  ArrowRight,
+  Target,
+  Briefcase
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -56,13 +59,61 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
     }
   }
 
+  const getProposalTypeBadge = () => {
+    if (proposal.is_recurring) {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+          <Repeat className="w-3 h-3 mr-1" />
+          Recurrente
+        </Badge>
+      )
+    } else {
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200">
+          <FileText className="w-3 h-3 mr-1" />
+          Puntual
+        </Badge>
+      )
+    }
+  }
+
+  const getConversionInfo = () => {
+    if (proposal.status === 'won') {
+      if (proposal.is_recurring) {
+        return (
+          <div className="flex items-center gap-2 text-sm bg-blue-50 text-blue-700 p-2 rounded">
+            <Repeat className="w-3 h-3" />
+            <ArrowRight className="w-3 h-3" />
+            <Target className="w-3 h-3" />
+            <span className="font-medium">Genera Cuota Recurrente</span>
+          </div>
+        )
+      } else {
+        return (
+          <div className="flex items-center gap-2 text-sm bg-green-50 text-green-700 p-2 rounded">
+            <FileText className="w-3 h-3" />
+            <ArrowRight className="w-3 h-3" />
+            <Briefcase className="w-3 h-3" />
+            <span className="font-medium">Genera Expediente</span>
+          </div>
+        )
+      }
+    }
+    return null
+  }
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg mb-2 flex items-center gap-2">
-              {proposal.is_recurring && <Repeat className="w-4 h-4 text-blue-500" />}
+            <div className="flex items-center gap-2 mb-2">
+              {getProposalTypeBadge()}
+              <Badge className={getStatusColor(proposal.status)}>
+                {getStatusText(proposal.status)}
+              </Badge>
+            </div>
+            <CardTitle className="text-lg mb-2">
               {proposal.title}
             </CardTitle>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -134,21 +185,24 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
             </p>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Estado</p>
-            <Badge className={getStatusColor(proposal.status)}>
-              {getStatusText(proposal.status)}
-            </Badge>
+            <p className="text-sm text-muted-foreground">Tipo de servicio</p>
+            <p className="text-sm font-medium">
+              {proposal.is_recurring ? 'Servicio continuo' : 'Proyecto específico'}
+            </p>
           </div>
         </div>
+
+        {/* Información de conversión */}
+        {getConversionInfo()}
 
         {/* Información de recurrencia */}
         {proposal.is_recurring && (
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-sm font-medium text-blue-900 mb-1">Propuesta Recurrente</p>
+            <p className="text-sm font-medium text-blue-900 mb-1">Configuración Recurrente</p>
             <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
               {proposal.recurring_frequency && (
                 <div>
-                  <span>Frecuencia: </span>
+                  <span>Facturación: </span>
                   <span className="font-medium">
                     {proposal.recurring_frequency === 'monthly' ? 'Mensual' :
                      proposal.recurring_frequency === 'quarterly' ? 'Trimestral' :
@@ -164,7 +218,7 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
               )}
               {proposal.included_hours > 0 && (
                 <div>
-                  <span>Horas: </span>
+                  <span>Horas incluidas: </span>
                   <span className="font-medium">{proposal.included_hours}h</span>
                 </div>
               )}

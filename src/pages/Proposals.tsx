@@ -3,7 +3,6 @@ import { Loader2 } from 'lucide-react'
 import { useProposals } from '@/hooks/useProposals'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
 import { ProposalFilters } from '@/components/proposals/ProposalFilters'
-import { RecurringProposalForm } from '@/components/proposals/RecurringProposalForm'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
@@ -17,16 +16,16 @@ export default function Proposals() {
   console.log('Proposals page rendering')
   
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
-  const { mutate: saveBasicProposal, isPending: isSavingBasic } = useSaveProposal()
+  const { mutate: saveRecurrentProposal, isPending: isSavingRecurrent } = useSaveProposal()
   const { user } = useApp()
   
   // Estados de la página
   const pageState = useProposalsPageState()
-  const { filters, setFilters, filterProposals, categorizeProposals } = useProposalsFilters()
+  const { filters, setFilters, filterProposals, categorizeProposals, getProposalMetrics } = useProposalsFilters()
 
   console.log('Current state:', { 
-    isBasicBuilderOpen: pageState.isBasicBuilderOpen, 
-    isProfessionalBuilderOpen: pageState.isProfessionalBuilderOpen, 
+    isRecurrentBuilderOpen: pageState.isRecurrentBuilderOpen, 
+    isSpecificBuilderOpen: pageState.isSpecificBuilderOpen, 
     isLoading, 
     user 
   })
@@ -34,6 +33,7 @@ export default function Proposals() {
   // Filtrar y categorizar propuestas
   const filteredProposals = filterProposals(proposals)
   const categorizedProposals = categorizeProposals(filteredProposals)
+  const metrics = getProposalMetrics(filteredProposals)
 
   // Handlers
   const handleStatusChange = (id: string, status: any) => {
@@ -44,18 +44,18 @@ export default function Proposals() {
     console.log('Ver propuesta:', proposal)
   }
 
-  const handleSaveBasicProposal = (data: ProposalFormData) => {
-    console.log('Handling save basic proposal:', data)
+  const handleSaveRecurrentProposal = (data: ProposalFormData) => {
+    console.log('Handling save recurrent proposal:', data)
     if (!user || !user.org_id) {
       console.error("User or org_id is not available. Cannot save proposal.")
       return
     }
-    saveBasicProposal({
-      proposalData: data,
+    saveRecurrentProposal({
+      proposalData: { ...data, is_recurring: true },
       orgId: user.org_id,
       userId: user.id,
     })
-    pageState.closeBasicBuilder()
+    pageState.closeRecurrentBuilder()
   }
 
   if (isLoading) {
@@ -70,16 +70,16 @@ export default function Proposals() {
   }
 
   // Mostrar builders si están activos
-  const showingBuilder = pageState.isBasicBuilderOpen || pageState.isProfessionalBuilderOpen
+  const showingBuilder = pageState.isRecurrentBuilderOpen || pageState.isSpecificBuilderOpen
   if (showingBuilder) {
     return (
       <ProposalsBuilderManager
-        isBasicBuilderOpen={pageState.isBasicBuilderOpen}
-        isProfessionalBuilderOpen={pageState.isProfessionalBuilderOpen}
-        onCloseBasicBuilder={pageState.closeBasicBuilder}
-        onCloseProfessionalBuilder={pageState.closeProfessionalBuilder}
-        onSaveBasicProposal={handleSaveBasicProposal}
-        isSavingBasic={isSavingBasic}
+        isRecurrentBuilderOpen={pageState.isRecurrentBuilderOpen}
+        isSpecificBuilderOpen={pageState.isSpecificBuilderOpen}
+        onCloseRecurrentBuilder={pageState.closeRecurrentBuilder}
+        onCloseSpecificBuilder={pageState.closeSpecificBuilder}
+        onSaveRecurrentProposal={handleSaveRecurrentProposal}
+        isSavingRecurrent={isSavingRecurrent}
       />
     )
   }
@@ -87,8 +87,8 @@ export default function Proposals() {
   return (
     <div className="space-y-6">
       <ProposalsPageHeader
-        onOpenBasicBuilder={pageState.openBasicBuilder}
-        onOpenProfessionalBuilder={pageState.openProfessionalBuilder}
+        onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
+        onOpenSpecificBuilder={pageState.openSpecificBuilder}
       />
 
       <ProposalMetrics />
@@ -98,8 +98,8 @@ export default function Proposals() {
         proposals={categorizedProposals}
         onStatusChange={handleStatusChange}
         onViewProposal={handleViewProposal}
-        onOpenBasicBuilder={pageState.openBasicBuilder}
-        onOpenProfessionalBuilder={pageState.openProfessionalBuilder}
+        onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
+        onOpenSpecificBuilder={pageState.openSpecificBuilder}
       />
     </div>
   )
