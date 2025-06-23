@@ -104,7 +104,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
                 <SelectItem value="none">Sin caso específico</SelectItem>
                 {cases.map((case_) => (
                   <SelectItem key={case_.id} value={case_.id}>
-                    {case_.title} ({case_.client?.name})
+                    {case_.title} ({case_.contact?.name})
                   </SelectItem>
                 ))}
               </SelectContent>

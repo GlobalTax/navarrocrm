@@ -6,7 +6,7 @@ import { Tables, TablesInsert } from '@/integrations/supabase/types'
 import { toast } from 'sonner'
 
 export type CalendarEvent = Tables<'calendar_events'> & {
-  client?: Tables<'clients'>
+  contact?: Tables<'contacts'>
   case?: Tables<'cases'>
 }
 
@@ -21,7 +21,7 @@ export const useCalendarEvents = () => {
       .from('calendar_events')
       .select(`
         *,
-        client:clients(*),
+        contact:contacts(*),
         case:cases(*)
       `)
       .order('start_datetime', { ascending: true })

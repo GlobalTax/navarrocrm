@@ -13,13 +13,18 @@ export const useCreateRecurringFee = () => {
     mutationFn: async (data: Omit<RecurringFee, 'id' | 'org_id' | 'created_at' | 'updated_at' | 'created_by'>) => {
       if (!user?.org_id || !user?.id) throw new Error('Usuario no autenticado')
 
+      // Convert client_id to contact_id for database compatibility
+      const { client_id, client, ...cleanData } = data
+      const insertData = {
+        ...cleanData,
+        contact_id: client_id,
+        org_id: user.org_id,
+        created_by: user.id
+      }
+
       const { data: result, error } = await supabase
         .from('recurring_fees')
-        .insert({
-          ...data,
-          org_id: user.org_id,
-          created_by: user.id
-        })
+        .insert(insertData)
         .select()
         .single()
 
@@ -41,9 +46,13 @@ export const useUpdateRecurringFee = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<RecurringFee> }) => {
+      // Convert client_id to contact_id for database compatibility
+      const { client_id, client, ...cleanData } = data
+      const updateData = client_id ? { ...cleanData, contact_id: client_id } : cleanData
+
       const { data: result, error } = await supabase
         .from('recurring_fees')
-        .update(data)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single()

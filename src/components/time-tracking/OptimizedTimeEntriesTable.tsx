@@ -189,9 +189,9 @@ export const OptimizedTimeEntriesTable = () => {
                               {entry.case ? (
                                 <div className="text-xs">
                                   <p className="font-medium truncate">{entry.case.title}</p>
-                                  {entry.case.client && (
+                                  {entry.case.contact && (
                                     <p className="text-gray-500 truncate">
-                                      {entry.case.client.name}
+                                      {entry.case.contact.name}
                                     </p>
                                   )}
                                 </div>

@@ -16,7 +16,7 @@ export const useRecurringFees = (filters?: RecurringFeeFilters) => {
         .from('recurring_fees')
         .select(`
           *,
-          clients!inner(name, email)
+          contact:contacts!inner(name, email)
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
@@ -25,7 +25,7 @@ export const useRecurringFees = (filters?: RecurringFeeFilters) => {
         query = query.eq('status', filters.status)
       }
       if (filters?.client_id) {
-        query = query.eq('client_id', filters.client_id)
+        query = query.eq('contact_id', filters.client_id)
       }
       if (filters?.frequency && filters.frequency !== 'all') {
         query = query.eq('frequency', filters.frequency)
@@ -40,9 +40,10 @@ export const useRecurringFees = (filters?: RecurringFeeFilters) => {
       
       return (data || []).map(item => ({
         ...item,
-        client: item.clients ? { 
-          name: item.clients.name || '', 
-          email: item.clients.email 
+        client_id: item.contact_id, // Map for backward compatibility
+        client: item.contact ? { 
+          name: item.contact.name || '', 
+          email: item.contact.email 
         } : undefined
       })) as RecurringFee[]
     },
@@ -62,7 +63,7 @@ export const useRecurringFee = (id: string) => {
         .from('recurring_fees')
         .select(`
           *,
-          clients!inner(name, email, phone),
+          contact:contacts!inner(name, email, phone),
           proposals(title, proposal_number)
         `)
         .eq('id', id)
@@ -73,10 +74,11 @@ export const useRecurringFee = (id: string) => {
       
       return {
         ...data,
-        client: data.clients ? {
-          name: data.clients.name || '',
-          email: data.clients.email,
-          phone: data.clients.phone
+        client_id: data.contact_id, // Map for backward compatibility
+        client: data.contact ? {
+          name: data.contact.name || '',
+          email: data.contact.email,
+          phone: data.contact.phone
         } : undefined
       }
     },
