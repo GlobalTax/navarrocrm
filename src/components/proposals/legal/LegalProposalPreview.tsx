@@ -40,20 +40,48 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
   practiceArea,
   introduction,
   terms,
-  selectedServices,
+  selectedServices = [],
   retainerConfig,
   validityDays,
   onGeneratePDF,
   onSendProposal
 }) => {
   const getTotalAmount = () => {
-    return selectedServices.reduce((sum, service) => sum + service.total, 0)
+    if (!selectedServices || selectedServices.length === 0) {
+      return 0
+    }
+    
+    return selectedServices.reduce((sum, service) => {
+      if (!service || typeof service.total !== 'number') {
+        return sum
+      }
+      return sum + service.total
+    }, 0)
   }
 
   const getValidUntilDate = () => {
     const date = new Date()
-    date.setDate(date.getDate() + validityDays)
+    date.setDate(date.getDate() + (validityDays || 30))
     return date.toLocaleDateString('es-ES')
+  }
+
+  const formatCurrency = (amount: number | undefined | null) => {
+    if (typeof amount !== 'number' || isNaN(amount)) {
+      return '0,00 €'
+    }
+    
+    return amount.toLocaleString('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    })
+  }
+
+  const safeRetainerConfig = {
+    retainerAmount: retainerConfig?.retainerAmount || 0,
+    includedHours: retainerConfig?.includedHours || 0,
+    extraHourlyRate: retainerConfig?.extraHourlyRate || 0,
+    billingFrequency: retainerConfig?.billingFrequency || 'mensual',
+    contractDuration: retainerConfig?.contractDuration || 12
   }
 
   return (
@@ -82,7 +110,7 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
             <CardTitle className="text-2xl font-bold mb-2">
               PROPUESTA DE SERVICIOS JURÍDICOS
             </CardTitle>
-            <p className="text-blue-100">Servicios Recurrentes - {practiceArea}</p>
+            <p className="text-blue-100">Servicios Recurrentes - {practiceArea || 'General'}</p>
           </div>
         </CardHeader>
         
@@ -91,12 +119,12 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b">
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Cliente:</h4>
-              <p className="text-gray-700">{clientName}</p>
+              <p className="text-gray-700">{clientName || 'Sin especificar'}</p>
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Área de Práctica:</h4>
               <Badge variant="outline" className="text-blue-600 border-blue-200">
-                {practiceArea}
+                {practiceArea || 'Sin especificar'}
               </Badge>
             </div>
             <div>
@@ -108,43 +136,44 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Propuesta:</h4>
-              <p className="text-gray-700">{title}</p>
+              <p className="text-gray-700">{title || 'Sin título'}</p>
             </div>
           </div>
 
           {/* Introducción */}
-          <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Introducción</h4>
-            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-              {introduction}
+          {introduction && (
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Introducción</h4>
+              <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                {introduction}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Servicios */}
-          <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Servicios Incluidos</h4>
-            <div className="space-y-4">
-              {selectedServices.map((service) => (
-                <div key={service.id} className="flex justify-between items-start p-4 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-900">{service.name}</h5>
-                    <p className="text-sm text-gray-600 mt-1">{service.description}</p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {service.quantity} × {service.customPrice}€ / {service.billingUnit}
-                    </p>
+          {selectedServices && selectedServices.length > 0 && (
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Servicios Incluidos</h4>
+              <div className="space-y-4">
+                {selectedServices.map((service) => (
+                  <div key={service.id} className="flex justify-between items-start p-4 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <h5 className="font-medium text-gray-900">{service.name || 'Servicio sin nombre'}</h5>
+                      <p className="text-sm text-gray-600 mt-1">{service.description || 'Sin descripción'}</p>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {service.quantity || 1} × {formatCurrency(service.customPrice)} / {service.billingUnit || 'unidad'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">
+                        {formatCurrency(service.total)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">
-                      {service.total.toLocaleString('es-ES', {
-                        style: 'currency',
-                        currency: 'EUR'
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Configuración Económica */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -156,19 +185,19 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
               <div>
                 <p className="text-blue-600 font-medium">Cuota Base</p>
                 <p className="text-lg font-semibold text-blue-900">
-                  {retainerConfig.retainerAmount}€ / {retainerConfig.billingFrequency}
+                  {formatCurrency(safeRetainerConfig.retainerAmount)} / {safeRetainerConfig.billingFrequency}
                 </p>
               </div>
               <div>
                 <p className="text-blue-600 font-medium">Horas Incluidas</p>
                 <p className="text-lg font-semibold text-blue-900">
-                  {retainerConfig.includedHours}h / período
+                  {safeRetainerConfig.includedHours}h / período
                 </p>
               </div>
               <div>
                 <p className="text-blue-600 font-medium">Tarifa Extra</p>
                 <p className="text-lg font-semibold text-blue-900">
-                  {retainerConfig.extraHourlyRate}€ / hora
+                  {formatCurrency(safeRetainerConfig.extraHourlyRate)} / hora
                 </p>
               </div>
             </div>
@@ -176,26 +205,25 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-blue-600 font-medium">Total Servicios Adicionales:</span>
                 <span className="text-xl font-bold text-blue-900">
-                  {getTotalAmount().toLocaleString('es-ES', {
-                    style: 'currency',
-                    currency: 'EUR'
-                  })}
+                  {formatCurrency(getTotalAmount())}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Términos y Condiciones */}
-          <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Términos y Condiciones</h4>
-            <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-lg">
-              {terms}
+          {terms && (
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Términos y Condiciones</h4>
+              <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-lg">
+                {terms}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Footer */}
           <div className="text-center pt-6 border-t text-sm text-gray-500">
-            <p>Esta propuesta tiene una validez de {validityDays} días desde la fecha de emisión.</p>
+            <p>Esta propuesta tiene una validez de {validityDays || 30} días desde la fecha de emisión.</p>
             <p className="mt-2">Para cualquier aclaración, no dude en contactar con nosotros.</p>
           </div>
         </CardContent>

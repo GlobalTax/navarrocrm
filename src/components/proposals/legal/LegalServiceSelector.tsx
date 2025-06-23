@@ -149,21 +149,34 @@ interface LegalServiceSelectorProps {
 }
 
 export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
-  selectedServices,
+  selectedServices = [],
   onServicesChange,
   onAreaChange
 }) => {
   const [selectedArea, setSelectedArea] = React.useState<string>('')
 
+  console.log('LegalServiceSelector - selectedServices:', selectedServices, 'selectedArea:', selectedArea)
+
   const handleAreaSelect = (areaId: string) => {
+    console.log('Area selected:', areaId)
     setSelectedArea(areaId)
     onAreaChange(areaId)
+    // Limpiar servicios seleccionados al cambiar de área
+    onServicesChange([])
   }
 
   const handleServiceToggle = (serviceId: string) => {
-    const newServices = selectedServices.includes(serviceId)
-      ? selectedServices.filter(id => id !== serviceId)
-      : [...selectedServices, serviceId]
+    console.log('Service toggled:', serviceId)
+    const isCurrentlySelected = selectedServices.includes(serviceId)
+    
+    let newServices: string[]
+    if (isCurrentlySelected) {
+      newServices = selectedServices.filter(id => id !== serviceId)
+    } else {
+      newServices = [...selectedServices, serviceId]
+    }
+    
+    console.log('New services:', newServices)
     onServicesChange(newServices)
   }
 
