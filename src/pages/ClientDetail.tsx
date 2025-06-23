@@ -42,15 +42,15 @@ interface Client {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'activo':
-      return 'bg-green-100 text-green-800'
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200'
     case 'inactivo':
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-slate-50 text-slate-600 border-slate-200'
     case 'prospecto':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-blue-50 text-blue-700 border-blue-200'
     case 'bloqueado':
-      return 'bg-red-100 text-red-800'
+      return 'bg-red-50 text-red-700 border-red-200'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-slate-50 text-slate-600 border-slate-200'
   }
 }
 
@@ -121,7 +121,7 @@ const ClientDetail = () => {
     return (
       <StandardPageContainer>
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
         </div>
       </StandardPageContainer>
     )
@@ -131,8 +131,8 @@ const ClientDetail = () => {
     return (
       <StandardPageContainer>
         <div className="text-center py-12">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Cliente no encontrado</h3>
-          <p className="text-gray-600 mb-4">El cliente que buscas no existe o no tienes permisos para verlo.</p>
+          <h3 className="text-lg font-medium text-slate-900 mb-2">Cliente no encontrado</h3>
+          <p className="text-slate-600 mb-4">El cliente que buscas no existe o no tienes permisos para verlo.</p>
           <Button onClick={() => navigate('/contacts')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Contactos
@@ -144,45 +144,60 @@ const ClientDetail = () => {
 
   return (
     <StandardPageContainer>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/contacts')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
-              <Badge className={getStatusColor(client.status || '')}>
-                {getStatusLabel(client.status || '')}
-              </Badge>
+      {/* Header Executive Style */}
+      <div className="border-b border-slate-200 pb-6 mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/contacts')}
+              className="text-slate-600 hover:text-slate-900"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            <div className="border-l border-slate-200 pl-4">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-medium text-slate-900">{client.name}</h1>
+                <Badge className={`${getStatusColor(client.status || '')} font-medium border`}>
+                  {getStatusLabel(client.status || '')}
+                </Badge>
+              </div>
+              {client.business_sector && (
+                <p className="text-slate-600">{client.business_sector}</p>
+              )}
             </div>
-            {client.business_sector && (
-              <p className="text-gray-600 mt-1">{client.business_sector}</p>
-            )}
           </div>
+          
+          <Button variant="outline" size="sm" className="border-slate-300 text-slate-700 hover:bg-slate-50">
+            <Edit className="h-4 w-4 mr-2" />
+            Editar Cliente
+          </Button>
         </div>
-        
-        <Button variant="outline" size="sm">
-          <Edit className="h-4 w-4 mr-2" />
-          Editar Cliente
-        </Button>
       </div>
 
-      {/* Tabs */}
+      {/* Professional Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="services">Servicios</TabsTrigger>
-          <TabsTrigger value="communications">Comunicaciones</TabsTrigger>
-          <TabsTrigger value="documents">Documentos</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="cases">Casos ({cases.length})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-6 bg-slate-50 border border-slate-200">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Resumen
+          </TabsTrigger>
+          <TabsTrigger value="services" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Servicios
+          </TabsTrigger>
+          <TabsTrigger value="communications" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Comunicaciones
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Documentos
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Timeline
+          </TabsTrigger>
+          <TabsTrigger value="cases" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Casos ({cases.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -207,24 +222,24 @@ const ClientDetail = () => {
 
         <TabsContent value="cases" className="space-y-4 mt-6">
           {cases.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No hay casos registrados para este cliente</p>
-              <Button className="mt-4" size="sm">
+            <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
+              <p className="text-slate-600 mb-4">No hay casos registrados para este cliente</p>
+              <Button size="sm" className="bg-slate-900 hover:bg-slate-800">
                 Crear primer caso
               </Button>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {cases.map((case_) => (
-                <div key={case_.id} className="border rounded-lg p-4">
+                <div key={case_.id} className="border border-slate-200 rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">{case_.title}</h4>
-                      <p className="text-sm text-gray-500">
+                      <h4 className="font-medium text-slate-900">{case_.title}</h4>
+                      <p className="text-sm text-slate-500">
                         Creado el {new Date(case_.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <Badge className={getStatusColor(case_.status)}>
+                    <Badge className={`${getStatusColor(case_.status)} font-medium border`}>
                       {getStatusLabel(case_.status)}
                     </Badge>
                   </div>
