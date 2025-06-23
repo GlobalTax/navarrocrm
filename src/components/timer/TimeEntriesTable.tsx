@@ -1,15 +1,13 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Trash2, Edit, RefreshCw } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Trash2, Edit, Copy, MoreHorizontal, Calendar, DollarSign } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
-import { useCases } from '@/hooks/useCases'
-import { format } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 
@@ -17,37 +15,11 @@ export const TimeEntriesTable = () => {
   const {
     filteredTimeEntries,
     isLoading,
-    error,
-    refetch,
-    searchTerm,
-    setSearchTerm,
-    caseFilter,
-    setCaseFilter,
-    billableFilter,
-    setBillableFilter,
     deleteTimeEntry,
     isDeleting
   } = useTimeEntries()
 
-  const { cases } = useCases()
   const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta entrada de tiempo?')) {
-      return
-    }
-
-    try {
-      setDeletingId(id)
-      await deleteTimeEntry(id)
-      toast.success('Entrada de tiempo eliminada')
-    } catch (error) {
-      console.error('Error deleting time entry:', error)
-      toast.error('Error al eliminar la entrada de tiempo')
-    } finally {
-      setDeletingId(null)
-    }
-  }
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
@@ -59,16 +31,56 @@ export const TimeEntriesTable = () => {
     return `${mins}m`
   }
 
-  const getTotalHours = () => {
-    const totalMinutes = filteredTimeEntries.reduce((sum, entry) => sum + entry.duration_minutes, 0)
-    return (totalMinutes / 60).toFixed(1)
+  const formatSmartDate = (dateString: string) => {
+    const date = new Date(dateString)
+    
+    if (isToday(date)) return 'Hoy'
+    if (isYesterday(date)) return 'Ayer'
+    
+    return format(date, 'dd/MM', { locale: es })
   }
 
-  const getBillableHours = () => {
+  const getTotalStats = () => {
+    const totalMinutes = filteredTimeEntries.reduce((sum, entry) => sum + entry.duration_minutes, 0)
     const billableMinutes = filteredTimeEntries
       .filter(entry => entry.is_billable)
       .reduce((sum, entry) => sum + entry.duration_minutes, 0)
-    return (billableMinutes / 60).toFixed(1)
+    
+    return {
+      total: (totalMinutes / 60).toFixed(1),
+      billable: (billableMinutes / 60).toFixed(1),
+      rate: totalMinutes > 0 ? Math.round((billableMinutes / totalMinutes) * 100) : 0,
+      entries: filteredTimeEntries.length
+    }
+  }
+
+  const stats = getTotalStats()
+
+  // Agrupar entradas por fecha
+  const groupedEntries = filteredTimeEntries.reduce((groups, entry) => {
+    const date = new Date(entry.created_at).toDateString()
+    if (!groups[date]) {
+      groups[date] = []
+    }
+    groups[date].push(entry)
+    return groups
+  }, {} as Record<string, typeof filteredTimeEntries>)
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta entrada?')) {
+      return
+    }
+
+    try {
+      setDeletingId(id)
+      await deleteTimeEntry(id)
+      toast.success('Entrada eliminada')
+    } catch (error) {
+      console.error('Error deleting time entry:', error)
+      toast.error('Error al eliminar la entrada')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   if (isLoading) {
@@ -86,143 +98,98 @@ export const TimeEntriesTable = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Registros de Tiempo</CardTitle>
-          {error && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Reintentar
-            </Button>
-          )}
-        </div>
-        
-        {/* Estadísticas */}
-        <div className="flex gap-4 text-sm text-muted-foreground">
-          <span>Total: {getTotalHours()}h</span>
-          <span>Facturables: {getBillableHours()}h</span>
-          <span>Entradas: {filteredTimeEntries.length}</span>
-        </div>
-
-        {/* Filtros */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Buscar por descripción, caso o cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <Select value={caseFilter} onValueChange={setCaseFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filtrar por caso" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los casos</SelectItem>
-              <SelectItem value="none">Sin caso asignado</SelectItem>
-              {cases.map((case_) => (
-                <SelectItem key={case_.id} value={case_.id}>
-                  {case_.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={billableFilter} onValueChange={setBillableFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Facturación" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="billable">Facturables</SelectItem>
-              <SelectItem value="non-billable">No facturables</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Registros de Tiempo
+        </CardTitle>
       </CardHeader>
       
       <CardContent>
-        {error && (
-          <div className="text-center py-8 text-red-600">
-            <p className="font-medium">Error al cargar registros de tiempo</p>
-            <p className="text-sm">{error.message}</p>
+        {filteredTimeEntries.length === 0 ? (
+          <div className="text-center py-12">
+            <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 font-medium">No hay registros de tiempo</p>
+            <p className="text-sm text-gray-400 mt-1">Usa el timer para crear tu primera entrada</p>
           </div>
-        )}
-
-        {!error && filteredTimeEntries.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No hay registros de tiempo que mostrar</p>
-            {searchTerm || caseFilter !== 'all' || billableFilter !== 'all' ? (
-              <p className="text-sm mt-2">Prueba a ajustar los filtros</p>
-            ) : (
-              <p className="text-sm mt-2">Usa el timer para registrar tu primer entrada de tiempo</p>
-            )}
-          </div>
-        )}
-
-        {!error && filteredTimeEntries.length > 0 && (
+        ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="w-16">Hora</TableHead>
                   <TableHead>Descripción</TableHead>
-                  <TableHead>Caso</TableHead>
-                  <TableHead>Duración</TableHead>
-                  <TableHead>Facturación</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="w-32">Caso</TableHead>
+                  <TableHead className="w-20">Tiempo</TableHead>
+                  <TableHead className="w-24">Tipo</TableHead>
+                  <TableHead className="w-16"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredTimeEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell className="text-sm">
-                      {format(new Date(entry.created_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                  <TableRow key={entry.id} className="hover:bg-gray-50">
+                    <TableCell className="text-sm text-gray-500">
+                      {format(new Date(entry.created_at), 'HH:mm')}
                     </TableCell>
                     <TableCell>
                       <div className="max-w-xs">
-                        <p className="truncate">{entry.description || 'Sin descripción'}</p>
+                        <p className="text-sm truncate">
+                          {entry.description || 'Sin descripción'}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       {entry.case ? (
-                        <div className="text-sm">
+                        <div className="text-xs">
                           <p className="font-medium truncate">{entry.case.title}</p>
                           {entry.case.contact && (
-                            <p className="text-muted-foreground truncate">
+                            <p className="text-gray-500 truncate">
                               {entry.case.contact.name}
                             </p>
                           )}
                         </div>
                       ) : (
-                        <span className="text-muted-foreground text-sm">Sin caso</span>
+                        <span className="text-gray-400 text-xs">Sin caso</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="font-mono text-sm">
+                      <span className="font-mono text-sm font-medium">
                         {formatDuration(entry.duration_minutes)}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={entry.is_billable ? 'default' : 'secondary'}>
-                        {entry.is_billable ? 'Facturable' : 'No facturable'}
+                      <Badge 
+                        variant={entry.is_billable ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {entry.is_billable ? 'Fact.' : 'No fact.'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(entry.id)}
-                        disabled={isDeleting || deletingId === entry.id}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(entry.id)}
+                            disabled={isDeleting || deletingId === entry.id}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

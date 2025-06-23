@@ -35,9 +35,9 @@ export const useClientNotes = (clientId?: string) => {
       if (!clientId || !user?.org_id) return []
       
       const { data, error } = await supabase
-        .from('client_notes')
+        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
         .select('*')
-        .eq('client_id', clientId)
+        .eq('contact_id', clientId) // Changed from 'client_id' to 'contact_id'
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -56,9 +56,10 @@ export const useClientNotes = (clientId?: string) => {
       }
 
       const { data, error } = await supabase
-        .from('client_notes')
+        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
         .insert({
           ...noteData,
+          contact_id: noteData.client_id, // Map client_id to contact_id
           org_id: user.org_id,
           user_id: user.id,
           is_private: noteData.is_private || false
@@ -82,7 +83,7 @@ export const useClientNotes = (clientId?: string) => {
   const updateNoteMutation = useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<ClientNote> & { id: string }) => {
       const { data, error } = await supabase
-        .from('client_notes')
+        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
         .update(updateData)
         .eq('id', id)
         .select()
@@ -104,7 +105,7 @@ export const useClientNotes = (clientId?: string) => {
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
       const { error } = await supabase
-        .from('client_notes')
+        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
         .delete()
         .eq('id', noteId)
 

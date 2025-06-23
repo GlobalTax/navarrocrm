@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Card,
@@ -124,7 +125,7 @@ export default function ProposalDemoModule({ onBack }: ProposalDemoModuleProps) 
         .from('proposals')
         .insert({
           org_id: user.org_id,
-          client_id: clienteId,
+          contact_id: clienteId, // Changed from client_id to contact_id
           title: titulo,
           description: notas,
           total_amount: totales.total,

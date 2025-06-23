@@ -173,7 +173,7 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
 
       if (isEditing && client) {
         const { error } = await supabase
-          .from('clients')
+          .from('contacts') // Changed from 'clients' to 'contacts'
           .update(clientData)
           .eq('id', client.id)
 
@@ -181,7 +181,7 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
         toast.success('Cliente actualizado exitosamente')
       } else {
         const { error } = await supabase
-          .from('clients')
+          .from('contacts') // Changed from 'clients' to 'contacts'
           .insert(clientData)
 
         if (error) throw error
