@@ -21,8 +21,7 @@ export const useCasesMutations = () => {
         .from('cases')
         .insert({
           ...caseData,
-          org_id: user.org_id,
-          created_by: user.id
+          org_id: user.org_id
         })
         .select(`
           *,

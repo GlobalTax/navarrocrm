@@ -8,7 +8,7 @@ import { X, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-r
 import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface ClientBulkUploadProps {
   open: boolean
@@ -43,7 +43,6 @@ export function ClientBulkUpload({ open, onClose, onSuccess }: ClientBulkUploadP
   const [isProcessing, setIsProcessing] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
-  const { toast } = useToast()
 
   const validateRow = (row: any, index: number): { client: ParsedClient | null; errors: ValidationError[] } => {
     const errors: ValidationError[] = []
@@ -143,29 +142,18 @@ export function ClientBulkUpload({ open, onClose, onSuccess }: ClientBulkUploadP
         setIsProcessing(false)
         
         if (allErrors.length === 0) {
-          toast({
-            title: "Archivo procesado exitosamente",
-            description: `${validClients.length} contactos listos para importar`,
-          })
+          toast.success(`Archivo procesado exitosamente. ${validClients.length} contactos listos para importar`)
         } else {
-          toast({
-            title: "Errores de validación encontrados",
-            description: `${allErrors.length} errores que deben corregirse`,
-            variant: "destructive"
-          })
+          toast.error(`Errores de validación encontrados: ${allErrors.length} errores que deben corregirse`)
         }
       },
       error: (error) => {
         setIsProcessing(false)
         setUploadStatus('error')
-        toast({
-          title: "Error al procesar archivo",
-          description: error.message,
-          variant: "destructive"
-        })
+        toast.error(`Error al procesar archivo: ${error.message}`)
       }
     })
-  }, [toast])
+  }, [])
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -235,10 +223,7 @@ export function ClientBulkUpload({ open, onClose, onSuccess }: ClientBulkUploadP
       }
 
       setUploadStatus('success')
-      toast({
-        title: "Importación exitosa",
-        description: `${successCount} contactos importados correctamente`,
-      })
+      toast.success(`Importación exitosa: ${successCount} contactos importados correctamente`)
       
       setTimeout(() => {
         onSuccess()
@@ -247,11 +232,7 @@ export function ClientBulkUpload({ open, onClose, onSuccess }: ClientBulkUploadP
 
     } catch (error) {
       setUploadStatus('error')
-      toast({
-        title: "Error en la importación",
-        description: error instanceof Error ? error.message : 'Error desconocido',
-        variant: "destructive"
-      })
+      toast.error(`Error en la importación: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     } finally {
       setIsProcessing(false)
     }

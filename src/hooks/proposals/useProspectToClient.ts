@@ -35,7 +35,7 @@ export const useProspectToClient = () => {
     mutationFn: async (data: ProspectData) => {
       if (!user?.org_id) throw new Error('Usuario no autenticado')
 
-      const clientData = {
+      const contactData = {
         org_id: user.org_id,
         name: data.name,
         email: data.email,
@@ -46,22 +46,24 @@ export const useProspectToClient = () => {
         how_found_us: data.how_found_us,
         internal_notes: data.internal_notes,
         status: 'activo',
+        relationship_type: 'cliente',
         contact_preference: 'email',
         preferred_language: 'es'
       }
 
-      const { data: client, error } = await supabase
-        .from('clients')
-        .insert(clientData)
+      const { data: contact, error } = await supabase
+        .from('contacts')
+        .insert(contactData)
         .select()
         .single()
 
       if (error) throw error
-      return client
+      return contact
     },
-    onSuccess: (client) => {
+    onSuccess: (contact) => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] })
       queryClient.invalidateQueries({ queryKey: ['clients'] })
-      toast.success(`Cliente "${client.name}" creado exitosamente`)
+      toast.success(`Cliente "${contact.name}" creado exitosamente`)
     },
     onError: (error) => {
       console.error('Error creating client from prospect:', error)

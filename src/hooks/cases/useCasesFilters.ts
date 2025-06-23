@@ -11,12 +11,11 @@ export const useCasesFilters = (cases: Case[]) => {
   const filteredCases = cases.filter(case_ => {
     const matchesSearch = case_.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       case_.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      case_.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      case_.matter_number?.toLowerCase().includes(searchTerm.toLowerCase())
+      case_.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'active' && case_.status !== 'archived') ||
-      (statusFilter === 'archived' && case_.status === 'archived') ||
+      (statusFilter === 'active' && case_.status !== 'closed') ||
+      (statusFilter === 'closed' && case_.status === 'closed') ||
       case_.status === statusFilter
       
     const matchesPracticeArea = practiceAreaFilter === 'all' || case_.practice_area === practiceAreaFilter

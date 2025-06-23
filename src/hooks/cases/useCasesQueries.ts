@@ -36,7 +36,7 @@ export const useCasesQueries = () => {
       }
       
       console.log('✅ Casos obtenidos:', data?.length || 0)
-      return (data || []) as Case[]
+      return (data || []) as unknown as Case[]
     },
     enabled: !!user?.org_id,
   })
