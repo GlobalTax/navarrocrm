@@ -1,9 +1,9 @@
 
 import { Contact } from '@/hooks/useContacts'
-import { ContactFormDialog } from '@/components/clients/ClientFormDialog'
-import { ContactDetailDialog } from '@/components/clients/ClientDetailDialog'
-import { ContactBulkUpload } from '@/components/clients/ClientBulkUpload'
-import { ContactExportDialog } from '@/components/clients/ClientExportDialog'
+import { ClientFormDialog } from '@/components/clients/ClientFormDialog'
+import { ClientDetailDialog } from '@/components/clients/ClientDetailDialog'
+import { ClientBulkUpload } from '@/components/clients/ClientBulkUpload'
+import { ClientExportDialog } from '@/components/clients/ClientExportDialog'
 
 interface ContactsDialogManagerProps {
   selectedContact: Contact | null
@@ -34,36 +34,36 @@ export function ContactsDialogManager({
 }: ContactsDialogManagerProps) {
   return (
     <>
-      <ContactFormDialog
+      <ClientFormDialog
         open={isCreateDialogOpen}
         onOpenChange={onClose}
-        contact={null}
+        client={selectedContact}
         mode="create"
       />
 
-      <ContactFormDialog
+      <ClientFormDialog
         open={isEditDialogOpen}
         onOpenChange={onClose}
-        contact={selectedContact}
+        client={selectedContact}
         mode="edit"
       />
 
-      <ContactDetailDialog
+      <ClientDetailDialog
         open={isDetailDialogOpen}
         onOpenChange={onClose}
-        contact={selectedContact}
+        client={selectedContact}
       />
 
-      <ContactBulkUpload
+      <ClientBulkUpload
         open={isBulkUploadOpen}
-        onOpenChange={onBulkUploadClose}
+        onClose={onBulkUploadClose}
         onSuccess={onBulkUploadSuccess}
       />
 
-      <ContactExportDialog
+      <ClientExportDialog
         open={isExportDialogOpen}
-        onOpenChange={onExportClose}
-        contacts={contacts}
+        onClose={onExportClose}
+        clients={contacts}
       />
     </>
   )
