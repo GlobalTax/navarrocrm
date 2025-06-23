@@ -1,4 +1,5 @@
-import { Home, Users, FolderOpen, CheckSquare, FileText, Calendar, Clock, Zap, Brain, Settings, Repeat } from 'lucide-react'
+
+import { Home, Users, FolderOpen, CheckSquare, FileText, Calendar, Clock, Zap, Brain, Settings, Repeat, GraduationCap } from 'lucide-react'
 
 export const navigation = [
   { name: 'Dashboard', href: '/' },
@@ -11,6 +12,7 @@ export const navigation = [
   { name: 'Tiempo', href: '/time-tracking' },
   { name: 'Workflows', href: '/workflows' },
   { name: 'IA Avanzada', href: '/advanced-ai' },
+  { name: 'Academia', href: '/academia' },
   { name: 'Integraciones', href: '/integrations' },
   { name: 'IA Admin', href: '/ai-admin' },
 ]
@@ -102,6 +104,13 @@ export const navigationItems: NavigationItem[] = [
     path: '/advanced-ai',
     color: 'text-purple-600',
     requiredRoles: ['partner', 'area_manager', 'senior']
+  },
+  {
+    title: 'Academia',
+    icon: GraduationCap,
+    path: '/academia',
+    color: 'text-blue-500',
+    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Dashboard IA',

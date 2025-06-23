@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
@@ -24,6 +23,7 @@ import NotFound from './pages/NotFound'
 import Index from './pages/Index'
 import { QueryClient } from './contexts/QueryContext'
 import RecurrentFees from './pages/RecurrentFees'
+import Academia from './pages/Academia'
 
 function App() {
   return (
@@ -135,6 +135,16 @@ function App() {
                 <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
                   <MainLayout>
                     <AdvancedAI />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/academia"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Academia />
                   </MainLayout>
                 </ProtectedRoute>
               }
