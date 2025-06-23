@@ -15,8 +15,9 @@ interface WorkflowTemplate {
 }
 
 interface WorkflowTemplatesProps {
-  templates: WorkflowTemplate[]
-  onUseTemplate: (template: WorkflowTemplate) => void
+  templates?: WorkflowTemplate[]
+  onUseTemplate?: (template: WorkflowTemplate) => void
+  onClose?: () => void
 }
 
 const getCategoryIcon = (category: string) => {
@@ -41,8 +42,9 @@ const getCategoryLabel = (category: string) => {
 }
 
 export const WorkflowTemplates: React.FC<WorkflowTemplatesProps> = ({
-  templates,
-  onUseTemplate
+  templates = [],
+  onUseTemplate,
+  onClose
 }) => {
   const groupedTemplates = templates.reduce((acc, template) => {
     if (!acc[template.category]) {
@@ -51,6 +53,19 @@ export const WorkflowTemplates: React.FC<WorkflowTemplatesProps> = ({
     acc[template.category].push(template)
     return acc
   }, {} as Record<string, WorkflowTemplate[]>)
+
+  if (templates.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Plantillas de Workflows</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <p className="text-gray-500">No hay plantillas disponibles</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -81,14 +96,16 @@ export const WorkflowTemplates: React.FC<WorkflowTemplatesProps> = ({
                       <span>•</span>
                       <span>{template.template_data?.conditions?.length || 0} condiciones</span>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onUseTemplate(template)}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      Usar
-                    </Button>
+                    {onUseTemplate && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onUseTemplate(template)}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        Usar
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

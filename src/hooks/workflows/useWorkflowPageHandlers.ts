@@ -7,26 +7,91 @@ export const useWorkflowPageHandlers = (
   updateRule: (id: string, updates: any) => Promise<any>,
   deleteRule: (id: string) => Promise<any>
 ) => {
-  const [editingRule, setEditingRule] = useState<any>(null)
+  const [showBuilder, setShowBuilder] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [selectedRule, setSelectedRule] = useState<any>(null)
+  const [executions] = useState<any[]>([]) // Mock executions for now
+  
   const { executeWorkflow } = useIntelligentWorkflows()
+
+  const handleCreateWorkflow = useCallback(() => {
+    setShowBuilder(true)
+    setSelectedRule(null)
+  }, [])
+
+  const handleShowWizard = useCallback(() => {
+    setShowWizard(true)
+  }, [])
+
+  const handleShowTemplates = useCallback(() => {
+    setShowTemplates(true)
+  }, [])
+
+  const handleSelectRule = useCallback((rule: any) => {
+    setSelectedRule(rule)
+    setShowBuilder(true)
+  }, [])
+
+  const handleCloseBuilder = useCallback(() => {
+    setShowBuilder(false)
+    setSelectedRule(null)
+  }, [])
+
+  const handleCloseWizard = useCallback(() => {
+    setShowWizard(false)
+  }, [])
+
+  const handleCloseTemplates = useCallback(() => {
+    setShowTemplates(false)
+  }, [])
+
+  const handleRuleCreated = useCallback(async (ruleData: any) => {
+    try {
+      await createRule(ruleData)
+      setShowBuilder(false)
+      setShowWizard(false)
+      setSelectedRule(null)
+      return true
+    } catch (error) {
+      console.error('Error creating rule:', error)
+      return false
+    }
+  }, [createRule])
+
+  const handleRuleUpdated = useCallback(async (ruleData: any) => {
+    try {
+      if (selectedRule) {
+        await updateRule(selectedRule.id, ruleData)
+        setShowBuilder(false)
+        setSelectedRule(null)
+      }
+      return true
+    } catch (error) {
+      console.error('Error updating rule:', error)
+      return false
+    }
+  }, [updateRule, selectedRule])
 
   const handleSaveRule = useCallback(async (ruleData: any) => {
     try {
-      if (editingRule) {
-        await updateRule(editingRule.id, ruleData)
+      if (selectedRule) {
+        await updateRule(selectedRule.id, ruleData)
       } else {
         await createRule(ruleData)
       }
-      setEditingRule(null)
+      setShowBuilder(false)
+      setSelectedRule(null)
       return true
     } catch (error) {
       console.error('Error saving rule:', error)
       return false
     }
-  }, [editingRule, updateRule, createRule])
+  }, [selectedRule, updateRule, createRule])
 
   const handleEditRule = useCallback((rule: any) => {
-    setEditingRule(rule)
+    setSelectedRule(rule)
+    setShowBuilder(true)
   }, [])
 
   const handleDeleteRule = useCallback(async (id: string) => {
@@ -37,7 +102,7 @@ export const useWorkflowPageHandlers = (
 
   const handleUseTemplate = useCallback((template: any) => {
     const templateData = template.template_data
-    setEditingRule({
+    setSelectedRule({
       name: template.name,
       description: template.description,
       trigger_type: templateData.trigger,
@@ -46,6 +111,7 @@ export const useWorkflowPageHandlers = (
       priority: 0,
       is_active: true
     })
+    setShowBuilder(true)
   }, [])
 
   const handleExecuteRule = useCallback(async (rule: any) => {
@@ -62,11 +128,28 @@ export const useWorkflowPageHandlers = (
   }, [executeWorkflow])
 
   const handleClearEditing = useCallback(() => {
-    setEditingRule(null)
+    setSelectedRule(null)
+    setShowBuilder(false)
   }, [])
 
   return {
-    editingRule,
+    // UI State
+    showBuilder,
+    showWizard,
+    showTemplates,
+    selectedRule,
+    executions,
+    
+    // Handlers
+    handleCreateWorkflow,
+    handleShowWizard,
+    handleShowTemplates,
+    handleSelectRule,
+    handleCloseBuilder,
+    handleCloseWizard,
+    handleCloseTemplates,
+    handleRuleCreated,
+    handleRuleUpdated,
     handleSaveRule,
     handleEditRule,
     handleDeleteRule,

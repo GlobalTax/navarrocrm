@@ -14,7 +14,16 @@ import { useOptimizedWorkflowRules } from '@/hooks/useOptimizedWorkflowRules'
 import { useWorkflowPageHandlers } from '@/hooks/workflows/useWorkflowPageHandlers'
 
 const Workflows = React.memo(() => {
-  const { rules, loading, refetch } = useOptimizedWorkflowRules()
+  const { 
+    rules, 
+    templates, 
+    isLoading, 
+    createRule, 
+    updateRule, 
+    deleteRule, 
+    toggleRule 
+  } = useOptimizedWorkflowRules()
+  
   const {
     showBuilder,
     showWizard,
@@ -29,14 +38,31 @@ const Workflows = React.memo(() => {
     handleCloseWizard,
     handleCloseTemplates,
     handleRuleCreated,
-    handleRuleUpdated
-  } = useWorkflowPageHandlers(refetch)
+    handleRuleUpdated,
+    handleExecuteRule
+  } = useWorkflowPageHandlers(createRule, updateRule, deleteRule)
 
   // Fix: Ensure description is always present
   const normalizedRules = rules.map(rule => ({
     ...rule,
     description: rule.description || ''
   }))
+
+  // Mock metrics for the dashboard
+  const mockMetrics = {
+    totalExecutions: 150,
+    successfulExecutions: 142,
+    failedExecutions: 8,
+    averageExecutionTime: 2500,
+    timeSaved: 18000,
+    activeWorkflows: normalizedRules.filter(r => r.is_active).length,
+    topPerformingWorkflow: normalizedRules[0]?.name || 'N/A',
+    improvementSuggestions: [
+      'Considera optimizar los workflows con más de 5 condiciones',
+      'Revisa los workflows que fallan frecuentemente',
+      'Añade más automatizaciones para tareas repetitivas'
+    ]
+  }
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -45,7 +71,10 @@ const Workflows = React.memo(() => {
         onShowWizard={handleShowWizard}
       />
 
-      <OptimizedWorkflowMetricsDashboard />
+      <OptimizedWorkflowMetricsDashboard 
+        metrics={mockMetrics}
+        isLoading={isLoading}
+      />
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -64,15 +93,23 @@ const Workflows = React.memo(() => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <WorkflowQuickView rules={normalizedRules} />
-          <WorkflowTemplates />
+          <WorkflowQuickView 
+            rules={normalizedRules} 
+            executions={executions}
+          />
+          <WorkflowTemplates 
+            templates={templates}
+            onUseTemplate={handleRuleCreated}
+          />
         </TabsContent>
 
         <TabsContent value="rules" className="space-y-6">
           <WorkflowRulesList 
             rules={normalizedRules}
-            loading={loading}
             onSelectRule={handleSelectRule}
+            onDelete={deleteRule}
+            onToggle={toggleRule}
+            onExecute={handleExecuteRule}
           />
         </TabsContent>
 
@@ -83,21 +120,23 @@ const Workflows = React.memo(() => {
 
       {showBuilder && (
         <WorkflowBuilder
-          onClose={handleCloseBuilder}
-          onSave={handleRuleCreated}
           rule={selectedRule}
+          onSave={handleRuleCreated}
         />
       )}
 
       {showWizard && (
         <WorkflowWizard
-          onClose={handleCloseWizard}
           onComplete={handleRuleCreated}
         />
       )}
 
       {showTemplates && (
-        <WorkflowTemplates onClose={handleCloseTemplates} />
+        <WorkflowTemplates 
+          templates={templates}
+          onUseTemplate={handleRuleCreated}
+          onClose={handleCloseTemplates}
+        />
       )}
     </div>
   )

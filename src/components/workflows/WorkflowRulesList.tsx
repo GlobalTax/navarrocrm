@@ -5,14 +5,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Trash2, Edit, Play, Clock, Users, FileText, DollarSign } from 'lucide-react'
-import { WorkflowRuleDB } from '@/hooks/useWorkflowRules'
+import { WorkflowRuleDB } from '@/hooks/useOptimizedWorkflowRules'
 
 interface WorkflowRulesListProps {
   rules: WorkflowRuleDB[]
-  onEdit: (rule: WorkflowRuleDB) => void
-  onDelete: (id: string) => void
-  onToggle: (id: string, isActive: boolean) => void
+  onEdit?: (rule: WorkflowRuleDB) => void
+  onDelete?: (id: string) => void
+  onToggle?: (id: string, isActive: boolean) => void
   onExecute?: (rule: WorkflowRuleDB) => void
+  onSelectRule?: (rule: WorkflowRuleDB) => void
 }
 
 const getTriggerIcon = (trigger: string) => {
@@ -43,7 +44,8 @@ export const WorkflowRulesList: React.FC<WorkflowRulesListProps> = ({
   onEdit,
   onDelete,
   onToggle,
-  onExecute
+  onExecute,
+  onSelectRule
 }) => {
   if (rules.length === 0) {
     return (
@@ -71,10 +73,12 @@ export const WorkflowRulesList: React.FC<WorkflowRulesListProps> = ({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Switch
-                  checked={rule.is_active}
-                  onCheckedChange={(checked) => onToggle(rule.id, checked)}
-                />
+                {onToggle && (
+                  <Switch
+                    checked={rule.is_active}
+                    onCheckedChange={(checked) => onToggle(rule.id, checked)}
+                  />
+                )}
                 <Badge variant={rule.is_active ? 'default' : 'secondary'}>
                   {rule.is_active ? 'Activo' : 'Inactivo'}
                 </Badge>
@@ -106,20 +110,24 @@ export const WorkflowRulesList: React.FC<WorkflowRulesListProps> = ({
                     Ejecutar
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(rule)}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete(rule.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {(onEdit || onSelectRule) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit ? onEdit(rule) : onSelectRule?.(rule)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDelete(rule.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
