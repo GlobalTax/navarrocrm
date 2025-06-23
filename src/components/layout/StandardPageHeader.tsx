@@ -1,5 +1,6 @@
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 interface BadgeInfo {
   label: string
@@ -7,11 +8,20 @@ interface BadgeInfo {
   color?: string
 }
 
+interface ActionButton {
+  label: string
+  onClick: () => void
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+}
+
 interface StandardPageHeaderProps {
   title: string
   description?: string
   badges?: BadgeInfo[]
   actions?: React.ReactNode
+  children?: React.ReactNode
+  primaryAction?: ActionButton
+  secondaryAction?: ActionButton
   className?: string
 }
 
@@ -20,6 +30,9 @@ export const StandardPageHeader = ({
   description, 
   badges = [],
   actions,
+  children,
+  primaryAction,
+  secondaryAction,
   className = ""
 }: StandardPageHeaderProps) => {
   return (
@@ -42,8 +55,25 @@ export const StandardPageHeader = ({
         )}
       </div>
       
-      {actions && (
+      {(actions || primaryAction || secondaryAction || children) && (
         <div className="flex items-center gap-2">
+          {children}
+          {secondaryAction && (
+            <Button
+              variant={secondaryAction.variant || 'outline'}
+              onClick={secondaryAction.onClick}
+            >
+              {secondaryAction.label}
+            </Button>
+          )}
+          {primaryAction && (
+            <Button
+              variant={primaryAction.variant || 'default'}
+              onClick={primaryAction.onClick}
+            >
+              {primaryAction.label}
+            </Button>
+          )}
           {actions}
         </div>
       )}
