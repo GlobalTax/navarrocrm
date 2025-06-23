@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { ProposalFormData, proposalSchema } from '../types/proposal.schema';
-import { ProposalBasicInfo } from './ProposalBasicInfo';
 import { PricingTierManager } from './PricingTierManager';
+import { ClientSelectorWithProspect } from '@/components/proposals/ClientSelectorWithProspect';
 
 interface ProposalBuilderProps {
   onSave: (data: ProposalFormData) => void;
@@ -190,6 +190,8 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
   };
 
   const watchedTiers = form.watch('pricingTiers') || [];
+  const selectedClientId = form.watch('clientId');
+
   console.log('Current pricing tiers:', watchedTiers.length);
 
   return (
@@ -201,7 +203,57 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <ProposalBasicInfo form={form} />
+              
+              {/* Cliente/Prospecto Selector */}
+              <ClientSelectorWithProspect
+                selectedClientId={selectedClientId}
+                onClientSelected={(clientId) => form.setValue('clientId', clientId)}
+              />
+              
+              {/* Información básica de la propuesta */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Título de la Propuesta *</label>
+                  <input
+                    {...form.register('title')}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Ej: Servicios Jurídicos Integrales - Plan Mensual"
+                  />
+                  {form.formState.errors.title && (
+                    <p className="text-sm text-red-600">{form.formState.errors.title.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Introducción</label>
+                  <textarea
+                    {...form.register('introduction')}
+                    className="w-full p-2 border rounded-md"
+                    rows={3}
+                    placeholder="Presentación de la propuesta..."
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Alcance del Trabajo</label>
+                  <textarea
+                    {...form.register('scopeOfWork')}
+                    className="w-full p-2 border rounded-md"
+                    rows={4}
+                    placeholder="Detalle de los servicios incluidos..."
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Cronograma</label>
+                  <textarea
+                    {...form.register('timeline')}
+                    className="w-full p-2 border rounded-md"
+                    rows={3}
+                    placeholder="Plazos y fechas importantes..."
+                  />
+                </div>
+              </div>
               
               <PricingTierManager
                 form={form}
@@ -217,7 +269,10 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
                 <Button type="button" variant="outline">
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isSaving}>
+                <Button 
+                  type="submit" 
+                  disabled={isSaving || !form.watch('clientId')}
+                >
                   {isSaving ? 'Guardando...' : 'Guardar Propuesta'}
                 </Button>
               </div>
