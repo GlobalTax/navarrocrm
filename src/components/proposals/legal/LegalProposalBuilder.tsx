@@ -1,27 +1,35 @@
-
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
-import { ArrowRight, ArrowLeft, Scale, CheckCircle, FileText, Euro } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Scale, CheckCircle } from 'lucide-react'
 import { ClientSelectorWithProspect } from '@/components/proposals/ClientSelectorWithProspect'
 import { LegalServiceSelector } from './LegalServiceSelector'
+import { LegalServiceManager } from './LegalServiceManager'
 import { LegalRetainerConfigurator } from './LegalRetainerConfigurator'
+import { LegalProposalTexts } from './LegalProposalTexts'
+import { LegalProposalPreview } from './LegalProposalPreview'
 import { ProposalConversionFeedback } from '@/components/proposals/ProposalConversionFeedback'
 
+interface SelectedService {
+  id: string
+  name: string
+  description: string
+  basePrice: number
+  customPrice: number
+  quantity: number
+  billingUnit: string
+  estimatedHours?: number
+  total: number
+}
+
 interface LegalProposalData {
-  // Cliente
   clientId: string
-  
-  // Servicios
   selectedArea: string
-  selectedServices: string[]
-  
-  // Configuración
+  selectedServices: SelectedService[]
   retainerConfig: {
     retainerAmount: number
     includedHours: number
@@ -32,8 +40,6 @@ interface LegalProposalData {
     contractDuration: number
     paymentTerms: number
   }
-  
-  // Propuesta
   title: string
   introduction: string
   terms: string
@@ -42,10 +48,10 @@ interface LegalProposalData {
 
 const steps = [
   { id: 1, name: 'Cliente', description: 'Seleccionar cliente o prospecto' },
-  { id: 2, name: 'Servicios', description: 'Área de práctica y servicios' },
+  { id: 2, name: 'Servicios', description: 'Selección y configuración' },
   { id: 3, name: 'Honorarios', description: 'Configuración económica' },
-  { id: 4, name: 'Propuesta', description: 'Contenido y términos' },
-  { id: 5, name: 'Revisión', description: 'Confirmar y enviar' }
+  { id: 4, name: 'Contenido', description: 'Textos de la propuesta' },
+  { id: 5, name: 'Revisión', description: 'Vista previa y envío' }
 ]
 
 interface LegalProposalBuilderProps {
@@ -99,6 +105,37 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
       case 5: return true
       default: return false
     }
+  }
+
+  const handleServiceUpdate = (serviceId: string, field: keyof SelectedService, value: number) => {
+    const updatedServices = proposalData.selectedServices.map(service => {
+      if (service.id === serviceId) {
+        const updated = { ...service, [field]: value }
+        updated.total = updated.quantity * updated.customPrice
+        return updated
+      }
+      return service
+    })
+    setProposalData(prev => ({ ...prev, selectedServices: updatedServices }))
+  }
+
+  const handleServiceRemove = (serviceId: string) => {
+    const updatedServices = proposalData.selectedServices.filter(service => service.id !== serviceId)
+    setProposalData(prev => ({ ...prev, selectedServices: updatedServices }))
+  }
+
+  const handleServiceAdd = () => {
+    // Logic to add a new service
+    console.log('Add new service')
+  }
+
+  const handleGeneratePDF = () => {
+    console.log('Generate PDF')
+    // TODO: Implement PDF generation
+  }
+
+  const handleSendProposal = () => {
+    handleSave()
   }
 
   const handleSave = () => {
@@ -163,7 +200,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header profesional */}
       <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <CardHeader>
@@ -244,18 +281,30 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
               <h3 className="text-xl font-semibold mb-6">Selección de Cliente</h3>
               <ClientSelectorWithProspect
                 selectedClientId={proposalData.clientId}
-                onClientSelected={(clientId) => updateProposalData('clientId', clientId)}
+                onClientSelected={(clientId) => setProposalData(prev => ({ ...prev, clientId }))}
               />
             </div>
           )}
 
           {currentStep === 2 && (
-            <div>
-              <h3 className="text-xl font-semibold mb-6">Área de Práctica y Servicios</h3>
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold mb-6">Selección y Configuración de Servicios</h3>
+              
               <LegalServiceSelector
+                selectedServices={proposalData.selectedServices.map(s => s.id)}
+                onServicesChange={(serviceIds) => {
+                  // Convert service IDs to SelectedService objects
+                  // This is a simplified version - you'd implement the full logic
+                  console.log('Services changed:', serviceIds)
+                }}
+                onAreaChange={(area) => setProposalData(prev => ({ ...prev, selectedArea: area }))}
+              />
+
+              <LegalServiceManager
                 selectedServices={proposalData.selectedServices}
-                onServicesChange={(services) => updateProposalData('selectedServices', services)}
-                onAreaChange={(area) => updateProposalData('selectedArea', area)}
+                onServiceUpdate={handleServiceUpdate}
+                onServiceRemove={handleServiceRemove}
+                onServiceAdd={handleServiceAdd}
               />
             </div>
           )}
@@ -265,113 +314,47 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
               <h3 className="text-xl font-semibold mb-6">Configuración de Honorarios</h3>
               <LegalRetainerConfigurator
                 config={proposalData.retainerConfig}
-                onConfigChange={(config) => updateProposalData('retainerConfig', config)}
+                onConfigChange={(config) => setProposalData(prev => ({ ...prev, retainerConfig: config }))}
                 estimatedMonthlyHours={10}
               />
             </div>
           )}
 
           {currentStep === 4 && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold">Contenido de la Propuesta</h3>
+            <div>
+              <LegalProposalTexts
+                introduction={proposalData.introduction}
+                onIntroductionChange={(value) => setProposalData(prev => ({ ...prev, introduction: value }))}
+                terms={proposalData.terms}
+                onTermsChange={(value) => setProposalData(prev => ({ ...prev, terms: value }))}
+                practiceArea={proposalData.selectedArea}
+              />
               
-              <div>
+              <div className="mt-6">
                 <Label htmlFor="title">Título de la Propuesta</Label>
                 <Input
                   id="title"
                   value={proposalData.title}
-                  onChange={(e) => updateProposalData('title', e.target.value)}
+                  onChange={(e) => setProposalData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Ej: Servicios Jurídicos Integrales - Área Fiscal"
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="introduction">Introducción</Label>
-                <Textarea
-                  id="introduction"
-                  value={proposalData.introduction}
-                  onChange={(e) => updateProposalData('introduction', e.target.value)}
-                  rows={4}
-                  placeholder="Presentación de los servicios jurídicos..."
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="terms">Términos y Condiciones Adicionales</Label>
-                <Textarea
-                  id="terms"
-                  value={proposalData.terms}
-                  onChange={(e) => updateProposalData('terms', e.target.value)}
-                  rows={3}
-                  placeholder="Condiciones específicas del servicio..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="validity">Validez de la Propuesta (días)</Label>
-                  <Input
-                    id="validity"
-                    type="number"
-                    value={proposalData.validityDays}
-                    onChange={(e) => updateProposalData('validityDays', Number(e.target.value))}
-                  />
-                </div>
               </div>
             </div>
           )}
 
           {currentStep === 5 && (
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold">Revisión Final</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-blue-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Resumen de la Propuesta</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <span className="font-medium">Título:</span>
-                      <p className="text-gray-600">{proposalData.title}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Área:</span>
-                      <p className="text-gray-600">{proposalData.selectedArea}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Servicios:</span>
-                      <p className="text-gray-600">{proposalData.selectedServices.length} seleccionados</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-green-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Euro className="h-5 w-5" />
-                      Configuración Económica
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <span className="font-medium">Cuota:</span>
-                      <p className="text-gray-600">
-                        {proposalData.retainerConfig.retainerAmount}€ {proposalData.retainerConfig.billingFrequency}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Horas incluidas:</span>
-                      <p className="text-gray-600">{proposalData.retainerConfig.includedHours}h</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Tarifa extra:</span>
-                      <p className="text-gray-600">{proposalData.retainerConfig.extraHourlyRate}€/h</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <LegalProposalPreview
+              title={proposalData.title}
+              clientName="Cliente seleccionado" // TODO: Get actual client name
+              practiceArea={proposalData.selectedArea}
+              introduction={proposalData.introduction}
+              terms={proposalData.terms}
+              selectedServices={proposalData.selectedServices}
+              retainerConfig={proposalData.retainerConfig}
+              validityDays={proposalData.validityDays}
+              onGeneratePDF={handleGeneratePDF}
+              onSendProposal={handleSendProposal}
+            />
           )}
         </CardContent>
       </Card>
