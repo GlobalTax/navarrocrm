@@ -14,6 +14,11 @@ export interface NavigationSection {
   items: NavigationItem[]
 }
 
+export interface QuickAction {
+  name: string
+  href: string
+}
+
 export const navigationData: NavigationSection[] = [
   {
     title: "Principal",
@@ -99,5 +104,24 @@ export const navigationData: NavigationSection[] = [
         icon: Shield,
       },
     ]
+  }
+]
+
+export const quickActions: QuickAction[] = [
+  {
+    name: "Nuevo Cliente",
+    href: "/clients/new"
+  },
+  {
+    name: "Nuevo Caso",
+    href: "/cases/new"
+  },
+  {
+    name: "Nueva Propuesta",
+    href: "/proposals/new"
+  },
+  {
+    name: "Registrar Tiempo",
+    href: "/time-tracking"
   }
 ]
