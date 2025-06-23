@@ -87,13 +87,13 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="client_id">Cliente *</Label>
+              <Label htmlFor="contact_id">Contacto *</Label>
               <Select 
-                value={formData.client_id} 
-                onValueChange={(value) => updateFormData({ client_id: value })}
+                value={formData.contact_id} 
+                onValueChange={(value) => updateFormData({ contact_id: value })}
               >
-                <SelectTrigger className={errors.client_id ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Seleccionar cliente..." />
+                <SelectTrigger className={errors.contact_id ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Seleccionar contacto..." />
                 </SelectTrigger>
                 <SelectContent>
                   {clients.map((client) => (
@@ -108,8 +108,8 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
                   ))}
                 </SelectContent>
               </Select>
-              {errors.client_id && (
-                <p className="text-sm text-red-500">{errors.client_id}</p>
+              {errors.contact_id && (
+                <p className="text-sm text-red-500">{errors.contact_id}</p>
               )}
             </div>
 
@@ -166,7 +166,7 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
           <strong>Tip:</strong> Un título descriptivo te ayudará a encontrar rápidamente este expediente. 
-          Incluye el tipo de servicio y el nombre del cliente.
+          Incluye el tipo de servicio y el nombre del contacto.
         </AlertDescription>
       </Alert>
     </div>

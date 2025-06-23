@@ -11,19 +11,22 @@ export const useCasesQueries = () => {
     queryKey: ['cases', user?.org_id],
     queryFn: async () => {
       if (!user?.org_id) {
-        console.log('📁 No org_id disponible para obtener casos')
+        console.log('📋 No org_id disponible para obtener casos')
         return []
       }
       
-      console.log('📁 Obteniendo casos para org:', user.org_id)
+      console.log('📋 Obteniendo casos para org:', user.org_id)
       
       const { data, error } = await supabase
         .from('cases')
         .select(`
           *,
-          client:clients(name, email),
-          responsible_solicitor:users!responsible_solicitor_id(email),
-          originating_solicitor:users!originating_solicitor_id(email)
+          contact:contacts(
+            id,
+            name,
+            email,
+            phone
+          )
         `)
         .order('created_at', { ascending: false })
 
@@ -33,13 +36,13 @@ export const useCasesQueries = () => {
       }
       
       console.log('✅ Casos obtenidos:', data?.length || 0)
-      return data || []
+      return (data || []) as Case[]
     },
     enabled: !!user?.org_id,
   })
 
   return {
-    cases: cases as Case[],
+    cases,
     isLoading,
     error,
     refetch

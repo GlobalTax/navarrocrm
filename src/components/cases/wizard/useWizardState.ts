@@ -4,7 +4,7 @@ import { WizardFormData, WizardStep } from './types'
 import { CreateCaseData } from '@/hooks/useCases'
 
 const STEPS: WizardStep[] = [
-  { id: 1, title: 'Información Básica', description: 'Cliente, título y área' },
+  { id: 1, title: 'Información Básica', description: 'Contacto, título y área' },
   { id: 2, title: 'Configuración', description: 'Abogados y facturación' },
   { id: 3, title: 'Revisión', description: 'Confirmar y crear' }
 ]
@@ -13,7 +13,7 @@ const initialFormData: WizardFormData = {
   title: '',
   description: '',
   status: 'open',
-  client_id: '',
+  contact_id: '',
   practice_area: '',
   responsible_solicitor_id: '',
   originating_solicitor_id: '',
@@ -57,8 +57,8 @@ export const useWizardState = (
       if (!formData.title.trim()) {
         newErrors.title = 'El título es obligatorio'
       }
-      if (!formData.client_id) {
-        newErrors.client_id = 'Debe seleccionar un cliente'
+      if (!formData.contact_id) {
+        newErrors.contact_id = 'Debe seleccionar un contacto'
       }
     }
 
@@ -106,7 +106,7 @@ export const useWizardState = (
       title: formData.title,
       description: formData.description,
       status: formData.status,
-      client_id: formData.client_id,
+      contact_id: formData.contact_id,
       practice_area: formData.practice_area === 'none' ? undefined : formData.practice_area,
       responsible_solicitor_id: formData.responsible_solicitor_id === 'none' ? undefined : formData.responsible_solicitor_id,
       originating_solicitor_id: formData.originating_solicitor_id === 'none' ? undefined : formData.originating_solicitor_id,

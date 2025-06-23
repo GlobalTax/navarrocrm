@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import type { CreateCaseData } from './types'
+import type { CreateCaseData, UpdateCaseData } from './types'
 
 export const useCasesMutations = () => {
   const { user } = useApp()
@@ -11,127 +11,119 @@ export const useCasesMutations = () => {
 
   const createCaseMutation = useMutation({
     mutationFn: async (caseData: CreateCaseData) => {
-      console.log('📁 Creando expediente:', caseData)
-      
-      // Generate matter number if not provided
-      const matterNumberResult = await supabase
-        .rpc('generate_matter_number', { org_uuid: user?.org_id! })
-
-      if (matterNumberResult.error) {
-        console.error('❌ Error generando número de expediente:', matterNumberResult.error)
-        throw matterNumberResult.error
+      if (!user?.id || !user?.org_id) {
+        throw new Error('Usuario no autenticado')
       }
 
-      const insertData = {
-        ...caseData,
-        matter_number: matterNumberResult.data,
-        org_id: user?.org_id!,
-        date_opened: new Date().toISOString().split('T')[0],
-      }
-
-      console.log('📁 Datos a insertar:', insertData)
+      console.log('📋 Creando caso:', caseData)
 
       const { data, error } = await supabase
         .from('cases')
-        .insert(insertData)
-        .select()
+        .insert({
+          ...caseData,
+          org_id: user.org_id,
+          created_by: user.id
+        })
+        .select(`
+          *,
+          contact:contacts(
+            id,
+            name,
+            email,
+            phone
+          )
+        `)
         .single()
 
       if (error) {
-        console.error('❌ Error insertando expediente:', error)
+        console.error('❌ Error creating case:', error)
         throw error
       }
 
-      console.log('✅ Expediente creado exitosamente:', data)
+      console.log('✅ Caso creado:', data)
       return data
     },
-    onSuccess: (data) => {
-      console.log('🎉 Expediente creado con éxito:', data)
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
-      toast.success(`El expediente "${data.title}" ha sido creado correctamente.`)
+      toast.success('Caso creado exitosamente')
     },
-    onError: (error: any) => {
-      console.error('❌ Error al crear expediente:', error)
-      toast.error(error.message || 'Ha ocurrido un error inesperado')
+    onError: (error) => {
+      console.error('❌ Error al crear caso:', error)
+      toast.error('Error al crear el caso')
+    },
+  })
+
+  const updateCaseMutation = useMutation({
+    mutationFn: async ({ id, ...updateData }: UpdateCaseData) => {
+      console.log('📋 Actualizando caso:', id, updateData)
+
+      const { data, error } = await supabase
+        .from('cases')
+        .update(updateData)
+        .eq('id', id)
+        .select(`
+          *,
+          contact:contacts(
+            id,
+            name,
+            email,
+            phone
+          )
+        `)
+        .single()
+
+      if (error) {
+        console.error('❌ Error updating case:', error)
+        throw error
+      }
+
+      console.log('✅ Caso actualizado:', data)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] })
+      toast.success('Caso actualizado exitosamente')
+    },
+    onError: (error) => {
+      console.error('❌ Error al actualizar caso:', error)
+      toast.error('Error al actualizar el caso')
     },
   })
 
   const deleteCaseMutation = useMutation({
     mutationFn: async (caseId: string) => {
-      console.log('🗑️ Eliminando expediente:', caseId)
-      
+      console.log('📋 Eliminando caso:', caseId)
+
       const { error } = await supabase
         .from('cases')
         .delete()
         .eq('id', caseId)
 
       if (error) {
-        console.error('❌ Error eliminando expediente:', error)
+        console.error('❌ Error deleting case:', error)
         throw error
       }
 
-      console.log('✅ Expediente eliminado exitosamente')
+      console.log('✅ Caso eliminado:', caseId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
-      toast.success('El expediente ha sido eliminado permanentemente.')
+      toast.success('Caso eliminado exitosamente')
     },
-    onError: (error: any) => {
-      console.error('❌ Error al eliminar expediente:', error)
-      toast.error(error.message || 'Ha ocurrido un error inesperado')
-    },
-  })
-
-  const archiveCaseMutation = useMutation({
-    mutationFn: async (caseId: string) => {
-      console.log('📦 Cambiando estado de archivo del expediente:', caseId)
-      
-      // First get the current status
-      const { data: currentCase, error: fetchError } = await supabase
-        .from('cases')
-        .select('status')
-        .eq('id', caseId)
-        .single()
-
-      if (fetchError) {
-        console.error('❌ Error obteniendo expediente:', fetchError)
-        throw fetchError
-      }
-
-      const newStatus = currentCase.status === 'archived' ? 'open' : 'archived'
-      
-      const { error } = await supabase
-        .from('cases')
-        .update({ status: newStatus })
-        .eq('id', caseId)
-
-      if (error) {
-        console.error('❌ Error cambiando estado de archivo:', error)
-        throw error
-      }
-
-      console.log('✅ Estado de archivo cambiado exitosamente')
-      return { oldStatus: currentCase.status, newStatus }
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['cases'] })
-      const action = data.newStatus === 'archived' ? 'archivado' : 'desarchivado'
-      toast.success(`El expediente ha sido ${action} correctamente.`)
-    },
-    onError: (error: any) => {
-      console.error('❌ Error al cambiar estado de archivo:', error)
-      toast.error(error.message || 'Ha ocurrido un error inesperado')
+    onError: (error) => {
+      console.error('❌ Error al eliminar caso:', error)
+      toast.error('Error al eliminar el caso')
     },
   })
 
   return {
     createCase: createCaseMutation.mutate,
-    isCreating: createCaseMutation.isPending,
-    isCreateSuccess: createCaseMutation.isSuccess,
-    createCaseReset: createCaseMutation.reset,
+    updateCase: updateCaseMutation.mutate,
     deleteCase: deleteCaseMutation.mutate,
+    isCreating: createCaseMutation.isPending,
+    isUpdating: updateCaseMutation.isPending,
     isDeleting: deleteCaseMutation.isPending,
-    archiveCase: archiveCaseMutation.mutate,
-    isArchiving: archiveCaseMutation.isPending,
+    isCreateSuccess: createCaseMutation.isSuccess,
+    resetCreate: () => createCaseMutation.reset()
   }
 }

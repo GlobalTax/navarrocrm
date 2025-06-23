@@ -14,11 +14,7 @@ import Proposals from '@/pages/Proposals'
 import Tasks from '@/pages/Tasks'
 import TimeTracking from '@/pages/TimeTracking'
 import Calendar from '@/pages/Calendar'
-import Documents from '@/pages/Documents'
-import Integrations from '@/pages/Integrations'
-import Reports from '@/pages/Reports'
 import Academia from '@/pages/Academia'
-import AIAssistant from '@/pages/AIAssistant'
 import AIAdmin from '@/pages/AIAdmin'
 
 const queryClient = new QueryClient({
@@ -85,38 +81,10 @@ function App() {
                 </MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="/documents" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Documents />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/integrations" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Integrations />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/reports" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Reports />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
             <Route path="/academia" element={
               <ProtectedRoute>
                 <MainLayout>
                   <Academia />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/ai-assistant" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <AIAssistant />
                 </MainLayout>
               </ProtectedRoute>
             } />
