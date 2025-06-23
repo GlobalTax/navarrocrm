@@ -16,6 +16,7 @@ export interface WorkflowRuleDB {
   created_at: string
   updated_at: string
   org_id: string
+  created_by: string
 }
 
 export interface WorkflowTemplate {
@@ -24,6 +25,7 @@ export interface WorkflowTemplate {
   description: string
   category: string
   template_data: any
+  is_system_template: boolean
 }
 
 export const useOptimizedWorkflowRules = () => {
@@ -94,21 +96,22 @@ export const useOptimizedWorkflowRules = () => {
 
   // Optimized mutations with useCallback
   const createRuleMutation = useMutation({
-    mutationFn: useCallback(async (ruleData: Omit<WorkflowRuleDB, 'id' | 'created_at' | 'updated_at' | 'org_id'>) => {
-      if (!user?.org_id) throw new Error('No organization ID')
+    mutationFn: useCallback(async (ruleData: Omit<WorkflowRuleDB, 'id' | 'created_at' | 'updated_at' | 'org_id' | 'created_by'>) => {
+      if (!user?.org_id || !user?.id) throw new Error('No organization or user ID')
       
       const { data, error } = await supabase
         .from('workflow_rules')
         .insert({
           ...ruleData,
-          org_id: user.org_id
+          org_id: user.org_id,
+          created_by: user.id
         })
         .select()
         .single()
 
       if (error) throw error
       return data
-    }, [user?.org_id]),
+    }, [user?.org_id, user?.id]),
     onSuccess: useCallback(() => {
       queryClient.invalidateQueries({ queryKey: ['workflow-rules'] })
     }, [queryClient])
@@ -117,7 +120,7 @@ export const useOptimizedWorkflowRules = () => {
   const updateRuleMutation = useMutation({
     mutationFn: useCallback(async ({ id, updates }: { 
       id: string
-      updates: Partial<Omit<WorkflowRuleDB, 'id' | 'created_at' | 'org_id'>>
+      updates: Partial<Omit<WorkflowRuleDB, 'id' | 'created_at' | 'org_id' | 'created_by'>>
     }) => {
       const { data, error } = await supabase
         .from('workflow_rules')
