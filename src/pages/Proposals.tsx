@@ -1,16 +1,17 @@
 
-import { Loader2 } from 'lucide-react'
+import { Loader2, Repeat, FileText } from 'lucide-react'
 import { useProposals } from '@/hooks/useProposals'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
-import { ProposalFilters } from '@/components/proposals/ProposalFilters'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { useProposalsFilters } from '@/hooks/proposals/useProposalsFilters'
-import { ProposalsPageHeader } from '@/components/proposals/ProposalsPageHeader'
 import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
 import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { StandardFilters } from '@/components/layout/StandardFilters'
 
 export default function Proposals() {
   console.log('Proposals page rendering')
@@ -92,15 +93,85 @@ export default function Proposals() {
     )
   }
 
+  const statusOptions = [
+    { label: 'Todos los estados', value: '' },
+    { label: 'Borrador', value: 'draft' },
+    { label: 'Enviada', value: 'sent' },
+    { label: 'Negociando', value: 'negotiating' },
+    { label: 'Ganada', value: 'won' },
+    { label: 'Perdida', value: 'lost' },
+    { label: 'Expirada', value: 'expired' }
+  ]
+
+  const typeOptions = [
+    { label: 'Todos los tipos', value: 'all' },
+    { label: 'Recurrentes', value: 'recurring' },
+    { label: 'Puntuales', value: 'oneTime' }
+  ]
+
+  const hasActiveFilters = filters.status || filters.search || filters.type !== 'all'
+
+  const handleClearFilters = () => {
+    setFilters({
+      status: '',
+      search: '',
+      dateFrom: undefined,
+      dateTo: undefined,
+      type: 'all'
+    })
+  }
+
   return (
-    <div className="space-y-6">
-      <ProposalsPageHeader
-        onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
-        onOpenSpecificBuilder={pageState.openSpecificBuilder}
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Propuestas Comerciales"
+        description="Gestiona propuestas recurrentes y servicios puntuales"
+        badges={[
+          {
+            label: 'Recurrentes: Fiscal, Contabilidad, Laboral',
+            variant: 'outline',
+            color: 'text-blue-600 border-blue-200 bg-blue-50'
+          },
+          {
+            label: 'Puntuales: Proyectos específicos',
+            variant: 'outline',
+            color: 'text-green-600 border-green-200 bg-green-50'
+          }
+        ]}
+        secondaryAction={{
+          label: 'Propuesta Recurrente',
+          onClick: pageState.openRecurrentBuilder,
+          variant: 'outline'
+        }}
+        primaryAction={{
+          label: 'Propuesta Puntual',
+          onClick: pageState.openSpecificBuilder
+        }}
       />
 
       <ProposalMetrics />
-      <ProposalFilters filters={filters} onFiltersChange={setFilters} />
+
+      <StandardFilters
+        searchPlaceholder="Buscar propuestas..."
+        searchValue={filters.search}
+        onSearchChange={(value) => setFilters({ ...filters, search: value })}
+        filters={[
+          {
+            placeholder: 'Estado',
+            value: filters.status,
+            onChange: (value) => setFilters({ ...filters, status: value === 'all' ? '' : value }),
+            options: statusOptions
+          },
+          {
+            placeholder: 'Tipo',
+            value: filters.type,
+            onChange: (value) => setFilters({ ...filters, type: value }),
+            options: typeOptions
+          }
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
+      />
 
       <ProposalsTabsView
         proposals={categorizedProposals}
@@ -109,6 +180,6 @@ export default function Proposals() {
         onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
         onOpenSpecificBuilder={pageState.openSpecificBuilder}
       />
-    </div>
+    </StandardPageContainer>
   )
 }

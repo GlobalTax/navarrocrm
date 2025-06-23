@@ -1,11 +1,13 @@
 
 import { useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics'
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { Home, BarChart3 } from 'lucide-react'
 
 export default function Dashboard() {
   const { user } = useApp()
@@ -28,14 +30,29 @@ export default function Dashboard() {
     )
   }
 
+  const welcomeMessage = user?.email?.split('@')[0] || 'Usuario'
+
   return (
-    <div className="space-y-6">
-      <DashboardHeader user={user} />
+    <StandardPageContainer>
+      <StandardPageHeader
+        title={`Bienvenido, ${welcomeMessage}`}
+        description="Resumen ejecutivo de tu despacho de abogados"
+        icon={Home}
+        badges={[
+          {
+            label: `Rol: ${user.role}`,
+            variant: 'outline',
+            color: 'text-blue-600 border-blue-200 bg-blue-50'
+          }
+        ]}
+      />
+      
       <DashboardMetrics stats={stats} />
       <DashboardLayout />
+      
       {stats.error && (
         <DashboardError error={stats.error} onRetry={fetchStats} />
       )}
-    </div>
+    </StandardPageContainer>
   )
 }

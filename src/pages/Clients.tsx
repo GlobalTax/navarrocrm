@@ -1,11 +1,12 @@
 
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart3, Users } from 'lucide-react'
+import { BarChart3, Users, Plus } from 'lucide-react'
 import { Client, useClients } from '@/hooks/useClients'
-import { ClientsHeader } from '@/components/clients/ClientsHeader'
 import { ClientsTabsContent } from '@/components/clients/ClientsTabsContent'
 import { ClientsDialogManager } from '@/components/clients/ClientsDialogManager'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 const Clients = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -46,8 +47,16 @@ const Clients = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <ClientsHeader onCreateClient={handleCreateClient} />
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Clientes"
+        description="Gestiona tu cartera de clientes"
+        icon={Users}
+        primaryAction={{
+          label: 'Nuevo Cliente',
+          onClick: handleCreateClient
+        }}
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -86,7 +95,7 @@ const Clients = () => {
         onExportClose={() => setIsExportDialogOpen(false)}
         onBulkUploadSuccess={handleBulkUploadSuccess}
       />
-    </div>
+    </StandardPageContainer>
   )
 }
 

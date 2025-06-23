@@ -1,9 +1,6 @@
 
 import { useState } from 'react'
-import { CasesPageContainer } from '@/components/cases/CasesPageContainer'
-import { CasesHeader } from '@/components/cases/CasesHeader'
 import { CasesStats } from '@/components/cases/CasesStats'
-import { CasesFilters } from '@/components/cases/CasesFilters'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
 import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
@@ -11,6 +8,12 @@ import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
 import { useMatterTemplates } from '@/hooks/useMatterTemplates'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { StandardFilters } from '@/components/layout/StandardFilters'
+import { FolderOpen, Plus, Download, Settings, FileText } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 
 export default function Cases() {
   const { 
@@ -106,26 +109,104 @@ export default function Cases() {
     )
   }
 
+  const statusOptions = [
+    { label: 'Todos los estados', value: 'all' },
+    { label: 'Activos', value: 'active' },
+    { label: 'Abierto', value: 'open' },
+    { label: 'En espera', value: 'on_hold' },
+    { label: 'Cerrado', value: 'closed' },
+    { label: 'Archivados', value: 'archived' }
+  ]
+
+  const practiceAreaOptions = [
+    { label: 'Todas las áreas', value: 'all' },
+    ...practiceAreas.map(area => ({ label: area.name, value: area.name }))
+  ]
+
+  const solicitorOptions = [
+    { label: 'Todos los abogados', value: 'all' },
+    ...users.map(user => ({ label: user.email, value: user.id }))
+  ]
+
+  const hasActiveFilters = statusFilter !== 'all' || practiceAreaFilter !== 'all' || solicitorFilter !== 'all' || searchTerm
+
+  const handleClearFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('all')
+    setPracticeAreaFilter('all')
+    setSolicitorFilter('all')
+  }
+
   return (
-    <CasesPageContainer>
-      <CasesHeader 
-        templates={templates}
-        onNewCase={() => setIsWizardOpen(true)}
-      />
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Expedientes"
+        description="Gestiona todos los expedientes del despacho"
+        icon={FolderOpen}
+        primaryAction={{
+          label: 'Nuevo Expediente',
+          onClick: () => setIsWizardOpen(true)
+        }}
+      >
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="default">
+              <Settings className="h-4 w-4 mr-2" />
+              Acciones
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem>
+              <Download className="h-4 w-4 mr-2" />
+              Exportar Expedientes
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>
+              <FileText className="h-4 w-4 mr-2" />
+              Plantillas ({templates.length})
+            </DropdownMenuItem>
+            {templates.map((template) => (
+              <DropdownMenuItem key={template.id} className="pl-8">
+                {template.name}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Plantilla
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </StandardPageHeader>
 
       <CasesStats cases={filteredCases} />
 
-      <CasesFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        practiceAreaFilter={practiceAreaFilter}
-        setPracticeAreaFilter={setPracticeAreaFilter}
-        solicitorFilter={solicitorFilter}
-        setSolicitorFilter={setSolicitorFilter}
-        practiceAreas={practiceAreas}
-        users={users}
+      <StandardFilters
+        searchPlaceholder="Buscar expedientes..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        filters={[
+          {
+            placeholder: 'Estado',
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: statusOptions
+          },
+          {
+            placeholder: 'Área de práctica',
+            value: practiceAreaFilter,
+            onChange: setPracticeAreaFilter,
+            options: practiceAreaOptions
+          },
+          {
+            placeholder: 'Abogado',
+            value: solicitorFilter,
+            onChange: setSolicitorFilter,
+            options: solicitorOptions
+          }
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
       />
 
       <CasesBulkActions selectedCases={selectedCases} />
@@ -168,6 +249,6 @@ export default function Cases() {
         onConfirmArchive={handleConfirmArchive}
         isArchiving={isArchiving}
       />
-    </CasesPageContainer>
+    </StandardPageContainer>
   )
 }

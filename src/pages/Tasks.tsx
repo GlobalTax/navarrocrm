@@ -1,14 +1,15 @@
 
 import { useState } from 'react'
-import { TasksHeader } from '@/components/tasks/TasksHeader'
 import { TasksStats } from '@/components/tasks/TasksStats'
-import { TasksFilters } from '@/components/tasks/TasksFilters'
 import { TasksBoardKanban } from '@/components/tasks/TasksBoardKanban'
 import { TasksList } from '@/components/tasks/TasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, CheckSquare, LayoutGrid, List } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { StandardFilters } from '@/components/layout/StandardFilters'
 
 export type TaskViewMode = 'board' | 'list'
 
@@ -61,6 +62,15 @@ const Tasks = () => {
     setIsTaskDialogOpen(true)
   }
 
+  const handleClearFilters = () => {
+    setFilters({
+      status: 'all',
+      priority: 'all',
+      assignee: 'all',
+      search: ''
+    })
+  }
+
   if (error) {
     console.error('❌ Tasks page error:', error)
     return (
@@ -87,19 +97,78 @@ const Tasks = () => {
     )
   }
 
+  const statusOptions = [
+    { label: 'Todos los estados', value: 'all' },
+    { label: 'Pendiente', value: 'pending' },
+    { label: 'En progreso', value: 'in_progress' },
+    { label: 'Completada', value: 'completed' }
+  ]
+
+  const priorityOptions = [
+    { label: 'Todas las prioridades', value: 'all' },
+    { label: 'Baja', value: 'low' },
+    { label: 'Media', value: 'medium' },
+    { label: 'Alta', value: 'high' },
+    { label: 'Urgente', value: 'urgent' }
+  ]
+
+  const hasActiveFilters = filters.status !== 'all' || filters.priority !== 'all' || filters.assignee !== 'all' || filters.search
+
   return (
-    <div className="space-y-6">
-      <TasksHeader 
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        onCreateTask={handleCreateTask}
-      />
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Tareas"
+        description="Organiza y gestiona todas las tareas del despacho"
+        icon={CheckSquare}
+        primaryAction={{
+          label: 'Nueva Tarea',
+          onClick: handleCreateTask
+        }}
+      >
+        <div className="flex items-center bg-gray-100 rounded-lg p-1">
+          <Button
+            variant={viewMode === 'board' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('board')}
+            className="flex items-center space-x-2"
+          >
+            <LayoutGrid className="h-4 w-4" />
+            <span>Tablero</span>
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+            className="flex items-center space-x-2"
+          >
+            <List className="h-4 w-4" />
+            <span>Lista</span>
+          </Button>
+        </div>
+      </StandardPageHeader>
       
       <TasksStats stats={taskStats} />
       
-      <TasksFilters 
-        filters={filters}
-        onFiltersChange={setFilters}
+      <StandardFilters
+        searchPlaceholder="Buscar tareas..."
+        searchValue={filters.search}
+        onSearchChange={(value) => setFilters({ ...filters, search: value })}
+        filters={[
+          {
+            placeholder: 'Estado',
+            value: filters.status,
+            onChange: (value) => setFilters({ ...filters, status: value }),
+            options: statusOptions
+          },
+          {
+            placeholder: 'Prioridad',
+            value: filters.priority,
+            onChange: (value) => setFilters({ ...filters, priority: value }),
+            options: priorityOptions
+          }
+        ]}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
       />
 
       {safeTasks.length === 0 ? (
@@ -139,7 +208,7 @@ const Tasks = () => {
         onClose={() => setIsTaskDialogOpen(false)}
         task={selectedTask}
       />
-    </div>
+    </StandardPageContainer>
   )
 }
 
