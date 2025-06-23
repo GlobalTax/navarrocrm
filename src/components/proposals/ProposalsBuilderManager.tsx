@@ -1,6 +1,7 @@
 
 import { ProposalBuilder } from '@/modules/proposals/components/ProposalBuilder'
 import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
+import { LegalProposalBuilder } from '@/components/proposals/legal/LegalProposalBuilder'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Repeat, FileText } from 'lucide-react'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
@@ -22,40 +23,14 @@ export const ProposalsBuilderManager = ({
   onSaveRecurrentProposal,
   isSavingRecurrent
 }: ProposalsBuilderManagerProps) => {
-  // Mostrar el constructor de propuestas recurrentes
+  // Mostrar el constructor de propuestas recurrentes LEGALES
   if (isRecurrentBuilderOpen) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Repeat className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Recurrente</h1>
-            </div>
-            <p className="text-gray-600">Servicios continuos como fiscal, contabilidad y laboral → Genera Cuotas Recurrentes</p>
-          </div>
-          <Button variant="outline" onClick={onCloseRecurrentBuilder}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </div>
-        
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Repeat className="h-4 w-4 text-blue-600" />
-            <span className="font-semibold text-blue-900">Propuesta Recurrente</span>
-          </div>
-          <p className="text-sm text-blue-700">
-            Al ser aceptada, esta propuesta generará automáticamente una <strong>Cuota Recurrente</strong> 
-            que permitirá facturación periódica y control de horas incluidas.
-          </p>
-        </div>
-        
-        <ProposalBuilder
-          onSave={onSaveRecurrentProposal}
-          isSaving={isSavingRecurrent}
-        />
-      </div>
+      <LegalProposalBuilder
+        onSave={onSaveRecurrentProposal}
+        isSaving={isSavingRecurrent}
+        onBack={onCloseRecurrentBuilder}
+      />
     )
   }
 
