@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -9,7 +8,7 @@ import { X, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-r
 import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
 interface ClientBulkUploadProps {
   open: boolean

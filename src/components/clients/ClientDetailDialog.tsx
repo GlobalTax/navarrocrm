@@ -117,7 +117,7 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
       const { data, error } = await supabase
         .from('cases')
         .select('id, title, status, created_at')
-        .eq('client_id', client.id)
+        .eq('contact_id', client.id)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
 
@@ -136,9 +136,9 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
       if (!client?.id || !user?.org_id) return []
       
       const { data, error } = await supabase
-        .from('client_notes')
+        .from('contact_notes')
         .select('id, title, content, note_type, created_at, user_id, is_private')
-        .eq('client_id', client.id)
+        .eq('contact_id', client.id)
         .order('created_at', { ascending: false })
         .limit(10)
 
