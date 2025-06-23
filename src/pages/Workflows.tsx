@@ -1,20 +1,24 @@
-
 import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Settings, BarChart3, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Plus, Wand2, BarChart3, History, Search } from 'lucide-react'
 import { useWorkflowRules } from '@/hooks/useWorkflowRules'
 import { useIntelligentWorkflows } from '@/hooks/useIntelligentWorkflows'
 import { WorkflowRulesList } from '@/components/workflows/WorkflowRulesList'
 import { WorkflowBuilder } from '@/components/workflows/WorkflowBuilder'
 import { WorkflowTemplates } from '@/components/workflows/WorkflowTemplates'
+import { WorkflowWizard } from '@/components/workflows/WorkflowWizard'
+import { WorkflowMetricsDashboard } from '@/components/workflows/WorkflowMetricsDashboard'
+import { Clock } from 'lucide-react'
 
 const WorkflowsPage = () => {
-  const [activeTab, setActiveTab] = useState('rules')
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [showBuilder, setShowBuilder] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
   const [editingRule, setEditingRule] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
   
   const {
     rules,
@@ -36,6 +40,7 @@ const WorkflowsPage = () => {
         await createRule(ruleData)
       }
       setShowBuilder(false)
+      setShowWizard(false)
       setEditingRule(null)
     } catch (error) {
       console.error('Error saving rule:', error)
@@ -49,7 +54,7 @@ const WorkflowsPage = () => {
   }
 
   const handleDeleteRule = async (id: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta regla?')) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta automatización?')) {
       await deleteRule(id)
     }
   }
@@ -71,7 +76,6 @@ const WorkflowsPage = () => {
 
   const handleExecuteRule = async (rule: any) => {
     try {
-      // Datos de ejemplo para testing
       const testData = {
         case_id: 'test-case-id',
         client_id: 'test-client-id',
@@ -83,11 +87,46 @@ const WorkflowsPage = () => {
     }
   }
 
-  // Métricas de workflows
+  // Métricas mejoradas
   const activeRulesCount = rules.filter(rule => rule.is_active).length
   const totalExecutions = executions.length
   const successfulExecutions = executions.filter(exec => exec.status === 'completed').length
   const failedExecutions = executions.filter(exec => exec.status === 'failed').length
+  const averageExecutionTime = executions.length > 0 
+    ? executions.reduce((sum, exec) => sum + (exec.execution_time || 2000), 0) / executions.length 
+    : 0
+  
+  const workflowMetrics = {
+    totalExecutions,
+    successfulExecutions,
+    failedExecutions,
+    averageExecutionTime,
+    timeSaved: successfulExecutions * 15 * 60, // 15 min ahorrados por ejecución exitosa
+    activeWorkflows: activeRulesCount,
+    topPerformingWorkflow: rules.find(rule => rule.is_active)?.name || 'N/A',
+    improvementSuggestions: [
+      'Considera agregar más condiciones a tus workflows para mayor precisión',
+      'Revisa los workflows con mayor tasa de fallos',
+      'Añade workflows para procesos manuales repetitivos'
+    ]
+  }
+
+  // Filtros
+  const filteredRules = rules.filter(rule => 
+    rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    rule.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  if (showWizard) {
+    return (
+      <div className="container mx-auto py-8">
+        <WorkflowWizard
+          onComplete={handleSaveRule}
+          onCancel={() => setShowWizard(false)}
+        />
+      </div>
+    )
+  }
 
   if (showBuilder) {
     return (
@@ -106,94 +145,122 @@ const WorkflowsPage = () => {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
+      {/* Header mejorado */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Workflows</h1>
+          <h1 className="text-3xl font-bold">Automatizaciones Inteligentes</h1>
           <p className="text-muted-foreground">
-            Automatiza procesos y tareas repetitivas en tu asesoría
+            Automatiza procesos y libera tiempo para lo que realmente importa
           </p>
         </div>
-        <Button onClick={() => {
-          setEditingRule(null)
-          setShowBuilder(true)
-        }}>
-          <Plus className="w-4 h-4 mr-2" />
-          Crear Workflow
-        </Button>
-      </div>
-
-      {/* Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Workflows Activos</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeRulesCount}</div>
-            <p className="text-xs text-muted-foreground">
-              de {rules.length} total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ejecuciones Totales</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalExecutions}</div>
-            <p className="text-xs text-muted-foreground">
-              este mes
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Exitosas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{successfulExecutions}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalExecutions > 0 ? Math.round((successfulExecutions / totalExecutions) * 100) : 0}% tasa de éxito
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fallidas</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{failedExecutions}</div>
-            <p className="text-xs text-muted-foreground">
-              requieren atención
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setShowWizard(true)}
+          >
+            <Wand2 className="w-4 h-4 mr-2" />
+            Asistente
+          </Button>
+          <Button onClick={() => {
+            setEditingRule(null)
+            setShowBuilder(true)
+          }}>
+            <Plus className="w-4 h-4 mr-2" />
+            Crear Workflow
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="rules">Mis Workflows</TabsTrigger>
-          <TabsTrigger value="templates">Plantillas</TabsTrigger>
-          <TabsTrigger value="history">Historial</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="workflows" className="flex items-center gap-2">
+            <Wand2 className="h-4 w-4" />
+            Mis Workflows
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Plantillas
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Historial
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="rules" className="space-y-4">
+        <TabsContent value="dashboard" className="space-y-6">
+          <WorkflowMetricsDashboard 
+            metrics={workflowMetrics}
+            isLoading={isLoading}
+          />
+          
+          {/* Vista rápida de workflows activos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Workflows Más Activos</h3>
+              {filteredRules.slice(0, 3).map((rule) => (
+                <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{rule.name}</p>
+                    <p className="text-sm text-muted-foreground">{rule.description}</p>
+                  </div>
+                  <Badge variant={rule.is_active ? "default" : "secondary"}>
+                    {rule.is_active ? "Activo" : "Inactivo"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Últimas Ejecuciones</h3>
+              {executions.slice(0, 3).map((execution) => (
+                <div key={execution.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Workflow ID: {execution.rule_id}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {execution.executed_at ? new Date(execution.executed_at).toLocaleString() : 'Pendiente'}
+                    </p>
+                  </div>
+                  <Badge variant={
+                    execution.status === 'completed' ? 'default' :
+                    execution.status === 'failed' ? 'destructive' : 'secondary'
+                  }>
+                    {execution.status === 'completed' ? 'Exitosa' :
+                     execution.status === 'failed' ? 'Fallida' : 'Pendiente'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="workflows" className="space-y-4">
+          {/* Barra de búsqueda */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar workflows..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Badge variant="outline">
+              {filteredRules.length} workflow{filteredRules.length !== 1 ? 's' : ''}
+            </Badge>
+          </div>
+
           {isLoading ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <p>Cargando workflows...</p>
-              </CardContent>
-            </Card>
+            <div className="text-center py-8">
+              <p>Cargando workflows...</p>
+            </div>
           ) : (
             <WorkflowRulesList
-              rules={rules}
+              rules={filteredRules}
               onEdit={handleEditRule}
               onDelete={handleDeleteRule}
               onToggle={toggleRule}
