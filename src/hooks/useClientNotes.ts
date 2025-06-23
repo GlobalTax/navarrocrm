@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 export interface ClientNote {
   id: string
-  client_id: string
+  contact_id: string  // Changed from client_id to contact_id
   org_id: string
   user_id: string
   title: string
@@ -18,7 +18,7 @@ export interface ClientNote {
 }
 
 export interface CreateClientNoteData {
-  client_id: string
+  client_id: string  // Keep as client_id for backward compatibility in the interface
   title: string
   content?: string
   note_type: ClientNote['note_type']
@@ -35,16 +35,20 @@ export const useClientNotes = (clientId?: string) => {
       if (!clientId || !user?.org_id) return []
       
       const { data, error } = await supabase
-        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
+        .from('contact_notes')
         .select('*')
-        .eq('contact_id', clientId) // Changed from 'client_id' to 'contact_id'
+        .eq('contact_id', clientId)
         .order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error fetching client notes:', error)
         throw error
       }
-      return data as ClientNote[]
+      // Map the data to match ClientNote interface
+      return data.map(note => ({
+        ...note,
+        client_id: note.contact_id  // Map contact_id back to client_id for backward compatibility
+      })) as ClientNote[]
     },
     enabled: !!clientId && !!user?.org_id,
   })
@@ -56,7 +60,7 @@ export const useClientNotes = (clientId?: string) => {
       }
 
       const { data, error } = await supabase
-        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
+        .from('contact_notes')
         .insert({
           ...noteData,
           contact_id: noteData.client_id, // Map client_id to contact_id
@@ -83,7 +87,7 @@ export const useClientNotes = (clientId?: string) => {
   const updateNoteMutation = useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<ClientNote> & { id: string }) => {
       const { data, error } = await supabase
-        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
+        .from('contact_notes')
         .update(updateData)
         .eq('id', id)
         .select()
@@ -105,7 +109,7 @@ export const useClientNotes = (clientId?: string) => {
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
       const { error } = await supabase
-        .from('contact_notes') // Changed from 'client_notes' to 'contact_notes'
+        .from('contact_notes')
         .delete()
         .eq('id', noteId)
 

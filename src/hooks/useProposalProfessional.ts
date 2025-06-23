@@ -112,7 +112,7 @@ export const useProposalProfessional = () => {
         .from('proposals')
         .insert({
           org_id: user.org_id,
-          client_id: proposalData.clientId,
+          contact_id: proposalData.clientId,  // Changed from client_id to contact_id
           title: proposalData.title,
           description: proposalData.introduction,
           total_amount: proposalData.total,

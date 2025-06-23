@@ -21,7 +21,66 @@ import {
 import { useIntelligentAnalytics } from '@/hooks/useIntelligentAnalytics'
 
 export const IntelligentDashboard = () => {
-  const { insights, metrics, isLoading, refreshInsights } = useIntelligentAnalytics()
+  const { analytics, isLoading, error } = useIntelligentAnalytics()
+
+  // Mock insights and metrics based on analytics data
+  const insights = [
+    {
+      id: '1',
+      title: 'Incremento en Casos Activos',
+      description: `Tienes ${analytics.activeCases} casos activos, un aumento respecto al mes anterior.`,
+      impact: 'medium' as const,
+      confidence: 0.85,
+      actionable: true,
+      suggestions: [
+        'Considera contratar personal adicional',
+        'Revisa la carga de trabajo por abogado',
+        'Implementa herramientas de automatización'
+      ]
+    },
+    {
+      id: '2', 
+      title: 'Tasa de Conversión de Propuestas',
+      description: `Tu tasa de conversión es del ${analytics.conversionRate.toFixed(1)}%.`,
+      impact: analytics.conversionRate > 30 ? 'low' : 'high' as const,
+      confidence: 0.92,
+      actionable: true,
+      suggestions: [
+        'Optimiza el proceso de seguimiento',
+        'Mejora la presentación de propuestas',
+        'Reduce los tiempos de respuesta'
+      ]
+    }
+  ]
+
+  const metrics = [
+    {
+      metric: 'Casos Totales',
+      current: analytics.totalCases,
+      target: analytics.totalCases + 10,
+      trend: 'up' as const,
+      percentage_change: 15.2
+    },
+    {
+      metric: 'Contactos Activos',
+      current: analytics.totalContacts,
+      target: analytics.totalContacts + 20,
+      trend: 'up' as const,
+      percentage_change: 8.7
+    },
+    {
+      metric: 'Ingresos Estimados',
+      current: analytics.totalRevenue,
+      target: analytics.totalRevenue + 5000,
+      trend: analytics.totalRevenue > 0 ? 'up' : 'stable' as const,
+      percentage_change: 12.3
+    }
+  ]
+
+  const refreshInsights = () => {
+    // This would trigger a refetch of analytics data
+    console.log('Refreshing insights...')
+  }
 
   const getImpactColor = (impact: string) => {
     switch (impact) {

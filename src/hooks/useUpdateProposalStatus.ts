@@ -15,7 +15,7 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
 
     const recurringFeeData = {
       org_id: proposal.org_id,
-      client_id: proposal.client_id,
+      contact_id: proposal.contact_id,  // Changed from client_id to contact_id
       proposal_id: proposal.id,
       name: `Cuota recurrente - ${proposal.title}`,
       description: proposal.description || '',

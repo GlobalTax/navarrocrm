@@ -16,7 +16,7 @@ export const useInactiveCases = () => {
       .select(`
         *,
         tasks:tasks(created_at),
-        client:clients(name)
+        contact:contacts(name)
       `)
       .eq('org_id', user.org_id)
       .eq('status', 'open')
@@ -25,7 +25,7 @@ export const useInactiveCases = () => {
     return inactiveCases?.map(case_ => ({
       caseId: case_.id,
       title: case_.title,
-      clientName: case_.client?.name,
+      clientName: case_.contact?.name,  // Changed from client to contact
       daysSinceActivity: Math.floor((Date.now() - new Date(case_.date_opened).getTime()) / (1000 * 60 * 60 * 24)),
       suggestions: [
         'Contactar con el cliente para actualización',
