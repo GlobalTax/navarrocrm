@@ -126,14 +126,52 @@ export const useCasesMutations = () => {
     },
   })
 
+  const archiveCaseMutation = useMutation({
+    mutationFn: async (caseId: string) => {
+      console.log('📋 Archivando caso:', caseId)
+
+      // Get current case status first
+      const { data: currentCase } = await supabase
+        .from('cases')
+        .select('status')
+        .eq('id', caseId)
+        .single()
+
+      // Toggle between closed and open
+      const newStatus = currentCase?.status === 'closed' ? 'open' : 'closed'
+
+      const { error } = await supabase
+        .from('cases')
+        .update({ status: newStatus })
+        .eq('id', caseId)
+
+      if (error) {
+        console.error('❌ Error archiving case:', error)
+        throw error
+      }
+
+      console.log('✅ Caso archivado:', caseId)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] })
+      toast.success('Estado del caso actualizado exitosamente')
+    },
+    onError: (error) => {
+      console.error('❌ Error al cambiar estado del caso:', error)
+      toast.error('Error al cambiar el estado del caso')
+    },
+  })
+
   return {
     createCase: createCaseMutation.mutate,
     updateCase: updateCaseMutation.mutate,
     deleteCase: deleteCaseMutation.mutate,
+    archiveCase: archiveCaseMutation.mutate,
     isCreating: createCaseMutation.isPending,
     isUpdating: updateCaseMutation.isPending,
     isDeleting: deleteCaseMutation.isPending,
+    isArchiving: archiveCaseMutation.isPending,
     isCreateSuccess: createCaseMutation.isSuccess,
-    resetCreate: () => createCaseMutation.reset()
+    createCaseReset: () => createCaseMutation.reset()
   }
 }

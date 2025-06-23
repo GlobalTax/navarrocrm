@@ -36,7 +36,7 @@ export default function Calendar() {
         time: format(eventDate, 'HH:mm'),
         datetime: event.start_datetime,
         type: event.event_type as 'meeting' | 'deadline' | 'task' | 'court',
-        client: event.client?.name,
+        client: event.contact?.name,
         description: event.description,
         location: event.location,
         status: event.status

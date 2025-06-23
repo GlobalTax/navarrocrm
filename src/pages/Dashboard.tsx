@@ -116,7 +116,7 @@ export default function Dashboard() {
       )}
       
       {error && (
-        <DashboardError error={error} onRetry={refetch} />
+        <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
       )}
     </StandardPageContainer>
   )
