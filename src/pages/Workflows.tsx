@@ -1,39 +1,42 @@
 
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Wand2, BarChart3, History, Search, Clock } from 'lucide-react'
-import { useWorkflowRules } from '@/hooks/useWorkflowRules'
 import { useIntelligentWorkflows } from '@/hooks/useIntelligentWorkflows'
 import { WorkflowRulesList } from '@/components/workflows/WorkflowRulesList'
 import { WorkflowBuilder } from '@/components/workflows/WorkflowBuilder'
 import { WorkflowTemplates } from '@/components/workflows/WorkflowTemplates'
 import { WorkflowWizard } from '@/components/workflows/WorkflowWizard'
-import { WorkflowMetricsDashboard } from '@/components/workflows/WorkflowMetricsDashboard'
+import { OptimizedWorkflowMetricsDashboard } from '@/components/workflows/OptimizedWorkflowMetricsDashboard'
+import { useOptimizedWorkflowRules } from '@/hooks/useOptimizedWorkflowRules'
 
-const WorkflowsPage = () => {
+const WorkflowsPage = React.memo(() => {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showBuilder, setShowBuilder] = useState(false)
   const [showWizard, setShowWizard] = useState(false)
   const [editingRule, setEditingRule] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
   
   const {
     rules,
     templates,
     isLoading,
+    searchTerm,
+    handleSearchChange,
     createRule,
     updateRule,
     deleteRule,
-    toggleRule
-  } = useWorkflowRules()
+    toggleRule,
+    stats
+  } = useOptimizedWorkflowRules()
 
   const { executions, executeWorkflow } = useIntelligentWorkflows()
 
-  const handleSaveRule = async (ruleData: any) => {
+  // Memoized handlers
+  const handleSaveRule = useCallback(async (ruleData: any) => {
     try {
       if (editingRule) {
         await updateRule(editingRule.id, ruleData)
@@ -46,21 +49,21 @@ const WorkflowsPage = () => {
     } catch (error) {
       console.error('Error saving rule:', error)
     }
-  }
+  }, [editingRule, updateRule, createRule])
 
-  const handleEditRule = (rule: any) => {
+  const handleEditRule = useCallback((rule: any) => {
     setEditingRule(rule)
     setShowBuilder(true)
     setActiveTab('builder')
-  }
+  }, [])
 
-  const handleDeleteRule = async (id: string) => {
+  const handleDeleteRule = useCallback(async (id: string) => {
     if (confirm('¿Estás seguro de que quieres eliminar esta automatización?')) {
       await deleteRule(id)
     }
-  }
+  }, [deleteRule])
 
-  const handleUseTemplate = (template: any) => {
+  const handleUseTemplate = useCallback((template: any) => {
     const templateData = template.template_data
     setEditingRule({
       name: template.name,
@@ -73,9 +76,9 @@ const WorkflowsPage = () => {
     })
     setShowBuilder(true)
     setActiveTab('builder')
-  }
+  }, [])
 
-  const handleExecuteRule = async (rule: any) => {
+  const handleExecuteRule = useCallback(async (rule: any) => {
     try {
       const testData = {
         case_id: 'test-case-id',
@@ -86,45 +89,97 @@ const WorkflowsPage = () => {
     } catch (error) {
       console.error('Error executing workflow:', error)
     }
-  }
+  }, [executeWorkflow])
 
-  // Métricas mejoradas - corregido para usar propiedades existentes
-  const activeRulesCount = rules.filter(rule => rule.is_active).length
-  const totalExecutions = executions.length
-  const successfulExecutions = executions.filter(exec => exec.status === 'completed').length
-  const failedExecutions = executions.filter(exec => exec.status === 'failed').length
-  // Usar un tiempo estimado en lugar de execution_time que no existe
-  const averageExecutionTime = executions.length > 0 
-    ? 2000 // Tiempo estimado promedio en ms
-    : 0
-  
-  const workflowMetrics = {
-    totalExecutions,
-    successfulExecutions,
-    failedExecutions,
-    averageExecutionTime,
-    timeSaved: successfulExecutions * 15 * 60, // 15 min ahorrados por ejecución exitosa
-    activeWorkflows: activeRulesCount,
-    topPerformingWorkflow: rules.find(rule => rule.is_active)?.name || 'N/A',
-    improvementSuggestions: [
-      'Considera agregar más condiciones a tus workflows para mayor precisión',
-      'Revisa los workflows con mayor tasa de fallos',
-      'Añade workflows para procesos manuales repetitivos'
-    ]
-  }
+  const handleCreateWorkflow = useCallback(() => {
+    setEditingRule(null)
+    setShowBuilder(true)
+  }, [])
 
-  // Filtros
-  const filteredRules = rules.filter(rule => 
-    rule.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    rule.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const handleShowWizard = useCallback(() => {
+    setShowWizard(true)
+  }, [])
+
+  const handleCancelBuilder = useCallback(() => {
+    setShowBuilder(false)
+    setEditingRule(null)
+  }, [])
+
+  const handleCancelWizard = useCallback(() => {
+    setShowWizard(false)
+  }, [])
+
+  // Memoized metrics
+  const workflowMetrics = useMemo(() => {
+    const activeRulesCount = stats.active
+    const totalExecutions = executions.length
+    const successfulExecutions = executions.filter(exec => exec.status === 'completed').length
+    const failedExecutions = executions.filter(exec => exec.status === 'failed').length
+    const averageExecutionTime = executions.length > 0 ? 2000 : 0
+    
+    return {
+      totalExecutions,
+      successfulExecutions,
+      failedExecutions,
+      averageExecutionTime,
+      timeSaved: successfulExecutions * 15 * 60,
+      activeWorkflows: activeRulesCount,
+      topPerformingWorkflow: rules.find(rule => rule.is_active)?.name || 'N/A',
+      improvementSuggestions: [
+        'Considera agregar más condiciones a tus workflows para mayor precisión',
+        'Revisa los workflows con mayor tasa de fallos',
+        'Añade workflows para procesos manuales repetitivos'
+      ]
+    }
+  }, [stats.active, executions, rules])
+
+  // Memoized components for better performance
+  const quickWorkflowsView = useMemo(() => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Workflows Más Activos</h3>
+        {rules.slice(0, 3).map((rule) => (
+          <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <div>
+              <p className="font-medium">{rule.name}</p>
+              <p className="text-sm text-muted-foreground">{rule.description}</p>
+            </div>
+            <Badge variant={rule.is_active ? "default" : "secondary"}>
+              {rule.is_active ? "Activo" : "Inactivo"}
+            </Badge>
+          </div>
+        ))}
+      </div>
+      
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Últimas Ejecuciones</h3>
+        {executions.slice(0, 3).map((execution) => (
+          <div key={execution.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <div>
+              <p className="font-medium">Workflow ID: {execution.rule_id}</p>
+              <p className="text-sm text-muted-foreground">
+                {execution.executed_at ? new Date(execution.executed_at).toLocaleString() : 'Pendiente'}
+              </p>
+            </div>
+            <Badge variant={
+              execution.status === 'completed' ? 'default' :
+              execution.status === 'failed' ? 'destructive' : 'secondary'
+            }>
+              {execution.status === 'completed' ? 'Exitosa' :
+               execution.status === 'failed' ? 'Fallida' : 'Pendiente'}
+            </Badge>
+          </div>
+        ))}
+      </div>
+    </div>
+  ), [rules, executions])
 
   if (showWizard) {
     return (
       <div className="container mx-auto py-8">
         <WorkflowWizard
           onComplete={handleSaveRule}
-          onCancel={() => setShowWizard(false)}
+          onCancel={handleCancelWizard}
         />
       </div>
     )
@@ -136,10 +191,7 @@ const WorkflowsPage = () => {
         <WorkflowBuilder
           rule={editingRule}
           onSave={handleSaveRule}
-          onCancel={() => {
-            setShowBuilder(false)
-            setEditingRule(null)
-          }}
+          onCancel={handleCancelBuilder}
         />
       </div>
     )
@@ -158,15 +210,12 @@ const WorkflowsPage = () => {
         <div className="flex gap-2">
           <Button 
             variant="outline"
-            onClick={() => setShowWizard(true)}
+            onClick={handleShowWizard}
           >
             <Wand2 className="w-4 h-4 mr-2" />
             Asistente
           </Button>
-          <Button onClick={() => {
-            setEditingRule(null)
-            setShowBuilder(true)
-          }}>
+          <Button onClick={handleCreateWorkflow}>
             <Plus className="w-4 h-4 mr-2" />
             Crear Workflow
           </Button>
@@ -194,49 +243,11 @@ const WorkflowsPage = () => {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-          <WorkflowMetricsDashboard 
+          <OptimizedWorkflowMetricsDashboard 
             metrics={workflowMetrics}
             isLoading={isLoading}
           />
-          
-          {/* Vista rápida de workflows activos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Workflows Más Activos</h3>
-              {filteredRules.slice(0, 3).map((rule) => (
-                <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{rule.name}</p>
-                    <p className="text-sm text-muted-foreground">{rule.description}</p>
-                  </div>
-                  <Badge variant={rule.is_active ? "default" : "secondary"}>
-                    {rule.is_active ? "Activo" : "Inactivo"}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Últimas Ejecuciones</h3>
-              {executions.slice(0, 3).map((execution) => (
-                <div key={execution.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">Workflow ID: {execution.rule_id}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {execution.executed_at ? new Date(execution.executed_at).toLocaleString() : 'Pendiente'}
-                    </p>
-                  </div>
-                  <Badge variant={
-                    execution.status === 'completed' ? 'default' :
-                    execution.status === 'failed' ? 'destructive' : 'secondary'
-                  }>
-                    {execution.status === 'completed' ? 'Exitosa' :
-                     execution.status === 'failed' ? 'Fallida' : 'Pendiente'}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </div>
+          {quickWorkflowsView}
         </TabsContent>
 
         <TabsContent value="workflows" className="space-y-4">
@@ -247,12 +258,12 @@ const WorkflowsPage = () => {
               <Input
                 placeholder="Buscar workflows..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
             </div>
             <Badge variant="outline">
-              {filteredRules.length} workflow{filteredRules.length !== 1 ? 's' : ''}
+              {rules.length} workflow{rules.length !== 1 ? 's' : ''}
             </Badge>
           </div>
 
@@ -262,7 +273,7 @@ const WorkflowsPage = () => {
             </div>
           ) : (
             <WorkflowRulesList
-              rules={filteredRules}
+              rules={rules}
               onEdit={handleEditRule}
               onDelete={handleDeleteRule}
               onToggle={toggleRule}
@@ -316,6 +327,8 @@ const WorkflowsPage = () => {
       </Tabs>
     </div>
   )
-}
+})
+
+WorkflowsPage.displayName = 'WorkflowsPage'
 
 export default WorkflowsPage
