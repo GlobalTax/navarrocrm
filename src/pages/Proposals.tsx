@@ -94,7 +94,7 @@ export default function Proposals() {
   }
 
   const statusOptions = [
-    { label: 'Todos los estados', value: '' },
+    { label: 'Todos los estados', value: 'all' },
     { label: 'Borrador', value: 'draft' },
     { label: 'Enviada', value: 'sent' },
     { label: 'Negociando', value: 'negotiating' },
@@ -110,14 +110,14 @@ export default function Proposals() {
   ]
 
   const hasActiveFilters = Boolean(
-    filters.status || 
+    (filters.status && filters.status !== 'all') || 
     filters.search || 
     filters.type !== 'all'
   )
 
   const handleClearFilters = () => {
     setFilters({
-      status: '',
+      status: 'all',
       search: '',
       dateFrom: undefined,
       dateTo: undefined,
@@ -163,7 +163,7 @@ export default function Proposals() {
           {
             placeholder: 'Estado',
             value: filters.status,
-            onChange: (value) => setFilters({ ...filters, status: value === 'all' ? '' : value }),
+            onChange: (value) => setFilters({ ...filters, status: value }),
             options: statusOptions
           },
           {

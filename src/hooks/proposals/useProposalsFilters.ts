@@ -11,7 +11,7 @@ export interface ProposalsFilters {
 
 export const useProposalsFilters = () => {
   const [filters, setFilters] = useState<ProposalsFilters>({
-    status: '',
+    status: 'all',
     search: '',
     dateFrom: undefined,
     dateTo: undefined,
@@ -21,7 +21,7 @@ export const useProposalsFilters = () => {
   const filterProposals = (proposals: any[]) => {
     return proposals.filter(proposal => {
       // Filtro por estado
-      if (filters.status && proposal.status !== filters.status) return false
+      if (filters.status && filters.status !== 'all' && proposal.status !== filters.status) return false
       
       // Filtro por búsqueda (título o cliente)
       if (filters.search && 
