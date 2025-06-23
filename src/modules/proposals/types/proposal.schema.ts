@@ -29,6 +29,16 @@ export const proposalSchema = z.object({
   pricingTiers: z.array(pricingTierSchema).min(1, "Debe haber al menos un plan de precios."),
   currency: z.enum(['EUR', 'USD', 'GBP']),
   validUntil: z.date(),
+  // Campos para propuestas recurrentes
+  is_recurring: z.boolean().optional(),
+  recurring_frequency: z.enum(['monthly', 'quarterly', 'yearly']).optional(),
+  contract_start_date: z.date().optional(),
+  contract_end_date: z.date().optional(),
+  auto_renewal: z.boolean().optional(),
+  retainer_amount: z.number().min(0).optional(),
+  included_hours: z.number().min(0).optional(),
+  hourly_rate_extra: z.number().min(0).optional(),
+  billing_day: z.number().min(1).max(31).optional(),
 });
 
 export type ProposalFormData = z.infer<typeof proposalSchema>;

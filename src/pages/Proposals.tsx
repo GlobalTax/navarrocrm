@@ -50,8 +50,16 @@ export default function Proposals() {
       console.error("User or org_id is not available. Cannot save proposal.")
       return
     }
+    
+    // Crear datos de propuesta recurrente con las propiedades correctas
+    const recurrentProposalData: ProposalFormData = {
+      ...data,
+      is_recurring: true,
+      recurring_frequency: data.recurring_frequency || 'monthly',
+    }
+    
     saveRecurrentProposal({
-      proposalData: { ...data, is_recurring: true },
+      proposalData: recurrentProposalData,
       orgId: user.org_id,
       userId: user.id,
     })
