@@ -19,12 +19,21 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
 
   const handleAreaSelect = (areaId: string) => {
     console.log('Area selected:', areaId)
-    // Limpiar servicios al cambiar de área
-    onAreaAndServicesChange(areaId, [])
+    if (areaId !== selectedArea) {
+      // Limpiar servicios al cambiar de área
+      onAreaAndServicesChange(areaId, [])
+    }
   }
 
   const handleServiceToggle = (serviceId: string) => {
     console.log('Service toggled:', serviceId)
+    
+    if (!selectedServices || !Array.isArray(selectedServices)) {
+      console.warn('Invalid selectedServices:', selectedServices)
+      onAreaAndServicesChange(selectedArea, [serviceId])
+      return
+    }
+    
     const isCurrentlySelected = selectedServices.includes(serviceId)
     
     let newServices: string[]
@@ -38,7 +47,37 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
     onAreaAndServicesChange(selectedArea, newServices)
   }
 
-  const selectedAreaData = practiceAreasData[selectedArea]
+  const selectedAreaData = selectedArea ? practiceAreasData[selectedArea] : null
+
+  if (!selectedArea) {
+    return (
+      <div className="space-y-6">
+        <PracticeAreaSelector
+          selectedArea=""
+          onAreaSelect={handleAreaSelect}
+        />
+        <div className="text-center py-8 text-gray-500">
+          <p>Selecciona un área de práctica para ver los servicios disponibles</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!selectedAreaData) {
+    console.error('Area data not found for:', selectedArea)
+    return (
+      <div className="space-y-6">
+        <PracticeAreaSelector
+          selectedArea={selectedArea}
+          onAreaSelect={handleAreaSelect}
+        />
+        <div className="text-center py-8 text-red-500">
+          <p>Error: No se pudieron cargar los datos del área seleccionada</p>
+          <p className="text-sm">Área: {selectedArea}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -47,13 +86,11 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
         onAreaSelect={handleAreaSelect}
       />
 
-      {selectedAreaData && (
-        <ServicesList
-          selectedAreaData={selectedAreaData}
-          selectedServices={selectedServices}
-          onServiceToggle={handleServiceToggle}
-        />
-      )}
+      <ServicesList
+        selectedAreaData={selectedAreaData}
+        selectedServices={selectedServices}
+        onServiceToggle={handleServiceToggle}
+      />
     </div>
   )
 }
