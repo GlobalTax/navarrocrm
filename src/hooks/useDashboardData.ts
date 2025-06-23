@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -96,7 +95,7 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Nuevo cliente registrado',
       description: client.name,
       timestamp: new Date(client.created_at),
-      user: client.created_by?.email?.split('@')[0] || 'Sistema'
+      user: client.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
     })
   })
 
@@ -118,7 +117,7 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Nuevo caso creado',
       description: `${case_.title} - ${case_.client?.name}`,
       timestamp: new Date(case_.created_at),
-      user: case_.created_by?.email?.split('@')[0] || 'Sistema'
+      user: case_.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
     })
   })
 
@@ -163,7 +162,7 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Tarea completada',
       description: task.title,
       timestamp: new Date(task.completed_at),
-      user: task.created_by?.email?.split('@')[0] || 'Usuario'
+      user: task.created_by?.[0]?.email?.split('@')[0] || 'Usuario'
     })
   })
 
