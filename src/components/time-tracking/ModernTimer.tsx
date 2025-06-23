@@ -15,7 +15,7 @@ export const ModernTimer = () => {
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [seconds, setSeconds] = useState(0)
-  const [selectedCaseId, setSelectedCaseId] = useState<string>('')
+  const [selectedCaseId, setSelectedCaseId] = useState<string>('no-case')
   const [description, setDescription] = useState('')
   const [isBillable, setIsBillable] = useState(true)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -81,7 +81,7 @@ export const ModernTimer = () => {
       const minutes = Math.round(seconds / 60)
       
       await createTimeEntry({
-        case_id: selectedCaseId || null,
+        case_id: selectedCaseId === 'no-case' ? null : selectedCaseId,
         description: description.trim(),
         duration_minutes: minutes,
         is_billable: isBillable
@@ -252,7 +252,7 @@ export const ModernTimer = () => {
                   <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin caso específico</SelectItem>
+                  <SelectItem value="no-case">Sin caso específico</SelectItem>
                   {cases.map((case_) => (
                     <SelectItem key={case_.id} value={case_.id}>
                       {case_.title}
