@@ -2,50 +2,38 @@
 import { useState } from 'react'
 
 export const useProposalsPageState = () => {
-  const [isNewProposalOpen, setIsNewProposalOpen] = useState(false)
-  const [showEnhancedBuilder, setShowEnhancedBuilder] = useState(false)
-  const [showProfessionalBuilder, setShowProfessionalBuilder] = useState(false)
-  const [showAdvancedProfessionalBuilder, setShowAdvancedProfessionalBuilder] = useState(false)
+  const [isBasicBuilderOpen, setIsBasicBuilderOpen] = useState(false)
+  const [isProfessionalBuilderOpen, setIsProfessionalBuilderOpen] = useState(false)
 
-  const openNewProposal = () => setIsNewProposalOpen(true)
-  const closeNewProposal = () => setIsNewProposalOpen(false)
-  
-  const openEnhancedBuilder = () => {
-    console.log('Propuesta Avanzada clicked')
-    setShowEnhancedBuilder(true)
+  const openBasicBuilder = () => {
+    console.log('Abriendo constructor básico')
+    setIsBasicBuilderOpen(true)
   }
-  const closeEnhancedBuilder = () => {
-    console.log('Volver a propuestas clicked')
-    setShowEnhancedBuilder(false)
+  
+  const closeBasicBuilder = () => {
+    console.log('Cerrando constructor básico')
+    setIsBasicBuilderOpen(false)
   }
   
   const openProfessionalBuilder = () => {
-    console.log('Propuesta Profesional Simple clicked')
-    setShowProfessionalBuilder(true)
+    console.log('Abriendo constructor profesional')
+    setIsProfessionalBuilderOpen(true)
   }
-  const closeProfessionalBuilder = () => setShowProfessionalBuilder(false)
   
-  const openAdvancedProfessionalBuilder = () => {
-    console.log('Propuesta Profesional Completa clicked')
-    setShowAdvancedProfessionalBuilder(true)
+  const closeProfessionalBuilder = () => {
+    console.log('Cerrando constructor profesional')
+    setIsProfessionalBuilderOpen(false)
   }
-  const closeAdvancedProfessionalBuilder = () => setShowAdvancedProfessionalBuilder(false)
 
   return {
     // States
-    isNewProposalOpen,
-    showEnhancedBuilder,
-    showProfessionalBuilder,
-    showAdvancedProfessionalBuilder,
+    isBasicBuilderOpen,
+    isProfessionalBuilderOpen,
     
     // Actions
-    openNewProposal,
-    closeNewProposal,
-    openEnhancedBuilder,
-    closeEnhancedBuilder,
+    openBasicBuilder,
+    closeBasicBuilder,
     openProfessionalBuilder,
-    closeProfessionalBuilder,
-    openAdvancedProfessionalBuilder,
-    closeAdvancedProfessionalBuilder
+    closeProfessionalBuilder
   }
 }

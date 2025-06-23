@@ -1,66 +1,54 @@
 
 import { ProposalBuilder } from '@/modules/proposals/components/ProposalBuilder'
-import ProposalDemoModule from '@/components/proposals/ProposalDemoModule'
 import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
 import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 interface ProposalsBuilderManagerProps {
-  showEnhancedBuilder: boolean
-  showProfessionalBuilder: boolean
-  showAdvancedProfessionalBuilder: boolean
-  onCloseEnhancedBuilder: () => void
+  isBasicBuilderOpen: boolean
+  isProfessionalBuilderOpen: boolean
+  onCloseBasicBuilder: () => void
   onCloseProfessionalBuilder: () => void
-  onCloseAdvancedProfessionalBuilder: () => void
-  onSaveEnhancedProposal: (data: ProposalFormData) => void
-  isSavingEnhanced: boolean
+  onSaveBasicProposal: (data: ProposalFormData) => void
+  isSavingBasic: boolean
 }
 
 export const ProposalsBuilderManager = ({
-  showEnhancedBuilder,
-  showProfessionalBuilder,
-  showAdvancedProfessionalBuilder,
-  onCloseEnhancedBuilder,
+  isBasicBuilderOpen,
+  isProfessionalBuilderOpen,
+  onCloseBasicBuilder,
   onCloseProfessionalBuilder,
-  onCloseAdvancedProfessionalBuilder,
-  onSaveEnhancedProposal,
-  isSavingEnhanced
+  onSaveBasicProposal,
+  isSavingBasic
 }: ProposalsBuilderManagerProps) => {
-  // Mostrar el ProposalBuilder si está activo
-  if (showEnhancedBuilder) {
-    console.log('Showing ProposalBuilder')
+  // Mostrar el constructor básico (ProposalBuilder + ProposalDemoModule unificados)
+  if (isBasicBuilderOpen) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Avanzada</h1>
-            <p className="text-gray-600 mt-1">Crea propuestas comerciales con planes de precios personalizados</p>
+            <h1 className="text-3xl font-bold text-gray-900">Nueva Propuesta Básica</h1>
+            <p className="text-gray-600 mt-1">Constructor simplificado para propuestas comerciales</p>
           </div>
-          <Button variant="outline" onClick={onCloseEnhancedBuilder}>
-            Volver a Propuestas
+          <Button variant="outline" onClick={onCloseBasicBuilder}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
           </Button>
         </div>
         
         <ProposalBuilder
-          onSave={onSaveEnhancedProposal}
-          isSaving={isSavingEnhanced}
+          onSave={onSaveBasicProposal}
+          isSaving={isSavingBasic}
         />
       </div>
     )
   }
 
-  // Mostrar el ProposalDemoModule si está activo
-  if (showProfessionalBuilder) {
-    console.log('Showing ProposalDemoModule')
+  // Mostrar el constructor profesional
+  if (isProfessionalBuilderOpen) {
     return (
-      <ProposalDemoModule onBack={onCloseProfessionalBuilder} />
-    )
-  }
-
-  // Mostrar el nuevo ProfessionalProposalBuilder
-  if (showAdvancedProfessionalBuilder) {
-    return (
-      <ProfessionalProposalBuilder onBack={onCloseAdvancedProfessionalBuilder} />
+      <ProfessionalProposalBuilder onBack={onCloseProfessionalBuilder} />
     )
   }
 

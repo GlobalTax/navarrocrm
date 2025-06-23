@@ -4,7 +4,6 @@ import { useProposals } from '@/hooks/useProposals'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
 import { ProposalFilters } from '@/components/proposals/ProposalFilters'
 import { RecurringProposalForm } from '@/components/proposals/RecurringProposalForm'
-import { RecurringRevenueMetrics } from '@/components/proposals/RecurringRevenueMetrics'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
@@ -18,7 +17,7 @@ export default function Proposals() {
   console.log('Proposals page rendering')
   
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
-  const { mutate: saveEnhancedProposal, isPending: isSavingEnhanced } = useSaveProposal()
+  const { mutate: saveBasicProposal, isPending: isSavingBasic } = useSaveProposal()
   const { user } = useApp()
   
   // Estados de la página
@@ -26,9 +25,8 @@ export default function Proposals() {
   const { filters, setFilters, filterProposals, categorizeProposals } = useProposalsFilters()
 
   console.log('Current state:', { 
-    showEnhancedBuilder: pageState.showEnhancedBuilder, 
-    showProfessionalBuilder: pageState.showProfessionalBuilder, 
-    showAdvancedProfessionalBuilder: pageState.showAdvancedProfessionalBuilder, 
+    isBasicBuilderOpen: pageState.isBasicBuilderOpen, 
+    isProfessionalBuilderOpen: pageState.isProfessionalBuilderOpen, 
     isLoading, 
     user 
   })
@@ -46,18 +44,18 @@ export default function Proposals() {
     console.log('Ver propuesta:', proposal)
   }
 
-  const handleSaveEnhancedProposal = (data: ProposalFormData) => {
-    console.log('Handling save enhanced proposal:', data)
+  const handleSaveBasicProposal = (data: ProposalFormData) => {
+    console.log('Handling save basic proposal:', data)
     if (!user || !user.org_id) {
       console.error("User or org_id is not available. Cannot save proposal.")
       return
     }
-    saveEnhancedProposal({
+    saveBasicProposal({
       proposalData: data,
       orgId: user.org_id,
       userId: user.id,
     })
-    pageState.closeEnhancedBuilder()
+    pageState.closeBasicBuilder()
   }
 
   if (isLoading) {
@@ -72,18 +70,16 @@ export default function Proposals() {
   }
 
   // Mostrar builders si están activos
-  const showingBuilder = pageState.showEnhancedBuilder || pageState.showProfessionalBuilder || pageState.showAdvancedProfessionalBuilder
+  const showingBuilder = pageState.isBasicBuilderOpen || pageState.isProfessionalBuilderOpen
   if (showingBuilder) {
     return (
       <ProposalsBuilderManager
-        showEnhancedBuilder={pageState.showEnhancedBuilder}
-        showProfessionalBuilder={pageState.showProfessionalBuilder}
-        showAdvancedProfessionalBuilder={pageState.showAdvancedProfessionalBuilder}
-        onCloseEnhancedBuilder={pageState.closeEnhancedBuilder}
+        isBasicBuilderOpen={pageState.isBasicBuilderOpen}
+        isProfessionalBuilderOpen={pageState.isProfessionalBuilderOpen}
+        onCloseBasicBuilder={pageState.closeBasicBuilder}
         onCloseProfessionalBuilder={pageState.closeProfessionalBuilder}
-        onCloseAdvancedProfessionalBuilder={pageState.closeAdvancedProfessionalBuilder}
-        onSaveEnhancedProposal={handleSaveEnhancedProposal}
-        isSavingEnhanced={isSavingEnhanced}
+        onSaveBasicProposal={handleSaveBasicProposal}
+        isSavingBasic={isSavingBasic}
       />
     )
   }
@@ -91,13 +87,10 @@ export default function Proposals() {
   return (
     <div className="space-y-6">
       <ProposalsPageHeader
-        onOpenNewProposal={pageState.openNewProposal}
-        onOpenEnhancedBuilder={pageState.openEnhancedBuilder}
+        onOpenBasicBuilder={pageState.openBasicBuilder}
         onOpenProfessionalBuilder={pageState.openProfessionalBuilder}
-        onOpenAdvancedProfessionalBuilder={pageState.openAdvancedProfessionalBuilder}
       />
 
-      <RecurringRevenueMetrics />
       <ProposalMetrics />
       <ProposalFilters filters={filters} onFiltersChange={setFilters} />
 
@@ -105,17 +98,8 @@ export default function Proposals() {
         proposals={categorizedProposals}
         onStatusChange={handleStatusChange}
         onViewProposal={handleViewProposal}
-        onOpenNewProposal={pageState.openNewProposal}
-        onOpenEnhancedBuilder={pageState.openEnhancedBuilder}
+        onOpenBasicBuilder={pageState.openBasicBuilder}
         onOpenProfessionalBuilder={pageState.openProfessionalBuilder}
-        onOpenAdvancedProfessionalBuilder={pageState.openAdvancedProfessionalBuilder}
-      />
-
-      <RecurringProposalForm
-        open={pageState.isNewProposalOpen}
-        onOpenChange={pageState.closeNewProposal}
-        onSubmit={createProposal.mutate}
-        isCreating={isCreating}
       />
     </div>
   )

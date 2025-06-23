@@ -1,7 +1,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Plus, FileText, Calculator } from 'lucide-react'
+import { Plus, FileText } from 'lucide-react'
 import { ProposalCard } from '@/components/proposals/ProposalCard'
 
 interface CategorizedProposals {
@@ -14,38 +14,26 @@ interface ProposalsTabsViewProps {
   proposals: CategorizedProposals
   onStatusChange: (id: string, status: any) => void
   onViewProposal: (proposal: any) => void
-  onOpenNewProposal: () => void
-  onOpenEnhancedBuilder: () => void
+  onOpenBasicBuilder: () => void
   onOpenProfessionalBuilder: () => void
-  onOpenAdvancedProfessionalBuilder: () => void
 }
 
 export const ProposalsTabsView = ({
   proposals,
   onStatusChange,
   onViewProposal,
-  onOpenNewProposal,
-  onOpenEnhancedBuilder,
-  onOpenProfessionalBuilder,
-  onOpenAdvancedProfessionalBuilder
+  onOpenBasicBuilder,
+  onOpenProfessionalBuilder
 }: ProposalsTabsViewProps) => {
   const EmptyStateButtons = () => (
-    <div className="flex gap-2 justify-center">
-      <Button onClick={onOpenNewProposal} variant="outline">
+    <div className="flex gap-3 justify-center">
+      <Button onClick={onOpenBasicBuilder} variant="outline">
         <Plus className="h-4 w-4 mr-2" />
-        Propuesta Rápida
+        Propuesta Básica
       </Button>
-      <Button onClick={onOpenEnhancedBuilder} variant="outline">
+      <Button onClick={onOpenProfessionalBuilder}>
         <FileText className="h-4 w-4 mr-2" />
-        Propuesta Avanzada
-      </Button>
-      <Button onClick={onOpenProfessionalBuilder} variant="outline">
-        <Calculator className="h-4 w-4 mr-2" />
         Propuesta Profesional
-      </Button>
-      <Button onClick={onOpenAdvancedProfessionalBuilder}>
-        <FileText className="h-4 w-4 mr-2" />
-        Propuesta Ejecutiva
       </Button>
     </div>
   )
@@ -75,8 +63,11 @@ export const ProposalsTabsView = ({
         {proposals.all.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg mb-4">
-              No hay propuestas creadas aún
+              No hay propuestas creadas
             </div>
+            <p className="text-gray-400 text-sm mb-6">
+              Comienza creando tu primera propuesta comercial
+            </p>
             <EmptyStateButtons />
           </div>
         ) : (
@@ -90,7 +81,7 @@ export const ProposalsTabsView = ({
             <div className="text-gray-500 text-lg mb-4">
               No hay propuestas recurrentes
             </div>
-            <Button onClick={onOpenNewProposal}>
+            <Button onClick={onOpenBasicBuilder}>
               <Plus className="h-4 w-4 mr-2" />
               Crear propuesta recurrente
             </Button>
@@ -106,7 +97,7 @@ export const ProposalsTabsView = ({
             <div className="text-gray-500 text-lg mb-4">
               No hay propuestas puntuales
             </div>
-            <Button onClick={onOpenNewProposal}>
+            <Button onClick={onOpenBasicBuilder}>
               <Plus className="h-4 w-4 mr-2" />
               Crear propuesta puntual
             </Button>
