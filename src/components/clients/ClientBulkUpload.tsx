@@ -1,31 +1,34 @@
+
 import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Upload, FileText, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
-import { supabase } from '@/integrations/supabase/client'
-import { useApp } from '@/contexts/AppContext'
+import { Progress } from '@/components/ui/progress'
+import { X, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
+import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/components/ui/use-toast'
 
-interface BulkUploadData {
+interface ClientBulkUploadProps {
+  open: boolean
+  onClose: () => void
+  onSuccess: () => void
+}
+
+interface ParsedClient {
   name: string
   email?: string
   phone?: string
-  dni_nif?: string
-  client_type?: string
-  status?: string
-  business_sector?: string
   address_street?: string
   address_city?: string
   address_postal_code?: string
   address_country?: string
+  client_type?: string
+  status?: string
+  relationship_type?: string
+  row: number
 }
 
 interface ValidationError {
@@ -34,43 +37,144 @@ interface ValidationError {
   message: string
 }
 
-interface ClientBulkUploadProps {
-  open: boolean
-  onClose: () => void
-  onSuccess: () => void
-}
-
-const COLUMN_MAPPINGS = {
-  name: 'Nombre *',
-  email: 'Email',
-  phone: 'Teléfono',
-  dni_nif: 'DNI/NIF/CIF',
-  client_type: 'Tipo (particular/empresa/autonomo)',
-  status: 'Estado (activo/inactivo/prospecto/bloqueado)',
-  business_sector: 'Sector',
-  address_street: 'Dirección',
-  address_city: 'Ciudad',
-  address_postal_code: 'Código Postal',
-  address_country: 'País'
-}
-
-export const ClientBulkUpload = ({ open, onClose, onSuccess }: ClientBulkUploadProps) => {
-  const { user } = useApp()
+export function ClientBulkUpload({ open, onClose, onSuccess }: ClientBulkUploadProps) {
   const [file, setFile] = useState<File | null>(null)
-  const [parsedData, setParsedData] = useState<BulkUploadData[]>([])
-  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({})
+  const [parsedData, setParsedData] = useState<ParsedClient[]>([])
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
-  const [step, setStep] = useState<'upload' | 'mapping' | 'validation' | 'processing'>('upload')
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle')
+  const { toast } = useToast()
+
+  const validateRow = (row: any, index: number): { client: ParsedClient | null; errors: ValidationError[] } => {
+    const errors: ValidationError[] = []
+    
+    // Validar nombre (requerido)
+    if (!row.name || row.name.trim() === '') {
+      errors.push({
+        row: index + 1,
+        field: 'name',
+        message: 'El nombre es requerido'
+      })
+    }
+
+    // Validar email (formato si está presente)
+    if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+      errors.push({
+        row: index + 1,
+        field: 'email',
+        message: 'Formato de email inválido'
+      })
+    }
+
+    // Validar tipo de cliente
+    const validClientTypes = ['particular', 'empresa', 'autonomo']
+    if (row.client_type && !validClientTypes.includes(row.client_type)) {
+      errors.push({
+        row: index + 1,
+        field: 'client_type',
+        message: `Tipo de cliente debe ser: ${validClientTypes.join(', ')}`
+      })
+    }
+
+    // Validar estado
+    const validStatuses = ['activo', 'inactivo', 'prospecto', 'bloqueado']
+    if (row.status && !validStatuses.includes(row.status)) {
+      errors.push({
+        row: index + 1,
+        field: 'status',
+        message: `Estado debe ser: ${validStatuses.join(', ')}`
+      })
+    }
+
+    // Validar tipo de relación
+    const validRelationshipTypes = ['prospecto', 'cliente', 'ex_cliente']
+    if (row.relationship_type && !validRelationshipTypes.includes(row.relationship_type)) {
+      errors.push({
+        row: index + 1,
+        field: 'relationship_type',
+        message: `Tipo de relación debe ser: ${validRelationshipTypes.join(', ')}`
+      })
+    }
+
+    if (errors.length > 0) {
+      return { client: null, errors }
+    }
+
+    const client: ParsedClient = {
+      name: row.name.trim(),
+      email: row.email?.trim() || undefined,
+      phone: row.phone?.trim() || undefined,
+      address_street: row.address_street?.trim() || undefined,
+      address_city: row.address_city?.trim() || undefined,
+      address_postal_code: row.address_postal_code?.trim() || undefined,
+      address_country: row.address_country?.trim() || 'España',
+      client_type: row.client_type?.trim() || 'particular',
+      status: row.status?.trim() || 'activo',
+      relationship_type: row.relationship_type?.trim() || 'prospecto',
+      row: index + 1
+    }
+
+    return { client, errors: [] }
+  }
+
+  const processFile = useCallback((file: File) => {
+    setIsProcessing(true)
+    setUploadStatus('processing')
+    
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const validClients: ParsedClient[] = []
+        const allErrors: ValidationError[] = []
+
+        results.data.forEach((row: any, index: number) => {
+          const { client, errors } = validateRow(row, index)
+          
+          if (client) {
+            validClients.push(client)
+          }
+          
+          allErrors.push(...errors)
+        })
+
+        setParsedData(validClients)
+        setValidationErrors(allErrors)
+        setIsProcessing(false)
+        
+        if (allErrors.length === 0) {
+          toast({
+            title: "Archivo procesado exitosamente",
+            description: `${validClients.length} contactos listos para importar`,
+          })
+        } else {
+          toast({
+            title: "Errores de validación encontrados",
+            description: `${allErrors.length} errores que deben corregirse`,
+            variant: "destructive"
+          })
+        }
+      },
+      error: (error) => {
+        setIsProcessing(false)
+        setUploadStatus('error')
+        toast({
+          title: "Error al procesar archivo",
+          description: error.message,
+          variant: "destructive"
+        })
+      }
+    })
+  }, [toast])
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (file) {
       setFile(file)
-      parseFile(file)
+      processFile(file)
     }
-  }, [])
+  }, [processFile])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -82,391 +186,282 @@ export const ClientBulkUpload = ({ open, onClose, onSuccess }: ClientBulkUploadP
     maxFiles: 1
   })
 
-  const parseFile = (file: File) => {
-    Papa.parse(file, {
-      header: true,
-      complete: (results) => {
-        setParsedData(results.data as BulkUploadData[])
-        setStep('mapping')
-        
-        // Auto-map columns if possible
-        const headers = Object.keys(results.data[0] || {})
-        const autoMapping: Record<string, string> = {}
-        
-        headers.forEach(header => {
-          const normalizedHeader = header.toLowerCase().trim()
-          if (normalizedHeader.includes('nombre') || normalizedHeader.includes('name')) {
-            autoMapping[header] = 'name'
-          } else if (normalizedHeader.includes('email') || normalizedHeader.includes('correo')) {
-            autoMapping[header] = 'email'
-          } else if (normalizedHeader.includes('telefono') || normalizedHeader.includes('phone')) {
-            autoMapping[header] = 'phone'
-          } else if (normalizedHeader.includes('dni') || normalizedHeader.includes('nif') || normalizedHeader.includes('cif')) {
-            autoMapping[header] = 'dni_nif'
-          }
-        })
-        
-        setColumnMapping(autoMapping)
-      },
-      error: (error) => {
-        toast.error('Error al leer el archivo: ' + error.message)
-      }
-    })
-  }
-
-  const validateData = () => {
-    const errors: ValidationError[] = []
-    const mappedData: BulkUploadData[] = []
-
-    parsedData.forEach((row, index) => {
-      const mappedRow: BulkUploadData = { name: '' }
-      
-      Object.entries(columnMapping).forEach(([csvColumn, dbColumn]) => {
-        if (dbColumn && row[csvColumn as keyof typeof row]) {
-          mappedRow[dbColumn as keyof BulkUploadData] = row[csvColumn as keyof typeof row] as string
-        }
-      })
-
-      // Validaciones obligatorias
-      if (!mappedRow.name || mappedRow.name.trim() === '') {
-        errors.push({
-          row: index + 1,
-          field: 'name',
-          message: 'El nombre es obligatorio'
-        })
-      }
-
-      // Validación de email
-      if (mappedRow.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mappedRow.email)) {
-        errors.push({
-          row: index + 1,
-          field: 'email',
-          message: 'Email inválido'
-        })
-      }
-
-      // Validación de tipo de cliente
-      if (mappedRow.client_type && !['particular', 'empresa', 'autonomo'].includes(mappedRow.client_type)) {
-        errors.push({
-          row: index + 1,
-          field: 'client_type',
-          message: 'Tipo de cliente debe ser: particular, empresa o autonomo'
-        })
-      }
-
-      // Validación de estado
-      if (mappedRow.status && !['activo', 'inactivo', 'prospecto', 'bloqueado'].includes(mappedRow.status)) {
-        errors.push({
-          row: index + 1,
-          field: 'status',
-          message: 'Estado debe ser: activo, inactivo, prospecto o bloqueado'
-        })
-      }
-
-      mappedData.push(mappedRow)
-    })
-
-    setValidationErrors(errors)
-    setParsedData(mappedData)
-    setStep('validation')
-  }
-
-  const processUpload = async () => {
-    if (!user?.org_id) {
-      toast.error('Error: No se pudo identificar la organización')
-      return
-    }
+  const handleUpload = async () => {
+    if (parsedData.length === 0 || validationErrors.length > 0) return
 
     setIsProcessing(true)
-    setStep('processing')
+    setUploadStatus('processing')
     setUploadProgress(0)
 
     try {
-      const validData = parsedData.filter((_, index) => 
-        !validationErrors.some(error => error.row === index + 1)
-      )
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Usuario no autenticado')
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!userData?.org_id) throw new Error('Usuario sin organización')
 
       const batchSize = 10
-      const batches = []
-      
-      for (let i = 0; i < validData.length; i += batchSize) {
-        batches.push(validData.slice(i, i + batchSize))
-      }
+      let successCount = 0
 
-      let processedCount = 0
-      const totalCount = validData.length
-
-      for (const batch of batches) {
-        const clientData = batch.map(row => ({
-          name: row.name,
-          email: row.email || null,
-          phone: row.phone || null,
-          dni_nif: row.dni_nif || null,
-          client_type: row.client_type || 'particular',
-          status: row.status || 'prospecto',
-          business_sector: row.business_sector || null,
-          address_street: row.address_street || null,
-          address_city: row.address_city || null,
-          address_postal_code: row.address_postal_code || null,
-          address_country: row.address_country || 'España',
-          org_id: user.org_id,
-          contact_preference: 'email',
-          preferred_language: 'es',
-          payment_method: 'transferencia',
-          last_contact_date: new Date().toISOString()
+      for (let i = 0; i < parsedData.length; i += batchSize) {
+        const batch = parsedData.slice(i, i + batchSize)
+        
+        const contactsToInsert = batch.map(client => ({
+          name: client.name,
+          email: client.email,
+          phone: client.phone,
+          address_street: client.address_street,
+          address_city: client.address_city,
+          address_postal_code: client.address_postal_code,
+          address_country: client.address_country,
+          client_type: client.client_type,
+          status: client.status,
+          relationship_type: client.relationship_type,
+          org_id: userData.org_id
         }))
 
         const { error } = await supabase
-          .from('clients')
-          .insert(clientData)
+          .from('contacts')
+          .insert(contactsToInsert)
 
-        if (error) {
-          console.error('Error inserting batch:', error)
-          toast.error(`Error al procesar lote: ${error.message}`)
-          continue
-        }
+        if (error) throw error
 
-        processedCount += batch.length
-        setUploadProgress((processedCount / totalCount) * 100)
+        successCount += batch.length
+        setUploadProgress((successCount / parsedData.length) * 100)
       }
 
-      toast.success(`Se han importado ${processedCount} clientes exitosamente`)
-      onSuccess()
-      handleClose()
+      setUploadStatus('success')
+      toast({
+        title: "Importación exitosa",
+        description: `${successCount} contactos importados correctamente`,
+      })
+      
+      setTimeout(() => {
+        onSuccess()
+        onClose()
+      }, 2000)
 
     } catch (error) {
-      console.error('Error during bulk upload:', error)
-      toast.error('Error durante la importación masiva')
+      setUploadStatus('error')
+      toast({
+        title: "Error en la importación",
+        description: error instanceof Error ? error.message : 'Error desconocido',
+        variant: "destructive"
+      })
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const handleClose = () => {
-    setFile(null)
-    setParsedData([])
-    setColumnMapping({})
-    setValidationErrors([])
-    setUploadProgress(0)
-    setStep('upload')
-    setIsProcessing(false)
-    onClose()
-  }
-
   const downloadTemplate = () => {
-    const csvContent = Object.values(COLUMN_MAPPINGS).join(',') + '\n' +
-      'Juan Pérez,juan@email.com,666123456,12345678A,particular,activo,Tecnología,Calle Mayor 1,Madrid,28001,España'
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const template = [
+      {
+        name: 'Juan Pérez',
+        email: 'juan@example.com',
+        phone: '+34 123 456 789',
+        address_street: 'Calle Mayor 123',
+        address_city: 'Madrid',
+        address_postal_code: '28001',
+        address_country: 'España',
+        client_type: 'particular',
+        status: 'activo',
+        relationship_type: 'prospecto'
+      },
+      {
+        name: 'Empresa SL',
+        email: 'contacto@empresa.com',
+        phone: '+34 987 654 321',
+        address_street: 'Avenida Principal 456',
+        address_city: 'Barcelona',
+        address_postal_code: '08001',
+        address_country: 'España',
+        client_type: 'empresa',
+        status: 'activo',
+        relationship_type: 'cliente'
+      }
+    ]
+
+    const csv = Papa.unparse(template)
+    const blob = new Blob([csv], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.style.display = 'none'
     a.href = url
-    a.download = 'plantilla_clientes.csv'
-    document.body.appendChild(a)
+    a.download = 'plantilla_contactos.csv'
     a.click()
     window.URL.revokeObjectURL(url)
   }
 
+  const resetUpload = () => {
+    setFile(null)
+    setParsedData([])
+    setValidationErrors([])
+    setUploadProgress(0)
+    setUploadStatus('idle')
+    setIsProcessing(false)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Importación Masiva de Clientes</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Importación Masiva de Contactos
+          </DialogTitle>
         </DialogHeader>
 
-        {step === 'upload' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <p className="text-gray-600">
-                Sube un archivo CSV o Excel con los datos de tus clientes
-              </p>
-              <Button variant="outline" onClick={downloadTemplate}>
-                <FileText className="h-4 w-4 mr-2" />
-                Descargar Plantilla
-              </Button>
-            </div>
-
-            <Card>
-              <CardContent className="p-6">
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                    isDragActive
-                      ? 'border-blue-400 bg-blue-50'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  <input {...getInputProps()} />
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  {isDragActive ? (
-                    <p className="text-lg">Suelta el archivo aquí...</p>
-                  ) : (
-                    <div>
-                      <p className="text-lg mb-2">
-                        Arrastra y suelta tu archivo aquí, o haz clic para seleccionar
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Formatos soportados: CSV, XLS, XLSX
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {step === 'mapping' && (
-          <div className="space-y-6">
+        <div className="space-y-6">
+          {/* Template Download */}
+          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
             <div>
-              <h3 className="text-lg font-medium mb-2">Mapeo de Columnas</h3>
-              <p className="text-gray-600">
-                Asocia las columnas de tu archivo con los campos de la base de datos
+              <h3 className="font-medium">Plantilla CSV</h3>
+              <p className="text-sm text-muted-foreground">
+                Descarga la plantilla para ver el formato correcto
               </p>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {Object.keys(parsedData[0] || {}).map((csvColumn) => (
-                <div key={csvColumn} className="space-y-2">
-                  <label className="text-sm font-medium">{csvColumn}</label>
-                  <Select
-                    value={columnMapping[csvColumn] || ''}
-                    onValueChange={(value) =>
-                      setColumnMapping(prev => ({ ...prev, [csvColumn]: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar campo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">No mapear</SelectItem>
-                      {Object.entries(COLUMN_MAPPINGS).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setStep('upload')}>
-                Volver
-              </Button>
-              <Button onClick={validateData}>
-                Validar Datos
-              </Button>
-            </div>
+            <Button variant="outline" onClick={downloadTemplate}>
+              <Download className="h-4 w-4 mr-2" />
+              Descargar
+            </Button>
           </div>
-        )}
 
-        {step === 'validation' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium">Validación de Datos</h3>
-                <p className="text-gray-600">
-                  {validationErrors.length === 0
-                    ? `${parsedData.length} registros listos para importar`
-                    : `${validationErrors.length} errores encontrados`
-                  }
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Badge variant={validationErrors.length === 0 ? "default" : "destructive"}>
-                  {validationErrors.length === 0 ? (
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                  ) : (
-                    <XCircle className="h-4 w-4 mr-1" />
-                  )}
-                  {validationErrors.length === 0 ? 'Válido' : 'Con errores'}
-                </Badge>
-              </div>
+          <Separator />
+
+          {/* File Upload */}
+          {uploadStatus === 'idle' && (
+            <div
+              {...getRootProps()}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+              }`}
+            >
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <p>Suelta el archivo aquí...</p>
+              ) : (
+                <div className="space-y-2">
+                  <Upload className="h-8 w-8 mx-auto text-gray-400" />
+                  <p>Arrastra y suelta tu archivo CSV aquí, o haz clic para seleccionar</p>
+                  <p className="text-sm text-muted-foreground">
+                    Formatos soportados: .csv, .xls, .xlsx
+                  </p>
+                </div>
+              )}
             </div>
+          )}
 
-            {validationErrors.length > 0 && (
+          {/* Processing */}
+          {isProcessing && uploadStatus === 'processing' && (
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 mx-auto animate-spin mb-4" />
+              <p>Procesando archivo...</p>
+            </div>
+          )}
+
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-medium">Se encontraron {validationErrors.length} errores:</p>
+                  <div className="max-h-32 overflow-y-auto">
+                    {validationErrors.slice(0, 5).map((error, index) => (
+                      <p key={index} className="text-sm">
+                        Fila {error.row}, campo {error.field}: {error.message}
+                      </p>
+                    ))}
+                    {validationErrors.length > 5 && (
+                      <p className="text-sm">... y {validationErrors.length - 5} errores más</p>
+                    )}
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Preview */}
+          {parsedData.length > 0 && validationErrors.length === 0 && (
+            <div className="space-y-4">
               <Alert>
-                <AlertTriangle className="h-4 w-4" />
+                <CheckCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Se encontraron errores en los datos. Los registros con errores no se importarán.
+                  Archivo procesado correctamente. {parsedData.length} contactos listos para importar.
                 </AlertDescription>
               </Alert>
-            )}
 
-            <div className="max-h-96 overflow-y-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fila</TableHead>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Errores</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {parsedData.slice(0, 20).map((row, index) => {
-                    const rowErrors = validationErrors.filter(error => error.row === index + 1)
-                    return (
-                      <TableRow key={index} className={rowErrors.length > 0 ? 'bg-red-50' : ''}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>{row.email || '-'}</TableCell>
-                        <TableCell>
-                          {rowErrors.length === 0 ? (
-                            <Badge className="bg-green-100 text-green-800">Válido</Badge>
-                          ) : (
-                            <Badge variant="destructive">Error</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {rowErrors.length > 0 && (
-                            <div className="space-y-1">
-                              {rowErrors.map((error, i) => (
-                                <div key={i} className="text-xs text-red-600">
-                                  {error.field}: {error.message}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
+              <div className="max-h-48 overflow-y-auto border rounded p-4">
+                <h4 className="font-medium mb-2">Vista previa:</h4>
+                {parsedData.slice(0, 3).map((client, index) => (
+                  <div key={index} className="text-sm mb-2">
+                    <strong>{client.name}</strong> - {client.email} - {client.relationship_type}
+                  </div>
+                ))}
+                {parsedData.length > 3 && (
+                  <p className="text-sm text-muted-foreground">
+                    ... y {parsedData.length - 3} contactos más
+                  </p>
+                )}
+              </div>
             </div>
+          )}
 
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setStep('mapping')}>
-                Volver
-              </Button>
-              <Button 
-                onClick={processUpload}
-                disabled={parsedData.length === 0}
-              >
-                Importar Clientes ({parsedData.length - validationErrors.length})
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === 'processing' && (
-          <div className="space-y-6 text-center">
-            <div>
-              <h3 className="text-lg font-medium mb-2">Procesando Importación</h3>
-              <p className="text-gray-600">Por favor espera mientras importamos los clientes...</p>
-            </div>
-
+          {/* Upload Progress */}
+          {uploadStatus === 'processing' && uploadProgress > 0 && (
             <div className="space-y-2">
-              <Progress value={uploadProgress} className="w-full" />
-              <p className="text-sm text-gray-500">{Math.round(uploadProgress)}% completado</p>
+              <div className="flex justify-between text-sm">
+                <span>Importando contactos...</span>
+                <span>{Math.round(uploadProgress)}%</span>
+              </div>
+              <Progress value={uploadProgress} />
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Success */}
+          {uploadStatus === 'success' && (
+            <Alert>
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                ¡Importación completada exitosamente! Los contactos han sido agregados a tu lista.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          
+          {file && uploadStatus !== 'success' && (
+            <Button variant="outline" onClick={resetUpload}>
+              <X className="h-4 w-4 mr-2" />
+              Limpiar
+            </Button>
+          )}
+          
+          {parsedData.length > 0 && validationErrors.length === 0 && uploadStatus !== 'success' && (
+            <Button onClick={handleUpload} disabled={isProcessing}>
+              {isProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Importando...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Importar {parsedData.length} contactos
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -184,7 +184,7 @@ export function CalendarEventForm({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="client" className="text-sm font-medium">Cliente</Label>
-              <Select value={formData.client_id || 'none'} onValueChange={(value) => setFormData({...formData, client_id: value === 'none' ? null : value})}>
+              <Select value={formData.contact_id || 'none'} onValueChange={(value) => setFormData({...formData, contact_id: value === 'none' ? null : value})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar cliente" />
                 </SelectTrigger>

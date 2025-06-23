@@ -31,7 +31,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
     title: '',
     description: '',
     status: 'open',
-    client_id: '',
+    contact_id: '',
     practice_area: '',
     responsible_solicitor_id: '',
     originating_solicitor_id: '',
@@ -47,7 +47,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
       title: formData.title,
       description: formData.description,
       status: formData.status,
-      client_id: formData.client_id,
+      contact_id: formData.contact_id,
       practice_area: formData.practice_area === 'none' ? undefined : formData.practice_area,
       responsible_solicitor_id: formData.responsible_solicitor_id === 'none' ? undefined : formData.responsible_solicitor_id,
       originating_solicitor_id: formData.originating_solicitor_id === 'none' ? undefined : formData.originating_solicitor_id,
@@ -90,7 +90,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
               <MatterDetailsForm
                 title={formData.title}
                 description={formData.description || ''}
-                clientId={formData.client_id}
+                clientId={formData.contact_id}
                 practiceArea={formData.practice_area || ''}
                 responsibleSolicitorId={formData.responsible_solicitor_id || ''}
                 status={formData.status}
@@ -99,10 +99,10 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
                 users={users}
                 onTitleChange={(value) => setFormData({...formData, title: value})}
                 onDescriptionChange={(value) => setFormData({...formData, description: value})}
-                onClientChange={(value) => setFormData({...formData, client_id: value})}
+                onClientChange={(value) => setFormData({...formData, contact_id: value})}
                 onPracticeAreaChange={(value) => setFormData({...formData, practice_area: value})}
                 onResponsibleSolicitorChange={(value) => setFormData({...formData, responsible_solicitor_id: value})}
-                onStatusChange={(value) => setFormData({...formData, status: value})}
+                onStatusChange={(value) => setFormData({...formData, status: value as 'open' | 'on_hold' | 'closed'})}
               />
             </TabsContent>
 
@@ -142,7 +142,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
               <MatterBillingForm
                 billingMethod={formData.billing_method || 'hourly'}
                 estimatedBudget={formData.estimated_budget}
-                onBillingMethodChange={(value) => setFormData({...formData, billing_method: value})}
+                onBillingMethodChange={(value) => setFormData({...formData, billing_method: value as 'hourly' | 'fixed' | 'contingency' | 'retainer'})}
                 onEstimatedBudgetChange={(value) => setFormData({...formData, estimated_budget: value})}
               />
             </TabsContent>
@@ -160,7 +160,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
             <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || !formData.title || !formData.client_id}>
+            <Button type="submit" disabled={isLoading || !formData.title || !formData.contact_id}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

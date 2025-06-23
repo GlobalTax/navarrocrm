@@ -96,7 +96,7 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
               <Label>Método de Facturación *</Label>
               <Select 
                 value={formData.billing_method || 'hourly'} 
-                onValueChange={(value) => updateFormData({ billing_method: value })}
+                onValueChange={(value) => updateFormData({ billing_method: value as 'hourly' | 'fixed' | 'contingency' | 'retainer' })}
               >
                 <SelectTrigger className={errors.billing_method ? 'border-red-500' : ''}>
                   <SelectValue />
@@ -167,7 +167,7 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
             <Label>Estado</Label>
             <Select 
               value={formData.status} 
-              onValueChange={(value) => updateFormData({ status: value })}
+              onValueChange={(value) => updateFormData({ status: value as 'open' | 'on_hold' | 'closed' })}
             >
               <SelectTrigger>
                 <SelectValue />

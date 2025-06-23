@@ -18,10 +18,8 @@ const getStatusColor = (status: string) => {
   switch (status) {
     case 'open':
       return 'bg-blue-100 text-blue-800'
-    case 'in_progress':
+    case 'on_hold':
       return 'bg-yellow-100 text-yellow-800'
-    case 'pending':
-      return 'bg-orange-100 text-orange-800'
     case 'closed':
       return 'bg-green-100 text-green-800'
     default:
@@ -33,10 +31,8 @@ const getStatusLabel = (status: string) => {
   switch (status) {
     case 'open':
       return 'Abierto'
-    case 'in_progress':
-      return 'En Progreso'
-    case 'pending':
-      return 'Pendiente'
+    case 'on_hold':
+      return 'En Espera'
     case 'closed':
       return 'Cerrado'
     default:
@@ -86,7 +82,7 @@ export const CaseDetailDialog = ({ case_, open, onClose, onEdit }: CaseDetailDia
                     <User className="h-4 w-4 text-gray-400" />
                     <div>
                       <span className="font-medium">Cliente:</span>
-                      <span className="ml-2">{case_.client?.name || 'Cliente no encontrado'}</span>
+                      <span className="ml-2">Contacto no disponible</span>
                     </div>
                   </div>
 

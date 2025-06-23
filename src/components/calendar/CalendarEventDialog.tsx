@@ -53,7 +53,7 @@ export function CalendarEventDialog({
     location: '',
     is_all_day: false,
     reminder_minutes: 15,
-    client_id: null,
+    contact_id: null,
     case_id: null,
     start_datetime: '',
     end_datetime: '',
@@ -110,7 +110,7 @@ export function CalendarEventDialog({
         location: formData.location || null,
         is_all_day: formData.is_all_day,
         reminder_minutes: formData.reminders[0] || null,
-        client_id: formData.client_id || null,
+        contact_id: formData.contact_id || null,
         case_id: formData.case_id || null,
         status: 'scheduled'
       }
@@ -133,7 +133,7 @@ export function CalendarEventDialog({
       location: '',
       is_all_day: false,
       reminder_minutes: 15,
-      client_id: null,
+      contact_id: null,
       case_id: null,
       start_datetime: '',
       end_datetime: '',

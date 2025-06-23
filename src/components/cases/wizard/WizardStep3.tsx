@@ -21,7 +21,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
   const { practiceAreas = [] } = usePracticeAreas()
   const { users = [] } = useUsers()
 
-  const selectedClient = clients.find(c => c.id === formData.client_id)
+  const selectedClient = clients.find(c => c.id === formData.contact_id)
   const selectedPracticeArea = practiceAreas.find(p => p.name === formData.practice_area)
   const responsibleSolicitor = users.find(u => u.id === formData.responsible_solicitor_id)
   const originatingSolicitor = users.find(u => u.id === formData.originating_solicitor_id)

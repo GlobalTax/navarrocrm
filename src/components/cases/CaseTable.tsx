@@ -26,7 +26,6 @@ const getStatusColor = (status: string) => {
     case 'open': return 'bg-green-100 text-green-800'
     case 'closed': return 'bg-gray-100 text-gray-800'
     case 'on_hold': return 'bg-yellow-100 text-yellow-800'
-    case 'archived': return 'bg-purple-100 text-purple-800'
     default: return 'bg-blue-100 text-blue-800'
   }
 }
@@ -36,7 +35,6 @@ const getStatusLabel = (status: string) => {
     case 'open': return 'Abierto'
     case 'closed': return 'Cerrado'
     case 'on_hold': return 'En espera'
-    case 'archived': return 'Archivado'
     default: return status
   }
 }
@@ -86,7 +84,7 @@ export function CaseTable({
             </TableRow>
           ) : (
             cases.map((case_) => (
-              <TableRow key={case_.id} className={case_.status === 'archived' ? 'opacity-60' : ''}>
+              <TableRow key={case_.id} className={case_.status === 'closed' ? 'opacity-60' : ''}>
                 <TableCell>
                   <Checkbox
                     checked={selectedCases.includes(case_.id)}
@@ -94,25 +92,25 @@ export function CaseTable({
                   />
                 </TableCell>
                 <TableCell className="font-medium">
-                  {case_.matter_number || 'Sin número'}
+                  Sin número
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{case_.title}</span>
-                    {case_.status === 'archived' && (
+                    {case_.status === 'closed' && (
                       <Archive className="h-4 w-4 text-purple-500" />
                     )}
                   </div>
                 </TableCell>
-                <TableCell>{case_.client?.name}</TableCell>
+                <TableCell>Sin cliente asignado</TableCell>
                 <TableCell>
                   {case_.practice_area && (
                     <Badge variant="outline">{case_.practice_area}</Badge>
                   )}
                 </TableCell>
                 <TableCell>
-                  {case_.responsible_solicitor?.email}
+                  Sin asignar
                 </TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(case_.status)}>
@@ -120,7 +118,7 @@ export function CaseTable({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {case_.date_opened && format(new Date(case_.date_opened), 'dd/MM/yyyy', { locale: es })}
+                  {case_.created_at && format(new Date(case_.created_at), 'dd/MM/yyyy', { locale: es })}
                 </TableCell>
                 <TableCell>
                   {case_.estimated_budget && (
@@ -148,15 +146,15 @@ export function CaseTable({
                       <DropdownMenuSeparator />
                       {onArchiveCase && (
                         <DropdownMenuItem onClick={() => onArchiveCase(case_)}>
-                          {case_.status === 'archived' ? (
+                          {case_.status === 'closed' ? (
                             <>
                               <ArchiveRestore className="h-4 w-4 mr-2" />
-                              Desarchivar
+                              Reabrir
                             </>
                           ) : (
                             <>
                               <Archive className="h-4 w-4 mr-2" />
-                              Archivar
+                              Cerrar
                             </>
                           )}
                         </DropdownMenuItem>

@@ -33,7 +33,8 @@ export function CaseArchiveDialog({
     }
   }
 
-  const isArchived = case_?.status === 'archived'
+  // Check if status indicates archived state
+  const isArchived = case_?.status === 'closed' // Using 'closed' as archived equivalent
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
@@ -41,12 +42,12 @@ export function CaseArchiveDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <Archive className="h-5 w-5" />
-            {isArchived ? 'Desarchivar Expediente' : 'Archivar Expediente'}
+            {isArchived ? 'Reabrir Expediente' : 'Cerrar Expediente'}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isArchived 
-              ? `¿Está seguro de que desea desarchivar el expediente "${case_?.title}"? Volverá a aparecer en la lista principal.`
-              : `¿Está seguro de que desea archivar el expediente "${case_?.title}"? Se moverá a la sección de archivados pero conservará todos sus datos.`
+              ? `¿Está seguro de que desea reabrir el expediente "${case_?.title}"? Volverá a aparecer como activo.`
+              : `¿Está seguro de que desea cerrar el expediente "${case_?.title}"? Se marcará como cerrado pero conservará todos sus datos.`
             }
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -60,8 +61,8 @@ export function CaseArchiveDialog({
             disabled={isArchiving}
           >
             {isArchiving 
-              ? (isArchived ? 'Desarchivando...' : 'Archivando...') 
-              : (isArchived ? 'Desarchivar' : 'Archivar')
+              ? (isArchived ? 'Reabriendo...' : 'Cerrando...') 
+              : (isArchived ? 'Reabrir' : 'Cerrar')
             }
           </AlertDialogAction>
         </AlertDialogFooter>
