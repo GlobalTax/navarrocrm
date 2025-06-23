@@ -1,7 +1,8 @@
+
 import { useEffect, useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics'
-import { DashboardLayout } from '@/components/dashboard/DashboardLayout'
+import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
+import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
@@ -58,7 +59,7 @@ export default function Dashboard() {
     <StandardPageContainer>
       <StandardPageHeader
         title={`Bienvenido, ${welcomeMessage}`}
-        description="Resumen ejecutivo de tu despacho de abogados"
+        description="Panel de control inteligente con métricas en tiempo real"
         badges={[
           {
             label: `Rol: ${user.role}`,
@@ -90,8 +91,8 @@ export default function Dashboard() {
         <DashboardLoadingSkeleton />
       ) : (
         <>
-          <DashboardMetrics stats={stats} />
-          <DashboardLayout />
+          <EnhancedDashboardMetrics stats={stats} />
+          <EnhancedDashboardLayout />
         </>
       )}
       
@@ -116,8 +117,8 @@ const DashboardLoadingSkeleton = () => (
     </div>
     
     {/* Métricas adicionales skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {Array.from({ length: 3 }).map((_, i) => (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
         <Skeleton key={i} className="h-32" />
       ))}
     </div>
