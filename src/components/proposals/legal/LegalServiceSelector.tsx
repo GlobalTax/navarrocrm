@@ -4,141 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Scale, Building, Users, FileText, Calculator } from 'lucide-react'
-
-interface LegalPracticeArea {
-  id: string
-  name: string
-  icon: React.ComponentType<{ className?: string }>
-  color: string
-  services: LegalService[]
-}
-
-interface LegalService {
-  id: string
-  name: string
-  description: string
-  basePrice: number
-  billingUnit: string
-  isRecurring: boolean
-  estimatedHours?: number
-}
-
-const practiceAreas: LegalPracticeArea[] = [
-  {
-    id: 'fiscal',
-    name: 'Fiscal y Tributario',
-    icon: Calculator,
-    color: 'bg-blue-50 border-blue-200 text-blue-800',
-    services: [
-      {
-        id: 'fiscal-1',
-        name: 'Asesoría Fiscal Mensual',
-        description: 'Gestión integral de obligaciones fiscales y tributarias',
-        basePrice: 150,
-        billingUnit: 'mes',
-        isRecurring: true,
-        estimatedHours: 8
-      },
-      {
-        id: 'fiscal-2',
-        name: 'Declaraciones Trimestrales',
-        description: 'IVA, IRPF, Retenciones y otros impuestos periódicos',
-        basePrice: 80,
-        billingUnit: 'trimestre',
-        isRecurring: true,
-        estimatedHours: 4
-      },
-      {
-        id: 'fiscal-3',
-        name: 'Renta Anual',
-        description: 'Declaración anual de la renta y patrimonio',
-        basePrice: 200,
-        billingUnit: 'año',
-        isRecurring: true,
-        estimatedHours: 6
-      }
-    ]
-  },
-  {
-    id: 'laboral',
-    name: 'Laboral y Seguridad Social',
-    icon: Users,
-    color: 'bg-green-50 border-green-200 text-green-800',
-    services: [
-      {
-        id: 'laboral-1',
-        name: 'Asesoría Laboral Integral',
-        description: 'Gestión de nóminas, contratos y Seguridad Social',
-        basePrice: 120,
-        billingUnit: 'mes',
-        isRecurring: true,
-        estimatedHours: 10
-      },
-      {
-        id: 'laboral-2',
-        name: 'Gestión de Nóminas',
-        description: 'Elaboración mensual de nóminas y seguros sociales',
-        basePrice: 15,
-        billingUnit: 'empleado/mes',
-        isRecurring: true,
-        estimatedHours: 1
-      },
-      {
-        id: 'laboral-3',
-        name: 'Representación Legal Laboral',
-        description: 'Defensa en procedimientos laborales y Inspección',
-        basePrice: 300,
-        billingUnit: 'mes',
-        isRecurring: true,
-        estimatedHours: 5
-      }
-    ]
-  },
-  {
-    id: 'mercantil',
-    name: 'Mercantil y Societario',
-    icon: Building,
-    color: 'bg-purple-50 border-purple-200 text-purple-800',
-    services: [
-      {
-        id: 'mercantil-1',
-        name: 'Asesoría Societaria',
-        description: 'Gestión de sociedades, juntas y documentación social',
-        basePrice: 200,
-        billingUnit: 'mes',
-        isRecurring: true,
-        estimatedHours: 6
-      },
-      {
-        id: 'mercantil-2',
-        name: 'Compliance Corporativo',
-        description: 'Cumplimiento normativo y gobierno corporativo',
-        basePrice: 400,
-        billingUnit: 'mes',
-        isRecurring: true,
-        estimatedHours: 8
-      }
-    ]
-  },
-  {
-    id: 'civil',
-    name: 'Civil y Patrimonial',
-    icon: Scale,
-    color: 'bg-orange-50 border-orange-200 text-orange-800',
-    services: [
-      {
-        id: 'civil-1',
-        name: 'Asesoría Patrimonial',
-        description: 'Gestión integral del patrimonio familiar y empresarial',
-        basePrice: 250,
-        billingUnit: 'mes',
-        isRecurring: true,
-        estimatedHours: 5
-      }
-    ]
-  }
-]
+import { practiceAreasData } from './data/practiceAreasData'
 
 interface LegalServiceSelectorProps {
   selectedServices: string[]
@@ -174,7 +40,8 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
     onAreaAndServicesChange(selectedArea, newServices)
   }
 
-  const selectedAreaData = practiceAreas.find(area => area.id === selectedArea)
+  const practiceAreasArray = Object.values(practiceAreasData)
+  const selectedAreaData = practiceAreasData[selectedArea]
 
   return (
     <div className="space-y-6">
@@ -185,7 +52,7 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {practiceAreas.map((area) => {
+          {practiceAreasArray.map((area) => {
             const Icon = area.icon
             return (
               <Card
