@@ -32,7 +32,7 @@ export function WizardStep1({ formData, updateFormData, errors }: WizardStep1Pro
         const updates: Partial<WizardFormData> = {}
         
         if (template.default_billing_method) {
-          updates.billing_method = template.default_billing_method
+          updates.billing_method = template.default_billing_method as 'hourly' | 'fixed' | 'contingency' | 'retainer'
         }
         
         if (template.template_data) {

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { WizardFormData, WizardStep } from './types'
-import { CreateCaseData } from '@/hooks/useCases'
+import { CreateCaseData } from '@/hooks/cases/types'
 
 const STEPS: WizardStep[] = [
   { id: 1, title: 'Información Básica', description: 'Contacto, título y área' },
