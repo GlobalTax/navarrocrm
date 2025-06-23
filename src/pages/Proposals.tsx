@@ -109,7 +109,11 @@ export default function Proposals() {
     { label: 'Puntuales', value: 'oneTime' }
   ]
 
-  const hasActiveFilters = filters.status || filters.search || filters.type !== 'all'
+  const hasActiveFilters = Boolean(
+    filters.status || 
+    filters.search || 
+    filters.type !== 'all'
+  )
 
   const handleClearFilters = () => {
     setFilters({

@@ -128,7 +128,12 @@ export default function Cases() {
     ...users.map(user => ({ label: user.email, value: user.id }))
   ]
 
-  const hasActiveFilters = statusFilter !== 'all' || practiceAreaFilter !== 'all' || solicitorFilter !== 'all' || searchTerm
+  const hasActiveFilters = Boolean(
+    statusFilter !== 'all' || 
+    practiceAreaFilter !== 'all' || 
+    solicitorFilter !== 'all' || 
+    searchTerm
+  )
 
   const handleClearFilters = () => {
     setSearchTerm('')

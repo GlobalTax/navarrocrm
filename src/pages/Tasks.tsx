@@ -112,7 +112,12 @@ const Tasks = () => {
     { label: 'Urgente', value: 'urgent' }
   ]
 
-  const hasActiveFilters = filters.status !== 'all' || filters.priority !== 'all' || filters.assignee !== 'all' || filters.search
+  const hasActiveFilters = Boolean(
+    filters.status !== 'all' || 
+    filters.priority !== 'all' || 
+    filters.assignee !== 'all' || 
+    filters.search
+  )
 
   return (
     <StandardPageContainer>
