@@ -8,10 +8,12 @@ import { Separator } from '@/components/ui/separator'
 import { 
   Mail, Phone, Calendar, FolderOpen, Edit, MapPin, 
   User, Building, CreditCard, Languages, MessageCircle,
-  FileText, Clock, Euro
+  FileText, Clock, Euro, TrendingUp, Activity
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
+import { ClientServicesSection } from './ClientServicesSection'
+import { ClientTimelineSection } from './ClientTimelineSection'
 
 interface Client {
   id: string
@@ -174,8 +176,10 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Resumen</TabsTrigger>
+            <TabsTrigger value="services">Servicios</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="details">Detalles</TabsTrigger>
             <TabsTrigger value="cases">Casos ({cases.length})</TabsTrigger>
             <TabsTrigger value="activity">Actividad</TabsTrigger>
@@ -293,8 +297,8 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
               </CardContent>
             </Card>
 
-            {/* Estadísticas rápidas */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Estadísticas rápidas mejoradas */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-blue-600">{cases.length}</div>
@@ -323,7 +327,23 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
                   <div className="text-sm text-gray-600">Notas</div>
                 </CardContent>
               </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div className="text-sm text-gray-600">Valor Cliente</div>
+                </CardContent>
+              </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="services" className="space-y-6">
+            <ClientServicesSection clientId={client.id} />
+          </TabsContent>
+
+          <TabsContent value="timeline" className="space-y-6">
+            <ClientTimelineSection clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6">
