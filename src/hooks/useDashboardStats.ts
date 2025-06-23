@@ -1,7 +1,7 @@
-
 import { useState, useCallback } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 interface DashboardStats {
   totalTimeEntries: number
@@ -168,6 +168,9 @@ export const useDashboardStats = () => {
       }))
     } catch (error: any) {
       console.error('❌ Error obteniendo estadísticas:', error)
+      toast.error('Error al cargar las estadísticas', {
+        description: 'No se pudieron obtener los datos del dashboard'
+      })
       setStats(prev => ({
         ...prev,
         loading: false,

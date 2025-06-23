@@ -1,6 +1,7 @@
+
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import { Toaster } from '@/components/ui/toaster'
+import { Toaster } from '@/components/ui/sonner'
 import { AppProvider } from './contexts/AppContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { MainLayout } from './components/layout/MainLayout'
@@ -30,7 +31,17 @@ function App() {
     <QueryClient>
       <AppProvider>
         <Router>
-          <Toaster />
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: 'white',
+                color: 'black',
+                border: '1px solid #e5e7eb',
+              },
+            }}
+          />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/setup" element={<Setup />} />

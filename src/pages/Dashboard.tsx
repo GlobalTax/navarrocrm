@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { DashboardMetrics } from '@/components/dashboard/DashboardMetrics'
@@ -10,6 +9,7 @@ import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 export default function Dashboard() {
   const { user } = useApp()
@@ -24,8 +24,17 @@ export default function Dashboard() {
   }, [user, fetchStats])
 
   const handleRefresh = async () => {
-    await fetchStats()
-    setLastRefresh(new Date())
+    try {
+      await fetchStats()
+      setLastRefresh(new Date())
+      toast.success('Dashboard actualizado', {
+        description: 'Los datos se han actualizado correctamente'
+      })
+    } catch (error) {
+      toast.error('Error al actualizar', {
+        description: 'No se pudieron actualizar los datos'
+      })
+    }
   }
 
   if (!user) {

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Bell, Clock, AlertTriangle, CheckCircle, X } from 'lucide-react'
 import { useIntelligentWorkflows } from '@/hooks/useIntelligentWorkflows'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface SmartNotification {
   id: string
@@ -28,7 +27,6 @@ interface NotificationAction {
 export const SmartNotifications = () => {
   const [notifications, setNotifications] = useState<SmartNotification[]>([])
   const { detectInactiveCases } = useIntelligentWorkflows()
-  const { toast } = useToast()
 
   useEffect(() => {
     generateSmartNotifications()
@@ -128,8 +126,7 @@ export const SmartNotifications = () => {
 
   const createFollowUpTasks = async (inactiveCases: any[]) => {
     // Implementation would create follow-up tasks for inactive cases
-    toast({
-      title: 'Recordatorios Creados',
+    toast.success('Recordatorios Creados', {
       description: `Se han creado ${inactiveCases.length} tareas de seguimiento`
     })
   }
