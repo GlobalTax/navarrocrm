@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -156,8 +155,8 @@ export const TodayAgenda = () => {
                         {getTypeLabel(event.event_type)}
                       </Badge>
                     </div>
-                    {event.client?.name && (
-                      <p className="text-xs text-muted-foreground">{event.client.name}</p>
+                    {event.contact && (
+                      <p className="text-xs text-muted-foreground">{event.contact.name}</p>
                     )}
                     {event.location && (
                       <p className="text-xs text-muted-foreground">📍 {event.location}</p>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -192,9 +193,9 @@ export const TimeEntriesTable = () => {
                       {entry.case ? (
                         <div className="text-sm">
                           <p className="font-medium truncate">{entry.case.title}</p>
-                          {entry.case.client && (
+                          {entry.case.contact && (
                             <p className="text-muted-foreground truncate">
-                              {entry.case.client.name}
+                              {entry.case.contact.name}
                             </p>
                           )}
                         </div>

@@ -17,12 +17,23 @@ export const useCasesMutations = () => {
 
       console.log('📋 Creando caso:', caseData)
 
+      // Prepare data for insertion, making sure contact_id has a default value
+      const insertData = {
+        title: caseData.title,
+        description: caseData.description,
+        status: caseData.status,
+        contact_id: caseData.contact_id || user.id, // Use user ID as fallback
+        practice_area: caseData.practice_area,
+        responsible_solicitor_id: caseData.responsible_solicitor_id,
+        originating_solicitor_id: caseData.originating_solicitor_id,
+        billing_method: caseData.billing_method,
+        estimated_budget: caseData.estimated_budget,
+        org_id: user.org_id
+      }
+
       const { data, error } = await supabase
         .from('cases')
-        .insert({
-          ...caseData,
-          org_id: user.org_id
-        })
+        .insert(insertData)
         .select(`
           *,
           contact:contacts(

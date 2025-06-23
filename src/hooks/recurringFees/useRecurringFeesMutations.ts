@@ -124,7 +124,7 @@ export const useCreateRecurringFeeFromProposal = () => {
       // Crear cuota recurrente basada en la propuesta
       const recurringFeeData = {
         org_id: user.org_id,
-        client_id: proposal.client_id,
+        contact_id: proposal.contact_id,
         proposal_id: proposal.id,
         name: `Cuota recurrente - ${proposal.title}`,
         description: proposal.description || '',
