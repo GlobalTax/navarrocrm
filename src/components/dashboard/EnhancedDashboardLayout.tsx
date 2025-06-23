@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { EnhancedPerformanceChart } from './EnhancedPerformanceChart'
 import { EnhancedRecentActivity } from './EnhancedRecentActivity'
 import { TodayAgenda } from './TodayAgenda'
-import { QuickActions } from './QuickActions'
 import { DashboardFilters } from './DashboardFilters'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { toast } from 'sonner'
@@ -31,10 +30,9 @@ export const EnhancedDashboardLayout = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Columna izquierda - Agenda y Acciones rápidas */}
+        {/* Columna izquierda - Agenda */}
         <div className="lg:col-span-4 space-y-6">
           <TodayAgenda />
-          <QuickActions />
         </div>
         
         {/* Columna central - Gráficos de rendimiento */}
