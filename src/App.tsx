@@ -7,6 +7,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
 
 // Import pages
+import Index from '@/pages/Index'
+import Login from '@/pages/Login'
+import Setup from '@/pages/Setup'
 import Dashboard from '@/pages/Dashboard'
 import Contacts from '@/pages/Contacts'
 import ClientDetail from '@/pages/ClientDetail'
@@ -34,6 +37,14 @@ function App() {
       <AppProvider>
         <Router>
           <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/setup" element={<Setup />} />
+            
+            {/* Index route for initial redirection */}
+            <Route path="/index" element={<Index />} />
+            
+            {/* Protected routes */}
             <Route path="/" element={
               <ProtectedRoute>
                 <MainLayout>
