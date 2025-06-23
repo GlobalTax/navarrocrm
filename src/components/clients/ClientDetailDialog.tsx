@@ -14,6 +14,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { ClientServicesSection } from './ClientServicesSection'
 import { ClientTimelineSection } from './ClientTimelineSection'
+import { ClientCommunicationsSection } from './ClientCommunicationsSection'
+import { ClientDocumentsSection } from './ClientDocumentsSection'
 
 interface Client {
   id: string
@@ -176,13 +178,14 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Resumen</TabsTrigger>
             <TabsTrigger value="services">Servicios</TabsTrigger>
+            <TabsTrigger value="communications">Comunicaciones</TabsTrigger>
+            <TabsTrigger value="documents">Documentos</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="details">Detalles</TabsTrigger>
             <TabsTrigger value="cases">Casos ({cases.length})</TabsTrigger>
-            <TabsTrigger value="activity">Actividad</TabsTrigger>
+            <TabsTrigger value="details">Detalles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -340,6 +343,14 @@ export const ClientDetailDialog = ({ client, open, onClose }: ClientDetailDialog
 
           <TabsContent value="services" className="space-y-6">
             <ClientServicesSection clientId={client.id} />
+          </TabsContent>
+
+          <TabsContent value="communications" className="space-y-6">
+            <ClientCommunicationsSection clientId={client.id} />
+          </TabsContent>
+
+          <TabsContent value="documents" className="space-y-6">
+            <ClientDocumentsSection clientId={client.id} />
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-6">
