@@ -15,6 +15,7 @@ import Proposals from '@/pages/Proposals'
 import Tasks from '@/pages/Tasks'
 import TimeTracking from '@/pages/TimeTracking'
 import Calendar from '@/pages/Calendar'
+import Documents from '@/pages/Documents'
 import Academia from '@/pages/Academia'
 import AIAdmin from '@/pages/AIAdmin'
 
@@ -86,6 +87,13 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Calendar />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Documents />
                 </MainLayout>
               </ProtectedRoute>
             } />
