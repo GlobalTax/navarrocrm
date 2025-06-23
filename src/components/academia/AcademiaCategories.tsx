@@ -68,33 +68,33 @@ export function AcademiaCategories({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Categorías</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base md:text-lg">Categorías</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="space-y-1">
           {categories.map((category) => (
             <Collapsible key={category.id}>
               <CollapsibleTrigger 
-                className="flex items-center justify-between w-full p-3 hover:bg-gray-50 text-left"
+                className="flex items-center justify-between w-full p-3 hover:bg-gray-50 text-left transition-colors"
                 onClick={() => onCategorySelect(category.id)}
               >
-                <div className="flex items-center">
-                  <category.icon className={`h-4 w-4 mr-2 ${category.color}`} />
-                  <span className="text-sm font-medium">{category.name}</span>
+                <div className="flex items-center min-w-0 flex-1">
+                  <category.icon className={`h-4 w-4 mr-2 flex-shrink-0 ${category.color}`} />
+                  <span className="text-sm font-medium truncate">{category.name}</span>
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-400" />
+                <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
               </CollapsibleTrigger>
               
               <CollapsibleContent className="border-l-2 border-gray-100 ml-6">
                 {category.topics.map((topic) => (
                   <div
                     key={topic.id}
-                    className="flex items-center justify-between p-2 pl-4 hover:bg-gray-50 cursor-pointer"
+                    className="flex items-center justify-between p-2 pl-4 hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => onTopicSelect(topic.id)}
                   >
-                    <span className="text-sm text-gray-700">{topic.name}</span>
-                    <Badge variant="secondary" className="text-xs">
+                    <span className="text-sm text-gray-700 flex-1 min-w-0 truncate pr-2">{topic.name}</span>
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
                       {topic.lessons}
                     </Badge>
                   </div>
