@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, XCircle, Settings, Mail, Calendar, AlertCircle } from 'lucide-react'
@@ -27,7 +26,6 @@ interface OutlookConfig {
 }
 
 export const OutlookIntegrationSettings = () => {
-  const { toast } = useToast()
   const { user } = useApp()
   const queryClient = useQueryClient()
   const [isTestingConnection, setIsTestingConnection] = useState(false)
@@ -68,7 +66,7 @@ export const OutlookIntegrationSettings = () => {
         is_enabled: newConfig.is_enabled,
         outlook_client_id: newConfig.outlook_client_id,
         outlook_tenant_id: newConfig.outlook_tenant_id,
-        outlook_client_secret_encrypted: newConfig.outlook_client_secret, // En producción: cifrar
+        outlook_client_secret_encrypted: newConfig.outlook_client_secret,
         email_integration_enabled: newConfig.email_integration_enabled,
         auto_email_enabled: newConfig.auto_email_enabled,
         sync_frequency_minutes: newConfig.sync_frequency_minutes
@@ -98,17 +96,14 @@ export const OutlookIntegrationSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['outlook-integration-config'] })
       queryClient.invalidateQueries({ queryKey: ['connection-status'] })
-      toast({
-        title: "Configuración guardada",
+      toast.success("Configuración guardada", {
         description: "La integración con Outlook ha sido configurada correctamente",
       })
     },
     onError: (error: any) => {
       console.error('Error saving config:', error)
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "No se pudo guardar la configuración",
-        variant: "destructive",
       })
     }
   })
@@ -119,10 +114,8 @@ export const OutlookIntegrationSettings = () => {
     const tenantId = formData.get('outlook_tenant_id') as string
 
     if (!clientId || !tenantId) {
-      toast({
-        title: "Configuración incompleta",
+      toast.error("Configuración incompleta", {
         description: "Por favor, completa todos los campos antes de probar la conexión",
-        variant: "destructive",
       })
       return
     }
@@ -137,8 +130,7 @@ export const OutlookIntegrationSettings = () => {
       
       if (response.ok) {
         setConnectionStatus('success')
-        toast({
-          title: "Conexión exitosa",
+        toast.success("Conexión exitosa", {
           description: "La configuración de Azure AD es correcta",
         })
       } else {
@@ -147,10 +139,8 @@ export const OutlookIntegrationSettings = () => {
     } catch (error: any) {
       console.error('Connection test failed:', error)
       setConnectionStatus('error')
-      toast({
-        title: "Error de conexión",
+      toast.error("Error de conexión", {
         description: error.message || "No se pudo conectar con Microsoft Graph",
-        variant: "destructive",
       })
     } finally {
       setIsTestingConnection(false)

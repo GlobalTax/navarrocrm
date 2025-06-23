@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -84,7 +83,7 @@ const RecurrentFees = () => {
     })
   }
 
-  const handle0etails = (fee) => {
+  const handleViewDetails = (fee) => {
     // TODO: Implementar vista de detalles
     toast.success('Próximamente: La vista de detalles estará disponible pronto')
   }

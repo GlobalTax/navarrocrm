@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,13 +5,12 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle, XCircle, Mail, Calendar, AlertCircle, LogOut } from 'lucide-react'
 
 export const UserOutlookSettings = () => {
-  const { toast } = useToast()
   const queryClient = useQueryClient()
   const [isConnecting, setIsConnecting] = useState(false)
 
@@ -66,10 +64,8 @@ export const UserOutlookSettings = () => {
       window.location.href = data.auth_url
     },
     onError: (error: any) => {
-      toast({
-        title: "Error de conexión",
+      toast.error("Error de conexión", {
         description: error.message || "No se pudo conectar con Outlook",
-        variant: "destructive",
       })
     }
   })
@@ -88,16 +84,13 @@ export const UserOutlookSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-outlook-token'] })
-      toast({
-        title: "Desconectado",
+      toast.success("Desconectado", {
         description: "Tu cuenta de Outlook ha sido desconectada",
       })
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error.message || "No se pudo desconectar",
-        variant: "destructive",
       })
     }
   })

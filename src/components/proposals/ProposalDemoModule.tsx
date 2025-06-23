@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Card,
@@ -18,7 +17,7 @@ import { useClients } from "@/hooks/useClients";
 import { useServiceCatalog } from "@/hooks/useServiceCatalog";
 import { useApp } from "@/contexts/AppContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 type Service = {
   id: string;
@@ -59,7 +58,6 @@ export default function ProposalDemoModule({ onBack }: ProposalDemoModuleProps) 
   const { clients } = useClients();
   const { services } = useServiceCatalog();
   const { user } = useApp();
-  const { toast } = useToast();
   
   const [servicios, setServicios] = useState<Service[]>([
     {
@@ -162,19 +160,12 @@ export default function ProposalDemoModule({ onBack }: ProposalDemoModuleProps) 
         if (lineItemsError) throw lineItemsError;
       }
 
-      toast({
-        title: "Propuesta guardada",
-        description: `La propuesta "${titulo}" ha sido guardada como borrador.`
-      });
+      toast.success(`La propuesta "${titulo}" ha sido guardada como borrador.`);
 
       onBack();
     } catch (error: any) {
       console.error('Error guardando propuesta:', error);
-      toast({
-        title: "Error al guardar",
-        description: error.message || "Ha ocurrido un error inesperado",
-        variant: "destructive"
-      });
+      toast.error(error.message || "Ha ocurrido un error inesperado");
     } finally {
       setIsSaving(false);
     }
