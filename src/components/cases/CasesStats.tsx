@@ -1,7 +1,6 @@
 
-import { FileText } from 'lucide-react'
+import { FileText, FolderOpen, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Case } from '@/hooks/useCases'
 
 interface CasesStatsProps {
@@ -18,40 +17,47 @@ export function CasesStats({ cases }: CasesStatsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <Card>
+      <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total</CardTitle>
-          <FileText className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium text-gray-600">Total Expedientes</CardTitle>
+          <FileText className="h-5 w-5 text-blue-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats.total}</div>
+          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+          <p className="text-xs text-gray-500 mt-1">Todos los expedientes</p>
         </CardContent>
       </Card>
-      <Card>
+
+      <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Abiertos</CardTitle>
-          <Badge className="bg-green-100 text-green-800">{stats.open}</Badge>
+          <CardTitle className="text-sm font-medium text-gray-600">Activos</CardTitle>
+          <FolderOpen className="h-5 w-5 text-green-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-600">{stats.open}</div>
+          <div className="text-2xl font-bold text-green-700">{stats.open}</div>
+          <p className="text-xs text-gray-500 mt-1">En progreso</p>
         </CardContent>
       </Card>
-      <Card>
+
+      <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">En Espera</CardTitle>
-          <Badge className="bg-yellow-100 text-yellow-800">{stats.on_hold}</Badge>
+          <CardTitle className="text-sm font-medium text-gray-600">En Espera</CardTitle>
+          <Clock className="h-5 w-5 text-yellow-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-yellow-600">{stats.on_hold}</div>
+          <div className="text-2xl font-bold text-yellow-700">{stats.on_hold}</div>
+          <p className="text-xs text-gray-500 mt-1">Pausados</p>
         </CardContent>
       </Card>
-      <Card>
+
+      <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Cerrados</CardTitle>
-          <Badge className="bg-gray-100 text-gray-800">{stats.closed}</Badge>
+          <CardTitle className="text-sm font-medium text-gray-600">Completados</CardTitle>
+          <CheckCircle className="h-5 w-5 text-gray-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-600">{stats.closed}</div>
+          <div className="text-2xl font-bold text-gray-700">{stats.closed}</div>
+          <p className="text-xs text-gray-500 mt-1">Finalizados</p>
         </CardContent>
       </Card>
     </div>

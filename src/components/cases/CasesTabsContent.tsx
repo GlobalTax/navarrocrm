@@ -27,18 +27,21 @@ export function CasesTabsContent({
 }: CasesTabsContentProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-4">
         <Tabs defaultValue="matters" className="w-full">
-          <TabsList>
-            <TabsTrigger value="matters">
-              Expedientes ({filteredCases.length})
+          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+            <TabsTrigger value="matters" className="flex items-center gap-2">
+              Expedientes
+              <span className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full">
+                {filteredCases.length}
+              </span>
             </TabsTrigger>
             <TabsTrigger value="stages">
               Etapas
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="matters">
+          <TabsContent value="matters" className="mt-4">
             <CaseTable
               cases={filteredCases}
               onViewCase={onViewCase}
@@ -51,9 +54,10 @@ export function CasesTabsContent({
             />
           </TabsContent>
           
-          <TabsContent value="stages">
-            <div className="text-center py-8 text-muted-foreground">
-              <p>La gestión de etapas estará disponible próximamente</p>
+          <TabsContent value="stages" className="mt-4">
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="text-lg font-medium mb-2">Gestión de Etapas</div>
+              <p className="text-sm">Esta funcionalidad estará disponible próximamente</p>
             </div>
           </TabsContent>
         </Tabs>
