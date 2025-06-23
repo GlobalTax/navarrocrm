@@ -1,9 +1,9 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Mail, Phone, Edit, Eye, Building, User } from 'lucide-react'
 import { Client } from '@/hooks/useClients'
+import { useNavigate } from 'react-router-dom'
 
 interface ClientTableProps {
   clients: Client[]
@@ -12,6 +12,12 @@ interface ClientTableProps {
 }
 
 export const ClientTable = ({ clients, onViewClient, onEditClient }: ClientTableProps) => {
+  const navigate = useNavigate()
+
+  const handleViewClient = (client: Client) => {
+    navigate(`/contacts/${client.id}`)
+  }
+
   const getStatusBadge = (status: string | null) => {
     switch (status) {
       case 'activo':
@@ -131,7 +137,7 @@ export const ClientTable = ({ clients, onViewClient, onEditClient }: ClientTable
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => onViewClient(client)}
+                    onClick={() => handleViewClient(client)}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>

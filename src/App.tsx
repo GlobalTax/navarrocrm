@@ -9,6 +9,7 @@ import { MainLayout } from '@/components/layout/MainLayout'
 // Import pages
 import Dashboard from '@/pages/Dashboard'
 import Contacts from '@/pages/Contacts'
+import ClientDetail from '@/pages/ClientDetail'
 import Cases from '@/pages/Cases'
 import Proposals from '@/pages/Proposals'
 import Tasks from '@/pages/Tasks'
@@ -43,6 +44,13 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Contacts />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/contacts/:id" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ClientDetail />
                 </MainLayout>
               </ProtectedRoute>
             } />

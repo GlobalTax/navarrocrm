@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Client, useClients } from '@/hooks/useClients'
@@ -30,8 +29,8 @@ const Clients = () => {
   }
 
   const handleViewClient = (client: Client) => {
-    setSelectedClient(client)
-    setIsDetailDialogOpen(true)
+    // Ya no abrimos el modal, navegamos a la página de detalle
+    // La navegación se maneja en ClientTable directamente
   }
 
   const handleDialogClose = () => {
