@@ -21,6 +21,14 @@ import Calendar from '@/pages/Calendar'
 import Documents from '@/pages/Documents'
 import Academia from '@/pages/Academia'
 import AIAdmin from '@/pages/AIAdmin'
+import Workflows from '@/pages/Workflows'
+import RecurrentFees from '@/pages/RecurrentFees'
+import AdvancedAI from '@/pages/AdvancedAI'
+import IntegrationSettings from '@/pages/IntegrationSettings'
+import Unauthorized from '@/pages/Unauthorized'
+import IntelligentDashboard from '@/pages/IntelligentDashboard'
+import NotFound from '@/pages/NotFound'
+import Reports from '@/pages/Reports'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -108,6 +116,55 @@ function App() {
                 </MainLayout>
               </ProtectedRoute>
             } />
+            <Route path="/workflows" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Workflows />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/recurring-fees" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RecurrentFees />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/advanced-ai" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AdvancedAI />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/integration-settings" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <IntegrationSettings />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/integrations" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <IntegrationSettings />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Reports />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/intelligent-dashboard" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <IntelligentDashboard />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/academia" element={
               <ProtectedRoute>
                 <MainLayout>
@@ -122,6 +179,12 @@ function App() {
                 </MainLayout>
               </ProtectedRoute>
             } />
+            
+            {/* Special routes */}
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
         </Router>
