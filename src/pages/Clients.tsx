@@ -1,7 +1,7 @@
 
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart3, Grid, List } from 'lucide-react'
+import { BarChart3, Users } from 'lucide-react'
 import { Client, useClients } from '@/hooks/useClients'
 import { ClientsHeader } from '@/components/clients/ClientsHeader'
 import { ClientsTabsContent } from '@/components/clients/ClientsTabsContent'
@@ -47,25 +47,17 @@ const Clients = () => {
 
   return (
     <div className="space-y-6">
-      <ClientsHeader
-        onCreateClient={handleCreateClient}
-        onBulkUpload={() => setIsBulkUploadOpen(true)}
-        onExport={() => setIsExportDialogOpen(true)}
-      />
+      <ClientsHeader onCreateClient={handleCreateClient} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            Lista de Clientes
+            <Users className="h-4 w-4" />
+            Gestión de Clientes
           </TabsTrigger>
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Métricas y Análisis
-          </TabsTrigger>
-          <TabsTrigger value="management" className="flex items-center gap-2">
-            <Grid className="h-4 w-4" />
-            Gestión Avanzada
+            Análisis y Métricas
           </TabsTrigger>
         </TabsList>
 
@@ -73,7 +65,6 @@ const Clients = () => {
           clients={clients}
           viewMode={viewMode}
           setViewMode={setViewMode}
-          setActiveTab={setActiveTab}
           onCreateClient={handleCreateClient}
           onViewClient={handleViewClient}
           onEditClient={handleEditClient}

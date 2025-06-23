@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Plus } from 'lucide-react'
 import { useClients, Client } from '@/hooks/useClients'
 import { ClientFilters } from './ClientFilters'
 import { ClientTable } from './ClientTable'
@@ -36,20 +36,24 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Lista de Clientes ({filteredClients.length})
-          {error && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Reintentar
-            </Button>
-          )}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>
+            {filteredClients.length} {filteredClients.length === 1 ? 'Cliente' : 'Clientes'}
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {error && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Reintentar
+              </Button>
+            )}
+          </div>
+        </div>
         
         <ClientFilters
           searchTerm={searchTerm}
