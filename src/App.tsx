@@ -1,200 +1,137 @@
 
-import React from 'react'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import { Toaster } from '@/components/ui/sonner'
-import { AppProvider } from './contexts/AppContext'
-import { ProtectedRoute } from './components/ProtectedRoute'
-import { MainLayout } from './components/layout/MainLayout'
-import Login from './pages/Login'
-import Setup from './pages/Setup'
-import Dashboard from './pages/Dashboard'
-import Clients from './pages/Clients'
-import Cases from './pages/Cases'
-import Tasks from './pages/Tasks'
-import Proposals from './pages/Proposals'
-import Calendar from './pages/Calendar'
-import TimeTracking from './pages/TimeTracking'
-import IntegrationSettings from './pages/IntegrationSettings'
-import AIAdmin from './pages/AIAdmin'
-import AdvancedAI from './pages/AdvancedAI'
-import Workflows from './pages/Workflows'
-import IntelligentDashboard from './pages/IntelligentDashboard'
-import Unauthorized from './pages/Unauthorized'
-import NotFound from './pages/NotFound'
-import Index from './pages/Index'
-import { QueryClient } from './contexts/QueryContext'
-import RecurrentFees from './pages/RecurrentFees'
-import Academia from './pages/Academia'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { AppProvider } from '@/contexts/AppContext'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { MainLayout } from '@/components/layout/MainLayout'
+
+// Import pages
+import Dashboard from '@/pages/Dashboard'
+import Contacts from '@/pages/Contacts'
+import Cases from '@/pages/Cases'
+import Proposals from '@/pages/Proposals'
+import Tasks from '@/pages/Tasks'
+import TimeTracking from '@/pages/TimeTracking'
+import Calendar from '@/pages/Calendar'
+import Documents from '@/pages/Documents'
+import Integrations from '@/pages/Integrations'
+import Reports from '@/pages/Reports'
+import Academia from '@/pages/Academia'
+import AIAssistant from '@/pages/AIAssistant'
+import AIAdmin from '@/pages/AIAdmin'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+})
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <AppProvider>
         <Router>
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'white',
-                color: 'black',
-                border: '1px solid #e5e7eb',
-              },
-            }}
-          />
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/setup" element={<Setup />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            
-            {/* Redirección de dashboard legacy a la ruta principal */}
-            <Route path="/dashboard" element={<Navigate to="/" replace />} />
-            
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Dashboard />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/clients"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Clients />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cases"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Cases />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tasks"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Tasks />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/proposals"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Proposals />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/calendar"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Calendar />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/time-tracking"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <TimeTracking />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/workflows"
-              element={
-                <ProtectedRoute allowedRoles={['partner', 'area_manager']}>
-                  <MainLayout>
-                    <Workflows />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/intelligent-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
-                  <MainLayout>
-                    <IntelligentDashboard />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/advanced-ai"
-              element={
-                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
-                  <MainLayout>
-                    <AdvancedAI />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/academia"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <Academia />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/integrations"
-              element={
-                <ProtectedRoute allowedRoles={['partner', 'area_manager']}>
-                  <MainLayout>
-                    <IntegrationSettings />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ai-admin"
-              element={
-                <ProtectedRoute allowedRoles={['partner']}>
-                  <MainLayout>
-                    <AIAdmin />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/recurrent-fees"
-              element={
-                <ProtectedRoute allowedRoles={['partner', 'area_manager', 'senior']}>
-                  <MainLayout>
-                    <RecurrentFees />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/contacts" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Contacts />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/cases" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Cases />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/proposals" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Proposals />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/tasks" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Tasks />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/time-tracking" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <TimeTracking />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Calendar />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Documents />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/integrations" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Integrations />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Reports />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/academia" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Academia />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/ai-assistant" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AIAssistant />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/ai-admin" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AIAdmin />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
           </Routes>
+          <Toaster />
         </Router>
       </AppProvider>
-    </QueryClient>
+    </QueryClientProvider>
   )
 }
 

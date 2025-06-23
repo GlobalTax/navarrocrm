@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -81,21 +82,21 @@ export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'mont
 async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
   const activities: RecentActivity[] = []
 
-  // Obtener clientes recientes
-  const { data: clients } = await supabase
-    .from('clients')
-    .select('id, name, created_at, created_by:users!clients_created_by_fkey(email)')
+  // Obtener contactos recientes
+  const { data: contacts } = await supabase
+    .from('contacts')
+    .select('id, name, created_at, created_by:users!contacts_created_by_fkey(email)')
     .order('created_at', { ascending: false })
     .limit(3)
 
-  clients?.forEach(client => {
+  contacts?.forEach(contact => {
     activities.push({
-      id: `client-${client.id}`,
+      id: `contact-${contact.id}`,
       type: 'client',
-      title: 'Nuevo cliente registrado',
-      description: client.name,
-      timestamp: new Date(client.created_at),
-      user: client.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
+      title: 'Nuevo contacto registrado',
+      description: contact.name,
+      timestamp: new Date(contact.created_at),
+      user: contact.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
     })
   })
 
@@ -104,7 +105,7 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
     .from('cases')
     .select(`
       id, title, created_at, 
-      client:clients(name),
+      contact:contacts(name),
       created_by:users!cases_created_by_fkey(email)
     `)
     .order('created_at', { ascending: false })
@@ -115,7 +116,7 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       id: `case-${case_.id}`,
       type: 'case',
       title: 'Nuevo caso creado',
-      description: `${case_.title} - ${case_.client?.name}`,
+      description: `${case_.title} - ${case_.contact?.name}`,
       timestamp: new Date(case_.created_at),
       user: case_.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
     })

@@ -70,7 +70,7 @@ export type Database = {
           attendees_emails: string[] | null
           auto_send_invitations: boolean
           case_id: string | null
-          client_id: string | null
+          contact_id: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -96,7 +96,7 @@ export type Database = {
           attendees_emails?: string[] | null
           auto_send_invitations?: boolean
           case_id?: string | null
-          client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -122,7 +122,7 @@ export type Database = {
           attendees_emails?: string[] | null
           auto_send_invitations?: boolean
           case_id?: string | null
-          client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -154,9 +154,9 @@ export type Database = {
           },
           {
             foreignKeyName: "calendar_events_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -235,8 +235,8 @@ export type Database = {
       cases: {
         Row: {
           billing_method: string | null
-          client_id: string
           communication_preferences: Json | null
+          contact_id: string
           created_at: string | null
           date_closed: string | null
           date_opened: string | null
@@ -257,8 +257,8 @@ export type Database = {
         }
         Insert: {
           billing_method?: string | null
-          client_id: string
           communication_preferences?: Json | null
+          contact_id: string
           created_at?: string | null
           date_closed?: string | null
           date_opened?: string | null
@@ -279,8 +279,8 @@ export type Database = {
         }
         Update: {
           billing_method?: string | null
-          client_id?: string
           communication_preferences?: Json | null
+          contact_id?: string
           created_at?: string | null
           date_closed?: string | null
           date_opened?: string | null
@@ -302,9 +302,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cases_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -337,9 +337,9 @@ export type Database = {
           },
         ]
       }
-      client_documents: {
+      contact_documents: {
         Row: {
-          client_id: string
+          contact_id: string
           created_at: string | null
           description: string | null
           document_type: string | null
@@ -353,7 +353,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          client_id: string
+          contact_id: string
           created_at?: string | null
           description?: string | null
           document_type?: string | null
@@ -367,7 +367,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          client_id?: string
+          contact_id?: string
           created_at?: string | null
           description?: string | null
           document_type?: string | null
@@ -383,9 +383,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_documents_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -404,9 +404,9 @@ export type Database = {
           },
         ]
       }
-      client_notes: {
+      contact_notes: {
         Row: {
-          client_id: string
+          contact_id: string
           content: string | null
           created_at: string | null
           id: string
@@ -418,7 +418,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          client_id: string
+          contact_id: string
           content?: string | null
           created_at?: string | null
           id?: string
@@ -430,7 +430,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          client_id?: string
+          contact_id?: string
           content?: string | null
           created_at?: string | null
           id?: string
@@ -444,9 +444,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_notes_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -465,7 +465,7 @@ export type Database = {
           },
         ]
       }
-      clients: {
+      contacts: {
         Row: {
           address_city: string | null
           address_country: string | null
@@ -490,6 +490,7 @@ export type Database = {
           phone: string | null
           preferred_language: string | null
           preferred_meeting_time: string | null
+          relationship_type: string
           status: string | null
           tags: string[] | null
           timezone: string | null
@@ -519,6 +520,7 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           preferred_meeting_time?: string | null
+          relationship_type?: string
           status?: string | null
           tags?: string[] | null
           timezone?: string | null
@@ -548,6 +550,7 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           preferred_meeting_time?: string | null
+          relationship_type?: string
           status?: string | null
           tags?: string[] | null
           timezone?: string | null
@@ -616,7 +619,7 @@ export type Database = {
       email_threads: {
         Row: {
           case_id: string | null
-          client_id: string | null
+          contact_id: string | null
           created_at: string
           created_by: string
           id: string
@@ -631,7 +634,7 @@ export type Database = {
         }
         Insert: {
           case_id?: string | null
-          client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -646,7 +649,7 @@ export type Database = {
         }
         Update: {
           case_id?: string | null
-          client_id?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -669,9 +672,9 @@ export type Database = {
           },
           {
             foreignKeyName: "email_threads_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -1137,7 +1140,7 @@ export type Database = {
           assigned_to: string | null
           auto_renewal: boolean | null
           billing_day: number | null
-          client_id: string
+          contact_id: string
           contract_end_date: string | null
           contract_start_date: string | null
           created_at: string | null
@@ -1171,7 +1174,7 @@ export type Database = {
           assigned_to?: string | null
           auto_renewal?: boolean | null
           billing_day?: number | null
-          client_id: string
+          contact_id: string
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null
@@ -1205,7 +1208,7 @@ export type Database = {
           assigned_to?: string | null
           auto_renewal?: boolean | null
           billing_day?: number | null
-          client_id?: string
+          contact_id?: string
           contract_end_date?: string | null
           contract_start_date?: string | null
           created_at?: string | null
@@ -1237,9 +1240,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_proposals_client"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
@@ -1422,7 +1425,7 @@ export type Database = {
           auto_invoice: boolean | null
           auto_send_notifications: boolean | null
           billing_day: number | null
-          client_id: string
+          contact_id: string
           created_at: string | null
           created_by: string
           description: string | null
@@ -1448,7 +1451,7 @@ export type Database = {
           auto_invoice?: boolean | null
           auto_send_notifications?: boolean | null
           billing_day?: number | null
-          client_id: string
+          contact_id: string
           created_at?: string | null
           created_by: string
           description?: string | null
@@ -1474,7 +1477,7 @@ export type Database = {
           auto_invoice?: boolean | null
           auto_send_notifications?: boolean | null
           billing_day?: number | null
-          client_id?: string
+          contact_id?: string
           created_at?: string | null
           created_by?: string
           description?: string | null
@@ -1498,9 +1501,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "recurring_fees_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -1510,7 +1513,7 @@ export type Database = {
           amount: number
           billing_period_end: string | null
           billing_period_start: string | null
-          client_id: string
+          contact_id: string
           created_at: string | null
           due_date: string
           extra_hours: number | null
@@ -1531,7 +1534,7 @@ export type Database = {
           amount: number
           billing_period_end?: string | null
           billing_period_start?: string | null
-          client_id: string
+          contact_id: string
           created_at?: string | null
           due_date: string
           extra_hours?: number | null
@@ -1552,7 +1555,7 @@ export type Database = {
           amount?: number
           billing_period_end?: string | null
           billing_period_start?: string | null
-          client_id?: string
+          contact_id?: string
           created_at?: string | null
           due_date?: string
           extra_hours?: number | null
@@ -1636,7 +1639,7 @@ export type Database = {
       }
       retainer_contracts: {
         Row: {
-          client_id: string
+          contact_id: string
           contract_end_date: string | null
           contract_start_date: string
           created_at: string | null
@@ -1653,7 +1656,7 @@ export type Database = {
           used_hours: number | null
         }
         Insert: {
-          client_id: string
+          contact_id: string
           contract_end_date?: string | null
           contract_start_date: string
           created_at?: string | null
@@ -1670,7 +1673,7 @@ export type Database = {
           used_hours?: number | null
         }
         Update: {
-          client_id?: string
+          contact_id?: string
           contract_end_date?: string | null
           contract_start_date?: string
           created_at?: string | null
@@ -2079,8 +2082,8 @@ export type Database = {
         Row: {
           actual_hours: number | null
           case_id: string | null
-          client_id: string | null
           completed_at: string | null
+          contact_id: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -2101,8 +2104,8 @@ export type Database = {
         Insert: {
           actual_hours?: number | null
           case_id?: string | null
-          client_id?: string | null
           completed_at?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -2123,8 +2126,8 @@ export type Database = {
         Update: {
           actual_hours?: number | null
           case_id?: string | null
-          client_id?: string | null
           completed_at?: string | null
+          contact_id?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -2152,9 +2155,9 @@ export type Database = {
           },
           {
             foreignKeyName: "tasks_client_id_fkey"
-            columns: ["client_id"]
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {

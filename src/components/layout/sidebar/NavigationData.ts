@@ -1,99 +1,103 @@
 
-export const navigation = [
-  { name: 'Dashboard', href: '/' },
-  { name: 'Clientes', href: '/clients' },
-  { name: 'Expedientes', href: '/cases' },
-  { name: 'Tareas', href: '/tasks' },
-  { name: 'Propuestas', href: '/proposals' },
-  { name: 'Cuotas Recurrentes', href: '/recurrent-fees' },
-  { name: 'Calendario', href: '/calendar' },
-  { name: 'Tiempo', href: '/time-tracking' },
-  { name: 'Workflows', href: '/workflows' },
-  { name: 'IA Avanzada', href: '/advanced-ai' },
-  { name: 'Academia', href: '/academia' },
-  { name: 'Integraciones', href: '/integrations' },
-  { name: 'IA Admin', href: '/ai-admin' },
-]
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase } from 'lucide-react'
 
-export const quickActions = [
-  { name: 'Crear cliente', href: '/clients' },
-  { name: 'Crear expediente', href: '/cases' },
-  { name: 'Nueva tarea', href: '/tasks' },
-  { name: 'Programar cita', href: '/calendar' },
-  { name: 'Iniciar timer', href: '/time-tracking' },
-  { name: 'Generar factura', href: '#' }
-]
-
-interface NavigationItem {
+export interface NavigationItem {
   title: string
-  path: string
-  requiredRoles: string[]
+  url: string
+  icon: any
+  badge?: string
+  isActive?: boolean
 }
 
-export const navigationItems: NavigationItem[] = [
+export interface NavigationSection {
+  title: string
+  items: NavigationItem[]
+}
+
+export const navigationData: NavigationSection[] = [
   {
-    title: 'Dashboard',
-    path: '/',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
+    title: "Principal",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/",
+        icon: BarChart3,
+      },
+      {
+        title: "Contactos",
+        url: "/contacts",
+        icon: Users,
+      },
+      {
+        title: "Casos",
+        url: "/cases",
+        icon: Briefcase,
+      },
+      {
+        title: "Propuestas",
+        url: "/proposals",
+        icon: FileText,
+      },
+    ]
   },
   {
-    title: 'Clientes',
-    path: '/clients',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
+    title: "Productividad",
+    items: [
+      {
+        title: "Tareas",
+        url: "/tasks",
+        icon: FileText,
+      },
+      {
+        title: "Time Tracking",
+        url: "/time-tracking",
+        icon: Clock,
+      },
+      {
+        title: "Calendario",
+        url: "/calendar",
+        icon: Calendar,
+      },
+      {
+        title: "Documentos",
+        url: "/documents",
+        icon: FolderOpen,
+      },
+    ]
   },
   {
-    title: 'Expedientes',
-    path: '/cases',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
+    title: "Configuración",
+    items: [
+      {
+        title: "Integraciones",
+        url: "/integrations",
+        icon: Settings,
+      },
+      {
+        title: "Reportes",
+        url: "/reports",
+        icon: BarChart3,
+      },
+    ]
   },
   {
-    title: 'Tareas',
-    path: '/tasks',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
-  },
-  {
-    title: 'Propuestas',
-    path: '/proposals',
-    requiredRoles: ['partner', 'area_manager', 'senior']
-  },
-  {
-    title: 'Cuotas Recurrentes',
-    path: '/recurrent-fees',
-    requiredRoles: ['partner', 'area_manager', 'senior']
-  },
-  {
-    title: 'Calendario',
-    path: '/calendar',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
-  },
-  {
-    title: 'Control de Tiempo',
-    path: '/time-tracking',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
-  },
-  {
-    title: 'Workflows',
-    path: '/workflows',
-    requiredRoles: ['partner', 'area_manager']
-  },
-  {
-    title: 'IA Avanzada',
-    path: '/advanced-ai',
-    requiredRoles: ['partner', 'area_manager', 'senior']
-  },
-  {
-    title: 'Academia',
-    path: '/academia',
-    requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
-  },
-  {
-    title: 'Dashboard IA',
-    path: '/intelligent-dashboard',
-    requiredRoles: ['partner', 'area_manager', 'senior']
-  },
-  {
-    title: 'Configuración',
-    path: '/integrations',
-    requiredRoles: ['partner', 'area_manager']
+    title: "IA & Academia",
+    items: [
+      {
+        title: "Academia",
+        url: "/academia",
+        icon: BookOpen,
+      },
+      {
+        title: "Asistente IA",
+        url: "/ai-assistant",
+        icon: Bot,
+      },
+      {
+        title: "Admin IA",
+        url: "/ai-admin",
+        icon: Shield,
+      },
+    ]
   }
 ]
