@@ -1,8 +1,7 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TabsContent } from '@/components/ui/tabs'
-import { Grid, List, Upload, Download, BarChart3 } from 'lucide-react'
+import { Grid, List, Upload, Download } from 'lucide-react'
 import { Contact } from '@/hooks/useContacts'
 import { ContactsList } from './ContactsList'
 import { ContactCardView } from './ContactCardView'
