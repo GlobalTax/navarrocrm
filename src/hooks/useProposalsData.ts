@@ -23,7 +23,13 @@ export const useProposalsData = () => {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data as Proposal[]
+      
+      // Map contact_id to client_id for backward compatibility
+      return data.map(proposal => ({
+        ...proposal,
+        client_id: proposal.contact_id,
+        client: proposal.contact
+      })) as Proposal[]
     },
     enabled: !!user?.org_id
   })

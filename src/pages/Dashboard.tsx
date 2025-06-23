@@ -14,19 +14,19 @@ import { toast } from 'sonner'
 
 export default function Dashboard() {
   const { user } = useApp()
-  const { stats, fetchStats } = useDashboardStats()
+  const { stats, isLoading, error, refetch } = useDashboardStats()
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   useEffect(() => {
     if (user?.org_id) {
-      fetchStats()
+      refetch()
       setLastRefresh(new Date())
     }
-  }, [user, fetchStats])
+  }, [user, refetch])
 
   const handleRefresh = async () => {
     try {
-      await fetchStats()
+      await refetch()
       setLastRefresh(new Date())
       toast.success('Dashboard actualizado', {
         description: 'Los datos se han actualizado correctamente'
@@ -55,6 +55,25 @@ export default function Dashboard() {
     minute: '2-digit' 
   })
 
+  // Convert stats to match EnhancedDashboardMetrics interface
+  const enhancedStats = {
+    totalTimeEntries: stats.totalTimeEntries,
+    totalBillableHours: stats.totalBillableHours,
+    totalClients: stats.totalContacts,
+    totalCases: stats.totalCases,
+    totalActiveCases: stats.activeCases,
+    pendingInvoices: 0,
+    hoursThisWeek: 0,
+    hoursThisMonth: stats.thisMonthHours,
+    utilizationRate: stats.totalTimeEntries > 0 ? Math.round((stats.totalBillableHours / (stats.totalBillableHours + stats.totalNonBillableHours)) * 100) : 0,
+    averageHoursPerDay: 0,
+    totalRevenue: stats.totalBillableHours * 50, // Estimated at €50/hour
+    pendingTasks: 0,
+    overdueTasks: 0,
+    loading: isLoading,
+    error: error?.message || null
+  }
+
   return (
     <StandardPageContainer>
       <StandardPageHeader
@@ -72,10 +91,10 @@ export default function Dashboard() {
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            disabled={stats.loading}
+            disabled={isLoading}
             className="gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${stats.loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
         }
@@ -87,17 +106,17 @@ export default function Dashboard() {
       </div>
       
       {/* Contenido principal */}
-      {stats.loading ? (
+      {isLoading ? (
         <DashboardLoadingSkeleton />
       ) : (
         <>
-          <EnhancedDashboardMetrics stats={stats} />
+          <EnhancedDashboardMetrics stats={enhancedStats} />
           <EnhancedDashboardLayout />
         </>
       )}
       
-      {stats.error && (
-        <DashboardError error={stats.error} onRetry={fetchStats} />
+      {error && (
+        <DashboardError error={error} onRetry={refetch} />
       )}
     </StandardPageContainer>
   )

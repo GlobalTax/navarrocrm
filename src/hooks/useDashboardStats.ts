@@ -18,7 +18,7 @@ export interface DashboardStats {
 export const useDashboardStats = () => {
   const { user } = useApp()
 
-  const { data: stats, isLoading, error } = useQuery({
+  const { data: stats, isLoading, error, refetch } = useQuery({
     queryKey: ['dashboard-stats', user?.org_id],
     queryFn: async (): Promise<DashboardStats> => {
       if (!user?.org_id) {
@@ -129,6 +129,7 @@ export const useDashboardStats = () => {
       thisMonthHours: 0,
     },
     isLoading,
-    error
+    error,
+    refetch
   }
 }
