@@ -1,278 +1,197 @@
 
-import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 
-export interface PredictiveInsight {
-  id: string
-  type: 'revenue_prediction' | 'client_churn' | 'workload_optimization' | 'opportunity_detection'
-  title: string
-  description: string
-  confidence: number
-  impact: 'high' | 'medium' | 'low'
-  actionable: boolean
-  suggestions: string[]
-  data: any
-}
-
-export interface PerformanceMetric {
-  metric: string
-  current: number
-  previous: number
-  trend: 'up' | 'down' | 'stable'
-  percentage_change: number
-  target?: number
+interface AnalyticsData {
+  totalCases: number
+  activeCases: number
+  completedCases: number
+  totalContacts: number
+  activeProposals: number
+  wonProposals: number
+  totalRevenue: number
+  avgDealSize: number
+  conversionRate: number
+  topPerformingAreas: Array<{
+    name: string
+    count: number
+    revenue: number
+  }>
+  casesByStatus: Array<{
+    status: string
+    count: number
+  }>
+  monthlyTrends: Array<{
+    month: string
+    cases: number
+    contacts: number
+    proposals: number
+    revenue: number
+  }>
 }
 
 export const useIntelligentAnalytics = () => {
   const { user } = useApp()
-  const [insights, setInsights] = useState<PredictiveInsight[]>([])
-  const [metrics, setMetrics] = useState<PerformanceMetric[]>([])
-  const [isLoading, setIsLoading] = useState(false)
 
-  // Generate predictive insights
-  const generateInsights = async () => {
-    if (!user?.org_id) return
+  const { data: analytics, isLoading, error } = useQuery({
+    queryKey: ['intelligent-analytics', user?.org_id],
+    queryFn: async (): Promise<AnalyticsData> => {
+      if (!user?.org_id) {
+        return {
+          totalCases: 0,
+          activeCases: 0,
+          completedCases: 0,
+          totalContacts: 0,
+          activeProposals: 0,
+          wonProposals: 0,
+          totalRevenue: 0,
+          avgDealSize: 0,
+          conversionRate: 0,
+          topPerformingAreas: [],
+          casesByStatus: [],
+          monthlyTrends: []
+        }
+      }
 
-    setIsLoading(true)
-    try {
-      const revenueInsight = await generateRevenueInsight()
-      const churnInsight = await generateChurnInsight()
-      const workloadInsight = await generateWorkloadInsight()
-      const opportunityInsight = await generateOpportunityInsight()
+      try {
+        // Obtener datos básicos
+        const [casesData, contactsData, proposalsData] = await Promise.all([
+          supabase
+            .from('cases')
+            .select('id, status, practice_area, created_at, date_closed'),
+          supabase
+            .from('contacts')
+            .select('id, created_at'),
+          supabase
+            .from('proposals')
+            .select('id, status, total_amount, created_at, accepted_at')
+        ])
 
-      setInsights([
-        revenueInsight,
-        churnInsight,
-        workloadInsight,
-        opportunityInsight
-      ].filter(Boolean) as PredictiveInsight[])
-    } catch (error) {
-      console.error('Error generating insights:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+        if (casesData.error) throw casesData.error
+        if (contactsData.error) throw contactsData.error  
+        if (proposalsData.error) throw proposalsData.error
 
-  const generateRevenueInsight = async (): Promise<PredictiveInsight | null> => {
-    const { data: proposals } = await supabase
-      .from('proposals')
-      .select('total_amount, status, created_at')
-      .eq('org_id', user?.org_id)
-      .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+        const cases = casesData.data || []
+        const contacts = contactsData.data || []
+        const proposals = proposalsData.data || []
 
-    if (!proposals?.length) return null
+        // Calcular métricas básicas
+        const totalCases = cases.length
+        const activeCases = cases.filter(c => c.status === 'open').length
+        const completedCases = cases.filter(c => c.status === 'closed').length
+        const totalContacts = contacts.length
+        const activeProposals = proposals.filter(p => ['sent', 'viewed'].includes(p.status)).length
+        const wonProposals = proposals.filter(p => p.status === 'accepted').length
 
-    const totalRevenue = proposals
-      .filter(p => p.status === 'won')
-      .reduce((sum, p) => sum + (p.total_amount || 0), 0)
+        // Calcular métricas de ingresos
+        const totalRevenue = proposals
+          .filter(p => p.status === 'accepted')
+          .reduce((sum, p) => sum + (p.total_amount || 0), 0)
+        
+        const avgDealSize = wonProposals > 0 ? totalRevenue / wonProposals : 0
+        const conversionRate = proposals.length > 0 ? (wonProposals / proposals.length) * 100 : 0
 
-    const avgMonthlyRevenue = totalRevenue / 3
-    const projectedRevenue = avgMonthlyRevenue * 12
+        // Áreas con mejor rendimiento
+        const areaPerformance = cases.reduce((acc, case_item) => {
+          const area = case_item.practice_area || 'General'
+          if (!acc[area]) {
+            acc[area] = { count: 0, revenue: 0 }
+          }
+          acc[area].count++
+          return acc
+        }, {} as Record<string, { count: number; revenue: number }>)
 
-    return {
-      id: 'revenue_insight',
-      type: 'revenue_prediction',
-      title: 'Proyección de Ingresos Anuales',
-      description: `Basado en los últimos 3 meses, proyectamos ingresos anuales de €${projectedRevenue.toLocaleString()}`,
-      confidence: 0.75,
-      impact: 'high',
-      actionable: true,
-      suggestions: [
-        'Incrementar propuestas comerciales en un 20%',
-        'Revisar precios de servicios principales',
-        'Implementar seguimiento más frecuente de propuestas'
-      ],
-      data: { avgMonthlyRevenue, projectedRevenue, totalRevenue }
-    }
-  }
+        const topPerformingAreas = Object.entries(areaPerformance)
+          .map(([name, data]) => ({ name, ...data }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5)
 
-  const generateChurnInsight = async (): Promise<PredictiveInsight | null> => {
-    const { data: clients } = await supabase
-      .from('clients')
-      .select(`
-        *,
-        cases:cases(created_at, status),
-        proposals:proposals(created_at, status)
-      `)
-      .eq('org_id', user?.org_id)
+        // Cases por estado
+        const statusCounts = cases.reduce((acc, case_item) => {
+          const status = case_item.status || 'unknown'
+          acc[status] = (acc[status] || 0) + 1
+          return acc
+        }, {} as Record<string, number>)
 
-    if (!clients?.length) return null
+        const casesByStatus = Object.entries(statusCounts)
+          .map(([status, count]) => ({ status, count }))
 
-    const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000)
-    const inactiveClients = clients.filter(client => {
-      const lastActivity = Math.max(
-        ...client.cases.map(c => new Date(c.created_at).getTime()),
-        ...client.proposals.map(p => new Date(p.created_at).getTime()),
-        0
-      )
-      return lastActivity < sixMonthsAgo.getTime()
-    })
+        // Tendencias mensuales (últimos 6 meses)
+        const monthlyTrends = []
+        for (let i = 5; i >= 0; i--) {
+          const date = new Date()
+          date.setMonth(date.getMonth() - i)
+          const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
+          const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
 
-    if (inactiveClients.length === 0) return null
+          const monthCases = cases.filter(c => {
+            const created = new Date(c.created_at)
+            return created >= monthStart && created <= monthEnd
+          }).length
 
-    const churnRate = (inactiveClients.length / clients.length) * 100
+          const monthContacts = contacts.filter(c => {
+            const created = new Date(c.created_at)
+            return created >= monthStart && created <= monthEnd
+          }).length
 
-    return {
-      id: 'churn_insight',
-      type: 'client_churn',
-      title: `Riesgo de Pérdida de Clientes: ${churnRate.toFixed(1)}%`,
-      description: `${inactiveClients.length} clientes no han tenido actividad en los últimos 6 meses`,
-      confidence: 0.85,
-      impact: churnRate > 20 ? 'high' : 'medium',
-      actionable: true,
-      suggestions: [
-        'Contactar clientes inactivos con ofertas especiales',
-        'Implementar programa de seguimiento automático',
-        'Crear newsletter mensual con actualizaciones legales'
-      ],
-      data: { inactiveClients: inactiveClients.length, totalClients: clients.length, churnRate }
-    }
-  }
+          const monthProposals = proposals.filter(p => {
+            const created = new Date(p.created_at)
+            return created >= monthStart && created <= monthEnd
+          })
 
-  const generateWorkloadInsight = async (): Promise<PredictiveInsight | null> => {
-    const { data: tasks } = await supabase
-      .from('tasks')
-      .select(`
-        *,
-        task_assignments:task_assignments(user_id)
-      `)
-      .eq('org_id', user?.org_id)
-      .in('status', ['pending', 'in_progress'])
+          const monthRevenue = monthProposals
+            .filter(p => p.status === 'accepted')
+            .reduce((sum, p) => sum + (p.total_amount || 0), 0)
 
-    if (!tasks?.length) return null
+          monthlyTrends.push({
+            month: date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }),
+            cases: monthCases,
+            contacts: monthContacts,
+            proposals: monthProposals.length,
+            revenue: monthRevenue
+          })
+        }
 
-    // Calculate workload distribution
-    const userWorkload: Record<string, number> = {}
-    tasks.forEach(task => {
-      task.task_assignments.forEach(assignment => {
-        userWorkload[assignment.user_id] = (userWorkload[assignment.user_id] || 0) + (task.estimated_hours || 1)
-      })
-    })
+        return {
+          totalCases,
+          activeCases,
+          completedCases,
+          totalContacts,
+          activeProposals,
+          wonProposals,
+          totalRevenue,
+          avgDealSize,
+          conversionRate,
+          topPerformingAreas,
+          casesByStatus,
+          monthlyTrends
+        }
 
-    const workloadValues = Object.values(userWorkload)
-    const avgWorkload = workloadValues.reduce((a, b) => a + b, 0) / workloadValues.length
-    const maxWorkload = Math.max(...workloadValues)
-    const imbalance = maxWorkload - avgWorkload
-
-    return {
-      id: 'workload_insight',
-      type: 'workload_optimization',
-      title: 'Optimización de Carga de Trabajo',
-      description: `Detectado desequilibrio en la distribución de trabajo (${imbalance.toFixed(1)}h de diferencia)`,
-      confidence: 0.9,
-      impact: imbalance > 20 ? 'high' : 'medium',
-      actionable: true,
-      suggestions: [
-        'Redistribuir tareas entre miembros del equipo',
-        'Considerar contratación de personal adicional',
-        'Implementar sistema de asignación automática'
-      ],
-      data: { userWorkload, avgWorkload, maxWorkload, imbalance }
-    }
-  }
-
-  const generateOpportunityInsight = async (): Promise<PredictiveInsight | null> => {
-    const { data: clients } = await supabase
-      .from('clients')
-      .select(`
-        *,
-        proposals:proposals(total_amount, status, created_at)
-      `)
-      .eq('org_id', user?.org_id)
-
-    if (!clients?.length) return null
-
-    // Find clients with successful proposals but no recent activity
-    const opportunityClients = clients.filter(client => {
-      const hasWonProposals = client.proposals.some(p => p.status === 'won')
-      const recentActivity = client.proposals.some(p => 
-        new Date(p.created_at).getTime() > Date.now() - 180 * 24 * 60 * 60 * 1000
-      )
-      return hasWonProposals && !recentActivity
-    })
-
-    if (opportunityClients.length === 0) return null
-
-    const potentialRevenue = opportunityClients.reduce((sum, client) => {
-      const avgProposal = client.proposals
-        .filter(p => p.status === 'won')
-        .reduce((avg, p) => avg + (p.total_amount || 0), 0) / client.proposals.length
-      return sum + avgProposal
-    }, 0)
-
-    return {
-      id: 'opportunity_insight',
-      type: 'opportunity_detection',
-      title: `Oportunidades de Cross-selling: €${potentialRevenue.toLocaleString()}`,
-      description: `${opportunityClients.length} clientes con historial positivo sin actividad reciente`,
-      confidence: 0.7,
-      impact: 'high',
-      actionable: true,
-      suggestions: [
-        'Contactar clientes para servicios adicionales',
-        'Ofrecer paquetes de servicios complementarios',
-        'Programar revisiones anuales automáticas'
-      ],
-      data: { opportunityClients: opportunityClients.length, potentialRevenue }
-    }
-  }
-
-  // Calculate performance metrics
-  const calculateMetrics = async () => {
-    if (!user?.org_id) return
-
-    const currentMonth = new Date()
-    const previousMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
-    const currentMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
-
-    const metrics: PerformanceMetric[] = []
-
-    // Revenue metrics
-    const { data: currentRevenue } = await supabase
-      .from('proposals')
-      .select('total_amount')
-      .eq('org_id', user.org_id)
-      .eq('status', 'won')
-      .gte('accepted_at', currentMonthStart.toISOString())
-
-    const { data: previousRevenue } = await supabase
-      .from('proposals')
-      .select('total_amount')
-      .eq('org_id', user.org_id)
-      .eq('status', 'won')
-      .gte('accepted_at', previousMonth.toISOString())
-      .lt('accepted_at', currentMonthStart.toISOString())
-
-    const currentTotal = currentRevenue?.reduce((sum, p) => sum + (p.total_amount || 0), 0) || 0
-    const previousTotal = previousRevenue?.reduce((sum, p) => sum + (p.total_amount || 0), 0) || 0
-
-    if (previousTotal > 0) {
-      metrics.push({
-        metric: 'Ingresos Mensuales',
-        current: currentTotal,
-        previous: previousTotal,
-        trend: currentTotal > previousTotal ? 'up' : currentTotal < previousTotal ? 'down' : 'stable',
-        percentage_change: ((currentTotal - previousTotal) / previousTotal) * 100,
-        target: previousTotal * 1.1 // 10% growth target
-      })
-    }
-
-    setMetrics(metrics)
-  }
-
-  useEffect(() => {
-    if (user?.org_id) {
-      generateInsights()
-      calculateMetrics()
-    }
-  }, [user?.org_id])
+      } catch (error) {
+        console.error('Error fetching analytics:', error)
+        throw error
+      }
+    },
+    enabled: !!user?.org_id,
+  })
 
   return {
-    insights,
-    metrics,
+    analytics: analytics || {
+      totalCases: 0,
+      activeCases: 0,
+      completedCases: 0,
+      totalContacts: 0,
+      activeProposals: 0,
+      wonProposals: 0,
+      totalRevenue: 0,
+      avgDealSize: 0,
+      conversionRate: 0,
+      topPerformingAreas: [],
+      casesByStatus: [],
+      monthlyTrends: []
+    },
     isLoading,
-    refreshInsights: generateInsights,
-    refreshMetrics: calculateMetrics
+    error
   }
 }

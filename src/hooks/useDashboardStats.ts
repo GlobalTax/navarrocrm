@@ -1,183 +1,134 @@
-import { useState, useCallback } from 'react'
-import { useApp } from '@/contexts/AppContext'
-import { supabase } from '@/integrations/supabase/client'
-import { toast } from 'sonner'
 
-interface DashboardStats {
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
+import { useApp } from '@/contexts/AppContext'
+
+export interface DashboardStats {
+  totalCases: number
+  activeCases: number
+  totalContacts: number
   totalTimeEntries: number
   totalBillableHours: number
-  totalClients: number
-  totalCases: number
-  totalActiveCases: number
-  pendingInvoices: number
-  hoursThisWeek: number
-  hoursThisMonth: number
-  utilizationRate: number
-  averageHoursPerDay: number
-  totalRevenue: number
-  pendingTasks: number
-  overdueTasks: number
-  loading: boolean
-  error: string | null
+  totalNonBillableHours: number
+  thisMonthCases: number
+  thisMonthContacts: number
+  thisMonthHours: number
 }
 
 export const useDashboardStats = () => {
   const { user } = useApp()
-  const [stats, setStats] = useState<DashboardStats>({
-    totalTimeEntries: 0,
-    totalBillableHours: 0,
-    totalClients: 0,
-    totalCases: 0,
-    totalActiveCases: 0,
-    pendingInvoices: 0,
-    hoursThisWeek: 0,
-    hoursThisMonth: 0,
-    utilizationRate: 0,
-    averageHoursPerDay: 0,
-    totalRevenue: 0,
-    pendingTasks: 0,
-    overdueTasks: 0,
-    loading: true,
-    error: null
+
+  const { data: stats, isLoading, error } = useQuery({
+    queryKey: ['dashboard-stats', user?.org_id],
+    queryFn: async (): Promise<DashboardStats> => {
+      if (!user?.org_id) {
+        console.log('📊 No org_id disponible para obtener estadísticas')
+        return {
+          totalCases: 0,
+          activeCases: 0,
+          totalContacts: 0,
+          totalTimeEntries: 0,
+          totalBillableHours: 0,
+          totalNonBillableHours: 0,
+          thisMonthCases: 0,
+          thisMonthContacts: 0,
+          thisMonthHours: 0,
+        }
+      }
+
+      console.log('📊 Obteniendo estadísticas para org:', user.org_id)
+
+      try {
+        // Obtener casos
+        const { data: cases, error: casesError } = await supabase
+          .from('cases')
+          .select('id, status, created_at')
+
+        if (casesError) {
+          console.error('❌ Error obteniendo casos:', casesError)
+          throw casesError
+        }
+
+        // Obtener contactos
+        const { data: contacts, error: contactsError } = await supabase
+          .from('contacts')
+          .select('id, created_at')
+
+        if (contactsError) {
+          console.error('❌ Error obteniendo contactos:', contactsError)
+          throw contactsError
+        }
+
+        // Obtener entradas de tiempo
+        const { data: timeEntries, error: timeError } = await supabase
+          .from('time_entries')
+          .select('duration_minutes, is_billable, created_at')
+
+        if (timeError) {
+          console.error('❌ Error obteniendo entradas de tiempo:', timeError)
+          throw timeError
+        }
+
+        // Calcular estadísticas
+        const totalCases = cases?.length || 0
+        const activeCases = cases?.filter(c => c.status === 'open').length || 0
+        const totalContacts = contacts?.length || 0
+        const totalTimeEntries = timeEntries?.length || 0
+
+        const totalBillableMinutes = timeEntries?.filter(t => t.is_billable).reduce((sum, t) => sum + t.duration_minutes, 0) || 0
+        const totalNonBillableMinutes = timeEntries?.filter(t => !t.is_billable).reduce((sum, t) => sum + t.duration_minutes, 0) || 0
+
+        const totalBillableHours = Math.round((totalBillableMinutes / 60) * 100) / 100
+        const totalNonBillableHours = Math.round((totalNonBillableMinutes / 60) * 100) / 100
+
+        // Estadísticas del mes actual
+        const currentMonth = new Date()
+        currentMonth.setDate(1)
+        currentMonth.setHours(0, 0, 0, 0)
+
+        const thisMonthCases = cases?.filter(c => new Date(c.created_at) >= currentMonth).length || 0
+        const thisMonthContacts = contacts?.filter(c => new Date(c.created_at) >= currentMonth).length || 0
+        
+        const thisMonthTimeEntries = timeEntries?.filter(t => new Date(t.created_at) >= currentMonth) || []
+        const thisMonthMinutes = thisMonthTimeEntries.reduce((sum, t) => sum + t.duration_minutes, 0)
+        const thisMonthHours = Math.round((thisMonthMinutes / 60) * 100) / 100
+
+        const stats = {
+          totalCases,
+          activeCases,
+          totalContacts,
+          totalTimeEntries,
+          totalBillableHours,
+          totalNonBillableHours,
+          thisMonthCases,
+          thisMonthContacts,
+          thisMonthHours,
+        }
+
+        console.log('✅ Estadísticas calculadas:', stats)
+        return stats
+
+      } catch (error) {
+        console.error('❌ Error obteniendo estadísticas:', error)
+        throw error
+      }
+    },
+    enabled: !!user?.org_id,
   })
 
-  const fetchStats = useCallback(async () => {
-    if (!user?.org_id) {
-      console.log('📊 No org_id disponible, omitiendo fetch de estadísticas')
-      setStats(prev => ({ ...prev, loading: false }))
-      return
-    }
-
-    try {
-      console.log('📊 Obteniendo estadísticas para org:', user.org_id)
-      setStats(prev => ({ ...prev, loading: true, error: null }))
-
-      // Calcular fechas
-      const now = new Date()
-      const startOfWeek = new Date(now)
-      startOfWeek.setDate(now.getDate() - now.getDay())
-      startOfWeek.setHours(0, 0, 0, 0)
-      
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-      // Obtener estadísticas de entradas de tiempo
-      const { data: timeEntries, error: timeError } = await supabase
-        .from('time_entries')
-        .select('duration_minutes, is_billable, created_at')
-
-      if (timeError) {
-        console.error('❌ Error obteniendo time_entries:', timeError)
-        throw timeError
-      }
-
-      const totalTimeEntries = timeEntries?.length || 0
-      const totalBillableMinutes = timeEntries
-        ?.filter(entry => entry.is_billable)
-        .reduce((acc, entry) => acc + (entry.duration_minutes || 0), 0) || 0
-      const totalBillableHours = totalBillableMinutes / 60
-
-      // Calcular horas de esta semana
-      const weekEntries = timeEntries?.filter(entry => 
-        new Date(entry.created_at) >= startOfWeek
-      ) || []
-      const hoursThisWeek = weekEntries.reduce((acc, entry) => 
-        acc + (entry.duration_minutes || 0), 0
-      ) / 60
-
-      // Calcular horas de este mes
-      const monthEntries = timeEntries?.filter(entry => 
-        new Date(entry.created_at) >= startOfMonth
-      ) || []
-      const hoursThisMonth = monthEntries.reduce((acc, entry) => 
-        acc + (entry.duration_minutes || 0), 0
-      ) / 60
-
-      // Calcular promedio de horas por día
-      const daysThisMonth = Math.max(1, now.getDate())
-      const averageHoursPerDay = hoursThisMonth / daysThisMonth
-
-      // Calcular tasa de utilización (asumiendo 8h/día objetivo)
-      const workingDaysThisMonth = Math.floor(daysThisMonth * 5/7) // Aproximación días laborables
-      const expectedHours = workingDaysThisMonth * 8
-      const utilizationRate = expectedHours > 0 ? (hoursThisMonth / expectedHours) * 100 : 0
-
-      // Obtener estadísticas de clientes
-      const { data: clients, error: clientsError } = await supabase
-        .from('clients')
-        .select('id')
-
-      if (clientsError) {
-        console.error('❌ Error obteniendo clients:', clientsError)
-        throw clientsError
-      }
-
-      // Obtener estadísticas de casos
-      const { data: cases, error: casesError } = await supabase
-        .from('cases')
-        .select('id, status')
-
-      if (casesError) {
-        console.error('❌ Error obteniendo cases:', casesError)
-        throw casesError
-      }
-
-      const totalCases = cases?.length || 0
-      const totalActiveCases = cases?.filter(c => c.status === 'active')?.length || 0
-
-      // Obtener estadísticas de tareas
-      const { data: tasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select('id, status, due_date')
-
-      if (tasksError) {
-        console.error('❌ Error obteniendo tasks:', tasksError)
-        throw tasksError
-      }
-
-      const pendingTasks = tasks?.filter(t => 
-        t.status === 'pending' || t.status === 'in_progress'
-      )?.length || 0
-
-      const overdueTasks = tasks?.filter(t => 
-        t.due_date && new Date(t.due_date) < now && t.status !== 'completed'
-      )?.length || 0
-
-      // Datos mock para campos que requieren integraciones futuras
-      const mockData = {
-        pendingInvoices: 3,
-        totalRevenue: Math.round(totalBillableHours * 150) // Estimación a €150/hora
-      }
-
-      console.log('✅ Estadísticas obtenidas exitosamente')
-      setStats(prev => ({
-        ...prev,
-        totalTimeEntries,
-        totalBillableHours: Math.round(totalBillableHours * 100) / 100,
-        totalClients: clients?.length || 0,
-        totalCases,
-        totalActiveCases,
-        hoursThisWeek: Math.round(hoursThisWeek * 100) / 100,
-        hoursThisMonth: Math.round(hoursThisMonth * 100) / 100,
-        utilizationRate: Math.round(utilizationRate),
-        averageHoursPerDay: Math.round(averageHoursPerDay * 100) / 100,
-        pendingTasks,
-        overdueTasks,
-        ...mockData,
-        loading: false,
-        error: null
-      }))
-    } catch (error: any) {
-      console.error('❌ Error obteniendo estadísticas:', error)
-      toast.error('Error al cargar las estadísticas', {
-        description: 'No se pudieron obtener los datos del dashboard'
-      })
-      setStats(prev => ({
-        ...prev,
-        loading: false,
-        error: error.message || 'Error al cargar las estadísticas'
-      }))
-    }
-  }, [user?.org_id])
-
-  return { stats, fetchStats }
+  return {
+    stats: stats || {
+      totalCases: 0,
+      activeCases: 0,
+      totalContacts: 0,
+      totalTimeEntries: 0,
+      totalBillableHours: 0,
+      totalNonBillableHours: 0,
+      thisMonthCases: 0,
+      thisMonthContacts: 0,
+      thisMonthHours: 0,
+    },
+    isLoading,
+    error
+  }
 }

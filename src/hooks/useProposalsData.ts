@@ -16,7 +16,7 @@ export const useProposalsData = () => {
         .from('proposals')
         .select(`
           *,
-          client:clients(name, email),
+          contact:contacts(name, email),
           line_items:proposal_line_items(*)
         `)
         .eq('org_id', user.org_id)

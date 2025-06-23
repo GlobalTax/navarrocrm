@@ -15,7 +15,7 @@ export const useCreateProposal = () => {
       .insert({
         org_id: proposal.org_id,
         proposal_id: proposal.id,
-        client_id: proposal.client_id,
+        contact_id: proposal.contact_id,
         retainer_amount: proposal.retainer_amount || 0,
         included_hours: proposal.included_hours || 0,
         hourly_rate_extra: proposal.hourly_rate_extra || 0,
@@ -36,7 +36,7 @@ export const useCreateProposal = () => {
 
     const recurringFeeData = {
       org_id: proposal.org_id,
-      client_id: proposal.client_id,
+      contact_id: proposal.contact_id,
       proposal_id: proposal.id,
       name: `Cuota recurrente - ${proposal.title}`,
       description: proposal.description,
