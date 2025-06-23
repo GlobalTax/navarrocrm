@@ -1,12 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { WorkflowRule, WorkflowAction } from './types'
 
 export const useWorkflowExecution = () => {
   const { user } = useApp()
-  const { toast } = useToast()
 
   const executeWorkflow = async (trigger: string, data: any, workflows: WorkflowRule[]) => {
     const activeWorkflows = workflows.filter(w => w.isActive && w.trigger === trigger)
@@ -93,8 +92,7 @@ export const useWorkflowExecution = () => {
         break
 
       case 'create_notification':
-        toast({
-          title: action.parameters.title,
+        toast.success(action.parameters.title, {
           description: action.parameters.message
         })
         break

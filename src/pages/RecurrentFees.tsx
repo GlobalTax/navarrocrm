@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { format, isAfter } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -30,7 +31,6 @@ const RecurrentFees = () => {
   const generateInvoicesMutation = useGenerateInvoices()
   const updateFeeMutation = useUpdateRecurringFee()
   const deleteFeeMutation = useDeleteRecurringFee()
-  const { toast } = useToast()
 
   // Filtrar por búsqueda de texto
   const filteredFees = recurringFees.filter(fee => 
@@ -84,12 +84,9 @@ const RecurrentFees = () => {
     })
   }
 
-  const handleViewDetails = (fee) => {
+  const handle0etails = (fee) => {
     // TODO: Implementar vista de detalles
-    toast({
-      title: 'Próximamente',
-      description: 'La vista de detalles estará disponible pronto'
-    })
+    toast.success('Próximamente: La vista de detalles estará disponible pronto')
   }
 
   const handleGenerateInvoices = async () => {

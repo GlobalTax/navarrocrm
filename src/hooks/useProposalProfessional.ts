@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export interface ProposalPhase {
   id: string
@@ -61,16 +61,11 @@ export interface ProposalData {
 
 export const useProposalProfessional = () => {
   const { user } = useApp()
-  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
 
   const saveProposal = async (proposalData: ProposalData) => {
     if (!user?.org_id) {
-      toast({
-        title: "Error",
-        description: "Usuario no autenticado",
-        variant: "destructive"
-      })
+      toast.error("Usuario no autenticado")
       return
     }
 
@@ -157,19 +152,12 @@ export const useProposalProfessional = () => {
         if (lineItemsError) throw lineItemsError
       }
 
-      toast({
-        title: "Propuesta guardada",
-        description: `La propuesta profesional "${proposalData.title}" ha sido guardada exitosamente.`
-      })
+      toast.success(`La propuesta profesional "${proposalData.title}" ha sido guardada exitosamente.`)
 
       return proposal
     } catch (error: any) {
       console.error('Error saving professional proposal:', error)
-      toast({
-        title: "Error al guardar",
-        description: error.message || "Ha ocurrido un error inesperado",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Ha ocurrido un error inesperado")
       throw error
     } finally {
       setIsSaving(false)

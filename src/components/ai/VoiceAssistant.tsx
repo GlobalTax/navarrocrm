@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Mic, MicOff, Volume2, VolumeX, Brain } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export const VoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false)
@@ -18,7 +18,6 @@ export const VoiceAssistant = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const { user } = useApp()
-  const { toast } = useToast()
 
   const startListening = async () => {
     try {
@@ -41,11 +40,7 @@ export const VoiceAssistant = () => {
       setIsListening(true)
     } catch (error) {
       console.error('Error accessing microphone:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo acceder al micrófono',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo acceder al micrófono')
     }
   }
 
@@ -107,11 +102,7 @@ export const VoiceAssistant = () => {
 
     } catch (error) {
       console.error('Error processing audio:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo procesar el audio',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo procesar el audio')
     } finally {
       setIsProcessing(false)
     }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface OrganizationSetupFormProps {
   onSuccess: (orgName: string) => void
@@ -13,17 +13,12 @@ interface OrganizationSetupFormProps {
 export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps) => {
   const [loading, setLoading] = useState(false)
   const [orgName, setOrgName] = useState('')
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!orgName.trim()) {
-      toast({
-        title: "Error",
-        description: "Por favor, introduce el nombre de la organización",
-        variant: "destructive",
-      })
+      toast.error("Por favor, introduce el nombre de la organización")
       return
     }
 
@@ -46,11 +41,7 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
         
         // Manejar error de nombre duplicado
         if (orgError.message?.includes('duplicate') || orgError.code === '23505') {
-          toast({
-            title: "Error",
-            description: "Ya existe una organización con ese nombre. Por favor, elige otro nombre.",
-            variant: "destructive",
-          })
+          toast.error("Ya existe una organización con ese nombre. Por favor, elige otro nombre.")
           return
         }
         
@@ -59,19 +50,22 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
 
       console.log('Organización creada exitosamente:', orgResult)
       
-      toast({
-        title: "Organización creada",
-        description: `${orgName} ha sido creada exitosamente`,
-      })
+      toast.success(`${orgName} ha sido creada exitosamente`)
       
       onSuccess(orgName)
     } catch (error: any) {
       console.error('Error en handleSubmit:', error)
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo crear la organización",
-        variant: "destructive",
-      })
+      let errorMessage = "No se pudo crear la organización"
+      
+      if (error.message?.includes('User already registered')) {
+        errorMessage = "Ya existe un usuario con este email"
+      } else if (error.message?.includes('Password should be at least')) {
+        errorMessage = "La contraseña debe tener al menos 6 caracteres"
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

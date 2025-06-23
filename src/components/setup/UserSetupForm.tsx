@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface UserSetupFormProps {
   orgName: string
@@ -22,26 +22,17 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
   })
   
   const navigate = useNavigate()
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!userData.email.trim() || !userData.password.trim()) {
-      toast({
-        title: "Error",
-        description: "Por favor, completa todos los campos obligatorios",
-        variant: "destructive",
-      })
+      toast.error("Por favor, completa todos los campos obligatorios")
       return
     }
 
     if (userData.password.length < 6) {
-      toast({
-        title: "Error",
-        description: "La contraseña debe tener al menos 6 caracteres",
-        variant: "destructive",
-      })
+      toast.error("La contraseña debe tener al menos 6 caracteres")
       return
     }
 
@@ -98,10 +89,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
 
         console.log('Perfil de usuario creado exitosamente')
         
-        toast({
-          title: "Configuración completada",
-          description: "Sistema configurado exitosamente. Ya puedes iniciar sesión.",
-        })
+        toast.success("Sistema configurado exitosamente. Ya puedes iniciar sesión.")
 
         // Redirigir al login
         navigate('/login')
@@ -120,11 +108,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
         errorMessage = error.message
       }
       
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

@@ -2,12 +2,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import type { RecurringFee } from '@/types/recurringFees'
 
 export const useCreateRecurringFee = () => {
   const { user } = useApp()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -29,23 +28,15 @@ export const useCreateRecurringFee = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
-      toast({
-        title: 'Éxito',
-        description: 'Cuota recurrente creada correctamente'
-      })
+      toast.success('Cuota recurrente creada correctamente')
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Error al crear la cuota recurrente',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Error al crear la cuota recurrente')
     }
   })
 }
 
 export const useUpdateRecurringFee = () => {
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -63,23 +54,15 @@ export const useUpdateRecurringFee = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
       queryClient.invalidateQueries({ queryKey: ['recurring-fee'] })
-      toast({
-        title: 'Éxito',
-        description: 'Cuota recurrente actualizada correctamente'
-      })
+      toast.success('Cuota recurrente actualizada correctamente')
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Error al actualizar la cuota recurrente',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Error al actualizar la cuota recurrente')
     }
   })
 }
 
 export const useDeleteRecurringFee = () => {
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -93,23 +76,15 @@ export const useDeleteRecurringFee = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
-      toast({
-        title: 'Éxito',
-        description: 'Cuota recurrente eliminada correctamente'
-      })
+      toast.success('Cuota recurrente eliminada correctamente')
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Error al eliminar la cuota recurrente',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Error al eliminar la cuota recurrente')
     }
   })
 }
 
 export const useGenerateInvoices = () => {
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -120,24 +95,16 @@ export const useGenerateInvoices = () => {
     },
     onSuccess: (invoicesGenerated) => {
       queryClient.invalidateQueries({ queryKey: ['recurring-fee-invoices'] })
-      toast({
-        title: 'Éxito',
-        description: `Se generaron ${invoicesGenerated} facturas automáticamente`
-      })
+      toast.success(`Se generaron ${invoicesGenerated} facturas automáticamente`)
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Error al generar facturas',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Error al generar facturas')
     }
   })
 }
 
 export const useCreateRecurringFeeFromProposal = () => {
   const { user } = useApp()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -188,17 +155,10 @@ export const useCreateRecurringFeeFromProposal = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring-fees'] })
-      toast({
-        title: 'Éxito',
-        description: 'Cuota recurrente creada desde propuesta'
-      })
+      toast.success('Cuota recurrente creada desde propuesta')
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Error al crear la cuota desde propuesta',
-        variant: 'destructive'
-      })
+      toast.error(error.message || 'Error al crear la cuota desde propuesta')
     }
   })
 }

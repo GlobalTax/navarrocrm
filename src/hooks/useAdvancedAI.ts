@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export interface AIAnalysisResult {
   type: 'document_analysis' | 'time_optimization' | 'compliance_check' | 'business_intelligence'
@@ -14,7 +14,6 @@ export interface AIAnalysisResult {
 export const useAdvancedAI = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const { user } = useApp()
-  const { toast } = useToast()
 
   const analyzeDocument = useCallback(async (file: File, analysisType: string) => {
     if (!user?.org_id) return null
@@ -43,16 +42,12 @@ export const useAdvancedAI = () => {
       return data as AIAnalysisResult
     } catch (error) {
       console.error('Error analyzing document:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo analizar el documento',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo analizar el documento')
       return null
     } finally {
       setIsAnalyzing(false)
     }
-  }, [user?.org_id, toast])
+  }, [user?.org_id])
 
   const optimizeSchedule = useCallback(async () => {
     if (!user?.org_id) return null
@@ -70,16 +65,12 @@ export const useAdvancedAI = () => {
       return data
     } catch (error) {
       console.error('Error optimizing schedule:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo optimizar la agenda',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo optimizar la agenda')
       return null
     } finally {
       setIsAnalyzing(false)
     }
-  }, [user?.org_id, user?.id, toast])
+  }, [user?.org_id, user?.id])
 
   const checkCompliance = useCallback(async (caseId?: string) => {
     if (!user?.org_id) return null
@@ -98,16 +89,12 @@ export const useAdvancedAI = () => {
       return data
     } catch (error) {
       console.error('Error checking compliance:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo realizar la auditoría de compliance',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo realizar la auditoría de compliance')
       return null
     } finally {
       setIsAnalyzing(false)
     }
-  }, [user?.org_id, toast])
+  }, [user?.org_id])
 
   const generateBusinessInsights = useCallback(async (period: string = 'month') => {
     if (!user?.org_id) return null
@@ -126,16 +113,12 @@ export const useAdvancedAI = () => {
       return data
     } catch (error) {
       console.error('Error generating business insights:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudieron generar los insights de negocio',
-        variant: 'destructive'
-      })
+      toast.error('No se pudieron generar los insights de negocio')
       return null
     } finally {
       setIsAnalyzing(false)
     }
-  }, [user?.org_id, toast])
+  }, [user?.org_id])
 
   return {
     isAnalyzing,

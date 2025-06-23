@@ -1,7 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export interface ClientNote {
   id: string
@@ -26,7 +27,6 @@ export interface CreateClientNoteData {
 
 export const useClientNotes = (clientId?: string) => {
   const { user } = useApp()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   const { data: notes = [], isLoading, error } = useQuery({
@@ -71,18 +71,11 @@ export const useClientNotes = (clientId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-notes', clientId] })
-      toast({
-        title: 'Nota creada',
-        description: 'La nota se ha creado correctamente',
-      })
+      toast.success('La nota se ha creado correctamente')
     },
     onError: (error) => {
       console.error('Error creating client note:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo crear la nota',
-        variant: 'destructive',
-      })
+      toast.error('No se pudo crear la nota')
     },
   })
 
@@ -100,18 +93,11 @@ export const useClientNotes = (clientId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-notes', clientId] })
-      toast({
-        title: 'Nota actualizada',
-        description: 'La nota se ha actualizado correctamente',
-      })
+      toast.success('La nota se ha actualizado correctamente')
     },
     onError: (error) => {
       console.error('Error updating client note:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar la nota',
-        variant: 'destructive',
-      })
+      toast.error('No se pudo actualizar la nota')
     },
   })
 
@@ -126,18 +112,11 @@ export const useClientNotes = (clientId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-notes', clientId] })
-      toast({
-        title: 'Nota eliminada',
-        description: 'La nota se ha eliminado correctamente',
-      })
+      toast.success('La nota se ha eliminado correctamente')
     },
     onError: (error) => {
       console.error('Error deleting client note:', error)
-      toast({
-        title: 'Error',
-        description: 'No se pudo eliminar la nota',
-        variant: 'destructive',
-      })
+      toast.error('No se pudo eliminar la nota')
     },
   })
 

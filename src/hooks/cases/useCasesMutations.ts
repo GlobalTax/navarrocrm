@@ -2,12 +2,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import type { CreateCaseData } from './types'
 
 export const useCasesMutations = () => {
   const { user } = useApp()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   const createCaseMutation = useMutation({
@@ -49,18 +48,11 @@ export const useCasesMutations = () => {
     onSuccess: (data) => {
       console.log('🎉 Expediente creado con éxito:', data)
       queryClient.invalidateQueries({ queryKey: ['cases'] })
-      toast({ 
-        title: 'Expediente creado', 
-        description: `El expediente "${data.title}" ha sido creado correctamente.` 
-      })
+      toast.success(`El expediente "${data.title}" ha sido creado correctamente.`)
     },
     onError: (error: any) => {
       console.error('❌ Error al crear expediente:', error)
-      toast({ 
-        title: 'Error al crear expediente', 
-        description: error.message || 'Ha ocurrido un error inesperado', 
-        variant: 'destructive' 
-      })
+      toast.error(error.message || 'Ha ocurrido un error inesperado')
     },
   })
 
@@ -82,18 +74,11 @@ export const useCasesMutations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
-      toast({ 
-        title: 'Expediente eliminado', 
-        description: 'El expediente ha sido eliminado permanentemente.' 
-      })
+      toast.success('El expediente ha sido eliminado permanentemente.')
     },
     onError: (error: any) => {
       console.error('❌ Error al eliminar expediente:', error)
-      toast({ 
-        title: 'Error al eliminar expediente', 
-        description: error.message || 'Ha ocurrido un error inesperado', 
-        variant: 'destructive' 
-      })
+      toast.error(error.message || 'Ha ocurrido un error inesperado')
     },
   })
 
@@ -131,18 +116,11 @@ export const useCasesMutations = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
       const action = data.newStatus === 'archived' ? 'archivado' : 'desarchivado'
-      toast({ 
-        title: `Expediente ${action}`, 
-        description: `El expediente ha sido ${action} correctamente.` 
-      })
+      toast.success(`El expediente ha sido ${action} correctamente.`)
     },
     onError: (error: any) => {
       console.error('❌ Error al cambiar estado de archivo:', error)
-      toast({ 
-        title: 'Error al cambiar estado', 
-        description: error.message || 'Ha ocurrido un error inesperado', 
-        variant: 'destructive' 
-      })
+      toast.error(error.message || 'Ha ocurrido un error inesperado')
     },
   })
 

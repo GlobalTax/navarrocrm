@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -15,7 +15,6 @@ export default function Login() {
   const { session, user, signIn, authLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
-  const { toast } = useToast()
 
   const from = location.state?.from?.pathname || '/'
 
@@ -33,11 +32,7 @@ export default function Login() {
     e.preventDefault()
     
     if (!email.trim() || !password.trim()) {
-      toast({
-        title: "Error",
-        description: "Por favor, completa todos los campos",
-        variant: "destructive",
-      })
+      toast.error("Por favor, completa todos los campos")
       return
     }
 
@@ -46,10 +41,7 @@ export default function Login() {
     try {
       await signIn(email, password)
       
-      toast({
-        title: "¡Bienvenido!",
-        description: "Has iniciado sesión correctamente",
-      })
+      toast.success("¡Bienvenido! Has iniciado sesión correctamente")
     } catch (error: any) {
       console.error('❌ [Login] Error:', error)
       
@@ -61,11 +53,7 @@ export default function Login() {
         errorMessage = "Por favor, confirma tu email"
       }
       
-      toast({
-        title: "Error de autenticación",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

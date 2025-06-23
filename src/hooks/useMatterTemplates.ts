@@ -1,7 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 export interface MatterTemplate {
   id: string
@@ -21,7 +22,6 @@ export interface MatterTemplate {
 
 export const useMatterTemplates = () => {
   const { user } = useApp()
-  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   const { data: templates = [], isLoading, error } = useQuery({
@@ -57,14 +57,10 @@ export const useMatterTemplates = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matter-templates'] })
-      toast({ title: 'Template created successfully' })
+      toast.success('Template created successfully')
     },
     onError: (error) => {
-      toast({ 
-        title: 'Error creating template', 
-        description: error.message, 
-        variant: 'destructive' 
-      })
+      toast.error(error.message || 'Error creating template')
     },
   })
 
