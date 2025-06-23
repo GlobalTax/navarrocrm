@@ -1,6 +1,5 @@
 
 import { Button } from '@/components/ui/button'
-import { LayoutGrid, List } from 'lucide-react'
 import { TaskViewMode } from '@/hooks/tasks/useTasksPageState'
 
 interface TasksViewSelectorProps {
@@ -15,19 +14,15 @@ export const TasksViewSelector = ({ viewMode, onViewModeChange }: TasksViewSelec
         variant={viewMode === 'board' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => onViewModeChange('board')}
-        className="flex items-center space-x-2"
       >
-        <LayoutGrid className="h-4 w-4" />
-        <span>Tablero</span>
+        Tablero
       </Button>
       <Button
         variant={viewMode === 'list' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => onViewModeChange('list')}
-        className="flex items-center space-x-2"
       >
-        <List className="h-4 w-4" />
-        <span>Lista</span>
+        Lista
       </Button>
     </div>
   )

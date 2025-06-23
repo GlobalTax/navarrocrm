@@ -1,6 +1,4 @@
 
-import { Home, Users, FolderOpen, CheckSquare, FileText, Calendar, Clock, Zap, Brain, Settings, Repeat, GraduationCap } from 'lucide-react'
-
 export const navigation = [
   { name: 'Dashboard', href: '/' },
   { name: 'Clientes', href: '/clients' },
@@ -28,102 +26,74 @@ export const quickActions = [
 
 interface NavigationItem {
   title: string
-  icon: any
   path: string
-  color: string
   requiredRoles: string[]
 }
 
 export const navigationItems: NavigationItem[] = [
   {
     title: 'Dashboard',
-    icon: Home,
     path: '/',
-    color: 'text-blue-600',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Clientes',
-    icon: Users,
     path: '/clients',
-    color: 'text-green-600',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Expedientes',
-    icon: FolderOpen,
     path: '/cases',
-    color: 'text-purple-600',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Tareas',
-    icon: CheckSquare,
     path: '/tasks',
-    color: 'text-orange-600',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Propuestas',
-    icon: FileText,
     path: '/proposals',
-    color: 'text-cyan-600',
     requiredRoles: ['partner', 'area_manager', 'senior']
   },
   {
     title: 'Cuotas Recurrentes',
-    icon: Repeat,
     path: '/recurrent-fees',
-    color: 'text-emerald-600',
     requiredRoles: ['partner', 'area_manager', 'senior']
   },
   {
     title: 'Calendario',
-    icon: Calendar,
     path: '/calendar',
-    color: 'text-red-600',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Control de Tiempo',
-    icon: Clock,
     path: '/time-tracking',
-    color: 'text-indigo-600',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Workflows',
-    icon: Zap,
     path: '/workflows',
-    color: 'text-yellow-600',
     requiredRoles: ['partner', 'area_manager']
   },
   {
     title: 'IA Avanzada',
-    icon: Brain,
     path: '/advanced-ai',
-    color: 'text-purple-600',
     requiredRoles: ['partner', 'area_manager', 'senior']
   },
   {
     title: 'Academia',
-    icon: GraduationCap,
     path: '/academia',
-    color: 'text-blue-500',
     requiredRoles: ['partner', 'area_manager', 'senior', 'junior']
   },
   {
     title: 'Dashboard IA',
-    icon: Brain,
     path: '/intelligent-dashboard',
-    color: 'text-pink-600',
     requiredRoles: ['partner', 'area_manager', 'senior']
   },
   {
     title: 'Configuración',
-    icon: Settings,
     path: '/integrations',
-    color: 'text-gray-600',
     requiredRoles: ['partner', 'area_manager']
   }
 ]

@@ -1,7 +1,6 @@
 
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart3, Users, Plus } from 'lucide-react'
 import { Client, useClients } from '@/hooks/useClients'
 import { ClientsTabsContent } from '@/components/clients/ClientsTabsContent'
 import { ClientsDialogManager } from '@/components/clients/ClientsDialogManager'
@@ -51,7 +50,6 @@ const Clients = () => {
       <StandardPageHeader
         title="Clientes"
         description="Gestiona tu cartera de clientes"
-        icon={Users}
         primaryAction={{
           label: 'Nuevo Cliente',
           onClick: handleCreateClient
@@ -60,12 +58,10 @@ const Clients = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
+          <TabsTrigger value="list">
             Gestión de Clientes
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
+          <TabsTrigger value="analytics">
             Análisis y Métricas
           </TabsTrigger>
         </TabsList>

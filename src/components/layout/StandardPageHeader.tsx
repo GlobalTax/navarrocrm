@@ -1,12 +1,10 @@
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { LucideIcon } from 'lucide-react'
 
 interface StandardPageHeaderProps {
   title: string
   description?: string
-  icon?: LucideIcon
   primaryAction?: {
     label: string
     onClick: () => void
@@ -28,7 +26,6 @@ interface StandardPageHeaderProps {
 export const StandardPageHeader = ({
   title,
   description,
-  icon: Icon,
   primaryAction,
   secondaryAction,
   badges,
@@ -37,12 +34,9 @@ export const StandardPageHeader = ({
   return (
     <div className="flex justify-between items-start">
       <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          {Icon && <Icon className="h-8 w-8 text-primary" />}
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-        </div>
+        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
         {description && (
-          <p className="text-gray-600">{description}</p>
+          <p className="text-sm text-gray-600">{description}</p>
         )}
         {badges && badges.length > 0 && (
           <div className="flex items-center gap-3 mt-3">
@@ -63,7 +57,7 @@ export const StandardPageHeader = ({
           <Button 
             onClick={secondaryAction.onClick} 
             variant={secondaryAction.variant || 'outline'} 
-            size="lg"
+            size="default"
           >
             {secondaryAction.label}
           </Button>
@@ -72,7 +66,7 @@ export const StandardPageHeader = ({
           <Button 
             onClick={primaryAction.onClick} 
             variant={primaryAction.variant || 'default'} 
-            size="lg"
+            size="default"
           >
             {primaryAction.label}
           </Button>

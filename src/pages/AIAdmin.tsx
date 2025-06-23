@@ -1,14 +1,15 @@
 
 import { AIUsageStatsCards, AIUsageByOrgCard } from '@/components/admin/AIUsageStats'
 import { AIUsageTable } from '@/components/admin/AIUsageTable'
-import { AIAdminHeader } from '@/components/admin/AIAdminHeader'
 import { AIAdminAlerts } from '@/components/admin/AIAdminAlerts'
 import { AIAdminAccessDenied } from '@/components/admin/AIAdminAccessDenied'
 import { AIAdminDashboard } from '@/components/ai-admin/AIAdminDashboard'
 import { useAIAdminData } from '@/hooks/useAIAdminData'
 import { subMonths, addMonths } from 'date-fns'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart3, AlertCircle, Database, Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 export default function AIAdmin() {
   const {
@@ -53,45 +54,50 @@ export default function AIAdmin() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      {/* Header mejorado */}
-      <div className="text-center lg:text-left">
-        <h1 className="text-3xl font-bold text-gray-900">Panel de Administración IA</h1>
-        <p className="text-gray-600 mt-2">
-          Monitorea el uso, rendimiento y costos de los servicios de inteligencia artificial
-        </p>
-      </div>
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Panel de Administración IA"
+        description="Monitorea el uso, rendimiento y costos de los servicios de inteligencia artificial"
+      >
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handlePreviousMonth}
+            size="sm"
+          >
+            Anterior
+          </Button>
+          <span className="text-sm font-medium px-3">
+            {selectedMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+          </span>
+          <Button 
+            variant="outline" 
+            onClick={handleNextMonth}
+            size="sm"
+          >
+            Siguiente
+          </Button>
+        </div>
+      </StandardPageHeader>
 
-      <AIAdminHeader
-        selectedMonth={selectedMonth}
-        onPreviousMonth={handlePreviousMonth}
-        onNextMonth={handleNextMonth}
-      />
-
-      {/* Dashboard principal */}
       <AIAdminDashboard
         stats={usageData?.stats || defaultStats}
         isLoading={isLoadingUsage}
       />
 
-      {/* Tabs organizadas */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">Resumen</span>
+          <TabsTrigger value="overview">
+            Resumen
           </TabsTrigger>
-          <TabsTrigger value="organizations" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            <span className="hidden sm:inline">Organizaciones</span>
+          <TabsTrigger value="organizations">
+            Organizaciones
           </TabsTrigger>
-          <TabsTrigger value="alerts" className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Alertas</span>
+          <TabsTrigger value="alerts">
+            Alertas
           </TabsTrigger>
-          <TabsTrigger value="logs" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Logs</span>
+          <TabsTrigger value="logs">
+            Logs
           </TabsTrigger>
         </TabsList>
 
@@ -123,6 +129,6 @@ export default function AIAdmin() {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </StandardPageContainer>
   )
 }

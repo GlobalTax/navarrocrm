@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -12,6 +11,8 @@ import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesM
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'
 import { RecurringFeesFilters } from '@/components/recurring-fees/RecurringFeesFilters'
 import { RecurringFeesList } from '@/components/recurring-fees/RecurringFeesList'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 const RecurrentFees = () => {
   const [filters, setFilters] = useState({
@@ -148,16 +149,12 @@ const RecurrentFees = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Cuotas Recurrentes</h1>
-        <p className="text-gray-600">
-          Sistema integral de gestión de cuotas recurrentes y facturación automática
-        </p>
-      </div>
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Cuotas Recurrentes"
+        description="Sistema integral de gestión de cuotas recurrentes y facturación automática"
+      />
 
-      {/* Métricas */}
       <RecurringFeesMetrics
         total={metrics.total}
         active={metrics.active}
@@ -165,7 +162,6 @@ const RecurrentFees = () => {
         monthlyRevenue={metrics.monthlyRevenue}
       />
 
-      {/* Acciones principales */}
       <RecurringFeesActions
         onNewFee={handleNewFee}
         onGenerateInvoices={handleGenerateInvoices}
@@ -173,13 +169,11 @@ const RecurrentFees = () => {
         isGeneratingInvoices={generateInvoicesMutation.isPending}
       />
 
-      {/* Filtros */}
       <RecurringFeesFilters
         filters={filters}
         onFiltersChange={setFilters}
       />
 
-      {/* Lista de cuotas */}
       <RecurringFeesList
         fees={filteredFees}
         hasFilters={hasFilters}
@@ -190,7 +184,6 @@ const RecurrentFees = () => {
         onNewFee={handleNewFee}
       />
 
-      {/* Dialog para formulario */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -206,7 +199,6 @@ const RecurrentFees = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de confirmación para eliminar */}
       <AlertDialog open={!!deletingFee} onOpenChange={() => setDeletingFee(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -227,7 +219,7 @@ const RecurrentFees = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </StandardPageContainer>
   )
 }
 

@@ -7,6 +7,8 @@ import { useCalendarEvents, CreateCalendarEventData } from '@/hooks/useCalendarE
 import { useClients } from '@/hooks/useClients'
 import { useCases } from '@/hooks/useCases'
 import { format } from 'date-fns'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 export default function Calendar() {
   const [isNewEventOpen, setIsNewEventOpen] = useState(false)
@@ -85,26 +87,33 @@ export default function Calendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm">
-          <FullScreenCalendar 
-            data={calendarData}
-            onNewEvent={handleNewEvent}
-            onEventClick={handleEventClick}
-          />
-        </div>
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Calendario"
+        description="Gestiona citas, plazos y eventos importantes del despacho"
+        primaryAction={{
+          label: 'Nuevo Evento',
+          onClick: () => handleNewEvent()
+        }}
+      />
 
-        <CalendarEventDialog
-          open={isNewEventOpen}
-          onOpenChange={setIsNewEventOpen}
-          onSubmit={handleCreateEvent}
-          isCreating={isCreating}
-          clients={clients}
-          cases={cases}
-          selectedDate={selectedDate}
+      <div className="bg-white rounded-lg shadow-sm">
+        <FullScreenCalendar 
+          data={calendarData}
+          onNewEvent={handleNewEvent}
+          onEventClick={handleEventClick}
         />
       </div>
-    </div>
+
+      <CalendarEventDialog
+        open={isNewEventOpen}
+        onOpenChange={setIsNewEventOpen}
+        onSubmit={handleCreateEvent}
+        isCreating={isCreating}
+        clients={clients}
+        cases={cases}
+        selectedDate={selectedDate}
+      />
+    </StandardPageContainer>
   )
 }

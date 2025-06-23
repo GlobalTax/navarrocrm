@@ -1,6 +1,5 @@
 
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 
 interface TasksEmptyStateProps {
   onCreateTask: () => void
@@ -16,8 +15,7 @@ export const TasksEmptyState = ({ onCreateTask }: TasksEmptyStateProps) => {
         <p className="text-gray-500 mb-6">
           Comienza creando tu primera tarea para organizar tu trabajo.
         </p>
-        <Button onClick={onCreateTask} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
+        <Button onClick={onCreateTask}>
           Crear primera tarea
         </Button>
       </div>

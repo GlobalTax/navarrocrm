@@ -1,5 +1,4 @@
 
-import { CheckSquare } from 'lucide-react'
 import { useTasks } from '@/hooks/useTasks'
 import { useTasksPageState } from '@/hooks/tasks/useTasksPageState'
 import { useTasksFilters } from '@/hooks/tasks/useTasksFilters'
@@ -45,7 +44,6 @@ const Tasks = () => {
       <StandardPageHeader
         title="Tareas"
         description="Organiza y gestiona todas las tareas del despacho"
-        icon={CheckSquare}
         primaryAction={{
           label: 'Nueva Tarea',
           onClick: pageState.handleCreateTask

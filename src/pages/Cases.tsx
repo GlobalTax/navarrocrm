@@ -11,7 +11,6 @@ import { useMatterTemplates } from '@/hooks/useMatterTemplates'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
-import { FolderOpen, Plus, Download, Settings, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 
@@ -147,7 +146,6 @@ export default function Cases() {
       <StandardPageHeader
         title="Expedientes"
         description="Gestiona todos los expedientes del despacho"
-        icon={FolderOpen}
         primaryAction={{
           label: 'Nuevo Expediente',
           onClick: () => setIsWizardOpen(true)
@@ -156,18 +154,15 @@ export default function Cases() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="default">
-              <Settings className="h-4 w-4 mr-2" />
               Acciones
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem>
-              <Download className="h-4 w-4 mr-2" />
               Exportar Expedientes
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>
-              <FileText className="h-4 w-4 mr-2" />
               Plantillas ({templates.length})
             </DropdownMenuItem>
             {templates.map((template) => (
@@ -177,7 +172,6 @@ export default function Cases() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Plus className="h-4 w-4 mr-2" />
               Nueva Plantilla
             </DropdownMenuItem>
           </DropdownMenuContent>

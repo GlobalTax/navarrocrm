@@ -7,7 +7,6 @@ import { DashboardError } from '@/components/dashboard/DashboardError'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { Home, BarChart3 } from 'lucide-react'
 
 export default function Dashboard() {
   const { user } = useApp()
@@ -37,7 +36,6 @@ export default function Dashboard() {
       <StandardPageHeader
         title={`Bienvenido, ${welcomeMessage}`}
         description="Resumen ejecutivo de tu despacho de abogados"
-        icon={Home}
         badges={[
           {
             label: `Rol: ${user.role}`,
