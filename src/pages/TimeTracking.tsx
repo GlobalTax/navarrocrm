@@ -1,10 +1,9 @@
 
-import { Timer } from '@/components/timer/Timer'
-import { TimeEntriesTable } from '@/components/timer/TimeEntriesTable'
-import { DigitalClock } from '@/components/timer/DigitalClock'
-import { TimeTrackingDashboard } from '@/components/time-tracking/TimeTrackingDashboard'
-import { TimeTrackingFilters } from '@/components/time-tracking/TimeTrackingFilters'
-import { TimeTrackingOnboarding } from '@/components/time-tracking/TimeTrackingOnboarding'
+import { TimeTrackingHeader } from '@/components/time-tracking/TimeTrackingHeader'
+import { ModernTimeTrackingDashboard } from '@/components/time-tracking/ModernTimeTrackingDashboard'
+import { ModernTimer } from '@/components/time-tracking/ModernTimer'
+import { OptimizedTimeEntriesTable } from '@/components/time-tracking/OptimizedTimeEntriesTable'
+import { AdvancedTimeTrackingFilters } from '@/components/time-tracking/AdvancedTimeTrackingFilters'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 
 export default function TimeTracking() {
@@ -24,36 +23,24 @@ export default function TimeTracking() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center lg:text-left">
-          <h1 className="text-3xl font-bold text-gray-900">Control de Tiempo</h1>
-          <p className="text-gray-600 mt-2">
-            Registra y gestiona tu tiempo de manera eficiente para maximizar la productividad
-          </p>
-        </div>
+        {/* Header simplificado */}
+        <TimeTrackingHeader />
 
-        {/* Onboarding */}
-        <TimeTrackingOnboarding />
+        {/* Dashboard con métricas inteligentes */}
+        <ModernTimeTrackingDashboard />
 
-        {/* Dashboard de estadísticas */}
-        <TimeTrackingDashboard />
-
-        {/* Reloj Digital */}
-        <div className="flex justify-center lg:justify-start">
-          <DigitalClock />
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Timer - Sidebar en desktop, top en mobile */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Timer moderno - Sidebar en desktop */}
           <div className="xl:col-span-1 order-1 xl:order-1">
-            <Timer />
+            <ModernTimer />
           </div>
           
-          <div className="xl:col-span-2 space-y-6 order-2 xl:order-2">
-            {/* Filtros */}
-            <TimeTrackingFilters
+          {/* Tabla y filtros optimizados */}
+          <div className="xl:col-span-3 space-y-6 order-2 xl:order-2">
+            {/* Filtros avanzados */}
+            <AdvancedTimeTrackingFilters
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               caseFilter={caseFilter}
@@ -63,8 +50,8 @@ export default function TimeTracking() {
               onClearFilters={handleClearFilters}
             />
             
-            {/* Tabla de entradas */}
-            <TimeEntriesTable />
+            {/* Tabla optimizada */}
+            <OptimizedTimeEntriesTable />
           </div>
         </div>
       </div>
