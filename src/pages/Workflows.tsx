@@ -122,12 +122,14 @@ const Workflows = React.memo(() => {
         <WorkflowBuilder
           rule={selectedRule}
           onSave={handleRuleCreated}
+          onCancel={handleCloseBuilder}
         />
       )}
 
       {showWizard && (
         <WorkflowWizard
           onComplete={handleRuleCreated}
+          onCancel={handleCloseWizard}
         />
       )}
 
