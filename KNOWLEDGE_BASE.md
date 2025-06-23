@@ -35,14 +35,254 @@ Construir el CRM líder para asesorías multidisciplinares, 100% cloud-native, q
 
 ---
 
-## 🏗 3. Arquitectura del Sistema
+## 🎨 3. Estándares UI/UX
+
+### **Principios de Diseño Fundamentales**
+
+#### **Sin Iconos en la Aplicación**
+- **Regla absoluta**: No usar iconos en ninguna parte de la interfaz
+- **Razón**: Mantener consistencia visual y evitar sobrecarga cognitiva
+- **Aplicación**: Headers, botones, navegación, acciones rápidas
+- **Excepción**: Solo iconos del sistema (cerrar ventanas, minimizar) están permitidos
+
+#### **Tipografía Unificada**
+```typescript
+// Títulos principales de página
+className="text-xl font-semibold text-gray-900"
+
+// Descripciones de página
+className="text-sm text-gray-600"
+
+// Títulos de sección
+className="text-lg font-medium text-gray-900"
+
+// Texto body estándar
+className="text-sm text-gray-700"
+```
+
+#### **Espaciado Consistente**
+- **Entre secciones principales**: `space-y-6`
+- **Entre elementos relacionados**: `space-y-4`
+- **Entre elementos muy cercanos**: `space-y-2`
+- **Padding interno de cards**: `p-6`
+
+### **Componentes Estándar Obligatorios**
+
+#### **StandardPageHeader**
+```typescript
+// USO CORRECTO
+<StandardPageHeader
+  title="Título de la Página"
+  description="Descripción opcional"
+  primaryAction={{
+    label: "Acción Principal",
+    onClick: handleAction
+  }}
+  badges={[
+    {
+      label: "Estado",
+      variant: 'outline',
+      color: 'text-blue-600 border-blue-200 bg-blue-50'
+    }
+  ]}
+/>
+
+// USO INCORRECTO - NO hacer esto
+<div className="flex justify-between">
+  <h1>Título</h1>
+  <Button>Acción</Button>
+</div>
+```
+
+#### **StandardPageContainer**
+```typescript
+// USO CORRECTO - Envolver TODA la página
+<StandardPageContainer>
+  <StandardPageHeader {...headerProps} />
+  <ComponentePrincipal />
+  <OtroComponente />
+</StandardPageContainer>
+
+// USO INCORRECTO - No usar divs genéricos
+<div className="space-y-6">
+  {/* contenido */}
+</div>
+```
+
+#### **StandardFilters**
+```typescript
+// USO CORRECTO para sistemas de filtrado
+<StandardFilters
+  searchPlaceholder="Buscar clientes..."
+  searchValue={searchTerm}
+  onSearchChange={setSearchTerm}
+  filters={[
+    {
+      placeholder: "Estado",
+      value: statusFilter,
+      onChange: setStatusFilter,
+      options: statusOptions
+    }
+  ]}
+  onClearFilters={handleClearFilters}
+  hasActiveFilters={hasActiveFilters}
+/>
+```
+
+### **Patrones de Layout Estándar**
+
+#### **Estructura de Página Típica**
+```typescript
+export default function MiPagina() {
+  return (
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Título Principal"
+        description="Descripción de la funcionalidad"
+        primaryAction={{
+          label: "Nueva Acción",
+          onClick: handleNewAction
+        }}
+      />
+      
+      <StandardFilters
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={filtros}
+      />
+      
+      <ComponentePrincipal />
+    </StandardPageContainer>
+  )
+}
+```
+
+#### **Grid Layouts Responsivos**
+```typescript
+// Para dashboards y métricas
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+// Para formularios
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+// Para listas con sidebar
+<div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+  <div className="xl:col-span-1">Sidebar</div>
+  <div className="xl:col-span-3">Contenido</div>
+</div>
+```
+
+### **Patrones de Colores Consistentes**
+
+#### **Sistema de Badges**
+```typescript
+// Estados principales
+{ color: 'text-blue-600 border-blue-200 bg-blue-50' }    // Info/Activo
+{ color: 'text-green-600 border-green-200 bg-green-50' }  // Éxito/Completado
+{ color: 'text-yellow-600 border-yellow-200 bg-yellow-50' } // Advertencia/Pendiente
+{ color: 'text-red-600 border-red-200 bg-red-50' }       // Error/Urgente
+{ color: 'text-gray-600 border-gray-200 bg-gray-50' }    // Neutral/Inactivo
+```
+
+#### **Botones Estándar**
+```typescript
+// Acción principal
+<Button variant="default">Acción Principal</Button>
+
+// Acción secundaria
+<Button variant="outline">Acción Secundaria</Button>
+
+// Acción destructiva
+<Button variant="destructive">Eliminar</Button>
+
+// Acción sutil
+<Button variant="ghost">Cancelar</Button>
+```
+
+### **Guías de Implementación**
+
+#### **✅ Hacer**
+- Usar `StandardPageHeader` en TODAS las páginas
+- Envolver contenido en `StandardPageContainer`
+- Aplicar `space-y-6` entre secciones principales
+- Usar el sistema de badges consistente
+- Mantener tipografía unificada
+- Implementar responsive design con grid system
+
+#### **❌ No Hacer**
+- Usar iconos en ninguna parte
+- Crear headers personalizados con divs
+- Mezclar diferentes espaciados
+- Usar colores fuera del sistema establecido
+- Crear botones con estilos personalizados
+- Romper la jerarquía visual establecida
+
+### **Checklist de Revisión UI/UX**
+
+#### **Antes de Publicar Cualquier Feature**
+- [ ] ¿Usa `StandardPageHeader` para el header?
+- [ ] ¿Está envuelto en `StandardPageContainer`?
+- [ ] ¿No hay iconos en ninguna parte?
+- [ ] ¿La tipografía sigue los estándares (`text-xl`, `text-sm`)?
+- [ ] ¿El espaciado usa `space-y-6` entre secciones?
+- [ ] ¿Los badges usan el sistema de colores estándar?
+- [ ] ¿Los botones usan variants estándar?
+- [ ] ¿Es responsive con el grid system?
+- [ ] ¿Los filtros usan `StandardFilters`?
+- [ ] ¿La navegación es consistente con el resto?
+
+### **Ejemplos de Implementación Correcta**
+
+#### **Dashboard Page**
+```typescript
+<StandardPageContainer>
+  <StandardPageHeader
+    title={`Bienvenido, ${userName}`}
+    description="Resumen ejecutivo de tu despacho"
+    badges={[{ 
+      label: `Rol: ${user.role}`, 
+      variant: 'outline',
+      color: 'text-blue-600 border-blue-200 bg-blue-50'
+    }]}
+  />
+  <DashboardMetrics />
+  <DashboardLayout />
+</StandardPageContainer>
+```
+
+#### **Lista con Filtros**
+```typescript
+<StandardPageContainer>
+  <StandardPageHeader
+    title="Gestión de Clientes"
+    description="Administra la información de tus clientes"
+    primaryAction={{
+      label: "Nuevo Cliente",
+      onClick: handleNewClient
+    }}
+  />
+  
+  <StandardFilters
+    searchPlaceholder="Buscar clientes..."
+    searchValue={searchTerm}
+    onSearchChange={setSearchTerm}
+    filters={clientFilters}
+  />
+  
+  <ClientsList />
+</StandardPageContainer>
+```
+
+---
+
+## 🏗 4. Arquitectura del Sistema
 
 ### Estructura de Carpetas
 ```
 src/
 ├── components/           # Componentes UI reutilizables
 │   ├── ui/              # shadcn/ui components
-│   ├── layout/          # Layout components
+│   ├── layout/          # Layout components (StandardPageHeader, etc.)
 │   ├── cases/           # Componentes específicos de casos
 │   ├── clients/         # Componentes de clientes
 │   ├── proposals/       # Sistema de propuestas
@@ -67,7 +307,7 @@ src/
 
 ---
 
-## 🗄 4. Esquema de Base de Datos
+## 🗄 5. Esquema de Base de Datos
 
 ### Entidades Principales
 
@@ -223,7 +463,7 @@ time_entries {
 
 ---
 
-## 🚀 5. Funcionalidades por Módulo
+## 🚀 6. Funcionalidades por Módulo
 
 ### **Dashboard Principal**
 - **Métricas en tiempo real**: Casos activos, tareas pendientes, ingresos
@@ -295,7 +535,7 @@ time_entries {
 
 ---
 
-## 🔄 6. Flujos de Usuario Principales
+## 🔄 7. Flujos de Usuario Principales
 
 ### **Onboarding Organizacional**
 1. **Setup inicial**: Creación de organización
@@ -334,7 +574,7 @@ Lead → Cliente → Propuesta → Negociación → Contrato → Facturación Re
 
 ---
 
-## ⚙️ 7. Configuración Técnica
+## ⚙️ 8. Configuración Técnica
 
 ### **Autenticación y Seguridad**
 - **Supabase Auth** con email/password + OAuth
@@ -374,7 +614,7 @@ supabase/functions/
 
 ---
 
-## 🛠 8. Guías de Desarrollo
+## 🛠 9. Guías de Desarrollo
 
 ### **Convenciones de Código**
 
@@ -451,7 +691,7 @@ export default function Component() {
 
 ---
 
-## 🎓 9. Sistema Academia
+## 🎓 10. Sistema Academia
 
 ### **Estructura de Contenido**
 ```typescript
@@ -489,7 +729,7 @@ interface AcademiaCategory {
 
 ---
 
-## 🔒 10. Seguridad y Compliance
+## 🔒 11. Seguridad y Compliance
 
 ### **Row Level Security (RLS) Policies**
 ```sql
@@ -526,7 +766,7 @@ USING (
 
 ---
 
-## 📊 11. KPIs y Métricas
+## 📊 12. KPIs y Métricas
 
 ### **Métricas de Negocio**
 - **MRR/ARR**: Monthly/Annual Recurring Revenue
@@ -552,7 +792,7 @@ USING (
 
 ---
 
-## 🚀 12. Roadmap y Evolución
+## 🚀 13. Roadmap y Evolución
 
 ### **Q1 2025 - Consolidación**
 - [ ] Optimización performance Dashboard
@@ -580,7 +820,7 @@ USING (
 
 ---
 
-## 🎯 13. Casos de Uso Específicos
+## 🎯 14. Casos de Uso Específicos
 
 ### **Despacho Pequeño (2-5 abogados)**
 - **Prioridad**: Simplicidad y automatización
@@ -599,7 +839,7 @@ USING (
 
 ---
 
-## 🔧 14. Troubleshooting y FAQ
+## 🔧 15. Troubleshooting y FAQ
 
 ### **Problemas Comunes**
 
@@ -622,7 +862,7 @@ USING (
 
 ---
 
-## 📞 15. Contactos y Recursos
+## 📞 16. Contactos y Recursos
 
 ### **Equipo de Desarrollo**
 - **Project Lead**: [Nombre]
@@ -644,6 +884,5 @@ USING (
 ---
 
 **Última actualización**: 23 de Junio, 2025
-**Versión**: 1.0
+**Versión**: 2.0
 **Mantenido por**: Equipo de Desarrollo CRM Legal
-
