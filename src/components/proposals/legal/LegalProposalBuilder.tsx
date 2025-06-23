@@ -26,15 +26,14 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
     setShowSuccess,
     proposalData,
     canProceed,
-    handleServicesChange,
-    handleAreaChange,
+    handleAreaAndServicesChange,
     handleServiceUpdate,
     handleServiceRemove,
     handleServiceAdd,
     updateProposalData
   } = useLegalProposalState()
 
-  console.log('Current proposal data:', proposalData)
+  console.log('LegalProposalBuilder - Current proposal data:', proposalData)
 
   const handleGeneratePDF = () => {
     console.log('Generate PDF')
@@ -116,8 +115,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
         currentStep={currentStep}
         proposalData={proposalData}
         onClientSelected={(clientId) => updateProposalData('clientId', clientId)}
-        onServicesChange={handleServicesChange}
-        onAreaChange={handleAreaChange}
+        onAreaAndServicesChange={handleAreaAndServicesChange}
         onServiceUpdate={handleServiceUpdate}
         onServiceRemove={handleServiceRemove}
         onServiceAdd={handleServiceAdd}

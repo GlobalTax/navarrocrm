@@ -15,8 +15,7 @@ interface LegalProposalStepContentProps {
   currentStep: number
   proposalData: LegalProposalData
   onClientSelected: (clientId: string) => void
-  onServicesChange: (serviceIds: string[]) => void
-  onAreaChange: (areaId: string) => void
+  onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
   onServiceUpdate: (serviceId: string, field: keyof SelectedService, value: number) => void
   onServiceRemove: (serviceId: string) => void
   onServiceAdd: () => void
@@ -30,8 +29,7 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
   currentStep,
   proposalData,
   onClientSelected,
-  onServicesChange,
-  onAreaChange,
+  onAreaAndServicesChange,
   onServiceUpdate,
   onServiceRemove,
   onServiceAdd,
@@ -60,8 +58,8 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             
             <LegalServiceSelector
               selectedServices={proposalData.selectedServices.map(s => s.id)}
-              onServicesChange={onServicesChange}
-              onAreaChange={onAreaChange}
+              selectedArea={proposalData.selectedArea}
+              onAreaAndServicesChange={onAreaAndServicesChange}
             />
 
             {proposalData.selectedServices.length > 0 && (

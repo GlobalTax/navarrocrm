@@ -2,11 +2,9 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Scale, Building, Users, FileText, Gavel, Calculator } from 'lucide-react'
+import { Scale, Building, Users, FileText, Calculator } from 'lucide-react'
 
 interface LegalPracticeArea {
   id: string
@@ -144,25 +142,21 @@ const practiceAreas: LegalPracticeArea[] = [
 
 interface LegalServiceSelectorProps {
   selectedServices: string[]
-  onServicesChange: (services: string[]) => void
-  onAreaChange: (areaId: string) => void
+  selectedArea: string
+  onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
 }
 
 export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
   selectedServices = [],
-  onServicesChange,
-  onAreaChange
+  selectedArea,
+  onAreaAndServicesChange
 }) => {
-  const [selectedArea, setSelectedArea] = React.useState<string>('')
-
-  console.log('LegalServiceSelector - selectedServices:', selectedServices, 'selectedArea:', selectedArea)
+  console.log('LegalServiceSelector render:', { selectedServices, selectedArea })
 
   const handleAreaSelect = (areaId: string) => {
     console.log('Area selected:', areaId)
-    setSelectedArea(areaId)
-    onAreaChange(areaId)
-    // Limpiar servicios seleccionados al cambiar de área
-    onServicesChange([])
+    // Limpiar servicios al cambiar de área
+    onAreaAndServicesChange(areaId, [])
   }
 
   const handleServiceToggle = (serviceId: string) => {
@@ -176,8 +170,8 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
       newServices = [...selectedServices, serviceId]
     }
     
-    console.log('New services:', newServices)
-    onServicesChange(newServices)
+    console.log('New services for area:', selectedArea, newServices)
+    onAreaAndServicesChange(selectedArea, newServices)
   }
 
   const selectedAreaData = practiceAreas.find(area => area.id === selectedArea)

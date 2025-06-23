@@ -123,6 +123,7 @@ export const useLegalProposalState = () => {
   })
 
   const updateProposalData = (field: keyof LegalProposalData, value: any) => {
+    console.log('Updating proposal data:', field, value)
     setProposalData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -139,16 +140,18 @@ export const useLegalProposalState = () => {
 
   // Función para convertir IDs de servicios a objetos SelectedService completos
   const convertServiceIdsToSelectedServices = (serviceIds: string[], areaId: string): SelectedService[] => {
+    console.log('Converting services:', { serviceIds, areaId })
+    
     const areaData = practiceAreasData[areaId as keyof typeof practiceAreasData]
     if (!areaData) {
-      console.log('Area not found:', areaId)
+      console.error('Area not found:', areaId)
       return []
     }
 
     const convertedServices = serviceIds.map(serviceId => {
       const serviceData = areaData.services.find(s => s.id === serviceId)
       if (!serviceData) {
-        console.log('Service not found:', serviceId)
+        console.error('Service not found:', serviceId)
         return null
       }
 
@@ -164,54 +167,80 @@ export const useLegalProposalState = () => {
         total: serviceData.basePrice * 1
       }
 
+      console.log('Converted service:', selectedService)
       return selectedService
     }).filter(Boolean) as SelectedService[]
 
-    console.log('Converted services:', convertedServices)
+    console.log('All converted services:', convertedServices)
     return convertedServices
   }
 
-  const handleServicesChange = (serviceIds: string[]) => {
-    console.log('Services changed:', serviceIds, 'Area:', proposalData.selectedArea)
-    
-    if (proposalData.selectedArea) {
-      const convertedServices = convertServiceIdsToSelectedServices(serviceIds, proposalData.selectedArea)
-      setProposalData(prev => ({ ...prev, selectedServices: convertedServices }))
-    }
-  }
-
   const handleAreaChange = (areaId: string) => {
-    console.log('Area changed:', areaId)
+    console.log('Handling area change:', areaId)
     setProposalData(prev => ({ 
       ...prev, 
       selectedArea: areaId,
-      selectedServices: []
+      selectedServices: [] // Limpiar servicios al cambiar de área
+    }))
+  }
+
+  const handleServicesChange = (serviceIds: string[]) => {
+    console.log('Handling services change:', serviceIds)
+    
+    // Usar el área actual del estado
+    if (proposalData.selectedArea) {
+      const convertedServices = convertServiceIdsToSelectedServices(serviceIds, proposalData.selectedArea)
+      setProposalData(prev => ({ ...prev, selectedServices: convertedServices }))
+    } else {
+      console.warn('No area selected, cannot convert services')
+    }
+  }
+
+  // Nueva función que maneja área y servicios juntos para evitar problemas de sincronización
+  const handleAreaAndServicesChange = (areaId: string, serviceIds: string[] = []) => {
+    console.log('Handling area and services change:', { areaId, serviceIds })
+    
+    const convertedServices = serviceIds.length > 0 
+      ? convertServiceIdsToSelectedServices(serviceIds, areaId)
+      : []
+
+    setProposalData(prev => ({
+      ...prev,
+      selectedArea: areaId,
+      selectedServices: convertedServices
     }))
   }
 
   const handleServiceUpdate = (serviceId: string, field: keyof SelectedService, value: number) => {
-    console.log('Updating service:', serviceId, field, value)
-    const updatedServices = proposalData.selectedServices.map(service => {
-      if (service.id === serviceId) {
-        const updated = { ...service, [field]: value }
-        if (field === 'quantity' || field === 'customPrice') {
-          updated.total = updated.quantity * updated.customPrice
+    console.log('Updating service:', { serviceId, field, value })
+    
+    setProposalData(prev => ({
+      ...prev,
+      selectedServices: prev.selectedServices.map(service => {
+        if (service.id === serviceId) {
+          const updated = { ...service, [field]: value }
+          // Recalcular total si se cambia cantidad o precio
+          if (field === 'quantity' || field === 'customPrice') {
+            updated.total = updated.quantity * updated.customPrice
+          }
+          console.log('Updated service:', updated)
+          return updated
         }
-        return updated
-      }
-      return service
-    })
-    setProposalData(prev => ({ ...prev, selectedServices: updatedServices }))
+        return service
+      })
+    }))
   }
 
   const handleServiceRemove = (serviceId: string) => {
     console.log('Removing service:', serviceId)
-    const updatedServices = proposalData.selectedServices.filter(service => service.id !== serviceId)
-    setProposalData(prev => ({ ...prev, selectedServices: updatedServices }))
+    setProposalData(prev => ({
+      ...prev,
+      selectedServices: prev.selectedServices.filter(service => service.id !== serviceId)
+    }))
   }
 
   const handleServiceAdd = () => {
-    console.log('Add new service - would open service selector')
+    console.log('Add new service - redirecting to step 2')
     setCurrentStep(2)
   }
 
@@ -226,8 +255,10 @@ export const useLegalProposalState = () => {
     canProceed,
     handleServicesChange,
     handleAreaChange,
+    handleAreaAndServicesChange,
     handleServiceUpdate,
     handleServiceRemove,
-    handleServiceAdd
+    handleServiceAdd,
+    practiceAreasData
   }
 }
