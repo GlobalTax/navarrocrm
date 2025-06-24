@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
@@ -29,14 +28,22 @@ interface EInformaTokenResponse {
 }
 
 interface EInformaCompanyResponse {
-  name: string
-  nif: string
-  address?: string
-  city?: string
-  postal_code?: string
-  activity?: string
-  status?: string
-  legal_rep?: string
+  success: boolean
+  data?: {
+    company?: {
+      name: string
+      nif: string
+      address?: {
+        street?: string
+        city?: string
+        postal_code?: string
+      }
+      activity?: string
+      status?: string
+      legal_representative?: string
+    }
+  }
+  error?: string
 }
 
 serve(async (req) => {
@@ -47,53 +54,6 @@ serve(async (req) => {
   try {
     console.log('🚀 [company-lookup] Iniciando función de búsqueda empresarial')
     
-    // Verificar credenciales con información detallada
-    if (!eInformaClientId || !eInformaClientSecret) {
-      console.error('❌ [company-lookup] Credenciales faltantes:', {
-        hasClientId: !!eInformaClientId,
-        hasClientSecret: !!eInformaClientSecret,
-        envKeys: Object.keys(Deno.env.toObject()).filter(k => k.includes('EINFORMA'))
-      })
-      
-      // Devolver datos simulados con advertencia sobre credenciales
-      const { nif } = await req.json()
-      if (!nif) {
-        return new Response(JSON.stringify({ 
-          success: false,
-          error: 'INVALID_NIF',
-          message: 'NIF/CIF requerido'
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-
-      const cleanNif = nif.trim().toUpperCase()
-      if (!isValidNifCif(cleanNif)) {
-        return new Response(JSON.stringify({ 
-          success: false,
-          error: 'INVALID_FORMAT',
-          message: 'El formato del NIF/CIF no es válido'
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
-      }
-
-      console.log('⚠️ [company-lookup] Credenciales no configuradas, usando datos simulados')
-      const mockCompanyData = generateMockCompanyData(cleanNif)
-      
-      return new Response(JSON.stringify({
-        success: true,
-        data: mockCompanyData,
-        message: 'Empresa encontrada (datos simulados - credenciales no configuradas)',
-        isSimulated: true,
-        warning: 'Las credenciales de eInforma no están configuradas. Contacta con el administrador del sistema.'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
     // Validar el body de la request
     let requestBody
     try {
@@ -140,12 +100,29 @@ serve(async (req) => {
       })
     }
 
-    console.log('✅ [company-lookup] Formato NIF válido, consultando eInforma...')
+    // Verificar credenciales
+    if (!eInformaClientId || !eInformaClientSecret) {
+      console.error('❌ [company-lookup] Credenciales de eInforma no configuradas')
+      
+      const mockCompanyData = generateMockCompanyData(cleanNif)
+      
+      return new Response(JSON.stringify({
+        success: true,
+        data: mockCompanyData,
+        message: 'Empresa encontrada (datos simulados - credenciales no configuradas)',
+        isSimulated: true,
+        warning: 'Las credenciales de eInforma no están configuradas. Contacta con el administrador del sistema.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    console.log('✅ [company-lookup] Credenciales configuradas, consultando eInforma...')
 
     try {
       // Obtener token de acceso de eInforma
       const accessToken = await getEInformaAccessToken()
-      console.log('✅ [company-lookup] Token de acceso obtenido')
+      console.log('✅ [company-lookup] Token de acceso obtenido exitosamente')
 
       // Buscar empresa en eInforma
       const companyData = await searchCompanyInEInforma(cleanNif, accessToken)
@@ -183,26 +160,22 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         success: true,
         data: mockCompanyData,
-        message: 'Empresa encontrada (datos simulados - error de conexión con eInforma)',
+        message: 'Empresa encontrada (datos simulados - error de conexión)',
         isSimulated: true,
-        warning: 'No se pudo conectar con eInforma. Se muestran datos de prueba.'
+        warning: `Error de conexión con eInforma: ${eInformaError.message}`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
   } catch (error) {
-    console.error('❌ [company-lookup] Error general:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    })
+    console.error('❌ [company-lookup] Error general:', error)
     
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message || 'INTERNAL_ERROR',
-      message: getErrorMessage(error.message),
-      details: error.stack
+      error: 'INTERNAL_ERROR',
+      message: 'Error interno del servidor. Inténtalo de nuevo más tarde.',
+      details: error.message
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -213,21 +186,27 @@ serve(async (req) => {
 async function getEInformaAccessToken(): Promise<string> {
   console.log('🔑 [company-lookup] Obteniendo token de acceso de eInforma...')
   
-  // URL corregida de la API de eInforma para OAuth
-  const tokenUrl = 'https://www.einforma.com/servlet/api/oauth/token'
+  // URL corregida para OAuth2 de eInforma
+  const tokenUrl = 'https://www.einforma.com/api/oauth2/token'
   
+  const requestBody = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: eInformaClientId!,
+    client_secret: eInformaClientSecret!
+  })
+
+  console.log('🔍 [company-lookup] Enviando request a:', tokenUrl)
+
   const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json'
     },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: eInformaClientId!,
-      client_secret: eInformaClientSecret!
-    })
+    body: requestBody
   })
+
+  console.log('📥 [company-lookup] Response status:', response.status)
 
   if (!response.ok) {
     const errorText = await response.text()
@@ -236,7 +215,7 @@ async function getEInformaAccessToken(): Promise<string> {
       statusText: response.statusText,
       error: errorText
     })
-    throw new Error(`OAUTH_ERROR: ${response.status} - ${errorText}`)
+    throw new Error(`OAuth Error: ${response.status} - ${errorText}`)
   }
 
   const tokenData: EInformaTokenResponse = await response.json()
@@ -248,9 +227,17 @@ async function getEInformaAccessToken(): Promise<string> {
 async function searchCompanyInEInforma(nif: string, accessToken: string): Promise<CompanyData | null> {
   console.log('🔍 [company-lookup] Buscando empresa en eInforma:', nif)
   
-  // URL corregida de la API de eInforma para búsqueda de empresas
-  const searchUrl = `https://www.einforma.com/servlet/api/search/companies`
+  // URL corregida para la búsqueda de empresas
+  const searchUrl = `https://www.einforma.com/api/v1/companies/search`
   
+  const requestBody = {
+    nif: nif,
+    include_fields: ['basic_info', 'address', 'activity', 'status', 'legal_representative']
+  }
+
+  console.log('🔍 [company-lookup] Enviando request a:', searchUrl)
+  console.log('📤 [company-lookup] Request body:', requestBody)
+
   const response = await fetch(searchUrl, {
     method: 'POST',
     headers: {
@@ -258,11 +245,10 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify({
-      nif: nif,
-      fields: ['name', 'nif', 'address', 'city', 'postal_code', 'activity', 'status', 'legal_rep']
-    })
+    body: JSON.stringify(requestBody)
   })
+
+  console.log('📥 [company-lookup] Search response status:', response.status)
 
   if (!response.ok) {
     const errorText = await response.text()
@@ -276,28 +262,28 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
       return null // Empresa no encontrada
     }
     
-    throw new Error(`SEARCH_ERROR: ${response.status} - ${errorText}`)
+    throw new Error(`Search Error: ${response.status} - ${errorText}`)
   }
 
-  const searchResult = await response.json()
+  const searchResult: EInformaCompanyResponse = await response.json()
   console.log('📥 [company-lookup] Respuesta de eInforma:', searchResult)
 
-  if (!searchResult || !searchResult.companies || searchResult.companies.length === 0) {
-    console.log('❌ [company-lookup] Sin resultados en eInforma')
+  if (!searchResult.success || !searchResult.data?.company) {
+    console.log('❌ [company-lookup] Sin resultados válidos en eInforma')
     return null
   }
 
-  const companyInfo: EInformaCompanyResponse = searchResult.companies[0]
+  const companyInfo = searchResult.data.company
   
   // Convertir datos de eInforma a nuestro formato
   const companyData: CompanyData = {
     name: companyInfo.name || 'Nombre no disponible',
     nif: companyInfo.nif || nif,
-    address_street: companyInfo.address,
-    address_city: companyInfo.city,
-    address_postal_code: companyInfo.postal_code,
+    address_street: companyInfo.address?.street,
+    address_city: companyInfo.address?.city,
+    address_postal_code: companyInfo.address?.postal_code,
     business_sector: companyInfo.activity,
-    legal_representative: companyInfo.legal_rep,
+    legal_representative: companyInfo.legal_representative,
     status: companyInfo.status === 'ACTIVA' ? 'activo' : 'inactivo',
     client_type: 'empresa'
   }
