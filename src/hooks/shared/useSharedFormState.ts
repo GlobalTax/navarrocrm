@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import type { CompanyData } from '@/hooks/useCompanyLookup'
 
-interface SharedFormStateConfig<T, D> {
+interface SharedFormStateConfig<T extends Record<string, any>, D> {
   schema: any
   defaultValues: T
   entity: D | null
@@ -21,18 +21,18 @@ export const useSharedFormState = <T extends Record<string, any>, D>({
   const isEditing = !!entity
   const [isCompanyDataLoaded, setIsCompanyDataLoaded] = useState(false)
 
-  const form = useForm<T>({
+  const form: UseFormReturn<T> = useForm<T>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: defaultValues as any,
   })
 
   useEffect(() => {
     if (entity) {
       const formData = mapEntityToFormData(entity)
-      form.reset(formData)
+      form.reset(formData as any)
       setIsCompanyDataLoaded((entity as any).client_type === 'empresa')
     } else {
-      form.reset(defaultValues)
+      form.reset(defaultValues as any)
       setIsCompanyDataLoaded(false)
     }
   }, [entity, form, defaultValues, mapEntityToFormData])
@@ -59,7 +59,7 @@ export const useSharedFormState = <T extends Record<string, any>, D>({
       (updatedValues as any).relationship_type = companyData.status === 'activo' ? 'cliente' : 'prospecto'
     }
 
-    form.reset(updatedValues)
+    form.reset(updatedValues as any)
     setIsCompanyDataLoaded(true)
 
     toast.success('Formulario completado con datos oficiales del Registro Mercantil')

@@ -2,11 +2,14 @@
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import type { Database } from '@/integrations/supabase/types'
+
+type TableName = keyof Database['public']['Tables']
 
 interface SharedFormSubmitConfig<T, D> {
   entity: D | null
   onClose: () => void
-  tableName: string
+  tableName: TableName
   mapFormDataToEntity: (data: T, orgId: string) => Record<string, any>
   successMessage: {
     create: string
@@ -36,7 +39,7 @@ export const useSharedFormSubmit = <T, D extends { id: string }>({
       if (isEditing && entity) {
         const { error } = await supabase
           .from(tableName)
-          .update(entityData)
+          .update(entityData as any)
           .eq('id', entity.id)
 
         if (error) throw error
@@ -44,7 +47,7 @@ export const useSharedFormSubmit = <T, D extends { id: string }>({
       } else {
         const { error } = await supabase
           .from(tableName)
-          .insert(entityData)
+          .insert(entityData as any)
 
         if (error) throw error
         toast.success(successMessage.create)
