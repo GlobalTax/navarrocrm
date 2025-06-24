@@ -34,6 +34,7 @@ interface Client {
   hourly_rate: number | null
   payment_method: string | null
   status: string | null
+  relationship_type: string | null
   tags: string[] | null
   internal_notes: string | null
   last_contact_date: string | null
@@ -84,6 +85,7 @@ const ClientDetail = () => {
         .select('*')
         .eq('id', id)
         .eq('org_id', user.org_id)
+        .eq('relationship_type', 'cliente')
         .single()
 
       if (error) {
