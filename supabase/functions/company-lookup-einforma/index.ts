@@ -29,14 +29,14 @@ interface EInformaTokenResponse {
 }
 
 interface EInformaCompanyResponse {
-  denominacion: string
+  name: string
   nif: string
-  domicilio?: string
-  municipio?: string
-  codigoPostal?: string
-  cnae?: string
-  situacion?: string
-  representante?: string
+  address?: string
+  city?: string
+  postal_code?: string
+  activity?: string
+  status?: string
+  legal_rep?: string
 }
 
 serve(async (req) => {
@@ -55,12 +55,41 @@ serve(async (req) => {
         envKeys: Object.keys(Deno.env.toObject()).filter(k => k.includes('EINFORMA'))
       })
       
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: 'CREDENTIALS_MISSING',
-        message: 'Las credenciales de eInforma no están configuradas correctamente en Supabase.'
+      // Devolver datos simulados con advertencia sobre credenciales
+      const { nif } = await req.json()
+      if (!nif) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'INVALID_NIF',
+          message: 'NIF/CIF requerido'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const cleanNif = nif.trim().toUpperCase()
+      if (!isValidNifCif(cleanNif)) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'INVALID_FORMAT',
+          message: 'El formato del NIF/CIF no es válido'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      console.log('⚠️ [company-lookup] Credenciales no configuradas, usando datos simulados')
+      const mockCompanyData = generateMockCompanyData(cleanNif)
+      
+      return new Response(JSON.stringify({
+        success: true,
+        data: mockCompanyData,
+        message: 'Empresa encontrada (datos simulados - credenciales no configuradas)',
+        isSimulated: true,
+        warning: 'Las credenciales de eInforma no están configuradas. Contacta con el administrador del sistema.'
       }), {
-        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -184,7 +213,8 @@ serve(async (req) => {
 async function getEInformaAccessToken(): Promise<string> {
   console.log('🔑 [company-lookup] Obteniendo token de acceso de eInforma...')
   
-  const tokenUrl = 'https://api.einforma.com/oauth/token'
+  // URL corregida de la API de eInforma para OAuth
+  const tokenUrl = 'https://www.einforma.com/servlet/api/oauth/token'
   
   const response = await fetch(tokenUrl, {
     method: 'POST',
@@ -218,7 +248,8 @@ async function getEInformaAccessToken(): Promise<string> {
 async function searchCompanyInEInforma(nif: string, accessToken: string): Promise<CompanyData | null> {
   console.log('🔍 [company-lookup] Buscando empresa en eInforma:', nif)
   
-  const searchUrl = `https://api.einforma.com/v1/companies/search`
+  // URL corregida de la API de eInforma para búsqueda de empresas
+  const searchUrl = `https://www.einforma.com/servlet/api/search/companies`
   
   const response = await fetch(searchUrl, {
     method: 'POST',
@@ -229,7 +260,7 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
     },
     body: JSON.stringify({
       nif: nif,
-      fields: ['denominacion', 'nif', 'domicilio', 'municipio', 'codigoPostal', 'cnae', 'situacion', 'representante']
+      fields: ['name', 'nif', 'address', 'city', 'postal_code', 'activity', 'status', 'legal_rep']
     })
   })
 
@@ -251,23 +282,23 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
   const searchResult = await response.json()
   console.log('📥 [company-lookup] Respuesta de eInforma:', searchResult)
 
-  if (!searchResult || !searchResult.data || searchResult.data.length === 0) {
+  if (!searchResult || !searchResult.companies || searchResult.companies.length === 0) {
     console.log('❌ [company-lookup] Sin resultados en eInforma')
     return null
   }
 
-  const companyInfo: EInformaCompanyResponse = searchResult.data[0]
+  const companyInfo: EInformaCompanyResponse = searchResult.companies[0]
   
   // Convertir datos de eInforma a nuestro formato
   const companyData: CompanyData = {
-    name: companyInfo.denominacion || 'Nombre no disponible',
+    name: companyInfo.name || 'Nombre no disponible',
     nif: companyInfo.nif || nif,
-    address_street: companyInfo.domicilio,
-    address_city: companyInfo.municipio,
-    address_postal_code: companyInfo.codigoPostal,
-    business_sector: companyInfo.cnae,
-    legal_representative: companyInfo.representante,
-    status: companyInfo.situacion === 'ACTIVA' ? 'activo' : 'inactivo',
+    address_street: companyInfo.address,
+    address_city: companyInfo.city,
+    address_postal_code: companyInfo.postal_code,
+    business_sector: companyInfo.activity,
+    legal_representative: companyInfo.legal_rep,
+    status: companyInfo.status === 'ACTIVA' ? 'activo' : 'inactivo',
     client_type: 'empresa'
   }
 
