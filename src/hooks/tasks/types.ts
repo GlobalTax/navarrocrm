@@ -37,7 +37,7 @@ export type TaskWithRelations = Task & {
     user?: { email: string; role: string }
   })[]
   case?: { title: string }
-  client?: { name: string }
+  contact?: { name: string }
   created_by_user?: { email: string }
   subtasks?: TaskSubtask[]
   comments?: TaskComment[]

@@ -26,7 +26,7 @@ export const useTaskQueries = () => {
             user:users!task_assignments_user_id_fkey(email, role)
           ),
           case:cases!tasks_case_id_fkey(title),
-          client:clients!tasks_client_id_fkey(name),
+          contact:contacts!tasks_contact_id_fkey(name),
           created_by_user:users!tasks_created_by_fkey(email),
           subtasks:task_subtasks(*),
           comments:task_comments(
