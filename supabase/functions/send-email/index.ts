@@ -25,31 +25,48 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')!;
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
     if (!resendApiKey) {
-      throw new Error('RESEND_API_KEY no está configurada');
+      console.error('❌ [Send Email] RESEND_API_KEY no está configurada');
+      throw new Error('RESEND_API_KEY no está configurada en los secretos de Supabase');
     }
+
+    console.log('📧 [Send Email] API Key encontrada, longitud:', resendApiKey.length);
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const resend = new Resend(resendApiKey);
 
     const { to, subject, html, invitationToken }: EmailRequest = await req.json();
 
-    console.log('📧 [Send Email] Datos recibidos:', { to, subject, hasToken: !!invitationToken });
+    console.log('📧 [Send Email] Datos recibidos:', { 
+      to, 
+      subject, 
+      hasToken: !!invitationToken,
+      htmlLength: html.length 
+    });
 
     // Enviar email real con Resend
+    console.log('📧 [Send Email] Enviando email a través de Resend...');
+    
     const emailResponse = await resend.emails.send({
-      from: 'CRM Sistema <s.navarro@nrro.es>',
+      from: 'CRM Sistema <onboarding@resend.dev>',
       to: [to],
       subject: subject,
       html: html,
     });
 
-    console.log('📧 [Send Email] Email enviado exitosamente:', emailResponse);
+    console.log('📧 [Send Email] Respuesta de Resend:', emailResponse);
+
+    if (emailResponse.error) {
+      console.error('❌ [Send Email] Error de Resend:', emailResponse.error);
+      throw new Error(`Error de Resend: ${emailResponse.error.message || 'Error desconocido'}`);
+    }
 
     // Si es una invitación, registrar en log de auditoría
     if (invitationToken) {
+      console.log('📧 [Send Email] Registrando en auditoría...');
+      
       const { data: invitation } = await supabase
         .from('user_invitations')
         .select('*')
@@ -67,6 +84,8 @@ const handler = async (req: Request): Promise<Response> => {
             new_value: { email: to, role: invitation.role },
             details: `Invitación enviada a ${to} para rol ${invitation.role}`
           });
+        
+        console.log('📧 [Send Email] Auditoría registrada exitosamente');
       }
     }
 
@@ -83,11 +102,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error('❌ [Send Email] Error:', error.message);
+    console.error('❌ [Send Email] Error completo:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        success: false 
+        error: `Error enviando email: ${error.message}`,
+        success: false,
+        details: error.stack
       }),
       {
         status: 500,
