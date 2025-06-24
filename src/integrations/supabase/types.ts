@@ -2241,6 +2241,84 @@ export type Database = {
           },
         ]
       }
+      user_audit_log: {
+        Row: {
+          action_by: string
+          action_type: string
+          created_at: string
+          details: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          org_id: string
+          target_user_id: string
+        }
+        Insert: {
+          action_by: string
+          action_type: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          org_id: string
+          target_user_id: string
+        }
+        Update: {
+          action_by?: string
+          action_type?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          org_id?: string
+          target_user_id?: string
+        }
+        Relationships: []
+      }
+      user_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          org_id: string
+          role: string
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          org_id: string
+          role: string
+          status?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          org_id?: string
+          role?: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_outlook_tokens: {
         Row: {
           access_token_encrypted: string
@@ -2294,6 +2372,39 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string
+          id: string
+          module: string
+          org_id: string
+          permission: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by: string
+          id?: string
+          module: string
+          org_id: string
+          permission: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string
+          id?: string
+          module?: string
+          org_id?: string
+          permission?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2332,24 +2443,36 @@ export type Database = {
       users: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           email: string
           id: string
+          is_active: boolean
+          last_login_at: string | null
           org_id: string | null
           role: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email: string
           id: string
+          is_active?: boolean
+          last_login_at?: string | null
           org_id?: string | null
           role: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string
           id?: string
+          is_active?: boolean
+          last_login_at?: string | null
           org_id?: string | null
           role?: string
           updated_at?: string | null
@@ -2542,6 +2665,10 @@ export type Database = {
       cleanup_expired_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_invitation_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_matter_number: {
         Args: { org_uuid: string }

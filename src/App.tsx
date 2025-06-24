@@ -1,4 +1,3 @@
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -177,6 +176,13 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <AIAdmin />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/users" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Users />
                 </MainLayout>
               </ProtectedRoute>
             } />

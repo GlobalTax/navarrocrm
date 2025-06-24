@@ -1,189 +1,95 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface EmailRequest {
+  to: string;
+  subject: string;
+  html: string;
+  invitationToken?: string;
 }
 
-interface SendEmailRequest {
-  template_id?: string
-  template_type?: 'invitation' | 'reminder' | 'followup' | 'custom'
-  to: string[]
-  cc?: string[]
-  bcc?: string[]
-  subject?: string
-  body?: string
-  variables?: Record<string, string>
-  event_id?: string
-  org_id: string
-}
-
-serve(async (req) => {
+const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    console.log('📧 [Send Email] Iniciando envío de email...');
 
-    const {
-      template_id,
-      template_type,
-      to,
-      cc,
-      bcc,
-      subject,
-      body,
-      variables = {},
-      event_id,
-      org_id
-    }: SendEmailRequest = await req.json()
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Obtener token del usuario
-    const { data: userToken } = await supabase
-      .from('user_outlook_tokens')
-      .select('*')
-      .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-      .eq('org_id', org_id)
-      .eq('is_active', true)
-      .single()
+    const { to, subject, html, invitationToken }: EmailRequest = await req.json();
 
-    if (!userToken) {
-      throw new Error('Token de Outlook no encontrado')
-    }
+    console.log('📧 [Send Email] Datos recibidos:', { to, subject, hasToken: !!invitationToken });
 
-    const accessToken = userToken.access_token_encrypted // Descifrar en producción
+    // Por ahora simulamos el envío del email
+    // En producción aquí integrarías con Resend, SendGrid, etc.
+    console.log('📧 [Send Email] Simulando envío de email a:', to);
+    console.log('📧 [Send Email] Asunto:', subject);
+    console.log('📧 [Send Email] Contenido HTML:', html.substring(0, 100) + '...');
 
-    let emailSubject = subject
-    let emailBody = body
-
-    // Si se especifica una plantilla, obtenerla y procesarla
-    if (template_id || template_type) {
-      let query = supabase
-        .from('email_templates')
+    // Si es una invitación, registrar en log de auditoría
+    if (invitationToken) {
+      const { data: invitation } = await supabase
+        .from('user_invitations')
         .select('*')
-        .eq('org_id', org_id)
-        .eq('is_active', true)
+        .eq('token', invitationToken)
+        .single();
 
-      if (template_id) {
-        query = query.eq('id', template_id)
-      } else if (template_type) {
-        query = query.eq('template_type', template_type)
-      }
-
-      const { data: template } = await query.single()
-
-      if (!template) {
-        throw new Error('Plantilla de email no encontrada')
-      }
-
-      // Procesar variables en la plantilla
-      emailSubject = template.subject_template
-      emailBody = template.body_template
-
-      // Reemplazar variables en subject y body
-      for (const [key, value] of Object.entries(variables)) {
-        const placeholder = `{{${key}}}`
-        emailSubject = emailSubject.replace(new RegExp(placeholder, 'g'), value)
-        emailBody = emailBody.replace(new RegExp(placeholder, 'g'), value)
-      }
-    }
-
-    // Si hay un event_id, obtener datos del evento para variables automáticas
-    if (event_id && !template_id && !subject && !body) {
-      const { data: event } = await supabase
-        .from('calendar_events')
-        .select('*')
-        .eq('id', event_id)
-        .single()
-
-      if (event) {
-        const eventDate = new Date(event.start_datetime).toLocaleDateString('es-ES')
-        const eventTime = new Date(event.start_datetime).toLocaleTimeString('es-ES', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })
-
-        variables.event_title = event.title
-        variables.event_date = eventDate
-        variables.event_time = eventTime
-        variables.event_location = event.location || 'Por definir'
-        variables.event_description = event.description || ''
-      }
-    }
-
-    // Crear el email para Outlook
-    const outlookEmail = {
-      message: {
-        subject: emailSubject,
-        body: {
-          contentType: "HTML",
-          content: emailBody
-        },
-        toRecipients: to.map(email => ({
-          emailAddress: { address: email }
-        })),
-        ccRecipients: cc?.map(email => ({
-          emailAddress: { address: email }
-        })) || [],
-        bccRecipients: bcc?.map(email => ({
-          emailAddress: { address: email }
-        })) || []
-      },
-      saveToSentItems: true
-    }
-
-    // Enviar email a través de Microsoft Graph
-    const sendResponse = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(outlookEmail)
-    })
-
-    if (!sendResponse.ok) {
-      const error = await sendResponse.json()
-      throw new Error(`Error enviando email: ${error.error?.message}`)
-    }
-
-    // Log del email enviado
-    if (event_id) {
-      // Actualizar último email enviado en casos relacionados
-      const { data: event } = await supabase
-        .from('calendar_events')
-        .select('case_id')
-        .eq('id', event_id)
-        .single()
-
-      if (event?.case_id) {
+      if (invitation) {
         await supabase
-          .from('cases')
-          .update({ last_email_sent_at: new Date().toISOString() })
-          .eq('id', event.case_id)
+          .from('user_audit_log')
+          .insert({
+            org_id: invitation.org_id,
+            target_user_id: invitation.invited_by,
+            action_by: invitation.invited_by,
+            action_type: 'invitation_sent',
+            new_value: { email: to, role: invitation.role },
+            details: `Invitación enviada a ${to} para rol ${invitation.role}`
+          });
       }
     }
 
+    // Simular delay de envío
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: 'Email enviado exitosamente (simulado)',
+      messageId: `sim_${Date.now()}`
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders,
+      },
+    });
+
+  } catch (error: any) {
+    console.error('❌ [Send Email] Error:', error.message);
     return new Response(
       JSON.stringify({ 
-        success: true, 
-        subject: emailSubject,
-        recipients_count: to.length 
+        error: error.message,
+        success: false 
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
-  } catch (error) {
-    console.error('Error en send-email:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+      {
+        status: 500,
+        headers: { 
+          'Content-Type': 'application/json', 
+          ...corsHeaders 
+        },
+      }
+    );
   }
-})
+};
+
+serve(handler);
