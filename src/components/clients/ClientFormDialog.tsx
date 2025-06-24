@@ -36,7 +36,7 @@ interface ClientFormDialogProps {
 }
 
 export const ClientFormDialog = ({ client, open, onClose }: ClientFormDialogProps) => {
-  const { form, isEditing, handleCompanyFound, onSubmit } = useClientForm(client, onClose)
+  const { form, isEditing, isCompanyDataLoaded, handleCompanyFound, onSubmit } = useClientForm(client, onClose)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -59,7 +59,7 @@ export const ClientFormDialog = ({ client, open, onClose }: ClientFormDialogProp
               />
             )}
 
-            <ClientFormTabs form={form} />
+            <ClientFormTabs form={form} isCompanyDataLoaded={isCompanyDataLoaded} />
 
             <ClientFormActions
               isEditing={isEditing}

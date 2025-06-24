@@ -1,4 +1,3 @@
-
 import { UseFormReturn } from 'react-hook-form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { X, Lock, Building2 } from 'lucide-react'
 import { useState } from 'react'
 
 export interface ContactFormData {
@@ -35,9 +34,10 @@ export interface ContactFormData {
 
 interface ContactFormTabsProps {
   form: UseFormReturn<ContactFormData>
+  isCompanyDataLoaded?: boolean
 }
 
-export const ContactFormTabs = ({ form }: ContactFormTabsProps) => {
+export const ContactFormTabs = ({ form, isCompanyDataLoaded = false }: ContactFormTabsProps) => {
   const [newTag, setNewTag] = useState('')
 
   const addTag = () => {
@@ -54,6 +54,8 @@ export const ContactFormTabs = ({ form }: ContactFormTabsProps) => {
     const currentTags = form.getValues('tags') || []
     form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove))
   }
+
+  const clientType = form.watch('client_type')
 
   return (
     <Tabs defaultValue="basic" className="w-full">
@@ -85,11 +87,26 @@ export const ContactFormTabs = ({ form }: ContactFormTabsProps) => {
             name="client_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo de Contacto</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormLabel className="flex items-center gap-2">
+                  Tipo de Contacto
+                  {isCompanyDataLoaded && (
+                    <Badge variant="secondary" className="text-xs bg-blue-50 border-blue-200 text-blue-700">
+                      <Building2 className="h-3 w-3 mr-1" />
+                      Datos oficiales
+                    </Badge>
+                  )}
+                </FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                  disabled={isCompanyDataLoaded}
+                >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isCompanyDataLoaded ? 'bg-gray-50 cursor-not-allowed' : ''}>
                       <SelectValue placeholder="Seleccionar tipo" />
+                      {isCompanyDataLoaded && (
+                        <Lock className="h-4 w-4 text-gray-400 ml-2" />
+                      )}
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -98,6 +115,12 @@ export const ContactFormTabs = ({ form }: ContactFormTabsProps) => {
                     <SelectItem value="autonomo">Autónomo</SelectItem>
                   </SelectContent>
                 </Select>
+                {isCompanyDataLoaded && (
+                  <p className="text-xs text-blue-600 flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    Bloqueado por datos del Registro Mercantil
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -192,7 +215,7 @@ export const ContactFormTabs = ({ form }: ContactFormTabsProps) => {
             )}
           />
 
-          {form.watch('client_type') === 'empresa' && (
+          {clientType === 'empresa' && (
             <>
               <FormField
                 control={form.control}

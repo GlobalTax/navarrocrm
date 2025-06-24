@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -82,6 +82,7 @@ const defaultValues: ContactFormData = {
 export const useContactForm = (contact: Contact | null, onClose: () => void) => {
   const { user } = useApp()
   const isEditing = !!contact
+  const [isCompanyDataLoaded, setIsCompanyDataLoaded] = useState(false)
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
@@ -112,35 +113,34 @@ export const useContactForm = (contact: Contact | null, onClose: () => void) => 
         tags: contact.tags || [],
         internal_notes: contact.internal_notes || '',
       })
+      setIsCompanyDataLoaded(contact.client_type === 'empresa')
     } else {
       form.reset(defaultValues)
+      setIsCompanyDataLoaded(false)
     }
   }, [contact, form])
 
   const handleCompanyFound = (companyData: CompanyData) => {
     console.log('🏢 ContactForm - Datos de empresa recibidos:', companyData)
     
-    form.setValue('name', companyData.name)
-    form.setValue('dni_nif', companyData.nif)
-    form.setValue('client_type', 'empresa')
-    form.setValue('status', companyData.status)
-    form.setValue('relationship_type', companyData.status === 'activo' ? 'cliente' : 'prospecto')
-    
-    if (companyData.address_street) {
-      form.setValue('address_street', companyData.address_street)
+    // Usar batch update con reset para mejor rendimiento
+    const currentValues = form.getValues()
+    const updatedValues: ContactFormData = {
+      ...currentValues,
+      name: companyData.name,
+      dni_nif: companyData.nif,
+      client_type: 'empresa',
+      status: companyData.status,
+      relationship_type: companyData.status === 'activo' ? 'cliente' : 'prospecto',
+      address_street: companyData.address_street || currentValues.address_street,
+      address_city: companyData.address_city || currentValues.address_city,
+      address_postal_code: companyData.address_postal_code || currentValues.address_postal_code,
+      business_sector: companyData.business_sector || currentValues.business_sector,
+      legal_representative: companyData.legal_representative || currentValues.legal_representative,
     }
-    if (companyData.address_city) {
-      form.setValue('address_city', companyData.address_city)
-    }
-    if (companyData.address_postal_code) {
-      form.setValue('address_postal_code', companyData.address_postal_code)
-    }
-    if (companyData.business_sector) {
-      form.setValue('business_sector', companyData.business_sector)
-    }
-    if (companyData.legal_representative) {
-      form.setValue('legal_representative', companyData.legal_representative)
-    }
+
+    form.reset(updatedValues)
+    setIsCompanyDataLoaded(true)
 
     toast.success('Formulario completado con datos oficiales del Registro Mercantil')
   }
@@ -205,6 +205,7 @@ export const useContactForm = (contact: Contact | null, onClose: () => void) => 
   return {
     form,
     isEditing,
+    isCompanyDataLoaded,
     handleCompanyFound,
     onSubmit
   }

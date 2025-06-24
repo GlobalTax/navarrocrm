@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -79,6 +79,7 @@ const defaultValues: ClientFormData = {
 export const useClientForm = (client: Client | null, onClose: () => void) => {
   const { user } = useApp()
   const isEditing = !!client
+  const [isCompanyDataLoaded, setIsCompanyDataLoaded] = useState(false)
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -108,34 +109,33 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
         tags: client.tags || [],
         internal_notes: client.internal_notes || '',
       })
+      setIsCompanyDataLoaded(client.client_type === 'empresa')
     } else {
       form.reset(defaultValues)
+      setIsCompanyDataLoaded(false)
     }
   }, [client, form])
 
   const handleCompanyFound = (companyData: CompanyData) => {
     console.log('🏢 ClientForm - Datos de empresa recibidos:', companyData)
     
-    form.setValue('name', companyData.name)
-    form.setValue('dni_nif', companyData.nif)
-    form.setValue('client_type', 'empresa')
-    form.setValue('status', companyData.status)
-    
-    if (companyData.address_street) {
-      form.setValue('address_street', companyData.address_street)
+    // Usar batch update con reset para mejor rendimiento
+    const currentValues = form.getValues()
+    const updatedValues: ClientFormData = {
+      ...currentValues,
+      name: companyData.name,
+      dni_nif: companyData.nif,
+      client_type: 'empresa',
+      status: companyData.status,
+      address_street: companyData.address_street || currentValues.address_street,
+      address_city: companyData.address_city || currentValues.address_city,
+      address_postal_code: companyData.address_postal_code || currentValues.address_postal_code,
+      business_sector: companyData.business_sector || currentValues.business_sector,
+      legal_representative: companyData.legal_representative || currentValues.legal_representative,
     }
-    if (companyData.address_city) {
-      form.setValue('address_city', companyData.address_city)
-    }
-    if (companyData.address_postal_code) {
-      form.setValue('address_postal_code', companyData.address_postal_code)
-    }
-    if (companyData.business_sector) {
-      form.setValue('business_sector', companyData.business_sector)
-    }
-    if (companyData.legal_representative) {
-      form.setValue('legal_representative', companyData.legal_representative)
-    }
+
+    form.reset(updatedValues)
+    setIsCompanyDataLoaded(true)
 
     toast.success('Formulario completado con datos oficiales del Registro Mercantil')
   }
@@ -168,12 +168,11 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
         tags: data.tags || null,
         internal_notes: data.internal_notes || null,
         org_id: user.org_id,
-        last_contact_date: new Date().toISOString(),
       }
 
       if (isEditing && client) {
         const { error } = await supabase
-          .from('contacts') // Changed from 'clients' to 'contacts'
+          .from('clients')
           .update(clientData)
           .eq('id', client.id)
 
@@ -181,7 +180,7 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
         toast.success('Cliente actualizado exitosamente')
       } else {
         const { error } = await supabase
-          .from('contacts') // Changed from 'clients' to 'contacts'
+          .from('clients')
           .insert(clientData)
 
         if (error) throw error
@@ -199,6 +198,7 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
   return {
     form,
     isEditing,
+    isCompanyDataLoaded,
     handleCompanyFound,
     onSubmit
   }

@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, Lock, Building2 } from 'lucide-react'
 
 export interface ClientFormData {
   name: string
@@ -34,9 +33,10 @@ export interface ClientFormData {
 
 interface ClientFormTabsProps {
   form: UseFormReturn<ClientFormData>
+  isCompanyDataLoaded?: boolean
 }
 
-export const ClientFormTabs = ({ form }: ClientFormTabsProps) => {
+export const ClientFormTabs = ({ form, isCompanyDataLoaded = false }: ClientFormTabsProps) => {
   const [newTag, setNewTag] = useState('')
   const tags = form.watch('tags') || []
   const clientType = form.watch('client_type')
@@ -84,11 +84,26 @@ export const ClientFormTabs = ({ form }: ClientFormTabsProps) => {
             name="client_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo de Cliente *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormLabel className="flex items-center gap-2">
+                  Tipo de Cliente *
+                  {isCompanyDataLoaded && (
+                    <Badge variant="secondary" className="text-xs bg-blue-50 border-blue-200 text-blue-700">
+                      <Building2 className="h-3 w-3 mr-1" />
+                      Datos oficiales
+                    </Badge>
+                  )}
+                </FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                  disabled={isCompanyDataLoaded}
+                >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isCompanyDataLoaded ? 'bg-gray-50 cursor-not-allowed' : ''}>
                       <SelectValue placeholder="Seleccionar tipo" />
+                      {isCompanyDataLoaded && (
+                        <Lock className="h-4 w-4 text-gray-400 ml-2" />
+                      )}
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -97,6 +112,12 @@ export const ClientFormTabs = ({ form }: ClientFormTabsProps) => {
                     <SelectItem value="autonomo">Autónomo</SelectItem>
                   </SelectContent>
                 </Select>
+                {isCompanyDataLoaded && (
+                  <p className="text-xs text-blue-600 flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    Bloqueado por datos del Registro Mercantil
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
