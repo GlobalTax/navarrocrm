@@ -98,13 +98,11 @@ export const useCompanyLookup = () => {
         stack: error instanceof Error ? error.stack : undefined
       })
       
-      // Solo mostrar toast si no se mostró antes
-      if (!toast.isActive) {
-        const errorMessage = error instanceof Error ? error.message : 'Error inesperado al buscar la empresa'
-        toast.error('Error de búsqueda', {
-          description: errorMessage
-        })
-      }
+      // Simplificar el manejo de errores sin verificar toast.isActive
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado al buscar la empresa'
+      toast.error('Error de búsqueda', {
+        description: errorMessage
+      })
       
       return null
     } finally {
