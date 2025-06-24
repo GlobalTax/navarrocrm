@@ -13,8 +13,6 @@ export interface UserAuditEntry {
   new_value?: any
   details?: string
   created_at: string
-  target_user?: { email: string }
-  action_by_user?: { email: string }
 }
 
 export const useUserAudit = () => {
@@ -27,11 +25,7 @@ export const useUserAudit = () => {
       
       const { data, error } = await supabase
         .from('user_audit_log')
-        .select(`
-          *,
-          target_user:users!user_audit_log_target_user_id_fkey(email),
-          action_by_user:users!user_audit_log_action_by_fkey(email)
-        `)
+        .select('*')
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
         .limit(100)

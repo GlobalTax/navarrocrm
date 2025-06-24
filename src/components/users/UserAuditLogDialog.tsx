@@ -94,8 +94,8 @@ export const UserAuditLogDialog = ({ open, onOpenChange, user, onClose }: UserAu
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium">Acción realizada por:</span>
-                        <span className="text-slate-600">{entry.action_by_user?.email}</span>
+                        <span className="font-medium">Usuario ID:</span>
+                        <span className="text-slate-600">{entry.action_by}</span>
                       </div>
 
                       {entry.details && (
