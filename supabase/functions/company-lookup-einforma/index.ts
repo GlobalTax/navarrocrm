@@ -1,6 +1,10 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import type { CompanyData } from './types.ts'
+import { EInformaService } from './eInformaService.ts'
+import { isValidNifCif } from './validation.ts'
+import { generateMockCompanyData } from './mockData.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,43 +13,6 @@ const corsHeaders = {
 
 const eInformaClientId = Deno.env.get('EINFORMA_CLIENT_ID')
 const eInformaClientSecret = Deno.env.get('EINFORMA_CLIENT_SECRET')
-
-interface CompanyData {
-  name: string
-  nif: string
-  address_street?: string
-  address_city?: string
-  address_postal_code?: string
-  business_sector?: string
-  legal_representative?: string
-  status: 'activo' | 'inactivo'
-  client_type: 'empresa'
-}
-
-interface EInformaTokenResponse {
-  access_token: string
-  token_type: string
-  expires_in: number
-}
-
-interface EInformaCompanyResponse {
-  denominacion: string
-  identificativo: string
-  domicilioSocial?: string
-  localidad?: string
-  cnae?: string
-  cargoPrincipal?: string
-  situacion?: string
-  formaJuridica?: string
-  nombreComercial?: string[]
-  telefono?: number[]
-  web?: string[]
-  email?: string
-  capitalSocial?: number
-  ventas?: number
-  empleados?: number
-  fechaConstitucion?: string
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -121,12 +88,9 @@ serve(async (req) => {
     console.log('✅ [company-lookup] Credenciales configuradas, consultando eInforma...')
 
     try {
-      // Obtener token de acceso de eInforma
-      const accessToken = await getEInformaAccessToken()
-      console.log('✅ [company-lookup] Token de acceso obtenido exitosamente')
-
-      // Buscar empresa en eInforma
-      const companyData = await searchCompanyInEInforma(cleanNif, accessToken)
+      // Crear servicio de eInforma y buscar empresa
+      const eInformaService = new EInformaService(eInformaClientId, eInformaClientSecret)
+      const companyData = await eInformaService.lookupCompany(cleanNif)
       
       if (!companyData) {
         console.log('❌ [company-lookup] Empresa no encontrada en eInforma')
@@ -183,183 +147,3 @@ serve(async (req) => {
     })
   }
 })
-
-async function getEInformaAccessToken(): Promise<string> {
-  console.log('🔑 [company-lookup] Obteniendo token de acceso de eInforma...')
-  
-  const tokenUrl = 'https://developers.einforma.com/api/v1/oauth/token'
-  
-  const requestBody = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: eInformaClientId!,
-    client_secret: eInformaClientSecret!,
-    scope: 'buscar:consultar:empresas'
-  })
-
-  console.log('🔍 [company-lookup] Enviando request a:', tokenUrl)
-
-  const response = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json'
-    },
-    body: requestBody
-  })
-
-  console.log('📥 [company-lookup] Response status:', response.status)
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('❌ [company-lookup] Error obteniendo token:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText
-    })
-    
-    if (response.status === 401) {
-      throw new Error('INVALID_CREDENTIALS: Las credenciales de eInforma no son válidas')
-    } else if (response.status === 400) {
-      throw new Error('BAD_REQUEST: Error en los parámetros de autenticación')
-    } else {
-      throw new Error(`OAUTH_ERROR: ${response.status} - ${errorText}`)
-    }
-  }
-
-  const tokenData: EInformaTokenResponse = await response.json()
-  console.log('✅ [company-lookup] Token obtenido exitosamente')
-  
-  return tokenData.access_token
-}
-
-async function searchCompanyInEInforma(nif: string, accessToken: string): Promise<CompanyData | null> {
-  console.log('🔍 [company-lookup] Buscando empresa en eInforma:', nif)
-  
-  // URL corregida: usar /report para obtener el informe completo
-  const searchUrl = `https://developers.einforma.com/api/v1/companies/${nif}/report`
-  
-  console.log('🔍 [company-lookup] Enviando request GET a:', searchUrl)
-
-  const response = await fetch(searchUrl, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Accept': 'application/json'
-    }
-  })
-
-  console.log('📥 [company-lookup] Search response status:', response.status)
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('❌ [company-lookup] Error buscando empresa:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText
-    })
-    
-    if (response.status === 404) {
-      return null // Empresa no encontrada
-    } else if (response.status === 401) {
-      throw new Error('TOKEN_EXPIRED: El token de acceso ha expirado')
-    } else if (response.status === 403) {
-      throw new Error('ACCESS_DENIED: No tienes permisos para consultar esta empresa')
-    } else {
-      throw new Error(`SEARCH_ERROR: ${response.status} - ${errorText}`)
-    }
-  }
-
-  const searchResult: EInformaCompanyResponse = await response.json()
-  console.log('📥 [company-lookup] Respuesta de eInforma:', {
-    denominacion: searchResult.denominacion,
-    identificativo: searchResult.identificativo,
-    situacion: searchResult.situacion
-  })
-
-  if (!searchResult.denominacion) {
-    console.log('❌ [company-lookup] Sin datos válidos en respuesta de eInforma')
-    return null
-  }
-  
-  // Convertir datos de eInforma a nuestro formato
-  const companyData: CompanyData = {
-    name: searchResult.denominacion || 'Nombre no disponible',
-    nif: searchResult.identificativo || nif,
-    address_street: searchResult.domicilioSocial,
-    address_city: searchResult.localidad,
-    address_postal_code: undefined, // eInforma no separa el código postal
-    business_sector: searchResult.cnae,
-    legal_representative: searchResult.cargoPrincipal,
-    status: (searchResult.situacion === 'Activa' || searchResult.situacion === 'ACTIVA') ? 'activo' : 'inactivo',
-    client_type: 'empresa'
-  }
-
-  console.log('✅ [company-lookup] Datos convertidos exitosamente')
-  return companyData
-}
-
-function generateMockCompanyData(nif: string): CompanyData {
-  // Generar datos simulados basados en el NIF para testing (fallback)
-  const mockCompanies: Record<string, Partial<CompanyData>> = {
-    'B67261552': {
-      name: 'TECNOLOGÍA AVANZADA S.L.',
-      business_sector: 'Servicios informáticos',
-      address_street: 'Calle Gran Vía, 123',
-      address_city: 'Madrid',
-      address_postal_code: '28013',
-      legal_representative: 'Juan García López'
-    },
-    'A08663619': {
-      name: 'CONSULTORÍA EMPRESARIAL S.A.',
-      business_sector: 'Consultoría de gestión empresarial',
-      address_street: 'Avenida Diagonal, 456',
-      address_city: 'Barcelona',
-      address_postal_code: '08029',
-      legal_representative: 'María Rodríguez Fernández'
-    }
-  }
-
-  const mockData = mockCompanies[nif] || {
-    name: `EMPRESA EJEMPLO ${nif.slice(-4)} S.L.`,
-    business_sector: 'Actividades empresariales',
-    address_street: 'Calle Principal, 1',
-    address_city: 'Madrid',
-    address_postal_code: '28001',
-    legal_representative: 'Representante Legal'
-  }
-
-  return {
-    name: mockData.name!,
-    nif: nif,
-    address_street: mockData.address_street,
-    address_city: mockData.address_city,
-    address_postal_code: mockData.address_postal_code,
-    business_sector: mockData.business_sector,
-    legal_representative: mockData.legal_representative,
-    status: 'activo',
-    client_type: 'empresa'
-  }
-}
-
-function isValidNifCif(nif: string): boolean {
-  if (!nif || typeof nif !== 'string') return false
-  
-  const cleanNif = nif.replace(/[\s-]/g, '').toUpperCase()
-  
-  // Patrones de validación
-  const nifRegex = /^[0-9]{8}[A-Z]$/
-  const cifRegex = /^[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]$/
-  const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/
-  
-  const isValid = nifRegex.test(cleanNif) || cifRegex.test(cleanNif) || nieRegex.test(cleanNif)
-  
-  console.log('🔍 [company-lookup] Validación formato:', {
-    nif: cleanNif,
-    isNif: nifRegex.test(cleanNif),
-    isCif: cifRegex.test(cleanNif),
-    isNie: nieRegex.test(cleanNif),
-    isValid
-  })
-  
-  return isValid
-}
