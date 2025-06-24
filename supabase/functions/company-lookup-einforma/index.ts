@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
@@ -28,22 +29,18 @@ interface EInformaTokenResponse {
 }
 
 interface EInformaCompanyResponse {
-  success: boolean
-  data?: {
-    company?: {
-      name: string
-      nif: string
-      address?: {
-        street?: string
-        city?: string
-        postal_code?: string
-      }
-      activity?: string
-      status?: string
-      legal_representative?: string
-    }
+  denominacion: string
+  nif: string
+  domicilioSocial?: {
+    direccion?: string
+    localidad?: string
+    codigoPostal?: string
   }
-  error?: string
+  actividadPrincipal?: string
+  situacion?: string
+  administradores?: Array<{
+    nombre?: string
+  }>
 }
 
 serve(async (req) => {
@@ -186,13 +183,14 @@ serve(async (req) => {
 async function getEInformaAccessToken(): Promise<string> {
   console.log('🔑 [company-lookup] Obteniendo token de acceso de eInforma...')
   
-  // URL corregida para OAuth2 de eInforma
-  const tokenUrl = 'https://www.einforma.com/api/oauth2/token'
+  // URL CORREGIDA - Portal de desarrolladores de eInforma
+  const tokenUrl = 'https://developers.einforma.com/api/v1/oauth/token'
   
   const requestBody = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: eInformaClientId!,
-    client_secret: eInformaClientSecret!
+    client_secret: eInformaClientSecret!,
+    scope: 'api_auth'
   })
 
   console.log('🔍 [company-lookup] Enviando request a:', tokenUrl)
@@ -215,7 +213,14 @@ async function getEInformaAccessToken(): Promise<string> {
       statusText: response.statusText,
       error: errorText
     })
-    throw new Error(`OAuth Error: ${response.status} - ${errorText}`)
+    
+    if (response.status === 401) {
+      throw new Error('INVALID_CREDENTIALS: Las credenciales de eInforma no son válidas')
+    } else if (response.status === 400) {
+      throw new Error('BAD_REQUEST: Error en los parámetros de autenticación')
+    } else {
+      throw new Error(`OAUTH_ERROR: ${response.status} - ${errorText}`)
+    }
   }
 
   const tokenData: EInformaTokenResponse = await response.json()
@@ -227,25 +232,17 @@ async function getEInformaAccessToken(): Promise<string> {
 async function searchCompanyInEInforma(nif: string, accessToken: string): Promise<CompanyData | null> {
   console.log('🔍 [company-lookup] Buscando empresa en eInforma:', nif)
   
-  // URL corregida para la búsqueda de empresas
-  const searchUrl = `https://www.einforma.com/api/v1/companies/search`
+  // URL CORREGIDA - GET directo por NIF según la documentación
+  const searchUrl = `https://developers.einforma.com/api/v1/companies/${nif}`
   
-  const requestBody = {
-    nif: nif,
-    include_fields: ['basic_info', 'address', 'activity', 'status', 'legal_representative']
-  }
-
-  console.log('🔍 [company-lookup] Enviando request a:', searchUrl)
-  console.log('📤 [company-lookup] Request body:', requestBody)
+  console.log('🔍 [company-lookup] Enviando request GET a:', searchUrl)
 
   const response = await fetch(searchUrl, {
-    method: 'POST',
+    method: 'GET',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
       'Accept': 'application/json'
-    },
-    body: JSON.stringify(requestBody)
+    }
   })
 
   console.log('📥 [company-lookup] Search response status:', response.status)
@@ -260,35 +257,41 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
     
     if (response.status === 404) {
       return null // Empresa no encontrada
+    } else if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED: El token de acceso ha expirado')
+    } else if (response.status === 403) {
+      throw new Error('ACCESS_DENIED: No tienes permisos para consultar esta empresa')
+    } else {
+      throw new Error(`SEARCH_ERROR: ${response.status} - ${errorText}`)
     }
-    
-    throw new Error(`Search Error: ${response.status} - ${errorText}`)
   }
 
   const searchResult: EInformaCompanyResponse = await response.json()
-  console.log('📥 [company-lookup] Respuesta de eInforma:', searchResult)
+  console.log('📥 [company-lookup] Respuesta de eInforma:', {
+    denominacion: searchResult.denominacion,
+    nif: searchResult.nif,
+    situacion: searchResult.situacion
+  })
 
-  if (!searchResult.success || !searchResult.data?.company) {
-    console.log('❌ [company-lookup] Sin resultados válidos en eInforma')
+  if (!searchResult.denominacion) {
+    console.log('❌ [company-lookup] Sin datos válidos en respuesta de eInforma')
     return null
   }
-
-  const companyInfo = searchResult.data.company
   
   // Convertir datos de eInforma a nuestro formato
   const companyData: CompanyData = {
-    name: companyInfo.name || 'Nombre no disponible',
-    nif: companyInfo.nif || nif,
-    address_street: companyInfo.address?.street,
-    address_city: companyInfo.address?.city,
-    address_postal_code: companyInfo.address?.postal_code,
-    business_sector: companyInfo.activity,
-    legal_representative: companyInfo.legal_representative,
-    status: companyInfo.status === 'ACTIVA' ? 'activo' : 'inactivo',
+    name: searchResult.denominacion || 'Nombre no disponible',
+    nif: searchResult.nif || nif,
+    address_street: searchResult.domicilioSocial?.direccion,
+    address_city: searchResult.domicilioSocial?.localidad,
+    address_postal_code: searchResult.domicilioSocial?.codigoPostal,
+    business_sector: searchResult.actividadPrincipal,
+    legal_representative: searchResult.administradores?.[0]?.nombre,
+    status: searchResult.situacion === 'ACTIVA' ? 'activo' : 'inactivo',
     client_type: 'empresa'
   }
 
-  console.log('✅ [company-lookup] Datos convertidos:', companyData)
+  console.log('✅ [company-lookup] Datos convertidos exitosamente')
   return companyData
 }
 
@@ -356,33 +359,4 @@ function isValidNifCif(nif: string): boolean {
   })
   
   return isValid
-}
-
-function getErrorMessage(error: string): string {
-  console.log('🔍 [company-lookup] Generando mensaje de error para:', error)
-  
-  switch (error) {
-    case 'COMPANY_NOT_FOUND':
-      return 'No se encontró ninguna empresa con este NIF/CIF en el Registro Mercantil oficial'
-    case 'INVALID_CREDENTIALS':
-      return 'Las credenciales de eInforma no son válidas. Verifica que el CLIENT_ID y CLIENT_SECRET sean correctos'
-    case 'TOKEN_MISSING':
-    case 'TOKEN_EXPIRED':
-      return 'Error de autenticación con eInforma. Verifica las credenciales'
-    case 'CREDENTIALS_MISSING':
-      return 'Credenciales de eInforma no configuradas en el sistema'
-    case 'INVALID_NIF':
-      return 'El NIF/CIF introducido no es válido'
-    case 'INVALID_FORMAT':
-      return 'El formato del NIF/CIF no es correcto'
-    default:
-      if (error?.includes('OAUTH_ERROR')) {
-        return 'Error de autenticación OAuth con eInforma. Verifica las credenciales'
-      } else if (error?.includes('SEARCH_ERROR')) {
-        return 'Error al consultar los datos empresariales. Inténtalo de nuevo'
-      } else if (error?.includes('HTTP_ERROR')) {
-        return 'Error de conexión con el servicio eInforma. Inténtalo más tarde'
-      }
-      return 'Error al consultar los datos empresariales. Si el problema persiste, contacta con el administrador'
-  }
 }
