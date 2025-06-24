@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { Search, Building2, AlertCircle, CheckCircle2, Loader2, TestTube } from 'lucide-react'
+import { Search, Building2, AlertCircle, CheckCircle2, Loader2, TestTube, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -15,9 +15,8 @@ interface NifLookupProps {
 
 export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }: NifLookupProps) => {
   const [nif, setNif] = useState(initialNif)
-  const [lastSearchResult, setLastSearchResult] = useState<CompanyData | null>(null)
+  const [lastSearchResult, setLastSearchResult] = useState<CompanyData & { isSimulated?: boolean, warning?: string } | null>(null)
   const [searchError, setSearchError] = useState<string | null>(null)
-  const [isSimulated, setIsSimulated] = useState(false)
   const { lookupCompany, isLoading } = useCompanyLookup()
 
   const handleSearch = async () => {
@@ -33,16 +32,14 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
 
     setSearchError(null)
     setLastSearchResult(null)
-    setIsSimulated(false)
 
     console.log('🔍 NifLookup - Iniciando búsqueda:', nif)
 
     const result = await lookupCompany(nif)
     if (result) {
       console.log('✅ NifLookup - Empresa encontrada:', result)
-      setLastSearchResult(result)
+      setLastSearchResult(result as CompanyData & { isSimulated?: boolean, warning?: string })
       setSearchError(null)
-      setIsSimulated(true) // Por ahora todos son simulados
       onCompanyFound(result)
     } else {
       console.log('❌ NifLookup - No se encontró empresa')
@@ -84,6 +81,66 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
       return 'Formato no válido. Ejemplos: B12345678, 12345678Z, X1234567L'
     }
     return null
+  }
+
+  const getResultAlertStyle = () => {
+    if (!lastSearchResult) return {}
+    
+    if (lastSearchResult.warning) {
+      return { className: 'border-orange-200 bg-orange-50' }
+    } else if (lastSearchResult.isSimulated) {
+      return { className: 'border-blue-200 bg-blue-50' }
+    } else {
+      return { className: 'border-green-200 bg-green-50' }
+    }
+  }
+
+  const getResultIcon = () => {
+    if (!lastSearchResult) return CheckCircle2
+    
+    if (lastSearchResult.warning) {
+      return AlertTriangle
+    } else if (lastSearchResult.isSimulated) {
+      return TestTube
+    } else {
+      return CheckCircle2
+    }
+  }
+
+  const getResultIconColor = () => {
+    if (!lastSearchResult) return 'text-green-600'
+    
+    if (lastSearchResult.warning) {
+      return 'text-orange-600'
+    } else if (lastSearchResult.isSimulated) {
+      return 'text-blue-600'
+    } else {
+      return 'text-green-600'
+    }
+  }
+
+  const getResultTextColor = () => {
+    if (!lastSearchResult) return 'text-green-800'
+    
+    if (lastSearchResult.warning) {
+      return 'text-orange-800'
+    } else if (lastSearchResult.isSimulated) {
+      return 'text-blue-800'
+    } else {
+      return 'text-green-800'
+    }
+  }
+
+  const getStatusMessage = () => {
+    if (!lastSearchResult) return 'Datos cargados correctamente'
+    
+    if (lastSearchResult.warning) {
+      return lastSearchResult.warning
+    } else if (lastSearchResult.isSimulated) {
+      return 'Datos de prueba para desarrollo'
+    } else {
+      return 'Datos oficiales del Registro Mercantil cargados correctamente'
+    }
   }
 
   return (
@@ -133,18 +190,29 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
       </div>
 
       {lastSearchResult && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
+        <Alert {...getResultAlertStyle()}>
+          {React.createElement(getResultIcon(), { 
+            className: `h-4 w-4 ${getResultIconColor()}` 
+          })}
+          <AlertDescription className={getResultTextColor()}>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="font-semibold text-green-900 flex items-center gap-2">
+                  <div className={`font-semibold ${getResultTextColor().replace('800', '900')} flex items-center gap-2`}>
                     {lastSearchResult.name}
-                    {isSimulated && (
-                      <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-700">
+                    {lastSearchResult.isSimulated && (
+                      <Badge variant="outline" className={`text-xs ${
+                        lastSearchResult.warning 
+                          ? 'bg-orange-50 border-orange-200 text-orange-700'
+                          : 'bg-blue-50 border-blue-200 text-blue-700'
+                      }`}>
                         <TestTube className="h-3 w-3 mr-1" />
-                        Datos de prueba
+                        {lastSearchResult.warning ? 'Datos de prueba' : 'Desarrollo'}
+                      </Badge>
+                    )}
+                    {!lastSearchResult.isSimulated && (
+                      <Badge variant="outline" className="text-xs bg-green-50 border-green-200 text-green-700">
+                        ✓ Oficial
                       </Badge>
                     )}
                   </div>
@@ -162,7 +230,7 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
               </div>
               
               {lastSearchResult.address_street && (
-                <div className="text-xs text-green-700">
+                <div className={`text-xs ${getResultTextColor().replace('800', '700')}`}>
                   📍 {lastSearchResult.address_street}
                   {lastSearchResult.address_city && `, ${lastSearchResult.address_city}`}
                   {lastSearchResult.address_postal_code && ` ${lastSearchResult.address_postal_code}`}
@@ -170,13 +238,13 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
               )}
               
               {lastSearchResult.business_sector && (
-                <div className="text-xs text-green-700">
+                <div className={`text-xs ${getResultTextColor().replace('800', '700')}`}>
                   🏢 {lastSearchResult.business_sector}
                 </div>
               )}
               
-              <div className="text-xs text-green-700 font-medium">
-                ✅ {isSimulated ? 'Datos de prueba cargados correctamente' : 'Datos oficiales del Registro Mercantil cargados correctamente'}
+              <div className={`text-xs ${getResultTextColor().replace('800', '700')} font-medium`}>
+                {lastSearchResult.warning ? '⚠️' : lastSearchResult.isSimulated ? 'ℹ️' : '✅'} {getStatusMessage()}
               </div>
             </div>
           </AlertDescription>

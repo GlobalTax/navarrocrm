@@ -22,6 +22,23 @@ interface CompanyData {
   client_type: 'empresa'
 }
 
+interface EInformaTokenResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+}
+
+interface EInformaCompanyResponse {
+  denominacion: string
+  nif: string
+  domicilio?: string
+  municipio?: string
+  codigoPostal?: string
+  cnae?: string
+  situacion?: string
+  representante?: string
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -96,19 +113,54 @@ serve(async (req) => {
 
     console.log('✅ [company-lookup] Formato NIF válido, consultando eInforma...')
 
-    // Por el momento, devolver datos simulados mientras se resuelve el problema de credenciales
-    const mockCompanyData = generateMockCompanyData(cleanNif)
-    
-    console.log('✅ [company-lookup] Datos simulados generados para:', cleanNif)
+    try {
+      // Obtener token de acceso de eInforma
+      const accessToken = await getEInformaAccessToken()
+      console.log('✅ [company-lookup] Token de acceso obtenido')
 
-    return new Response(JSON.stringify({
-      success: true,
-      data: mockCompanyData,
-      message: 'Empresa encontrada (datos simulados para testing)',
-      isSimulated: true
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+      // Buscar empresa en eInforma
+      const companyData = await searchCompanyInEInforma(cleanNif, accessToken)
+      
+      if (!companyData) {
+        console.log('❌ [company-lookup] Empresa no encontrada en eInforma')
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'COMPANY_NOT_FOUND',
+          message: 'No se encontró ninguna empresa con este NIF/CIF en el Registro Mercantil'
+        }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      console.log('✅ [company-lookup] Empresa encontrada en eInforma:', companyData.name)
+
+      return new Response(JSON.stringify({
+        success: true,
+        data: companyData,
+        message: 'Empresa encontrada en el Registro Mercantil',
+        isSimulated: false
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+
+    } catch (eInformaError) {
+      console.error('❌ [company-lookup] Error consultando eInforma:', eInformaError)
+      
+      // Como fallback, devolver datos simulados con advertencia
+      console.log('⚠️ [company-lookup] Usando datos simulados como fallback')
+      const mockCompanyData = generateMockCompanyData(cleanNif)
+      
+      return new Response(JSON.stringify({
+        success: true,
+        data: mockCompanyData,
+        message: 'Empresa encontrada (datos simulados - error de conexión con eInforma)',
+        isSimulated: true,
+        warning: 'No se pudo conectar con eInforma. Se muestran datos de prueba.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
   } catch (error) {
     console.error('❌ [company-lookup] Error general:', {
@@ -129,8 +181,102 @@ serve(async (req) => {
   }
 })
 
+async function getEInformaAccessToken(): Promise<string> {
+  console.log('🔑 [company-lookup] Obteniendo token de acceso de eInforma...')
+  
+  const tokenUrl = 'https://api.einforma.com/oauth/token'
+  
+  const response = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: eInformaClientId!,
+      client_secret: eInformaClientSecret!
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('❌ [company-lookup] Error obteniendo token:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    })
+    throw new Error(`OAUTH_ERROR: ${response.status} - ${errorText}`)
+  }
+
+  const tokenData: EInformaTokenResponse = await response.json()
+  console.log('✅ [company-lookup] Token obtenido exitosamente')
+  
+  return tokenData.access_token
+}
+
+async function searchCompanyInEInforma(nif: string, accessToken: string): Promise<CompanyData | null> {
+  console.log('🔍 [company-lookup] Buscando empresa en eInforma:', nif)
+  
+  const searchUrl = `https://api.einforma.com/v1/companies/search`
+  
+  const response = await fetch(searchUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      nif: nif,
+      fields: ['denominacion', 'nif', 'domicilio', 'municipio', 'codigoPostal', 'cnae', 'situacion', 'representante']
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('❌ [company-lookup] Error buscando empresa:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    })
+    
+    if (response.status === 404) {
+      return null // Empresa no encontrada
+    }
+    
+    throw new Error(`SEARCH_ERROR: ${response.status} - ${errorText}`)
+  }
+
+  const searchResult = await response.json()
+  console.log('📥 [company-lookup] Respuesta de eInforma:', searchResult)
+
+  if (!searchResult || !searchResult.data || searchResult.data.length === 0) {
+    console.log('❌ [company-lookup] Sin resultados en eInforma')
+    return null
+  }
+
+  const companyInfo: EInformaCompanyResponse = searchResult.data[0]
+  
+  // Convertir datos de eInforma a nuestro formato
+  const companyData: CompanyData = {
+    name: companyInfo.denominacion || 'Nombre no disponible',
+    nif: companyInfo.nif || nif,
+    address_street: companyInfo.domicilio,
+    address_city: companyInfo.municipio,
+    address_postal_code: companyInfo.codigoPostal,
+    business_sector: companyInfo.cnae,
+    legal_representative: companyInfo.representante,
+    status: companyInfo.situacion === 'ACTIVA' ? 'activo' : 'inactivo',
+    client_type: 'empresa'
+  }
+
+  console.log('✅ [company-lookup] Datos convertidos:', companyData)
+  return companyData
+}
+
 function generateMockCompanyData(nif: string): CompanyData {
-  // Generar datos simulados basados en el NIF para testing
+  // Generar datos simulados basados en el NIF para testing (fallback)
   const mockCompanies: Record<string, Partial<CompanyData>> = {
     'B67261552': {
       name: 'TECNOLOGÍA AVANZADA S.L.',

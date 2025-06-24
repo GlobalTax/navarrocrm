@@ -99,15 +99,30 @@ export const useCompanyLookup = () => {
         isSimulated: data.isSimulated
       })
       
-      const toastMessage = data.isSimulated 
-        ? `${data.data.name} - ${data.data.nif} (datos de prueba)`
-        : `${data.data.name} - ${data.data.nif}`
+      // Personalizar mensaje según si son datos reales o simulados
+      let toastMessage = `${data.data.name} - ${data.data.nif}`
+      let toastDescription = ''
       
-      toast.success('Empresa encontrada', {
-        description: toastMessage
-      })
+      if (data.isSimulated) {
+        if (data.warning) {
+          toastDescription = data.warning
+          toast.warning('Empresa encontrada (datos de prueba)', {
+            description: `${toastMessage} - ${toastDescription}`
+          })
+        } else {
+          toastDescription = 'Datos de prueba para desarrollo'
+          toast.info('Empresa encontrada (datos de prueba)', {
+            description: `${toastMessage} - ${toastDescription}`
+          })
+        }
+      } else {
+        toastDescription = 'Datos oficiales del Registro Mercantil'
+        toast.success('Empresa encontrada', {
+          description: `${toastMessage} - ${toastDescription}`
+        })
+      }
       
-      return data.data
+      return { ...data.data, isSimulated: data.isSimulated, warning: data.warning }
     } catch (error) {
       console.error('💥 useCompanyLookup - Error de captura:', {
         error,
