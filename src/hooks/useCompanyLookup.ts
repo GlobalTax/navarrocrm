@@ -95,11 +95,16 @@ export const useCompanyLookup = () => {
       console.log('✅ useCompanyLookup - Empresa encontrada:', {
         name: data.data.name,
         nif: data.data.nif,
-        status: data.data.status
+        status: data.data.status,
+        isSimulated: data.isSimulated
       })
       
+      const toastMessage = data.isSimulated 
+        ? `${data.data.name} - ${data.data.nif} (datos de prueba)`
+        : `${data.data.name} - ${data.data.nif}`
+      
       toast.success('Empresa encontrada', {
-        description: `${data.data.name} - ${data.data.nif}`
+        description: toastMessage
       })
       
       return data.data

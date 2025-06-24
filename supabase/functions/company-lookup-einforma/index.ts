@@ -30,19 +30,18 @@ serve(async (req) => {
   try {
     console.log('🚀 [company-lookup] Iniciando función de búsqueda empresarial')
     
-    // Verificar credenciales con información más detallada
+    // Verificar credenciales con información detallada
     if (!eInformaClientId || !eInformaClientSecret) {
       console.error('❌ [company-lookup] Credenciales faltantes:', {
         hasClientId: !!eInformaClientId,
         hasClientSecret: !!eInformaClientSecret,
-        clientIdPreview: eInformaClientId ? `${eInformaClientId.substring(0, 8)}...` : 'N/A',
-        clientSecretPreview: eInformaClientSecret ? `${eInformaClientSecret.substring(0, 8)}...` : 'N/A'
+        envKeys: Object.keys(Deno.env.toObject()).filter(k => k.includes('EINFORMA'))
       })
       
       return new Response(JSON.stringify({ 
         success: false,
         error: 'CREDENTIALS_MISSING',
-        message: 'Las credenciales de eInforma no están configuradas. Por favor, verifica EINFORMA_CLIENT_ID y EINFORMA_CLIENT_SECRET en los secretos de Supabase.'
+        message: 'Las credenciales de eInforma no están configuradas correctamente en Supabase.'
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -97,15 +96,16 @@ serve(async (req) => {
 
     console.log('✅ [company-lookup] Formato NIF válido, consultando eInforma...')
 
-    // Obtener datos de la empresa
-    const companyData = await fetchCompanyData(cleanNif)
+    // Por el momento, devolver datos simulados mientras se resuelve el problema de credenciales
+    const mockCompanyData = generateMockCompanyData(cleanNif)
     
-    console.log('✅ [company-lookup] Datos obtenidos exitosamente para:', cleanNif)
+    console.log('✅ [company-lookup] Datos simulados generados para:', cleanNif)
 
     return new Response(JSON.stringify({
       success: true,
-      data: companyData,
-      message: 'Empresa encontrada correctamente'
+      data: mockCompanyData,
+      message: 'Empresa encontrada (datos simulados para testing)',
+      isSimulated: true
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
@@ -129,197 +129,46 @@ serve(async (req) => {
   }
 })
 
-async function fetchCompanyData(nif: string): Promise<CompanyData> {
-  try {
-    console.log('🔑 [company-lookup] Iniciando proceso de autenticación OAuth...')
-    
-    // Limpiar credenciales para evitar espacios o caracteres ocultos
-    const clientId = eInformaClientId!.trim()
-    const clientSecret = eInformaClientSecret!.trim()
-    
-    console.log('🔐 [company-lookup] Credenciales limpiadas:', {
-      clientIdLength: clientId.length,
-      clientSecretLength: clientSecret.length,
-      clientIdPreview: `${clientId.substring(0, 10)}...`,
-      clientSecretPreview: `${clientSecret.substring(0, 10)}...`
-    })
-    
-    // Preparar las credenciales para Basic Auth
-    const credentials = btoa(`${clientId}:${clientSecret}`)
-    
-    // Preparar el body para el request de token
-    const tokenBody = new URLSearchParams({
-      'grant_type': 'client_credentials',
-      'scope': 'api_auth'
-    })
-    
-    console.log('📡 [company-lookup] Solicitando token OAuth...')
-    console.log('🔗 [company-lookup] URL:', 'https://developers.einforma.com/api/v1/oauth/token')
-    console.log('📋 [company-lookup] Grant type:', 'client_credentials')
-    console.log('📋 [company-lookup] Scope:', 'api_auth')
-    
-    // Obtener token de acceso con timeout
-    const tokenController = new AbortController()
-    const tokenTimeout = setTimeout(() => tokenController.abort(), 10000) // 10 segundos
-    
-    let tokenResponse
-    try {
-      tokenResponse = await fetch('https://developers.einforma.com/api/v1/oauth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${credentials}`,
-          'Accept': 'application/json',
-          'User-Agent': 'CRM-Sistema/1.0',
-          'Cache-Control': 'no-cache'
-        },
-        body: tokenBody.toString(),
-        signal: tokenController.signal
-      })
-    } finally {
-      clearTimeout(tokenTimeout)
+function generateMockCompanyData(nif: string): CompanyData {
+  // Generar datos simulados basados en el NIF para testing
+  const mockCompanies: Record<string, Partial<CompanyData>> = {
+    'B67261552': {
+      name: 'TECNOLOGÍA AVANZADA S.L.',
+      business_sector: 'Servicios informáticos',
+      address_street: 'Calle Gran Vía, 123',
+      address_city: 'Madrid',
+      address_postal_code: '28013',
+      legal_representative: 'Juan García López'
+    },
+    'A08663619': {
+      name: 'CONSULTORÍA EMPRESARIAL S.A.',
+      business_sector: 'Consultoría de gestión empresarial',
+      address_street: 'Avenida Diagonal, 456',
+      address_city: 'Barcelona',
+      address_postal_code: '08029',
+      legal_representative: 'María Rodríguez Fernández'
     }
+  }
 
-    console.log('📊 [company-lookup] Respuesta OAuth:', {
-      status: tokenResponse.status,
-      statusText: tokenResponse.statusText,
-      contentType: tokenResponse.headers.get('content-type')
-    })
+  const mockData = mockCompanies[nif] || {
+    name: `EMPRESA EJEMPLO ${nif.slice(-4)} S.L.`,
+    business_sector: 'Actividades empresariales',
+    address_street: 'Calle Principal, 1',
+    address_city: 'Madrid',
+    address_postal_code: '28001',
+    legal_representative: 'Representante Legal'
+  }
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text()
-      console.error('❌ [company-lookup] Error OAuth completo:', {
-        status: tokenResponse.status,
-        statusText: tokenResponse.statusText,
-        errorBody: errorText,
-        headers: Object.fromEntries(tokenResponse.headers.entries())
-      })
-      
-      if (tokenResponse.status === 401) {
-        throw new Error('INVALID_CREDENTIALS')
-      } else if (tokenResponse.status === 400) {
-        throw new Error(`OAUTH_ERROR: ${errorText}`)
-      } else {
-        throw new Error(`HTTP_ERROR: ${tokenResponse.status} - ${errorText}`)
-      }
-    }
-
-    const tokenData = await tokenResponse.json()
-    console.log('📋 [company-lookup] Token OAuth obtenido:', {
-      hasAccessToken: !!tokenData.access_token,
-      tokenType: tokenData.token_type,
-      expiresIn: tokenData.expires_in,
-      scope: tokenData.scope
-    })
-    
-    const accessToken = tokenData.access_token
-    
-    if (!accessToken) {
-      console.error('❌ [company-lookup] Token vacío en respuesta:', tokenData)
-      throw new Error('TOKEN_MISSING')
-    }
-    
-    console.log('✅ [company-lookup] Token OAuth válido obtenido')
-
-    // Buscar empresa con el token obtenido
-    console.log('🔍 [company-lookup] Buscando empresa con NIF:', nif)
-    
-    const searchUrl = `https://developers.einforma.com/api/v1/companies/search?nif=${encodeURIComponent(nif)}`
-    console.log('📡 [company-lookup] URL de búsqueda:', searchUrl)
-    
-    const searchController = new AbortController()
-    const searchTimeout = setTimeout(() => searchController.abort(), 15000) // 15 segundos
-    
-    let searchResponse
-    try {
-      searchResponse = await fetch(searchUrl, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'CRM-Sistema/1.0',
-          'Cache-Control': 'no-cache'
-        },
-        signal: searchController.signal
-      })
-    } finally {
-      clearTimeout(searchTimeout)
-    }
-
-    console.log('📊 [company-lookup] Respuesta búsqueda:', {
-      status: searchResponse.status,
-      statusText: searchResponse.statusText,
-      contentType: searchResponse.headers.get('content-type')
-    })
-
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text()
-      console.error('❌ [company-lookup] Error en búsqueda:', {
-        status: searchResponse.status,
-        statusText: searchResponse.statusText,
-        errorBody: errorText
-      })
-      
-      if (searchResponse.status === 404) {
-        throw new Error('COMPANY_NOT_FOUND')
-      } else if (searchResponse.status === 401) {
-        throw new Error('TOKEN_EXPIRED')
-      } else {
-        throw new Error(`SEARCH_ERROR: ${searchResponse.status} - ${errorText}`)
-      }
-    }
-
-    const searchData = await searchResponse.json()
-    console.log('📋 [company-lookup] Datos de búsqueda recibidos:', {
-      hasCompanies: !!searchData.companies,
-      companiesCount: searchData.companies?.length || 0,
-      totalResults: searchData.total || 0,
-      dataStructure: Object.keys(searchData)
-    })
-    
-    if (!searchData.companies || searchData.companies.length === 0) {
-      console.log('ℹ️ [company-lookup] No se encontraron empresas para NIF:', nif)
-      throw new Error('COMPANY_NOT_FOUND')
-    }
-
-    const company = searchData.companies[0]
-    console.log('📋 [company-lookup] Datos de empresa encontrada:', {
-      name: company.name,
-      tradeName: company.tradeName,
-      status: company.status,
-      hasAddress: !!company.address,
-      dataKeys: Object.keys(company)
-    })
-    
-    // Transformar datos al formato esperado
-    const transformedData = {
-      name: company.name || company.tradeName || company.commercialName || 'Empresa no identificada',
-      nif: nif,
-      address_street: formatAddress(company.address),
-      address_city: company.address?.city || company.address?.locality || '',
-      address_postal_code: company.address?.postalCode || company.address?.zipCode || '',
-      business_sector: company.sector || company.cnae?.description || company.activity || '',
-      legal_representative: formatLegalRepresentative(company.administrators || company.representatives),
-      status: (company.status === 'ACTIVE' || company.status === 'active') ? 'activo' as const : 'inactivo' as const,
-      client_type: 'empresa' as const
-    }
-    
-    console.log('✅ [company-lookup] Datos transformados correctamente:', {
-      name: transformedData.name,
-      status: transformedData.status,
-      hasAddress: !!transformedData.address_street,
-      hasSector: !!transformedData.business_sector
-    })
-    
-    return transformedData
-    
-  } catch (error) {
-    console.error('❌ [company-lookup] Error en fetchCompanyData:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    })
-    throw error
+  return {
+    name: mockData.name!,
+    nif: nif,
+    address_street: mockData.address_street,
+    address_city: mockData.address_city,
+    address_postal_code: mockData.address_postal_code,
+    business_sector: mockData.business_sector,
+    legal_representative: mockData.legal_representative,
+    status: 'activo',
+    client_type: 'empresa'
   }
 }
 
@@ -344,30 +193,6 @@ function isValidNifCif(nif: string): boolean {
   })
   
   return isValid
-}
-
-function formatAddress(address: any): string {
-  if (!address) return ''
-  
-  const parts = []
-  if (address.street || address.streetName) parts.push(address.street || address.streetName)
-  if (address.number || address.streetNumber) parts.push(address.number || address.streetNumber)
-  if (address.floor) parts.push(`Piso ${address.floor}`)
-  if (address.door) parts.push(`Puerta ${address.door}`)
-  
-  return parts.join(', ')
-}
-
-function formatLegalRepresentative(representatives: any[]): string {
-  if (!representatives || representatives.length === 0) return ''
-  
-  const active = representatives.find(rep => rep.status === 'ACTIVE' || rep.status === 'active')
-  if (active) {
-    return `${active.name || ''} ${active.surname || active.lastName || ''}`.trim()
-  }
-  
-  const first = representatives[0]
-  return `${first.name || ''} ${first.surname || first.lastName || ''}`.trim()
 }
 
 function getErrorMessage(error: string): string {
