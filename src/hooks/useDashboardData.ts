@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -82,10 +81,10 @@ export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'mont
 async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
   const activities: RecentActivity[] = []
 
-  // Obtener contactos recientes
+  // Obtener contactos recientes (sin created_by)
   const { data: contacts } = await supabase
     .from('contacts')
-    .select('id, name, created_at, created_by:users!contacts_created_by_fkey(email)')
+    .select('id, name, created_at')
     .order('created_at', { ascending: false })
     .limit(3)
 
@@ -96,17 +95,16 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Nuevo contacto registrado',
       description: contact.name,
       timestamp: new Date(contact.created_at),
-      user: contact.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
+      user: 'Sistema'
     })
   })
 
-  // Obtener casos recientes
+  // Obtener casos recientes (sin created_by)
   const { data: cases } = await supabase
     .from('cases')
     .select(`
       id, title, created_at, 
-      contact:contacts(name),
-      created_by:users!cases_created_by_fkey(email)
+      contact:contacts(name)
     `)
     .order('created_at', { ascending: false })
     .limit(3)
@@ -118,17 +116,16 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Nuevo caso creado',
       description: `${case_.title} - ${case_.contact?.name}`,
       timestamp: new Date(case_.created_at),
-      user: case_.created_by?.[0]?.email?.split('@')[0] || 'Sistema'
+      user: 'Sistema'
     })
   })
 
-  // Obtener entradas de tiempo recientes
+  // Obtener entradas de tiempo recientes (corregir referencia a contacts)
   const { data: timeEntries } = await supabase
     .from('time_entries')
     .select(`
-      id, description, duration_minutes, created_at,
-      user:users!time_entries_user_id_fkey(email),
-      case:cases(title, client:clients(name))
+      id, description, duration_minutes, created_at, user_id,
+      case:cases(title, contact:contacts(name))
     `)
     .order('created_at', { ascending: false })
     .limit(5)
@@ -140,16 +137,15 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Tiempo registrado',
       description: `${Math.round(entry.duration_minutes / 60 * 10) / 10}h - ${entry.case?.title || 'Sin caso'}`,
       timestamp: new Date(entry.created_at),
-      user: entry.user?.email?.split('@')[0] || 'Usuario'
+      user: entry.user_id ? 'Usuario' : 'Sistema'
     })
   })
 
-  // Obtener tareas completadas recientes
+  // Obtener tareas completadas recientes (estas sí tienen created_by)
   const { data: tasks } = await supabase
     .from('tasks')
     .select(`
-      id, title, completed_at,
-      created_by:users!tasks_created_by_fkey(email)
+      id, title, completed_at
     `)
     .eq('status', 'completed')
     .not('completed_at', 'is', null)
@@ -163,7 +159,7 @@ async function fetchRecentActivities(orgId: string): Promise<RecentActivity[]> {
       title: 'Tarea completada',
       description: task.title,
       timestamp: new Date(task.completed_at),
-      user: task.created_by?.[0]?.email?.split('@')[0] || 'Usuario'
+      user: 'Usuario'
     })
   })
 
