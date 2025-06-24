@@ -30,17 +30,21 @@ interface EInformaTokenResponse {
 
 interface EInformaCompanyResponse {
   denominacion: string
-  nif: string
-  domicilioSocial?: {
-    direccion?: string
-    localidad?: string
-    codigoPostal?: string
-  }
-  actividadPrincipal?: string
+  identificativo: string
+  domicilioSocial?: string
+  localidad?: string
+  cnae?: string
+  cargoPrincipal?: string
   situacion?: string
-  administradores?: Array<{
-    nombre?: string
-  }>
+  formaJuridica?: string
+  nombreComercial?: string[]
+  telefono?: number[]
+  web?: string[]
+  email?: string
+  capitalSocial?: number
+  ventas?: number
+  empleados?: number
+  fechaConstitucion?: string
 }
 
 serve(async (req) => {
@@ -183,14 +187,13 @@ serve(async (req) => {
 async function getEInformaAccessToken(): Promise<string> {
   console.log('🔑 [company-lookup] Obteniendo token de acceso de eInforma...')
   
-  // URL CORREGIDA - Portal de desarrolladores de eInforma
   const tokenUrl = 'https://developers.einforma.com/api/v1/oauth/token'
   
   const requestBody = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: eInformaClientId!,
     client_secret: eInformaClientSecret!,
-    scope: 'api_auth'
+    scope: 'buscar:consultar:empresas'
   })
 
   console.log('🔍 [company-lookup] Enviando request a:', tokenUrl)
@@ -232,8 +235,8 @@ async function getEInformaAccessToken(): Promise<string> {
 async function searchCompanyInEInforma(nif: string, accessToken: string): Promise<CompanyData | null> {
   console.log('🔍 [company-lookup] Buscando empresa en eInforma:', nif)
   
-  // URL CORREGIDA - GET directo por NIF según la documentación
-  const searchUrl = `https://developers.einforma.com/api/v1/companies/${nif}`
+  // URL corregida: usar /report para obtener el informe completo
+  const searchUrl = `https://developers.einforma.com/api/v1/companies/${nif}/report`
   
   console.log('🔍 [company-lookup] Enviando request GET a:', searchUrl)
 
@@ -269,7 +272,7 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
   const searchResult: EInformaCompanyResponse = await response.json()
   console.log('📥 [company-lookup] Respuesta de eInforma:', {
     denominacion: searchResult.denominacion,
-    nif: searchResult.nif,
+    identificativo: searchResult.identificativo,
     situacion: searchResult.situacion
   })
 
@@ -281,13 +284,13 @@ async function searchCompanyInEInforma(nif: string, accessToken: string): Promis
   // Convertir datos de eInforma a nuestro formato
   const companyData: CompanyData = {
     name: searchResult.denominacion || 'Nombre no disponible',
-    nif: searchResult.nif || nif,
-    address_street: searchResult.domicilioSocial?.direccion,
-    address_city: searchResult.domicilioSocial?.localidad,
-    address_postal_code: searchResult.domicilioSocial?.codigoPostal,
-    business_sector: searchResult.actividadPrincipal,
-    legal_representative: searchResult.administradores?.[0]?.nombre,
-    status: searchResult.situacion === 'ACTIVA' ? 'activo' : 'inactivo',
+    nif: searchResult.identificativo || nif,
+    address_street: searchResult.domicilioSocial,
+    address_city: searchResult.localidad,
+    address_postal_code: undefined, // eInforma no separa el código postal
+    business_sector: searchResult.cnae,
+    legal_representative: searchResult.cargoPrincipal,
+    status: (searchResult.situacion === 'Activa' || searchResult.situacion === 'ACTIVA') ? 'activo' : 'inactivo',
     client_type: 'empresa'
   }
 
