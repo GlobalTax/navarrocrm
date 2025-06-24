@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { Search, Building2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Search, Building2, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -16,13 +16,34 @@ interface NifLookupProps {
 export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }: NifLookupProps) => {
   const [nif, setNif] = useState(initialNif)
   const [lastSearchResult, setLastSearchResult] = useState<CompanyData | null>(null)
+  const [searchError, setSearchError] = useState<string | null>(null)
   const { lookupCompany, isLoading } = useCompanyLookup()
 
   const handleSearch = async () => {
+    if (!nif.trim()) {
+      setSearchError('Por favor, introduce un NIF/CIF')
+      return
+    }
+
+    if (!isValidFormat(nif)) {
+      setSearchError('El formato del NIF/CIF no es válido')
+      return
+    }
+
+    setSearchError(null)
+    setLastSearchResult(null)
+
+    console.log('🔍 NifLookup - Iniciando búsqueda:', nif)
+
     const result = await lookupCompany(nif)
     if (result) {
+      console.log('✅ NifLookup - Empresa encontrada:', result)
       setLastSearchResult(result)
+      setSearchError(null)
       onCompanyFound(result)
+    } else {
+      console.log('❌ NifLookup - No se encontró empresa')
+      setSearchError('No se pudo encontrar la empresa')
     }
   }
 
@@ -38,6 +59,10 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
     const cleaned = value.replace(/[\s-]/g, '').toUpperCase()
     if (cleaned.length <= 9) {
       setNif(cleaned)
+      // Limpiar errores al escribir
+      if (searchError) {
+        setSearchError(null)
+      }
     }
   }
 
@@ -50,24 +75,40 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
     return nifRegex.test(cleanNif) || cifRegex.test(cleanNif) || nieRegex.test(cleanNif)
   }
 
+  const getValidationMessage = () => {
+    if (!nif) return null
+    if (!isValidFormat(nif)) {
+      return 'Formato no válido. Ejemplos: B12345678, 12345678Z, X1234567L'
+    }
+    return null
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            placeholder="Ej: B12345678, 12345678Z, X1234567L"
+            placeholder="Introduce NIF/CIF (ej: B12345678, 12345678Z, X1234567L)"
             value={nif}
             onChange={(e) => formatNif(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={disabled || isLoading}
             className={`font-mono ${
-              nif && !isValidFormat(nif) ? 'border-orange-300 focus:border-orange-500' : ''
+              searchError || (nif && !isValidFormat(nif)) 
+                ? 'border-red-300 focus:border-red-500' 
+                : ''
             }`}
           />
-          {nif && !isValidFormat(nif) && (
+          {getValidationMessage() && (
             <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
-              Formato no válido
+              {getValidationMessage()}
+            </p>
+          )}
+          {searchError && (
+            <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              {searchError}
             </p>
           )}
         </div>
@@ -80,11 +121,11 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
           className="shrink-0"
         >
           {isLoading ? (
-            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <Search className="h-4 w-4" />
           )}
-          {isLoading ? 'Buscando...' : 'Buscar empresa'}
+          {isLoading ? 'Buscando...' : 'Buscar'}
         </Button>
       </div>
 
@@ -92,24 +133,43 @@ export const NifLookup = ({ onCompanyFound, initialNif = '', disabled = false }:
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <strong>{lastSearchResult.name}</strong>
-                <div className="flex items-center gap-2 mt-1">
-                  <Building2 className="h-3 w-3" />
-                  <span className="text-xs">{lastSearchResult.nif}</span>
-                  <Badge 
-                    variant={lastSearchResult.status === 'activo' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {lastSearchResult.status === 'activo' ? 'Activa' : 'Inactiva'}
-                  </Badge>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-semibold text-green-900">
+                    {lastSearchResult.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Building2 className="h-3 w-3" />
+                    <span className="text-xs font-mono">{lastSearchResult.nif}</span>
+                    <Badge 
+                      variant={lastSearchResult.status === 'activo' ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {lastSearchResult.status === 'activo' ? 'Activa' : 'Inactiva'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
+              
+              {lastSearchResult.address_street && (
+                <div className="text-xs text-green-700">
+                  📍 {lastSearchResult.address_street}
+                  {lastSearchResult.address_city && `, ${lastSearchResult.address_city}`}
+                  {lastSearchResult.address_postal_code && ` ${lastSearchResult.address_postal_code}`}
+                </div>
+              )}
+              
+              {lastSearchResult.business_sector && (
+                <div className="text-xs text-green-700">
+                  🏢 {lastSearchResult.business_sector}
+                </div>
+              )}
+              
+              <div className="text-xs text-green-700 font-medium">
+                ✅ Datos oficiales del Registro Mercantil cargados correctamente
+              </div>
             </div>
-            <p className="text-xs mt-2 text-green-700">
-              ✅ Datos cargados desde el Registro Mercantil oficial
-            </p>
           </AlertDescription>
         </Alert>
       )}
