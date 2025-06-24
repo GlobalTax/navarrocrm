@@ -101,8 +101,7 @@ const Users = () => {
         description="Administra los usuarios de tu asesoría"
         primaryAction={{
           label: 'Invitar Usuario',
-          onClick: handleInviteUser,
-          icon: UserPlus
+          onClick: handleInviteUser
         }}
       />
 
