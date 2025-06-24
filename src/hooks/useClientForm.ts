@@ -12,6 +12,6 @@ export const useClientForm = (client: Client | null, onClose: () => void) => {
     isEditing,
     isCompanyDataLoaded,
     handleCompanyFound,
-    onSubmit: form.handleSubmit(onSubmit)
+    onSubmit
   }
 }
