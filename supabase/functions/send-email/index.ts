@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,22 +21,32 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log('📧 [Send Email] Iniciando envío de email...');
+    console.log('📧 [Send Email] Iniciando envío de email con Resend...');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const resendApiKey = Deno.env.get('RESEND_API_KEY')!;
     
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY no está configurada');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const resend = new Resend(resendApiKey);
 
     const { to, subject, html, invitationToken }: EmailRequest = await req.json();
 
     console.log('📧 [Send Email] Datos recibidos:', { to, subject, hasToken: !!invitationToken });
 
-    // Por ahora simulamos el envío del email
-    // En producción aquí integrarías con Resend, SendGrid, etc.
-    console.log('📧 [Send Email] Simulando envío de email a:', to);
-    console.log('📧 [Send Email] Asunto:', subject);
-    console.log('📧 [Send Email] Contenido HTML:', html.substring(0, 100) + '...');
+    // Enviar email real con Resend
+    const emailResponse = await resend.emails.send({
+      from: 'CRM Sistema <s.navarro@nrro.es>',
+      to: [to],
+      subject: subject,
+      html: html,
+    });
+
+    console.log('📧 [Send Email] Email enviado exitosamente:', emailResponse);
 
     // Si es una invitación, registrar en log de auditoría
     if (invitationToken) {
@@ -59,13 +70,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Simular delay de envío
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Email enviado exitosamente (simulado)',
-      messageId: `sim_${Date.now()}`
+      message: 'Email enviado exitosamente',
+      messageId: emailResponse.data?.id || emailResponse.id
     }), {
       status: 200,
       headers: {
