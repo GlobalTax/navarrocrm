@@ -44,7 +44,6 @@ export const useCompanyLookup = () => {
       if (error) {
         console.error('❌ useCompanyLookup - Error de función:', error)
         
-        // Mostrar error específico si está disponible
         const errorMessage = error.message || 'Error al consultar los datos empresariales'
         toast.error('Error de búsqueda', {
           description: errorMessage
@@ -64,7 +63,20 @@ export const useCompanyLookup = () => {
       if (!data.success) {
         console.error('❌ useCompanyLookup - Búsqueda sin éxito:', data)
         
-        const errorMessage = data.message || data.error || 'Error desconocido'
+        let errorMessage = 'Error desconocido'
+        
+        if (data.error === 'INVALID_CREDENTIALS') {
+          errorMessage = 'Las credenciales de eInforma no son válidas. Contacta con el administrador del sistema.'
+        } else if (data.error === 'CREDENTIALS_MISSING') {
+          errorMessage = 'Las credenciales de eInforma no están configuradas. Contacta con el administrador del sistema.'
+        } else if (data.error === 'COMPANY_NOT_FOUND') {
+          errorMessage = 'No se encontró ninguna empresa con este NIF/CIF en el Registro Mercantil'
+        } else if (data.error === 'INVALID_FORMAT') {
+          errorMessage = 'El formato del NIF/CIF no es válido'
+        } else {
+          errorMessage = data.message || 'Error al consultar los datos empresariales'
+        }
+        
         toast.error('Búsqueda fallida', {
           description: errorMessage
         })
@@ -98,11 +110,15 @@ export const useCompanyLookup = () => {
         stack: error instanceof Error ? error.stack : undefined
       })
       
-      // Simplificar el manejo de errores sin verificar toast.isActive
+      // Manejo simplificado de errores
       const errorMessage = error instanceof Error ? error.message : 'Error inesperado al buscar la empresa'
-      toast.error('Error de búsqueda', {
-        description: errorMessage
-      })
+      
+      // Solo mostrar toast si es un error no mostrado anteriormente
+      if (!errorMessage.includes('credenciales') && !errorMessage.includes('encontró')) {
+        toast.error('Error de búsqueda', {
+          description: errorMessage
+        })
+      }
       
       return null
     } finally {
