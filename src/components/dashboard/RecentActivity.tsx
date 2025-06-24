@@ -148,7 +148,7 @@ export const RecentActivity = () => {
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
                       {activity.subtitle}
-                      {activity.duration && ` • ${Math.round(activity.duration / 60)}h ${activity.duration % 60}m`}
+                      {activity.type === 'time' && activity.duration && ` • ${Math.round(activity.duration / 60)}h ${activity.duration % 60}m`}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground">
