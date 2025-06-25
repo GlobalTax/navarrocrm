@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 interface CacheItem<T = any> {
@@ -42,8 +41,8 @@ class IntelligentCacheEngine {
 
   constructor(options: CacheOptions = {}) {
     this.options = {
-      maxSize: options.maxSize || 100, // 100MB
-      maxAge: options.maxAge || 24 * 60 * 60 * 1000, // 24 hours
+      maxSize: options.maxSize || 100,
+      maxAge: options.maxAge || 24 * 60 * 60 * 1000,
       maxItems: options.maxItems || 1000,
       strategy: options.strategy || 'LRU'
     }
@@ -198,13 +197,11 @@ class IntelligentCacheEngine {
     request.onsuccess = () => {
       const items = request.result as CacheItem[]
       
-      // Ordenar según la estrategia
       const sortedItems = this.sortByStrategy(items)
       
       let currentSize = items.reduce((sum, item) => sum + item.size, 0)
       let currentCount = items.length
 
-      // Eliminar elementos hasta cumplir límites
       for (const item of sortedItems) {
         if (currentSize + newItemSize <= this.options.maxSize * 1024 * 1024 &&
             currentCount < this.options.maxItems) {
@@ -275,10 +272,14 @@ export const useIntelligentCache = (options?: CacheOptions) => {
   const [cache, setCache] = useState<IntelligentCacheEngine | null>(null)
   const [isReady, setIsReady] = useState(false)
   const [stats, setStats] = useState<CacheStats | null>(null)
+  const initializeRef = useRef(false)
 
   useEffect(() => {
+    if (initializeRef.current) return
+    
     const initCache = async () => {
       try {
+        initializeRef.current = true
         const intelligentCache = new IntelligentCacheEngine(options)
         await intelligentCache.init()
         setCache(intelligentCache)
@@ -293,36 +294,40 @@ export const useIntelligentCache = (options?: CacheOptions) => {
     initCache()
   }, [options])
 
+  // Usar refs para callbacks estables
+  const cacheRef = useRef<IntelligentCacheEngine | null>(null)
+  cacheRef.current = cache
+
   const set = useCallback(async <T>(key: string, value: T, ttl?: number) => {
-    if (!cache) throw new Error('Cache not ready')
-    await cache.set(key, value, ttl)
-    setStats(cache.getStats())
-  }, [cache])
+    if (!cacheRef.current) throw new Error('Cache not ready')
+    await cacheRef.current.set(key, value, ttl)
+    setStats(cacheRef.current.getStats())
+  }, [])
 
   const get = useCallback(async <T>(key: string): Promise<T | null> => {
-    if (!cache) throw new Error('Cache not ready')
-    const result = await cache.get<T>(key)
-    setStats(cache.getStats())
+    if (!cacheRef.current) throw new Error('Cache not ready')
+    const result = await cacheRef.current.get<T>(key)
+    setStats(cacheRef.current.getStats())
     return result
-  }, [cache])
+  }, [])
 
   const remove = useCallback(async (key: string) => {
-    if (!cache) throw new Error('Cache not ready')
-    await cache.delete(key)
-    setStats(cache.getStats())
-  }, [cache])
+    if (!cacheRef.current) throw new Error('Cache not ready')
+    await cacheRef.current.delete(key)
+    setStats(cacheRef.current.getStats())
+  }, [])
 
   const clear = useCallback(async () => {
-    if (!cache) throw new Error('Cache not ready')
-    await cache.clear()
-    setStats(cache.getStats())
-  }, [cache])
+    if (!cacheRef.current) throw new Error('Cache not ready')
+    await cacheRef.current.clear()
+    setStats(cacheRef.current.getStats())
+  }, [])
 
   const cleanup = useCallback(async () => {
-    if (!cache) throw new Error('Cache not ready')
-    await cache.cleanup()
-    setStats(cache.getStats())
-  }, [cache])
+    if (!cacheRef.current) throw new Error('Cache not ready')
+    await cacheRef.current.cleanup()
+    setStats(cacheRef.current.getStats())
+  }, [])
 
   // Limpieza automática cada hora
   useEffect(() => {

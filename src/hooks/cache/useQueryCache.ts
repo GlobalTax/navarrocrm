@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useIntelligentCache } from './useIntelligentCache'
 
 interface QueryCacheOptions {
@@ -20,7 +20,8 @@ export const useQueryCache = <T>(
   const [data, setData] = useState<T | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const [lastFetch, setLastFetch] = useState<number>(0)
+  const lastFetchRef = useRef<number>(0)
+  const hasFetchedRef = useRef(false)
 
   const {
     ttl = 5 * 60 * 1000, // 5 minutos
@@ -29,6 +30,7 @@ export const useQueryCache = <T>(
     refetchOnWindowFocus = false
   } = options
 
+  // Estabilizar fetchData usando refs
   const fetchData = useCallback(async (forceRefresh = false) => {
     if (!isReady) return
 
@@ -39,7 +41,7 @@ export const useQueryCache = <T>(
       const now = Date.now()
       
       // Si no es refresh forzado y los datos no están stale, usar cache
-      if (!forceRefresh && (now - lastFetch) < staleTime) {
+      if (!forceRefresh && (now - lastFetchRef.current) < staleTime) {
         const cached = await get<T>(queryKey)
         if (cached) {
           setData(cached)
@@ -55,7 +57,7 @@ export const useQueryCache = <T>(
       // Guardar en cache
       await set(queryKey, result, ttl)
       setData(result)
-      setLastFetch(now)
+      lastFetchRef.current = now
       
       return result
     } catch (err) {
@@ -71,14 +73,15 @@ export const useQueryCache = <T>(
     } finally {
       setIsLoading(false)
     }
-  }, [queryKey, queryFn, get, set, isReady, ttl, staleTime, lastFetch])
+  }, [queryKey, queryFn, get, set, isReady, ttl, staleTime])
 
-  // Fetch inicial
+  // Fetch inicial solo una vez
   useEffect(() => {
-    if (refetchOnMount) {
+    if (refetchOnMount && !hasFetchedRef.current && isReady) {
+      hasFetchedRef.current = true
       fetchData()
     }
-  }, [fetchData, refetchOnMount])
+  }, [refetchOnMount, isReady, fetchData])
 
   // Refetch en focus de ventana
   useEffect(() => {
@@ -86,14 +89,14 @@ export const useQueryCache = <T>(
 
     const handleFocus = () => {
       const now = Date.now()
-      if ((now - lastFetch) > staleTime) {
+      if ((now - lastFetchRef.current) > staleTime) {
         fetchData()
       }
     }
 
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
-  }, [refetchOnWindowFocus, fetchData, lastFetch, staleTime])
+  }, [refetchOnWindowFocus, fetchData, staleTime])
 
   const invalidate = useCallback(async () => {
     if (!isReady) return
@@ -109,13 +112,15 @@ export const useQueryCache = <T>(
     }
   }, [get, queryKey, fetchData, isReady])
 
+  const isStale = (Date.now() - lastFetchRef.current) > staleTime
+
   return {
     data,
     isLoading,
     error,
-    refetch: () => fetchData(true),
+    refetch: useCallback(() => fetchData(true), [fetchData]),
     invalidate,
     prefetch,
-    isStale: (Date.now() - lastFetch) > staleTime
+    isStale
   }
 }
