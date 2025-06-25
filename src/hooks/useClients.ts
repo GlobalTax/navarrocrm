@@ -1,5 +1,5 @@
 
-import { useContacts } from './useContacts'
+import { useContacts, Contact } from './useContacts'
 
 // Backward compatibility hook for existing components
 export const useClients = () => {
@@ -8,6 +8,8 @@ export const useClients = () => {
     filteredContacts,
     isLoading, 
     error, 
+    hasMore,
+    loadMore,
     refetch,
     searchTerm,
     setSearchTerm,
@@ -18,14 +20,16 @@ export const useClients = () => {
   } = useContacts()
   
   // Filter contacts to only show those with relationship_type 'cliente'
-  const clients = contacts.filter(contact => contact.relationship_type === 'cliente')
-  const filteredClients = filteredContacts.filter(contact => contact.relationship_type === 'cliente')
+  const clients = contacts.filter((contact: Contact) => contact.relationship_type === 'cliente')
+  const filteredClients = filteredContacts.filter((contact: Contact) => contact.relationship_type === 'cliente')
 
   return {
     clients,
     filteredClients,
     isLoading,
     error,
+    hasMore,
+    loadMore,
     refetch,
     searchTerm,
     setSearchTerm,

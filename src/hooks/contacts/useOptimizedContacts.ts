@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import { useOptimizedQuery, useOptimizedSearch } from '@/hooks/database'
 import { QueryOptions } from '@/services/database/DatabaseOptimizer'
+import { Contact } from '@/hooks/useContacts'
 
 interface ContactsFilters {
   status?: string
@@ -37,9 +38,9 @@ export const useOptimizedContacts = (
   }
 
   // Query principal o búsqueda
-  const queryResult = useOptimizedQuery('contacts', queryOptions)
+  const queryResult = useOptimizedQuery<Contact>('contacts', queryOptions)
   
-  const searchResult = useOptimizedSearch(
+  const searchResult = useOptimizedSearch<Contact>(
     'contacts',
     filters.searchTerm || '',
     ['name', 'email', 'phone', 'dni_nif'],
