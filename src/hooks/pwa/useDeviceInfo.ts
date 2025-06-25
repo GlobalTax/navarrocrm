@@ -22,8 +22,8 @@ export const useDeviceInfo = (isInstalled: boolean) => {
     return {
       name: 'CRM Asesoría',
       version: '1.0.0',
-      build: process.env.REACT_APP_BUILD_ID || 'dev',
-      environment: process.env.NODE_ENV,
+      build: import.meta.env.VITE_BUILD_ID || 'dev',
+      environment: import.meta.env.MODE || 'development',
       isPWA: isInstalled,
       isStandalone: window.matchMedia('(display-mode: standalone)').matches
     }
