@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics'
 
 interface TimeTrackingWithAnalyticsProps {
