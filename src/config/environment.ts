@@ -27,7 +27,23 @@ export const ENV_CONFIG = {
     enableTracking: true,
     enableErrorTracking: true,
     enablePerformanceTracking: true,
-    sampleRate: 1.0
+    sampleRate: 1.0,
+    enabled: true,
+    batchSize: 10,
+    flushInterval: 30000, // 30 segundos
+    endpoint: '/api/analytics'
+  },
+  database: {
+    slowQueryThreshold: 1000, // 1 segundo
+    cacheEnabled: true,
+    defaultPageSize: 20
+  },
+  images: {
+    cloudinaryUrl: undefined as string | undefined,
+    enableOptimization: true,
+    enableWebP: true,
+    enableAVIF: true,
+    defaultQuality: 80
   }
 } as const
 
