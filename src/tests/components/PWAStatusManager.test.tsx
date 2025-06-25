@@ -1,6 +1,5 @@
 
-import { render } from '@testing-library/react'
-import { screen } from '@testing-library/dom'
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PWAStatusManager } from '@/components/pwa/PWAStatusManager'
 
@@ -24,7 +23,29 @@ const mockUsePWA = vi.mocked(await import('@/hooks/usePWA')).usePWA
 describe('PWAStatusManager', () => {
   const defaultMockState = {
     isInstalled: false,
-    isInstallable: true
+    isInstallable: true,
+    isOnline: true,
+    isUpdateAvailable: false,
+    isUpdateReady: false,
+    deferredPrompt: null,
+    installPWA: vi.fn().mockResolvedValue(true),
+    updatePWA: vi.fn(),
+    syncData: vi.fn(),
+    getDeviceInfo: vi.fn().mockReturnValue({
+      platform: 'Web',
+      isMobile: false
+    }),
+    getAppInfo: vi.fn().mockReturnValue({
+      name: 'CRM Asesoría',
+      version: '1.0.0'
+    }),
+    checkConnectivity: vi.fn().mockResolvedValue(true),
+    clearCache: vi.fn().mockResolvedValue(true),
+    getCacheStats: vi.fn().mockResolvedValue([]),
+    requestBackgroundSync: vi.fn().mockResolvedValue(true),
+    installApp: vi.fn().mockResolvedValue(true),
+    handleFileOpen: vi.fn(),
+    handleProtocolAction: vi.fn()
   }
 
   beforeEach(() => {
@@ -56,6 +77,7 @@ describe('PWAStatusManager', () => {
 
   it('no debe renderizar cuando la app está instalada y no se muestran otros indicadores', () => {
     mockUsePWA.mockReturnValue({
+      ...defaultMockState,
       isInstalled: true,
       isInstallable: false
     })
@@ -72,6 +94,7 @@ describe('PWAStatusManager', () => {
 
   it('debe renderizar cuando la app está instalada pero se muestran otros indicadores', () => {
     mockUsePWA.mockReturnValue({
+      ...defaultMockState,
       isInstalled: true,
       isInstallable: false
     })

@@ -37,11 +37,12 @@ describe('usePWA', () => {
   const mockRegistrationRef = { current: null }
   const mockDeferredPromptRef = { current: null }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks()
     
     // Mock de usePWAState
-    vi.mocked(await import('@/hooks/pwa/usePWAState')).usePWAState.mockReturnValue({
+    const { usePWAState } = await import('@/hooks/pwa/usePWAState')
+    vi.mocked(usePWAState).mockReturnValue({
       pwaState: {
         isInstalled: false,
         isInstallable: true,
@@ -54,13 +55,16 @@ describe('usePWA', () => {
     })
 
     // Mock de useServiceWorker
-    vi.mocked(await import('@/hooks/pwa/useServiceWorker')).useServiceWorker.mockReturnValue(mockRegistrationRef)
+    const { useServiceWorker } = await import('@/hooks/pwa/useServiceWorker')
+    vi.mocked(useServiceWorker).mockReturnValue(mockRegistrationRef)
 
     // Mock de useInstallPrompt
-    vi.mocked(await import('@/hooks/pwa/useInstallPrompt')).useInstallPrompt.mockReturnValue(mockDeferredPromptRef)
+    const { useInstallPrompt } = await import('@/hooks/pwa/useInstallPrompt')
+    vi.mocked(useInstallPrompt).mockReturnValue(mockDeferredPromptRef)
 
     // Mock de usePWAActions
-    vi.mocked(await import('@/hooks/pwa/usePWAActions')).usePWAActions.mockReturnValue({
+    const { usePWAActions } = await import('@/hooks/pwa/usePWAActions')
+    vi.mocked(usePWAActions).mockReturnValue({
       installPWA: vi.fn().mockResolvedValue(true),
       updatePWA: vi.fn(),
       checkConnectivity: vi.fn().mockResolvedValue(true),
@@ -69,13 +73,15 @@ describe('usePWA', () => {
     })
 
     // Mock de useCacheManagement
-    vi.mocked(await import('@/hooks/pwa/useCacheManagement')).useCacheManagement.mockReturnValue({
+    const { useCacheManagement } = await import('@/hooks/pwa/useCacheManagement')
+    vi.mocked(useCacheManagement).mockReturnValue({
       clearCache: vi.fn().mockResolvedValue(true),
       getCacheStats: vi.fn().mockResolvedValue([])
     })
 
     // Mock de useDeviceInfo
-    vi.mocked(await import('@/hooks/pwa/useDeviceInfo')).useDeviceInfo.mockReturnValue({
+    const { useDeviceInfo } = await import('@/hooks/pwa/useDeviceInfo')
+    vi.mocked(useDeviceInfo).mockReturnValue({
       getDeviceInfo: vi.fn().mockReturnValue({
         platform: 'Web',
         isMobile: false
@@ -87,7 +93,8 @@ describe('usePWA', () => {
     })
 
     // Mock de usePWAFileHandlers
-    vi.mocked(await import('@/hooks/pwa/usePWAFileHandlers')).usePWAFileHandlers.mockReturnValue({
+    const { usePWAFileHandlers } = await import('@/hooks/pwa/usePWAFileHandlers')
+    vi.mocked(usePWAFileHandlers).mockReturnValue({
       handleFileOpen: vi.fn(),
       handleProtocolAction: vi.fn()
     })

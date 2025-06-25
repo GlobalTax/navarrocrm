@@ -1,6 +1,6 @@
 
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { vi, beforeEach } from 'vitest'
 
 // Mock de matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -90,7 +90,7 @@ Object.defineProperty(window, 'PushManager', {
   },
 })
 
-// Mock de fetch
+// Mock completo de fetch
 global.fetch = vi.fn()
 
 // Mock de ResizeObserver
@@ -104,11 +104,23 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 beforeEach(() => {
   vi.clearAllMocks()
   
-  // Reset fetch mock
+  // Reset fetch mock con Response completo
   vi.mocked(fetch).mockReset()
   vi.mocked(fetch).mockResolvedValue({
     ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers(),
+    url: '',
+    redirected: false,
+    type: 'default',
+    body: null,
+    bodyUsed: false,
+    arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)),
+    blob: vi.fn().mockResolvedValue(new Blob()),
+    formData: vi.fn().mockResolvedValue(new FormData()),
     json: vi.fn().mockResolvedValue({}),
     text: vi.fn().mockResolvedValue(''),
+    clone: vi.fn().mockReturnThis(),
   } as Response)
 })
