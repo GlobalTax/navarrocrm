@@ -39,9 +39,9 @@ export const useDashboardStats = () => {
       console.log('📊 Obteniendo estadísticas para org:', user.org_id)
 
       try {
-        // Consulta optimizada: obtener todos los datos en una sola llamada
+        // Intentar usar la función RPC optimizada
         const { data: statsData, error: statsError } = await supabase
-          .rpc('get_dashboard_stats', { 
+          .rpc('get_dashboard_stats' as any, { 
             org_id_param: user.org_id,
             current_month: new Date().toISOString().slice(0, 7) // YYYY-MM
           })
@@ -51,7 +51,7 @@ export const useDashboardStats = () => {
           throw statsError
         }
 
-        // Si la función RPC no existe, usar consultas individuales como fallback
+        // Si la función RPC no existe o no devuelve datos, usar consultas individuales como fallback
         if (!statsData || statsData.length === 0) {
           console.log('📊 Usando fallback para estadísticas')
           return await getStatsFallback(user.org_id)
@@ -94,13 +94,16 @@ export const useDashboardStats = () => {
     const [casesResult, contactsResult, timeEntriesResult] = await Promise.all([
       supabase
         .from('cases')
-        .select('id, status, created_at'),
+        .select('id, status, created_at')
+        .eq('org_id', orgId),
       supabase
         .from('contacts')
-        .select('id, created_at'),
+        .select('id, created_at')
+        .eq('org_id', orgId),
       supabase
         .from('time_entries')
         .select('duration_minutes, is_billable, created_at')
+        .eq('org_id', orgId)
     ])
 
     if (casesResult.error) throw casesResult.error
