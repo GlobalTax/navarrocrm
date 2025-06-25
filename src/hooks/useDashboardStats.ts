@@ -15,6 +15,19 @@ export interface DashboardStats {
   thisMonthHours: number
 }
 
+// Tipo para la respuesta JSON de la función RPC
+interface DashboardStatsResponse {
+  totalCases: number
+  activeCases: number
+  totalContacts: number
+  totalTimeEntries: number
+  totalBillableHours: number
+  totalNonBillableHours: number
+  thisMonthCases: number
+  thisMonthContacts: number
+  thisMonthHours: number
+}
+
 export const useDashboardStats = () => {
   const { user } = useApp()
 
@@ -57,16 +70,19 @@ export const useDashboardStats = () => {
           return await getStatsFallback(user.org_id)
         }
 
+        // Hacer type assertion para que TypeScript entienda el tipo
+        const typedStatsData = statsData as DashboardStatsResponse
+
         const result = {
-          totalCases: statsData.totalCases || 0,
-          activeCases: statsData.activeCases || 0,
-          totalContacts: statsData.totalContacts || 0,
-          totalTimeEntries: statsData.totalTimeEntries || 0,
-          totalBillableHours: Math.round((statsData.totalBillableHours || 0) * 100) / 100,
-          totalNonBillableHours: Math.round((statsData.totalNonBillableHours || 0) * 100) / 100,
-          thisMonthCases: statsData.thisMonthCases || 0,
-          thisMonthContacts: statsData.thisMonthContacts || 0,
-          thisMonthHours: Math.round((statsData.thisMonthHours || 0) * 100) / 100,
+          totalCases: typedStatsData.totalCases || 0,
+          activeCases: typedStatsData.activeCases || 0,
+          totalContacts: typedStatsData.totalContacts || 0,
+          totalTimeEntries: typedStatsData.totalTimeEntries || 0,
+          totalBillableHours: Math.round((typedStatsData.totalBillableHours || 0) * 100) / 100,
+          totalNonBillableHours: Math.round((typedStatsData.totalNonBillableHours || 0) * 100) / 100,
+          thisMonthCases: typedStatsData.thisMonthCases || 0,
+          thisMonthContacts: typedStatsData.thisMonthContacts || 0,
+          thisMonthHours: Math.round((typedStatsData.thisMonthHours || 0) * 100) / 100,
         }
 
         console.log('✅ Estadísticas obtenidas:', result)
