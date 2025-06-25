@@ -1,5 +1,4 @@
 
-
 import { Client } from '@/hooks/useClients'
 import { ClientFormDialog } from './ClientFormDialog'
 import { ClientDetailDialog } from './ClientDetailDialog'
@@ -33,6 +32,13 @@ export const ClientsDialogManager = ({
   onExportClose,
   onBulkUploadSuccess
 }: ClientsDialogManagerProps) => {
+  // Convertir Contact a Client para compatibilidad con formularios
+  const clientForForm = selectedClient ? {
+    ...selectedClient,
+    email: selectedClient.email || '',
+    phone: selectedClient.phone || '',
+  } : null
+
   // Convertir Contact a Client para compatibilidad con ClientDetailDialog
   const clientForDetail = selectedClient ? {
     ...selectedClient,
@@ -43,7 +49,7 @@ export const ClientsDialogManager = ({
   return (
     <>
       <ClientFormDialog
-        client={selectedClient}
+        client={clientForForm as any}
         open={isCreateDialogOpen || isEditDialogOpen}
         onClose={onClose}
       />
@@ -68,4 +74,3 @@ export const ClientsDialogManager = ({
     </>
   )
 }
-
