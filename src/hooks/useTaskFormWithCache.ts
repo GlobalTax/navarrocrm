@@ -44,52 +44,77 @@ export const useTaskFormWithCache = ({ task, isOpen, onClose }: UseTaskFormProps
   })
 
   useEffect(() => {
-    if (task) {
-      // Editing existing task - load from task data
-      const taskData = {
-        title: task.title || '',
-        description: task.description || '',
-        priority: task.priority || 'medium',
-        status: task.status || 'pending',
-        due_date: task.due_date ? task.due_date.split('T')[0] : '',
-        start_date: task.start_date ? task.start_date.split('T')[0] : '',
-        estimated_hours: task.estimated_hours || 0,
-        case_id: task.case_id || '',
-        client_id: task.client_id || '',
-        assigned_users: task.task_assignments?.map((assignment: any) => assignment.user_id) || []
-      }
-      setFormData(taskData)
-    } else if (isOpen) {
-      // New task - try to load from cache first
-      const cachedData = formCache.loadFormData()
-      if (cachedData) {
-        console.log('📂 Restored form data from cache')
-        setFormData(cachedData)
-      } else {
-        // Reset to default values
-        setFormData({
-          title: '',
-          description: '',
-          priority: 'medium',
-          status: 'pending',
-          due_date: '',
-          start_date: '',
-          estimated_hours: 0,
-          case_id: '',
-          client_id: '',
-          assigned_users: []
-        })
+    const loadInitialData = async () => {
+      if (task) {
+        // Editing existing task - load from task data
+        const taskData = {
+          title: task.title || '',
+          description: task.description || '',
+          priority: task.priority || 'medium',
+          status: task.status || 'pending',
+          due_date: task.due_date ? task.due_date.split('T')[0] : '',
+          start_date: task.start_date ? task.start_date.split('T')[0] : '',
+          estimated_hours: task.estimated_hours || 0,
+          case_id: task.case_id || '',
+          client_id: task.client_id || '',
+          assigned_users: task.task_assignments?.map((assignment: any) => assignment.user_id) || []
+        }
+        setFormData(taskData)
+      } else if (isOpen) {
+        // New task - try to load from cache first
+        try {
+          const cachedData = await formCache.loadFormData()
+          if (cachedData) {
+            console.log('📂 Restored form data from cache')
+            setFormData(cachedData)
+          } else {
+            // Reset to default values
+            setFormData({
+              title: '',
+              description: '',
+              priority: 'medium',
+              status: 'pending',
+              due_date: '',
+              start_date: '',
+              estimated_hours: 0,
+              case_id: '',
+              client_id: '',
+              assigned_users: []
+            })
+          }
+        } catch (error) {
+          console.error('Error loading cached form data:', error)
+          // Reset to default values on error
+          setFormData({
+            title: '',
+            description: '',
+            priority: 'medium',
+            status: 'pending',
+            due_date: '',
+            start_date: '',
+            estimated_hours: 0,
+            case_id: '',
+            client_id: '',
+            assigned_users: []
+          })
+        }
       }
     }
+
+    loadInitialData()
   }, [task, isOpen, formCache])
 
-  const handleInputChange = (field: string, value: string | number | string[]) => {
+  const handleInputChange = async (field: string, value: string | number | string[]) => {
     const newFormData = { ...formData, [field]: value }
     setFormData(newFormData)
     
     // Auto-save for new tasks only (not when editing existing tasks)
     if (!task) {
-      formCache.saveFormData(newFormData)
+      try {
+        await formCache.saveFormData(newFormData)
+      } catch (error) {
+        console.error('Error saving form data to cache:', error)
+      }
     }
   }
 
@@ -130,8 +155,12 @@ export const useTaskFormWithCache = ({ task, isOpen, onClose }: UseTaskFormProps
         await createTask(taskData)
         
         // Clear the form cache after successful creation
-        formCache.clearFormData()
-        console.log('✅ Form cache cleared after successful task creation')
+        try {
+          await formCache.clearFormData()
+          console.log('✅ Form cache cleared after successful task creation')
+        } catch (error) {
+          console.error('Error clearing form cache:', error)
+        }
       }
 
       onClose()
@@ -141,7 +170,22 @@ export const useTaskFormWithCache = ({ task, isOpen, onClose }: UseTaskFormProps
   }
 
   // Check if there's saved form data
-  const hasSavedData = formCache.hasSavedData()
+  const checkSavedData = async (): Promise<boolean> => {
+    try {
+      return await formCache.hasSavedData()
+    } catch (error) {
+      console.error('Error checking saved data:', error)
+      return false
+    }
+  }
+
+  const clearSavedData = async () => {
+    try {
+      await formCache.clearFormData()
+    } catch (error) {
+      console.error('Error clearing saved data:', error)
+    }
+  }
 
   return {
     formData,
@@ -149,7 +193,7 @@ export const useTaskFormWithCache = ({ task, isOpen, onClose }: UseTaskFormProps
     handleSubmit,
     isCreating,
     isUpdating,
-    hasSavedData,
-    clearSavedData: formCache.clearFormData
+    hasSavedData: checkSavedData,
+    clearSavedData
   }
 }
