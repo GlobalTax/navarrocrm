@@ -1,6 +1,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { useApp } from '@/contexts/AppContext'
+import { useAdvancedAnalytics } from './analytics/useAdvancedAnalytics'
 
 interface AnalyticsEvent {
   event: string
@@ -43,6 +44,7 @@ interface UserBehavior {
 
 export const useAnalytics = () => {
   const { user } = useApp()
+  const advancedAnalytics = useAdvancedAnalytics()
   const sessionId = useRef<string>(generateSessionId())
   const events = useRef<AnalyticsEvent[]>([])
   const pageViews = useRef<PageView[]>([])
@@ -61,7 +63,7 @@ export const useAnalytics = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
 
-  // Trackear evento
+  // Trackear evento (usa el sistema avanzado)
   const trackEvent = useCallback((
     category: string,
     action: string,
@@ -69,6 +71,14 @@ export const useAnalytics = () => {
     value?: number,
     properties?: Record<string, any>
   ) => {
+    // Usar sistema avanzado
+    advancedAnalytics.trackEvent(category, action, {
+      label,
+      value,
+      ...properties
+    })
+
+    // Mantener compatibilidad con sistema legacy
     const event: AnalyticsEvent = {
       event: 'custom_event',
       category,
@@ -85,12 +95,14 @@ export const useAnalytics = () => {
     userBehavior.current.clicks++
     userBehavior.current.lastActivity = Date.now()
 
-    // Enviar a servicio de analytics
-    sendToAnalyticsService(event)
-  }, [user?.id])
+  }, [user?.id, advancedAnalytics])
 
-  // Trackear vista de página
+  // Trackear vista de página (usa el sistema avanzado)
   const trackPageView = useCallback((path: string, title: string) => {
+    // Usar sistema avanzado
+    advancedAnalytics.trackPageView(path, title)
+
+    // Mantener compatibilidad con sistema legacy
     const pageView: PageView = {
       path,
       title,
@@ -111,19 +123,9 @@ export const useAnalytics = () => {
       userBehavior.current.timeOnSite += duration
     }
 
-    sendToAnalyticsService({
-      event: 'page_view',
-      category: 'navigation',
-      action: 'page_view',
-      label: path,
-      timestamp: Date.now(),
-      userId: user?.id,
-      sessionId: sessionId.current,
-      properties: { title, path }
-    })
-  }, [user?.id])
+  }, [user?.id, advancedAnalytics])
 
-  // Trackear métrica de performance
+  // Trackear métrica de performance (usa el sistema avanzado automáticamente)
   const trackPerformance = useCallback((
     name: string,
     value: number,
@@ -140,25 +142,30 @@ export const useAnalytics = () => {
 
     performanceMetrics.current.push(metric)
 
-    sendToAnalyticsService({
-      event: 'performance',
-      category: 'performance',
-      action: 'metric',
-      label: name,
+    // El sistema avanzado ya captura métricas automáticamente
+    // pero también permitimos tracking manual
+    advancedAnalytics.trackEvent('performance', 'manual_metric', {
+      metricName: name,
       value,
-      timestamp: Date.now(),
-      userId: user?.id,
-      sessionId: sessionId.current,
-      properties: { unit }
+      unit
     })
-  }, [user?.id])
 
-  // Trackear error
+  }, [user?.id, advancedAnalytics])
+
+  // Trackear error (usa el sistema avanzado automáticamente)
   const trackError = useCallback((
     error: Error,
     context?: string,
     properties?: Record<string, any>
   ) => {
+    advancedAnalytics.trackEvent('error', 'manual_error', {
+      errorMessage: error.message,
+      errorStack: error.stack,
+      context,
+      ...properties
+    })
+
+    // Mantener en sistema legacy
     const event: AnalyticsEvent = {
       event: 'error',
       category: 'error',
@@ -175,8 +182,7 @@ export const useAnalytics = () => {
     }
 
     events.current.push(event)
-    sendToAnalyticsService(event)
-  }, [user?.id])
+  }, [user?.id, advancedAnalytics])
 
   // Trackear conversión
   const trackConversion = useCallback((
@@ -184,6 +190,11 @@ export const useAnalytics = () => {
     value?: number,
     properties?: Record<string, any>
   ) => {
+    advancedAnalytics.trackEvent('conversion', conversionType, {
+      value,
+      ...properties
+    })
+
     const event: AnalyticsEvent = {
       event: 'conversion',
       category: 'conversion',
@@ -196,35 +207,7 @@ export const useAnalytics = () => {
     }
 
     events.current.push(event)
-    sendToAnalyticsService(event)
-  }, [user?.id])
-
-  // Enviar datos a servicio de analytics
-  const sendToAnalyticsService = useCallback((event: AnalyticsEvent) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📊 Analytics Event:', event)
-    }
-
-    // Ejemplo con Google Analytics 4
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', event.action, {
-        event_category: event.category,
-        event_label: event.label,
-        value: event.value,
-        custom_parameters: event.properties
-      })
-    }
-
-    // Ejemplo con Mixpanel
-    if (typeof window !== 'undefined' && (window as any).mixpanel) {
-      (window as any).mixpanel.track(event.action, {
-        category: event.category,
-        label: event.label,
-        value: event.value,
-        ...event.properties
-      })
-    }
-  }, [])
+  }, [user?.id, advancedAnalytics])
 
   // Obtener métricas de uso
   const getUsageMetrics = useCallback(() => {
@@ -269,59 +252,6 @@ export const useAnalytics = () => {
     }
   }, [user?.id])
 
-  // Trackear métricas de performance automáticamente
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    // Trackear métricas de Web Vitals
-    const trackWebVitals = () => {
-      // LCP (Largest Contentful Paint)
-      if ('PerformanceObserver' in window) {
-        try {
-          new PerformanceObserver((list) => {
-            const entries = list.getEntries()
-            const lastEntry = entries[entries.length - 1]
-            if (lastEntry) {
-              trackPerformance('LCP', lastEntry.startTime, 'ms')
-            }
-          }).observe({ entryTypes: ['largest-contentful-paint'] })
-        } catch (e) {
-          console.warn('LCP tracking not supported')
-        }
-
-        // FID (First Input Delay)
-        try {
-          new PerformanceObserver((list) => {
-            const entries = list.getEntries()
-            entries.forEach((entry) => {
-              trackPerformance('FID', (entry as any).processingStart - entry.startTime, 'ms')
-            })
-          }).observe({ entryTypes: ['first-input'] })
-        } catch (e) {
-          console.warn('FID tracking not supported')
-        }
-
-        // CLS (Cumulative Layout Shift)
-        try {
-          new PerformanceObserver((list) => {
-            let clsValue = 0
-            const entries = list.getEntries()
-            entries.forEach((entry: any) => {
-              if (!entry.hadRecentInput) {
-                clsValue += entry.value
-              }
-            })
-            trackPerformance('CLS', clsValue, 'score')
-          }).observe({ entryTypes: ['layout-shift'] })
-        } catch (e) {
-          console.warn('CLS tracking not supported')
-        }
-      }
-    }
-
-    trackWebVitals()
-  }, [trackPerformance])
-
   // Trackear actividad del usuario
   useEffect(() => {
     const updateActivity = () => {
@@ -349,6 +279,9 @@ export const useAnalytics = () => {
     getUsageMetrics,
     getSessionEvents,
     getPerformanceMetrics,
-    clearSessionData
+    clearSessionData,
+    
+    // Compatibilidad con sistema avanzado
+    ...advancedAnalytics
   }
 }

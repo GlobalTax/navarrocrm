@@ -65,6 +65,234 @@ export type Database = {
           },
         ]
       }
+      analytics_errors: {
+        Row: {
+          context_data: Json | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context_data?: Json | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context_data?: Json | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          org_id?: string
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          event_type: string
+          id: string
+          org_id: string
+          page_title: string | null
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          event_type: string
+          id?: string
+          org_id: string
+          page_title?: string | null
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          org_id?: string
+          page_title?: string | null
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_interactions: {
+        Row: {
+          created_at: string
+          element_path: string | null
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          element_path?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          element_path?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+          org_id?: string
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_performance: {
+        Row: {
+          created_at: string
+          cumulative_layout_shift: number | null
+          dom_content_loaded: number | null
+          first_contentful_paint: number | null
+          first_input_delay: number | null
+          id: string
+          largest_contentful_paint: number | null
+          load_time: number | null
+          org_id: string
+          page_url: string
+          session_id: string
+          time_to_interactive: number | null
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          cumulative_layout_shift?: number | null
+          dom_content_loaded?: number | null
+          first_contentful_paint?: number | null
+          first_input_delay?: number | null
+          id?: string
+          largest_contentful_paint?: number | null
+          load_time?: number | null
+          org_id: string
+          page_url: string
+          session_id: string
+          time_to_interactive?: number | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          cumulative_layout_shift?: number | null
+          dom_content_loaded?: number | null
+          first_contentful_paint?: number | null
+          first_input_delay?: number | null
+          id?: string
+          largest_contentful_paint?: number | null
+          load_time?: number | null
+          org_id?: string
+          page_url?: string
+          session_id?: string
+          time_to_interactive?: number | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_sessions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          errors_count: number | null
+          events_count: number | null
+          id: string
+          ip_address: unknown | null
+          org_id: string
+          page_views: number | null
+          session_id: string
+          start_time: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          errors_count?: number | null
+          events_count?: number | null
+          id?: string
+          ip_address?: unknown | null
+          org_id: string
+          page_views?: number | null
+          session_id: string
+          start_time: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          errors_count?: number | null
+          events_count?: number | null
+          id?: string
+          ip_address?: unknown | null
+          org_id?: string
+          page_views?: number | null
+          session_id?: string
+          start_time?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           attendees_emails: string[] | null
