@@ -81,7 +81,7 @@ export function CaseTable({
                 className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
               />
             </TableHead>
-            <TableHead>Nº Expediente</TableHead>
+            <TableHead>ID Expediente</TableHead>
             <TableHead>Título</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Área de Práctica</TableHead>
@@ -110,8 +110,8 @@ export function CaseTable({
                 </TableCell>
                 <TableCell className="font-medium">
                   <SearchHighlight
-                    text={case_.matter_number || 'Sin número'}
-                    matches={getHighlights(case_, 'matter_number')}
+                    text={case_.id.slice(0, 8)}
+                    matches={getHighlights(case_, 'id')}
                   />
                 </TableCell>
                 <TableCell>

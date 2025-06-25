@@ -3,7 +3,7 @@ import { useIntelligentSearch } from './useIntelligentSearch'
 
 export const useCaseSearch = (cases: any[]) => {
   return useIntelligentSearch(cases, {
-    searchFields: ['title', 'description', 'practice_area', 'matter_number'],
+    searchFields: ['title', 'description', 'practice_area'],
     filters: {
       status: { 
         type: 'select',
@@ -14,7 +14,7 @@ export const useCaseSearch = (cases: any[]) => {
       },
       billing_method: { 
         type: 'select',
-        options: ['hourly', 'fixed', 'retainer']
+        options: ['hourly', 'fixed', 'contingency', 'retainer']
       }
     },
     fuzzySearch: true,
