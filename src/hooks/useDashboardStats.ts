@@ -1,5 +1,5 @@
 
-import { useQuery } from '@tanstack/react-query'
+import { useQueryCache } from '@/hooks/cache/useQueryCache'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 
@@ -15,7 +15,6 @@ export interface DashboardStats {
   thisMonthHours: number
 }
 
-// Tipo para la respuesta JSON de la función RPC
 interface DashboardStatsResponse {
   totalCases: number
   activeCases: number
@@ -31,9 +30,9 @@ interface DashboardStatsResponse {
 export const useDashboardStats = () => {
   const { user } = useApp()
 
-  const { data: stats, isLoading, error, refetch } = useQuery({
-    queryKey: ['dashboard-stats', user?.org_id],
-    queryFn: async (): Promise<DashboardStats> => {
+  const { data: stats, isLoading, error, refetch, invalidate } = useQueryCache(
+    `dashboard-stats-${user?.org_id}`,
+    async (): Promise<DashboardStats> => {
       if (!user?.org_id) {
         console.log('📊 No org_id disponible para obtener estadísticas')
         return {
@@ -85,7 +84,7 @@ export const useDashboardStats = () => {
           thisMonthHours: Math.round((typedStatsData.thisMonthHours || 0) * 100) / 100,
         }
 
-        console.log('✅ Estadísticas obtenidas:', result)
+        console.log('✅ Estadísticas obtenidas y cacheadas:', result)
         return result
 
       } catch (error) {
@@ -94,10 +93,13 @@ export const useDashboardStats = () => {
         return await getStatsFallback(user.org_id)
       }
     },
-    enabled: !!user?.org_id,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
-  })
+    {
+      ttl: 5 * 60 * 1000, // 5 minutos en cache
+      staleTime: 30 * 1000, // 30 segundos stale time
+      refetchOnMount: true,
+      refetchOnWindowFocus: false
+    }
+  )
 
   // Función fallback para cuando no existe la función RPC
   const getStatsFallback = async (orgId: string): Promise<DashboardStats> => {
@@ -182,6 +184,7 @@ export const useDashboardStats = () => {
     },
     isLoading,
     error,
-    refetch
+    refetch,
+    invalidate
   }
 }

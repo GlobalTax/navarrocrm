@@ -1,191 +1,344 @@
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
-interface CacheEntry<T> {
-  data: T
+interface CacheItem<T = any> {
+  key: string
+  value: T
   timestamp: number
-  ttl: number // Time to live en milisegundos
+  ttl: number
   accessCount: number
   lastAccessed: number
+  size: number
 }
 
-interface CacheConfig {
-  defaultTTL?: number // Tiempo de vida por defecto en milisegundos
-  maxSize?: number // Tamaño máximo del cache
-  enableLRU?: boolean // Habilitar Least Recently Used eviction
+interface CacheOptions {
+  maxSize?: number // MB
+  maxAge?: number // milliseconds
+  maxItems?: number
+  strategy?: 'LRU' | 'LFU' | 'FIFO'
 }
 
-export const useIntelligentCache = <T>(config: CacheConfig = {}) => {
-  const {
-    defaultTTL = 5 * 60 * 1000, // 5 minutos por defecto
-    maxSize = 100,
-    enableLRU = true
-  } = config
+interface CacheStats {
+  totalItems: number
+  totalSize: number
+  hitRate: number
+  missRate: number
+  evictions: number
+}
 
-  const cache = useRef<Map<string, CacheEntry<T>>>(new Map())
-  const [, forceUpdate] = useState({})
+class IntelligentCacheEngine {
+  private db: IDBDatabase | null = null
+  private dbName = 'CRMIntelligentCache'
+  private version = 1
+  private storeName = 'cache'
+  private stats: CacheStats = {
+    totalItems: 0,
+    totalSize: 0,
+    hitRate: 0,
+    missRate: 0,
+    evictions: 0
+  }
+  private options: Required<CacheOptions>
 
-  // Limpiar entradas expiradas
-  const cleanupExpired = useCallback(() => {
-    const now = Date.now()
-    let hasChanges = false
+  constructor(options: CacheOptions = {}) {
+    this.options = {
+      maxSize: options.maxSize || 100, // 100MB
+      maxAge: options.maxAge || 24 * 60 * 60 * 1000, // 24 hours
+      maxItems: options.maxItems || 1000,
+      strategy: options.strategy || 'LRU'
+    }
+  }
 
-    for (const [key, entry] of cache.current.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        cache.current.delete(key)
-        hasChanges = true
+  async init(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.version)
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        this.db = request.result
+        this.loadStats()
+        resolve()
       }
-    }
 
-    if (hasChanges) {
-      forceUpdate({})
-    }
-  }, [])
-
-  // Implementar LRU eviction si está habilitado
-  const evictLRU = useCallback(() => {
-    if (!enableLRU || cache.current.size <= maxSize) return
-
-    let oldestKey = ''
-    let oldestTime = Infinity
-
-    for (const [key, entry] of cache.current.entries()) {
-      if (entry.lastAccessed < oldestTime) {
-        oldestTime = entry.lastAccessed
-        oldestKey = key
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const store = db.createObjectStore(this.storeName, { keyPath: 'key' })
+          store.createIndex('timestamp', 'timestamp', { unique: false })
+          store.createIndex('lastAccessed', 'lastAccessed', { unique: false })
+          store.createIndex('accessCount', 'accessCount', { unique: false })
+        }
       }
-    }
-
-    if (oldestKey) {
-      cache.current.delete(oldestKey)
-      forceUpdate({})
-    }
-  }, [enableLRU, maxSize])
-
-  // Obtener datos del cache
-  const get = useCallback((key: string): T | null => {
-    const entry = cache.current.get(key)
-    
-    if (!entry) return null
-
-    const now = Date.now()
-    
-    // Verificar si ha expirado
-    if (now - entry.timestamp > entry.ttl) {
-      cache.current.delete(key)
-      return null
-    }
-
-    // Actualizar estadísticas de acceso
-    entry.accessCount++
-    entry.lastAccessed = now
-    
-    return entry.data
-  }, [])
-
-  // Guardar datos en el cache
-  const set = useCallback((key: string, data: T, ttl?: number): void => {
-    const now = Date.now()
-    const entryTTL = ttl || defaultTTL
-
-    // Evict LRU si es necesario antes de agregar
-    evictLRU()
-
-    cache.current.set(key, {
-      data,
-      timestamp: now,
-      ttl: entryTTL,
-      accessCount: 1,
-      lastAccessed: now
     })
+  }
 
-    forceUpdate({})
-  }, [defaultTTL, evictLRU])
+  private async loadStats(): Promise<void> {
+    if (!this.db) return
 
-  // Eliminar entrada específica
-  const remove = useCallback((key: string): boolean => {
-    const deleted = cache.current.delete(key)
-    if (deleted) {
-      forceUpdate({})
+    const transaction = this.db.transaction([this.storeName], 'readonly')
+    const store = transaction.objectStore(this.storeName)
+    const request = store.getAll()
+
+    request.onsuccess = () => {
+      const items = request.result as CacheItem[]
+      this.stats.totalItems = items.length
+      this.stats.totalSize = items.reduce((sum, item) => sum + item.size, 0)
     }
-    return deleted
-  }, [])
+  }
 
-  // Limpiar todo el cache
-  const clear = useCallback(() => {
-    cache.current.clear()
-    forceUpdate({})
-  }, [])
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    if (!this.db) throw new Error('Cache not initialized')
 
-  // Obtener estadísticas del cache
-  const getStats = useCallback(() => {
-    const now = Date.now()
-    let totalSize = 0
-    let expiredCount = 0
-    let totalAccessCount = 0
-    let mostAccessedKey = ''
-    let maxAccessCount = 0
-
-    for (const [key, entry] of cache.current.entries()) {
-      totalSize++
-      totalAccessCount += entry.accessCount
-
-      if (now - entry.timestamp > entry.ttl) {
-        expiredCount++
-      }
-
-      if (entry.accessCount > maxAccessCount) {
-        maxAccessCount = entry.accessCount
-        mostAccessedKey = key
-      }
+    const item: CacheItem<T> = {
+      key,
+      value,
+      timestamp: Date.now(),
+      ttl: ttl || this.options.maxAge,
+      accessCount: 0,
+      lastAccessed: Date.now(),
+      size: this.calculateSize(value)
     }
 
+    // Verificar límites antes de insertar
+    await this.enforceLimits(item.size)
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.put(item)
+
+      request.onsuccess = () => {
+        this.updateStats(item.size, 0)
+        resolve()
+      }
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    if (!this.db) throw new Error('Cache not initialized')
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.get(key)
+
+      request.onsuccess = () => {
+        const item = request.result as CacheItem<T> | undefined
+
+        if (!item) {
+          this.stats.missRate++
+          resolve(null)
+          return
+        }
+
+        // Verificar TTL
+        if (Date.now() - item.timestamp > item.ttl) {
+          this.delete(key)
+          this.stats.missRate++
+          resolve(null)
+          return
+        }
+
+        // Actualizar estadísticas de acceso
+        item.accessCount++
+        item.lastAccessed = Date.now()
+        store.put(item)
+
+        this.stats.hitRate++
+        resolve(item.value)
+      }
+
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async delete(key: string): Promise<void> {
+    if (!this.db) throw new Error('Cache not initialized')
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.delete(key)
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  async clear(): Promise<void> {
+    if (!this.db) throw new Error('Cache not initialized')
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.clear()
+
+      request.onsuccess = () => {
+        this.stats = {
+          totalItems: 0,
+          totalSize: 0,
+          hitRate: 0,
+          missRate: 0,
+          evictions: 0
+        }
+        resolve()
+      }
+      request.onerror = () => reject(request.error)
+    })
+  }
+
+  private async enforceLimits(newItemSize: number): Promise<void> {
+    if (!this.db) return
+
+    const transaction = this.db.transaction([this.storeName], 'readonly')
+    const store = transaction.objectStore(this.storeName)
+    const request = store.getAll()
+
+    request.onsuccess = () => {
+      const items = request.result as CacheItem[]
+      
+      // Ordenar según la estrategia
+      const sortedItems = this.sortByStrategy(items)
+      
+      let currentSize = items.reduce((sum, item) => sum + item.size, 0)
+      let currentCount = items.length
+
+      // Eliminar elementos hasta cumplir límites
+      for (const item of sortedItems) {
+        if (currentSize + newItemSize <= this.options.maxSize * 1024 * 1024 &&
+            currentCount < this.options.maxItems) {
+          break
+        }
+
+        this.delete(item.key)
+        currentSize -= item.size
+        currentCount--
+        this.stats.evictions++
+      }
+    }
+  }
+
+  private sortByStrategy(items: CacheItem[]): CacheItem[] {
+    switch (this.options.strategy) {
+      case 'LRU':
+        return items.sort((a, b) => a.lastAccessed - b.lastAccessed)
+      case 'LFU':
+        return items.sort((a, b) => a.accessCount - b.accessCount)
+      case 'FIFO':
+        return items.sort((a, b) => a.timestamp - b.timestamp)
+      default:
+        return items
+    }
+  }
+
+  private calculateSize(value: any): number {
+    return new Blob([JSON.stringify(value)]).size
+  }
+
+  private updateStats(size: number, accessCount: number): void {
+    this.stats.totalSize += size
+    this.stats.totalItems++
+  }
+
+  getStats(): CacheStats {
+    const totalRequests = this.stats.hitRate + this.stats.missRate
     return {
-      size: totalSize,
-      expiredCount,
-      totalAccessCount,
-      mostAccessedKey,
-      maxAccessCount,
-      hitRate: totalAccessCount > 0 ? (totalAccessCount - expiredCount) / totalAccessCount : 0
+      ...this.stats,
+      hitRate: totalRequests > 0 ? this.stats.hitRate / totalRequests : 0,
+      missRate: totalRequests > 0 ? this.stats.missRate / totalRequests : 0
     }
-  }, [])
+  }
 
-  // Función helper para obtener o calcular datos
-  const getOrSet = useCallback(async (
-    key: string,
-    fetcher: () => Promise<T>,
-    ttl?: number
-  ): Promise<T> => {
-    // Intentar obtener del cache primero
-    const cached = get(key)
-    if (cached !== null) {
-      return cached
+  async cleanup(): Promise<void> {
+    if (!this.db) return
+
+    const transaction = this.db.transaction([this.storeName], 'readwrite')
+    const store = transaction.objectStore(this.storeName)
+    const request = store.getAll()
+
+    request.onsuccess = () => {
+      const items = request.result as CacheItem[]
+      const now = Date.now()
+
+      items.forEach(item => {
+        if (now - item.timestamp > item.ttl) {
+          this.delete(item.key)
+        }
+      })
     }
+  }
+}
 
-    // Si no está en cache, obtener y guardar
-    try {
-      const data = await fetcher()
-      set(key, data, ttl)
-      return data
-    } catch (error) {
-      console.error('Error fetching data for cache:', error)
-      throw error
-    }
-  }, [get, set])
+// Hook mejorado para usar el cache inteligente
+export const useIntelligentCache = (options?: CacheOptions) => {
+  const [cache, setCache] = useState<IntelligentCacheEngine | null>(null)
+  const [isReady, setIsReady] = useState(false)
+  const [stats, setStats] = useState<CacheStats | null>(null)
 
-  // Limpiar entradas expiradas periódicamente
   useEffect(() => {
-    const interval = setInterval(cleanupExpired, 60000) // Cada minuto
+    const initCache = async () => {
+      try {
+        const intelligentCache = new IntelligentCacheEngine(options)
+        await intelligentCache.init()
+        setCache(intelligentCache)
+        setIsReady(true)
+        console.log('💾 [Cache] Sistema de cache inteligente inicializado')
+      } catch (error) {
+        console.error('❌ [Cache] Error inicializando cache:', error)
+        setIsReady(false)
+      }
+    }
+
+    initCache()
+  }, [options])
+
+  const set = useCallback(async <T>(key: string, value: T, ttl?: number) => {
+    if (!cache) throw new Error('Cache not ready')
+    await cache.set(key, value, ttl)
+    setStats(cache.getStats())
+  }, [cache])
+
+  const get = useCallback(async <T>(key: string): Promise<T | null> => {
+    if (!cache) throw new Error('Cache not ready')
+    const result = await cache.get<T>(key)
+    setStats(cache.getStats())
+    return result
+  }, [cache])
+
+  const remove = useCallback(async (key: string) => {
+    if (!cache) throw new Error('Cache not ready')
+    await cache.delete(key)
+    setStats(cache.getStats())
+  }, [cache])
+
+  const clear = useCallback(async () => {
+    if (!cache) throw new Error('Cache not ready')
+    await cache.clear()
+    setStats(cache.getStats())
+  }, [cache])
+
+  const cleanup = useCallback(async () => {
+    if (!cache) throw new Error('Cache not ready')
+    await cache.cleanup()
+    setStats(cache.getStats())
+  }, [cache])
+
+  // Limpieza automática cada hora
+  useEffect(() => {
+    if (!isReady || !cache) return
+
+    const interval = setInterval(cleanup, 60 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [cleanupExpired])
+  }, [isReady, cleanup, cache])
 
   return {
-    get,
+    isReady,
     set,
+    get,
     remove,
     clear,
-    getStats,
-    getOrSet,
-    size: cache.current.size
+    cleanup,
+    stats
   }
 }

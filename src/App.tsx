@@ -1,11 +1,12 @@
+
 import React from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from 'react-error-boundary'
 
+import { QueryClient } from '@/contexts/QueryContext'
 import { AppProvider } from '@/contexts/AppContext'
 import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
-import { QueryClient } from '@/contexts/QueryContext'
 
 import { MainLayout } from '@/components/layout/MainLayout'
 
@@ -41,11 +42,33 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import ShareHandler from '@/pages/ShareHandler'
 import UploadHandler from '@/pages/UploadHandler'
 
+// Error boundary para providers críticos
+const ProviderErrorBoundary = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary 
+    fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error de inicialización</h2>
+          <p className="text-gray-600 mb-4">Ha ocurrido un error al inicializar la aplicación</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Recargar aplicación
+          </button>
+        </div>
+      </div>
+    }
+  >
+    {children}
+  </ErrorBoundary>
+)
+
 function App() {
   return (
     <div className="min-h-screen bg-background">
       <Toaster />
-      <ErrorBoundary fallback={<div>Something went wrong</div>}>
+      <ProviderErrorBoundary>
         <QueryClient>
           <AppProvider>
             <GlobalStateProvider>
@@ -93,7 +116,7 @@ function App() {
             </GlobalStateProvider>
           </AppProvider>
         </QueryClient>
-      </ErrorBoundary>
+      </ProviderErrorBoundary>
     </div>
   )
 }
