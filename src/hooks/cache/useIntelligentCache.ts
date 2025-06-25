@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { ENV_CONFIG } from '@/config/environment'
 
 interface CacheItem<T = any> {
   key: string
@@ -41,10 +42,14 @@ class IntelligentCacheEngine {
 
   constructor(options: CacheOptions = {}) {
     this.options = {
-      maxSize: options.maxSize || 100,
-      maxAge: options.maxAge || 24 * 60 * 60 * 1000,
-      maxItems: options.maxItems || 1000,
-      strategy: options.strategy || 'LRU'
+      maxSize: options.maxSize || ENV_CONFIG.cache.maxSize,
+      maxAge: options.maxAge || ENV_CONFIG.cache.ttl,
+      maxItems: options.maxItems || ENV_CONFIG.cache.maxItems,
+      strategy: options.strategy || ENV_CONFIG.cache.strategy
+    }
+
+    if (ENV_CONFIG.development.debug) {
+      console.log('💾 [Cache] Configuración inicializada:', this.options)
     }
   }
 
@@ -56,6 +61,9 @@ class IntelligentCacheEngine {
       request.onsuccess = () => {
         this.db = request.result
         this.loadStats()
+        if (ENV_CONFIG.development.enableLogs) {
+          console.log('💾 [Cache] IndexedDB inicializado correctamente')
+        }
         resolve()
       }
 
@@ -284,7 +292,9 @@ export const useIntelligentCache = (options?: CacheOptions) => {
         await intelligentCache.init()
         setCache(intelligentCache)
         setIsReady(true)
-        console.log('💾 [Cache] Sistema de cache inteligente inicializado')
+        if (ENV_CONFIG.development.enableLogs) {
+          console.log('💾 [Cache] Sistema de cache inteligente inicializado')
+        }
       } catch (error) {
         console.error('❌ [Cache] Error inicializando cache:', error)
         setIsReady(false)

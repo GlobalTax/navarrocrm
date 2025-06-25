@@ -1,3 +1,4 @@
+import { ENV_CONFIG } from '@/config/environment'
 
 interface ImageOptions {
   width?: number
@@ -28,6 +29,14 @@ export class ImageOptimizer {
 
   private constructor() {
     this.detectFormatSupport()
+    if (ENV_CONFIG.development.debug) {
+      console.log('🖼️ [Images] Optimizador inicializado con configuración:', {
+        cloudinary: !!ENV_CONFIG.images.cloudinaryUrl,
+        quality: ENV_CONFIG.images.defaultQuality,
+        webp: ENV_CONFIG.images.enableWebP,
+        avif: ENV_CONFIG.images.enableAVIF
+      })
+    }
   }
 
   static getInstance(): ImageOptimizer {
@@ -39,14 +48,27 @@ export class ImageOptimizer {
 
   // Detectar soporte de formatos modernos
   private async detectFormatSupport(): Promise<void> {
+    if (!ENV_CONFIG.images.enableOptimization) return
+
     // Detectar WebP
-    const webpCanvas = document.createElement('canvas')
-    webpCanvas.width = 1
-    webpCanvas.height = 1
-    this.supportsWebP = webpCanvas.toDataURL('image/webp').indexOf('image/webp') === 5
+    if (ENV_CONFIG.images.enableWebP) {
+      const webpCanvas = document.createElement('canvas')
+      webpCanvas.width = 1
+      webpCanvas.height = 1
+      this.supportsWebP = webpCanvas.toDataURL('image/webp').indexOf('image/webp') === 5
+    }
 
     // Detectar AVIF
-    this.supportsAVIF = await this.testAVIFSupport()
+    if (ENV_CONFIG.images.enableAVIF) {
+      this.supportsAVIF = await this.testAVIFSupport()
+    }
+
+    if (ENV_CONFIG.development.enableLogs) {
+      console.log('🖼️ [Images] Soporte de formatos detectado:', {
+        webp: this.supportsWebP,
+        avif: this.supportsAVIF
+      })
+    }
   }
 
   private testAVIFSupport(): Promise<boolean> {
@@ -60,10 +82,12 @@ export class ImageOptimizer {
 
   // Obtener mejor formato soportado
   private getBestFormat(preferredFormat?: string): string {
-    if (preferredFormat === 'avif' && this.supportsAVIF) return 'avif'
-    if (preferredFormat === 'webp' && this.supportsWebP) return 'webp'
-    if (this.supportsAVIF) return 'avif'
-    if (this.supportsWebP) return 'webp'
+    if (!ENV_CONFIG.images.enableOptimization) return 'jpeg'
+    
+    if (preferredFormat === 'avif' && this.supportsAVIF && ENV_CONFIG.images.enableAVIF) return 'avif'
+    if (preferredFormat === 'webp' && this.supportsWebP && ENV_CONFIG.images.enableWebP) return 'webp'
+    if (this.supportsAVIF && ENV_CONFIG.images.enableAVIF) return 'avif'
+    if (this.supportsWebP && ENV_CONFIG.images.enableWebP) return 'webp'
     return 'jpeg'
   }
 
@@ -80,10 +104,10 @@ export class ImageOptimizer {
 
     let optimizedUrl = originalUrl
 
-    // Para URLs externas, usar servicio de optimización
-    if (this.isExternalUrl(originalUrl)) {
+    // Para URLs externas, usar servicio de optimización si está configurado
+    if (this.isExternalUrl(originalUrl) && ENV_CONFIG.images.cloudinaryUrl) {
       optimizedUrl = this.buildCloudinaryUrl(originalUrl, options)
-    } else {
+    } else if (!this.isExternalUrl(originalUrl)) {
       // Para imágenes locales, usar optimización básica
       optimizedUrl = await this.optimizeLocalImage(originalUrl, options)
     }
@@ -97,22 +121,32 @@ export class ImageOptimizer {
   }
 
   private buildCloudinaryUrl(url: string, options: ImageOptions): string {
+    if (!ENV_CONFIG.images.cloudinaryUrl) return url
+
     const params: string[] = []
     
     if (options.width) params.push(`w_${options.width}`)
     if (options.height) params.push(`h_${options.height}`)
-    if (options.quality) params.push(`q_${options.quality}`)
+    
+    const quality = options.quality || ENV_CONFIG.images.defaultQuality
+    params.push(`q_${quality}`)
     
     const format = this.getBestFormat(options.format)
     params.push(`f_${format}`)
     
     if (options.blur) params.push(`e_blur:${options.blur}`)
 
-    // URL de ejemplo con servicio de optimización
-    return `https://images.unsplash.com/${params.join(',')}/${encodeURIComponent(url)}`
+    // Construir URL de Cloudinary
+    const baseUrl = ENV_CONFIG.images.cloudinaryUrl.replace(/\/$/, '')
+    const transformations = params.join(',')
+    
+    // Para Cloudinary, usar fetch para URLs externas
+    return `${baseUrl}/image/fetch/${transformations}/${encodeURIComponent(url)}`
   }
 
   private async optimizeLocalImage(url: string, options: ImageOptions): Promise<string> {
+    if (!ENV_CONFIG.images.enableOptimization) return url
+
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.crossOrigin = 'anonymous'
@@ -121,7 +155,8 @@ export class ImageOptimizer {
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')!
         
-        const { width, height, quality = 80, blur } = options
+        const { width, height, blur } = options
+        const quality = options.quality || ENV_CONFIG.images.defaultQuality
         
         canvas.width = width || img.naturalWidth
         canvas.height = height || img.naturalHeight
@@ -225,7 +260,9 @@ export class ImageOptimizer {
   getCacheStats() {
     return {
       size: this.imageCache.size,
-      entries: Array.from(this.imageCache.keys())
+      entries: Array.from(this.imageCache.keys()),
+      cloudinaryEnabled: !!ENV_CONFIG.images.cloudinaryUrl,
+      optimizationEnabled: ENV_CONFIG.images.enableOptimization
     }
   }
 }

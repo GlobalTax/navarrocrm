@@ -1,5 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client'
+import { ENV_CONFIG } from '@/config/environment'
 
 export interface QueryOptions {
   page?: number
@@ -46,7 +46,19 @@ export class DatabaseOptimizer {
     slowQueries: 0,
     tableStats: {}
   }
-  private slowQueryThreshold = 1000 // 1 segundo
+  private slowQueryThreshold: number
+
+  constructor() {
+    this.slowQueryThreshold = ENV_CONFIG.database.slowQueryThreshold
+
+    if (ENV_CONFIG.development.debug) {
+      console.log('🗄️ [DB] DatabaseOptimizer inicializado con configuración:', {
+        slowQueryThreshold: this.slowQueryThreshold,
+        cacheEnabled: ENV_CONFIG.database.cacheEnabled,
+        defaultPageSize: ENV_CONFIG.database.defaultPageSize
+      })
+    }
+  }
 
   static getInstance(): DatabaseOptimizer {
     if (!DatabaseOptimizer.instance) {
@@ -76,7 +88,7 @@ export class DatabaseOptimizer {
 
     const {
       page = 1,
-      limit = 20,
+      limit = ENV_CONFIG.database.defaultPageSize,
       orderBy,
       orderDirection = 'desc',
       filters = {},
@@ -130,7 +142,9 @@ export class DatabaseOptimizer {
         error: null
       }
 
-      console.log(`🔍 [DatabaseOptimizer] Query executed: ${table} in ${queryTime}ms`)
+      if (ENV_CONFIG.development.enableLogs) {
+        console.log(`🔍 [DatabaseOptimizer] Query executed: ${table} in ${queryTime}ms`)
+      }
       return result
     } catch (error) {
       const queryTime = Date.now() - startTime
@@ -233,7 +247,7 @@ export class DatabaseOptimizer {
 
       // Aplicar paginación
       const page = options.page || 1
-      const limit = options.limit || 20
+      const limit = options.limit || ENV_CONFIG.database.defaultPageSize
       const from = (page - 1) * limit
       const to = from + limit - 1
       query = query.range(from, to)
@@ -247,7 +261,9 @@ export class DatabaseOptimizer {
       const queryTime = Date.now() - startTime
       this.updateStats(table, queryTime)
 
-      console.log(`🔍 [DatabaseOptimizer] Search executed: ${table} for "${searchTerm}" in ${queryTime}ms`)
+      if (ENV_CONFIG.development.enableLogs) {
+        console.log(`🔍 [DatabaseOptimizer] Search executed: ${table} for "${searchTerm}" in ${queryTime}ms`)
+      }
 
       return {
         data: (data as T[]) || [],
@@ -318,7 +334,7 @@ export class DatabaseOptimizer {
 
       // Aplicar paginación
       const page = options.page || 1
-      const limit = options.limit || 20
+      const limit = options.limit || ENV_CONFIG.database.defaultPageSize
       const from = (page - 1) * limit
       const to = from + limit - 1
       query = query.range(from, to)
@@ -332,7 +348,9 @@ export class DatabaseOptimizer {
       const queryTime = Date.now() - startTime
       this.updateStats(table, queryTime)
 
-      console.log(`🔍 [DatabaseOptimizer] Relations query executed: ${table} in ${queryTime}ms`)
+      if (ENV_CONFIG.development.enableLogs) {
+        console.log(`🔍 [DatabaseOptimizer] Relations query executed: ${table} in ${queryTime}ms`)
+      }
 
       return {
         data: (data as T[]) || [],
@@ -368,6 +386,9 @@ export class DatabaseOptimizer {
 
     if (queryTime > this.slowQueryThreshold) {
       this.stats.slowQueries++
+      if (ENV_CONFIG.development.enableLogs) {
+        console.warn(`⚠️ [DB] Slow query detected: ${table} took ${queryTime}ms`)
+      }
     }
 
     // Stats por tabla
@@ -391,6 +412,9 @@ export class DatabaseOptimizer {
       averageQueryTime: 0,
       slowQueries: 0,
       tableStats: {}
+    }
+    if (ENV_CONFIG.development.enableLogs) {
+      console.log('🗄️ [DB] Estadísticas reiniciadas')
     }
   }
 }
