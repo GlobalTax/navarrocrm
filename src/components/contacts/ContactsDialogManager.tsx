@@ -32,30 +32,24 @@ export function ContactsDialogManager({
   onExportClose,
   onBulkUploadSuccess
 }: ContactsDialogManagerProps) {
-  // Convertir Contact a formato compatible con formularios
-  const contactForForm = selectedContact ? {
-    ...selectedContact,
-    email: selectedContact.email || '', // Hacer email requerido para el formulario
-  } : null
-
   return (
     <>
       <ContactFormDialog
         open={isCreateDialogOpen}
         onClose={onClose}
-        contact={contactForForm}
+        contact={selectedContact}
       />
 
       <ContactFormDialog
         open={isEditDialogOpen}
         onClose={onClose}
-        contact={contactForForm}
+        contact={selectedContact}
       />
 
       <ClientDetailDialog
         open={isDetailDialogOpen}
         onClose={onClose}
-        client={contactForForm}
+        client={selectedContact as any}
       />
 
       <ClientBulkUpload
@@ -67,7 +61,7 @@ export function ContactsDialogManager({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={contacts}
+        clients={contacts as any}
       />
     </>
   )
