@@ -1,7 +1,9 @@
 
-import { Loader2, Repeat, FileText } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { useState } from 'react'
 import { useProposals } from '@/hooks/useProposals'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
+import { ProposalDetailDialog } from '@/components/proposals/ProposalDetailDialog'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useApp } from '@/contexts/AppContext'
@@ -12,6 +14,7 @@ import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
+import type { Proposal } from '@/types/proposals'
 
 export default function Proposals() {
   console.log('Proposals page rendering')
@@ -22,7 +25,11 @@ export default function Proposals() {
   
   // Estados de la página
   const pageState = useProposalsPageState()
-  const { filters, setFilters, filterProposals, categorizeProposals, getProposalMetrics } = useProposalsFilters()
+  const { filters, setFilters, filterProposals, categorizeProposals } = useProposalsFilters()
+  
+  // Estado para el diálogo de detalles
+  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
   console.log('Current state:', { 
     isRecurrentBuilderOpen: pageState.isRecurrentBuilderOpen, 
@@ -34,15 +41,21 @@ export default function Proposals() {
   // Filtrar y categorizar propuestas
   const filteredProposals = filterProposals(proposals)
   const categorizedProposals = categorizeProposals(filteredProposals)
-  const metrics = getProposalMetrics(filteredProposals)
 
   // Handlers
   const handleStatusChange = (id: string, status: any) => {
     updateProposalStatus.mutate({ id, status })
   }
 
-  const handleViewProposal = (proposal: any) => {
+  const handleViewProposal = (proposal: Proposal) => {
     console.log('Ver propuesta:', proposal)
+    setSelectedProposal(proposal)
+    setIsDetailDialogOpen(true)
+  }
+
+  const handleCloseDetailDialog = () => {
+    setIsDetailDialogOpen(false)
+    setSelectedProposal(null)
   }
 
   const handleSaveRecurrentProposal = (data: ProposalFormData) => {
@@ -126,64 +139,72 @@ export default function Proposals() {
   }
 
   return (
-    <StandardPageContainer>
-      <StandardPageHeader
-        title="Propuestas Comerciales"
-        description="Gestiona propuestas recurrentes y servicios puntuales"
-        badges={[
-          {
-            label: 'Recurrentes: Fiscal, Contabilidad, Laboral',
-            variant: 'outline',
-            color: 'text-blue-600 border-blue-200 bg-blue-50'
-          },
-          {
-            label: 'Puntuales: Proyectos específicos',
-            variant: 'outline',
-            color: 'text-green-600 border-green-200 bg-green-50'
-          }
-        ]}
-        secondaryAction={{
-          label: 'Propuesta Recurrente',
-          onClick: pageState.openRecurrentBuilder,
-          variant: 'outline'
-        }}
-        primaryAction={{
-          label: 'Propuesta Puntual',
-          onClick: pageState.openSpecificBuilder
-        }}
-      />
+    <>
+      <StandardPageContainer>
+        <StandardPageHeader
+          title="Propuestas Comerciales"
+          description="Gestiona propuestas recurrentes y servicios puntuales"
+          badges={[
+            {
+              label: 'Recurrentes: Fiscal, Contabilidad, Laboral',
+              variant: 'outline',
+              color: 'text-blue-600 border-blue-200 bg-blue-50'
+            },
+            {
+              label: 'Puntuales: Proyectos específicos',
+              variant: 'outline',
+              color: 'text-green-600 border-green-200 bg-green-50'
+            }
+          ]}
+          secondaryAction={{
+            label: 'Propuesta Recurrente',
+            onClick: pageState.openRecurrentBuilder,
+            variant: 'outline'
+          }}
+          primaryAction={{
+            label: 'Propuesta Puntual',
+            onClick: pageState.openSpecificBuilder
+          }}
+        />
 
-      <ProposalMetrics />
+        <ProposalMetrics proposals={filteredProposals} isLoading={isLoading} />
 
-      <StandardFilters
-        searchPlaceholder="Buscar propuestas..."
-        searchValue={filters.search}
-        onSearchChange={(value) => setFilters({ ...filters, search: value })}
-        filters={[
-          {
-            placeholder: 'Estado',
-            value: filters.status,
-            onChange: (value) => setFilters({ ...filters, status: value }),
-            options: statusOptions
-          },
-          {
-            placeholder: 'Tipo',
-            value: filters.type,
-            onChange: (value) => setFilters({ ...filters, type: value }),
-            options: typeOptions
-          }
-        ]}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={handleClearFilters}
-      />
+        <StandardFilters
+          searchPlaceholder="Buscar propuestas..."
+          searchValue={filters.search}
+          onSearchChange={(value) => setFilters({ ...filters, search: value })}
+          filters={[
+            {
+              placeholder: 'Estado',
+              value: filters.status,
+              onChange: (value) => setFilters({ ...filters, status: value }),
+              options: statusOptions
+            },
+            {
+              placeholder: 'Tipo',
+              value: filters.type,
+              onChange: (value) => setFilters({ ...filters, type: value }),
+              options: typeOptions
+            }
+          ]}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={handleClearFilters}
+        />
 
-      <ProposalsTabsView
-        proposals={categorizedProposals}
-        onStatusChange={handleStatusChange}
-        onViewProposal={handleViewProposal}
-        onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
-        onOpenSpecificBuilder={pageState.openSpecificBuilder}
+        <ProposalsTabsView
+          proposals={categorizedProposals}
+          onStatusChange={handleStatusChange}
+          onViewProposal={handleViewProposal}
+          onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
+          onOpenSpecificBuilder={pageState.openSpecificBuilder}
+        />
+      </StandardPageContainer>
+
+      <ProposalDetailDialog
+        proposal={selectedProposal}
+        open={isDetailDialogOpen}
+        onClose={handleCloseDetailDialog}
       />
-    </StandardPageContainer>
+    </>
   )
 }
