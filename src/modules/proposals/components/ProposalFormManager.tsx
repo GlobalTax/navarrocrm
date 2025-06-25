@@ -2,10 +2,6 @@
 import { UseFormReturn } from 'react-hook-form';
 import { ProposalFormData } from '../types/proposal.schema';
 
-interface ProposalFormManagerProps {
-  form: UseFormReturn<ProposalFormData>;
-}
-
 export const useProposalFormManager = (form: UseFormReturn<ProposalFormData>) => {
   const addPricingTier = () => {
     console.log('Adding new pricing tier');
