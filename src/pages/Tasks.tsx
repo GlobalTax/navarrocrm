@@ -5,6 +5,7 @@ import { useTasksFilters } from '@/hooks/tasks/useTasksFilters'
 import { TasksStats } from '@/components/tasks/TasksStats'
 import { TasksBoardKanban } from '@/components/tasks/TasksBoardKanban'
 import { TasksList } from '@/components/tasks/TasksList'
+import { VirtualizedTasksList } from '@/components/tasks/VirtualizedTasksList'
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
 import { TasksEmptyState } from '@/components/tasks/TasksEmptyState'
 import { TasksErrorState } from '@/components/tasks/TasksErrorState'
@@ -83,14 +84,23 @@ const Tasks = () => {
         <TasksEmptyState onCreateTask={pageState.handleCreateTask} />
       ) : (
         <>
-          {pageState.viewMode === 'board' ? (
+          {pageState.viewMode === 'board' && (
             <TasksBoardKanban 
               tasks={filteredTasks}
               onEditTask={pageState.handleEditTask}
               onCreateTask={pageState.handleCreateTask}
             />
-          ) : (
+          )}
+          
+          {pageState.viewMode === 'list' && (
             <TasksList 
+              tasks={filteredTasks}
+              onEditTask={pageState.handleEditTask}
+            />
+          )}
+          
+          {pageState.viewMode === 'virtual' && (
+            <VirtualizedTasksList 
               tasks={filteredTasks}
               onEditTask={pageState.handleEditTask}
             />

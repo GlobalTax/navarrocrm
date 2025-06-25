@@ -1,30 +1,25 @@
 
 import { useState } from 'react'
-
-export type TaskViewMode = 'board' | 'list'
+import { TaskWithRelations } from './types'
 
 export const useTasksPageState = () => {
-  const [viewMode, setViewMode] = useState<TaskViewMode>('board')
+  const [viewMode, setViewMode] = useState<'board' | 'list' | 'virtual'>('board')
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [selectedTask, setSelectedTask] = useState<TaskWithRelations | null>(null)
 
   const handleCreateTask = () => {
     setSelectedTask(null)
     setIsTaskDialogOpen(true)
   }
 
-  const handleEditTask = (task: any) => {
-    if (!task || !task.id) {
-      console.warn('⚠️ Attempted to edit invalid task:', task)
-      return
-    }
-    console.log('🔍 Editing task:', task)
+  const handleEditTask = (task: TaskWithRelations) => {
     setSelectedTask(task)
     setIsTaskDialogOpen(true)
   }
 
   const closeTaskDialog = () => {
     setIsTaskDialogOpen(false)
+    setSelectedTask(null)
   }
 
   return {
