@@ -1,84 +1,13 @@
+
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import type { CompanyData } from './useCompanyLookup/types'
+import { validateNifCif, validateCompanyData } from './useCompanyLookup/validation'
+import { getErrorMessage, showSuccessToast, handleNetworkError } from './useCompanyLookup/errorHandling'
+import { sanitizeCompanyData } from './useCompanyLookup/dataTransform'
 
-export interface CompanyData {
-  name: string
-  nif: string
-  address_street?: string
-  address_city?: string
-  address_postal_code?: string
-  business_sector?: string
-  legal_representative?: string
-  status: 'activo' | 'inactivo'
-  client_type: 'empresa'
-  // Propiedades adicionales para información de prueba
-  isSimulated?: boolean
-  warning?: string
-}
-
-// Función de validación centralizada y mejorada
-const validateNifCif = (nif: string): { isValid: boolean; cleanNif: string; error?: string } => {
-  const cleanNif = nif?.trim().toUpperCase() || ''
-  
-  // Validación de longitud mínima
-  if (!cleanNif || cleanNif.length < 8) {
-    return {
-      isValid: false,
-      cleanNif,
-      error: 'El NIF/CIF debe tener al menos 8 caracteres'
-    }
-  }
-
-  // Validación de longitud máxima
-  if (cleanNif.length > 9) {
-    return {
-      isValid: false,
-      cleanNif,
-      error: 'El NIF/CIF no puede tener más de 9 caracteres'
-    }
-  }
-
-  // Patrones de validación específicos y estrictos
-  const nifRegex = /^[0-9]{8}[A-Z]$/
-  const cifRegex = /^[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]$/
-  const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/
-  
-  const isValidFormat = nifRegex.test(cleanNif) || cifRegex.test(cleanNif) || nieRegex.test(cleanNif)
-  
-  if (!isValidFormat) {
-    return {
-      isValid: false,
-      cleanNif,
-      error: 'Formato NIF/CIF inválido. Debe ser formato español válido (ej: B12345678, 12345678Z, X1234567L)'
-    }
-  }
-
-  return { isValid: true, cleanNif }
-}
-
-// Función para validar datos recibidos de la API
-const validateCompanyData = (data: any): { isValid: boolean; error?: string } => {
-  if (!data || typeof data !== 'object') {
-    return { isValid: false, error: 'Datos de empresa no válidos' }
-  }
-
-  // Campos obligatorios
-  if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
-    return { isValid: false, error: 'El nombre de la empresa es obligatorio' }
-  }
-
-  if (!data.nif || typeof data.nif !== 'string' || data.nif.trim().length === 0) {
-    return { isValid: false, error: 'El NIF/CIF de la empresa es obligatorio' }
-  }
-
-  // Validar que el status sea válido
-  if (data.status && !['activo', 'inactivo'].includes(data.status)) {
-    return { isValid: false, error: 'Estado de empresa no válido' }
-  }
-
-  return { isValid: true }
-}
+export type { CompanyData }
 
 export const useCompanyLookup = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -133,34 +62,7 @@ export const useCompanyLookup = () => {
       if (!data.success) {
         console.error('❌ useCompanyLookup - Búsqueda sin éxito:', data)
         
-        // Paso 4: Manejo mejorado de errores específicos
-        let errorMessage = 'Error desconocido'
-        
-        switch (data.error) {
-          case 'INVALID_CREDENTIALS':
-            errorMessage = 'Las credenciales de eInforma no son válidas. Contacta con el administrador del sistema.'
-            break
-          case 'CREDENTIALS_MISSING':
-            errorMessage = 'Las credenciales de eInforma no están configuradas. Contacta con el administrador del sistema.'
-            break
-          case 'COMPANY_NOT_FOUND':
-            errorMessage = 'No se encontró ninguna empresa con este NIF/CIF en el Registro Mercantil'
-            break
-          case 'INVALID_FORMAT':
-            errorMessage = 'El formato del NIF/CIF no es válido'
-            break
-          case 'RATE_LIMIT_EXCEEDED':
-            errorMessage = 'Se ha excedido el límite de consultas. Inténtalo de nuevo en unos minutos.'
-            break
-          case 'SERVICE_UNAVAILABLE':
-            errorMessage = 'El servicio de consulta no está disponible temporalmente. Inténtalo más tarde.'
-            break
-          case 'TIMEOUT':
-            errorMessage = 'La consulta ha tardado demasiado. Inténtalo de nuevo.'
-            break
-          default:
-            errorMessage = data.message || 'Error al consultar los datos empresariales'
-        }
+        const errorMessage = getErrorMessage(data.error, data.message)
         
         toast.error('Búsqueda fallida', {
           description: errorMessage
@@ -194,45 +96,12 @@ export const useCompanyLookup = () => {
         isSimulated: data.isSimulated
       })
       
-      // Paso 5: Mensajes de éxito mejorados y más informativos
-      let toastMessage = `${data.data.name} - ${data.data.nif}`
-      let toastDescription = ''
+      // Mostrar toast de éxito
+      showSuccessToast(data.data, data.isSimulated, data.warning)
       
-      if (data.isSimulated) {
-        if (data.warning) {
-          toastDescription = data.warning
-          toast.warning('Empresa encontrada (datos de prueba)', {
-            description: `${toastMessage} - ${toastDescription}`
-          })
-        } else {
-          toastDescription = 'Datos de prueba para desarrollo'
-          toast.info('Empresa encontrada (datos de prueba)', {
-            description: `${toastMessage} - ${toastDescription}`
-          })
-        }
-      } else {
-        toastDescription = 'Datos oficiales del Registro Mercantil'
-        toast.success('Empresa encontrada', {
-          description: `${toastMessage} - ${toastDescription}`
-        })
-      }
+      // Sanitizar y retornar datos
+      return sanitizeCompanyData(data.data, data.isSimulated, data.warning)
       
-      // Sanitizar datos antes de retornar
-      const sanitizedData: CompanyData = {
-        name: data.data.name.trim(),
-        nif: data.data.nif.trim().toUpperCase(),
-        address_street: data.data.address_street?.trim() || undefined,
-        address_city: data.data.address_city?.trim() || undefined,
-        address_postal_code: data.data.address_postal_code?.trim() || undefined,
-        business_sector: data.data.business_sector?.trim() || undefined,
-        legal_representative: data.data.legal_representative?.trim() || undefined,
-        status: data.data.status === 'activo' ? 'activo' : 'inactivo',
-        client_type: 'empresa',
-        isSimulated: data.isSimulated,
-        warning: data.warning
-      }
-      
-      return sanitizedData
     } catch (error) {
       console.error('💥 useCompanyLookup - Error de captura:', {
         error,
@@ -244,13 +113,7 @@ export const useCompanyLookup = () => {
       let errorMessage = 'Error inesperado al buscar la empresa'
       
       if (error instanceof Error) {
-        if (error.message.includes('fetch')) {
-          errorMessage = 'Error de conexión. Verifica tu conexión a internet e inténtalo de nuevo.'
-        } else if (error.message.includes('timeout')) {
-          errorMessage = 'La consulta ha tardado demasiado. Inténtalo de nuevo.'
-        } else if (!error.message.includes('credenciales') && !error.message.includes('encontró')) {
-          errorMessage = error.message
-        }
+        errorMessage = handleNetworkError(error)
       }
       
       // Solo mostrar toast si es un error no mostrado anteriormente
