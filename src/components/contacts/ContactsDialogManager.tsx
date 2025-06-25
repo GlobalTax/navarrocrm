@@ -1,4 +1,5 @@
 
+
 import { Contact } from '@/hooks/useContacts'
 import { ContactFormDialog } from './ContactFormDialog'
 import { ClientDetailDialog } from '@/components/clients/ClientDetailDialog'
@@ -32,44 +33,24 @@ export function ContactsDialogManager({
   onExportClose,
   onBulkUploadSuccess
 }: ContactsDialogManagerProps) {
-  // Convertir Contact a formato compatible con formularios
-  const contactForForm = selectedContact ? {
-    ...selectedContact,
-    email: selectedContact.email || '',
-    phone: selectedContact.phone || '',
-  } : null
-
-  // Convertir Contact a Client para componentes que esperan Client
-  const contactAsClient = selectedContact ? {
-    ...selectedContact,
-    email: selectedContact.email || '',
-    phone: selectedContact.phone || '',
-  } as any : null
-
-  const contactsAsClients = contacts.map(contact => ({
-    ...contact,
-    email: contact.email || '',
-    phone: contact.phone || '',
-  })) as any[]
-
   return (
     <>
       <ContactFormDialog
         open={isCreateDialogOpen}
         onClose={onClose}
-        contact={contactForForm}
+        contact={selectedContact as any}
       />
 
       <ContactFormDialog
         open={isEditDialogOpen}
         onClose={onClose}
-        contact={contactForForm}
+        contact={selectedContact as any}
       />
 
       <ClientDetailDialog
         open={isDetailDialogOpen}
         onClose={onClose}
-        client={contactAsClient}
+        client={selectedContact as any}
       />
 
       <ClientBulkUpload
@@ -81,8 +62,9 @@ export function ContactsDialogManager({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={contactsAsClients}
+        clients={contacts as any}
       />
     </>
   )
 }
+

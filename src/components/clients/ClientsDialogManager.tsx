@@ -1,4 +1,5 @@
 
+
 import { Client } from '@/hooks/useClients'
 import { ClientFormDialog } from './ClientFormDialog'
 import { ClientDetailDialog } from './ClientDetailDialog'
@@ -48,7 +49,7 @@ export const ClientsDialogManager = ({
       />
 
       <ClientDetailDialog
-        client={clientForForm}
+        client={selectedClient as any}
         open={isDetailDialogOpen}
         onClose={onClose}
       />
@@ -62,8 +63,9 @@ export const ClientsDialogManager = ({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={clients}
+        clients={clients as any}
       />
     </>
   )
 }
+
