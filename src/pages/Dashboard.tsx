@@ -14,15 +14,25 @@ import { toast } from 'sonner'
 
 export default function Dashboard() {
   const { user } = useApp()
-  const { stats, isLoading, error, refetch } = useDashboardStats()
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
+  console.log('Dashboard: Rendering with user:', user)
+
+  // Verificar si hay usuario antes de cargar estadísticas
+  const shouldLoadStats = Boolean(user && user.org_id)
+  console.log('Dashboard: Should load stats:', shouldLoadStats, 'User org_id:', user?.org_id)
+
+  const { stats, isLoading, error, refetch } = useDashboardStats(shouldLoadStats)
+
+  console.log('Dashboard: Stats loaded:', { stats, isLoading, error })
+
   useEffect(() => {
-    if (user?.org_id) {
+    if (shouldLoadStats) {
+      console.log('Dashboard: Fetching stats for user:', user?.id)
       refetch()
       setLastRefresh(new Date())
     }
-  }, [user, refetch])
+  }, [user, refetch, shouldLoadStats])
 
   const handleRefresh = async () => {
     try {
@@ -32,6 +42,7 @@ export default function Dashboard() {
         description: 'Los datos se han actualizado correctamente'
       })
     } catch (error) {
+      console.error('Dashboard: Error refreshing:', error)
       toast.error('Error al actualizar', {
         description: 'No se pudieron actualizar los datos'
       })
@@ -39,11 +50,26 @@ export default function Dashboard() {
   }
 
   if (!user) {
+    console.log('Dashboard: No user found, showing loading')
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
+          <p className="text-gray-600">Cargando usuario...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user.org_id) {
+    console.log('Dashboard: User has no org_id:', user)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error: Usuario sin organización</p>
+          <Button onClick={() => window.location.reload()}>
+            Recargar página
+          </Button>
         </div>
       </div>
     )
@@ -56,23 +82,25 @@ export default function Dashboard() {
   })
 
   // Convert stats to match EnhancedDashboardMetrics interface
-  const enhancedStats = {
-    totalTimeEntries: stats.totalTimeEntries,
-    totalBillableHours: stats.totalBillableHours,
-    totalClients: stats.totalContacts,
-    totalCases: stats.totalCases,
-    totalActiveCases: stats.activeCases,
+  const enhancedStats = stats ? {
+    totalTimeEntries: stats.totalTimeEntries || 0,
+    totalBillableHours: stats.totalBillableHours || 0,
+    totalClients: stats.totalContacts || 0,
+    totalCases: stats.totalCases || 0,
+    totalActiveCases: stats.activeCases || 0,
     pendingInvoices: 0,
     hoursThisWeek: 0,
-    hoursThisMonth: stats.thisMonthHours,
+    hoursThisMonth: stats.thisMonthHours || 0,
     utilizationRate: stats.totalTimeEntries > 0 ? Math.round((stats.totalBillableHours / (stats.totalBillableHours + stats.totalNonBillableHours)) * 100) : 0,
     averageHoursPerDay: 0,
-    totalRevenue: stats.totalBillableHours * 50, // Estimated at €50/hour
+    totalRevenue: (stats.totalBillableHours || 0) * 50, // Estimated at €50/hour
     pendingTasks: 0,
     overdueTasks: 0,
     loading: isLoading,
     error: error?.message || null
-  }
+  } : null
+
+  console.log('Dashboard: Enhanced stats:', enhancedStats)
 
   return (
     <StandardPageContainer>
@@ -108,15 +136,20 @@ export default function Dashboard() {
       {/* Contenido principal */}
       {isLoading ? (
         <DashboardLoadingSkeleton />
-      ) : (
+      ) : error ? (
+        <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
+      ) : enhancedStats ? (
         <>
           <EnhancedDashboardMetrics stats={enhancedStats} />
           <EnhancedDashboardLayout />
         </>
-      )}
-      
-      {error && (
-        <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
+      ) : (
+        <div className="text-center py-8">
+          <p className="text-gray-500">No se pudieron cargar las estadísticas</p>
+          <Button variant="outline" onClick={handleRefresh} className="mt-4">
+            Reintentar
+          </Button>
+        </div>
       )}
     </StandardPageContainer>
   )
