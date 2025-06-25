@@ -12,7 +12,8 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useDashboardData, RecentActivity } from '@/hooks/useDashboardData'
+import { useDashboardData } from '@/hooks/useDashboardData'
+import { RecentActivity } from '@/types/dashboardTypes'
 import { useNavigate } from 'react-router-dom'
 
 const getActivityIcon = (type: RecentActivity['type']) => {
