@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { LazyWrapper, LazySection } from '@/components/lazy'
 
 export default function Dashboard() {
   const { user, authLoading } = useApp()
@@ -167,15 +168,31 @@ export default function Dashboard() {
         Última actualización: {formatTime(lastRefresh)}
       </div>
       
-      {/* Contenido principal */}
+      {/* Contenido principal con lazy loading */}
       {isLoading ? (
         <DashboardLoadingSkeleton />
       ) : error ? (
         <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
       ) : enhancedStats ? (
         <>
-          <EnhancedDashboardMetrics stats={enhancedStats} />
-          <EnhancedDashboardLayout />
+          {/* Métricas con lazy loading */}
+          <LazySection 
+            title="Métricas Principales"
+            threshold={0.1}
+            rootMargin="100px"
+            className="mb-6"
+          >
+            <EnhancedDashboardMetrics stats={enhancedStats} />
+          </LazySection>
+
+          {/* Layout principal con lazy loading */}
+          <LazySection 
+            title="Panel Principal"
+            threshold={0.1}
+            rootMargin="50px"
+          >
+            <EnhancedDashboardLayout />
+          </LazySection>
         </>
       ) : (
         <div className="text-center py-8">
@@ -189,31 +206,43 @@ export default function Dashboard() {
   )
 }
 
-// Componente de skeleton para loading
+// Componente de skeleton para loading con lazy loading optimizado
 const DashboardLoadingSkeleton = () => (
   <div className="space-y-6">
     {/* Active Timer Skeleton */}
-    <Skeleton className="h-16 w-full" />
+    <LazyWrapper fallback={<Skeleton className="h-16 w-full" />}>
+      <Skeleton className="h-16 w-full" />
+    </LazyWrapper>
     
     {/* Métricas principales skeleton */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-32" />
+        <LazyWrapper key={i} fallback={<Skeleton className="h-32" />}>
+          <Skeleton className="h-32" />
+        </LazyWrapper>
       ))}
     </div>
     
     {/* Métricas adicionales skeleton */}
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-32" />
+        <LazyWrapper key={i} fallback={<Skeleton className="h-32" />}>
+          <Skeleton className="h-32" />
+        </LazyWrapper>
       ))}
     </div>
     
     {/* Layout skeleton */}
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <Skeleton className="lg:col-span-4 h-64" />
-      <Skeleton className="lg:col-span-5 h-64" />
-      <Skeleton className="lg:col-span-3 h-64" />
+      <LazyWrapper fallback={<Skeleton className="lg:col-span-4 h-64" />}>
+        <Skeleton className="lg:col-span-4 h-64" />
+      </LazyWrapper>
+      <LazyWrapper fallback={<Skeleton className="lg:col-span-5 h-64" />}>
+        <Skeleton className="lg:col-span-5 h-64" />
+      </LazyWrapper>
+      <LazyWrapper fallback={<Skeleton className="lg:col-span-3 h-64" />}>
+        <Skeleton className="lg:col-span-3 h-64" />
+      </LazyWrapper>
     </div>
   </div>
 )
