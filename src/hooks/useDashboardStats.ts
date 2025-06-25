@@ -39,82 +39,116 @@ export const useDashboardStats = () => {
       console.log('📊 Obteniendo estadísticas para org:', user.org_id)
 
       try {
-        // Obtener casos
-        const { data: cases, error: casesError } = await supabase
-          .from('cases')
-          .select('id, status, created_at')
+        // Consulta optimizada: obtener todos los datos en una sola llamada
+        const { data: statsData, error: statsError } = await supabase
+          .rpc('get_dashboard_stats', { 
+            org_id_param: user.org_id,
+            current_month: new Date().toISOString().slice(0, 7) // YYYY-MM
+          })
 
-        if (casesError) {
-          console.error('❌ Error obteniendo casos:', casesError)
-          throw casesError
+        if (statsError) {
+          console.error('❌ Error obteniendo estadísticas:', statsError)
+          throw statsError
         }
 
-        // Obtener contactos
-        const { data: contacts, error: contactsError } = await supabase
-          .from('contacts')
-          .select('id, created_at')
-
-        if (contactsError) {
-          console.error('❌ Error obteniendo contactos:', contactsError)
-          throw contactsError
+        // Si la función RPC no existe, usar consultas individuales como fallback
+        if (!statsData || statsData.length === 0) {
+          console.log('📊 Usando fallback para estadísticas')
+          return await getStatsFallback(user.org_id)
         }
 
-        // Obtener entradas de tiempo
-        const { data: timeEntries, error: timeError } = await supabase
-          .from('time_entries')
-          .select('duration_minutes, is_billable, created_at')
-
-        if (timeError) {
-          console.error('❌ Error obteniendo entradas de tiempo:', timeError)
-          throw timeError
+        const stats = statsData[0]
+        const result = {
+          totalCases: stats.total_cases,
+          activeCases: stats.active_cases,
+          totalContacts: stats.total_contacts,
+          totalTimeEntries: stats.total_time_entries,
+          totalBillableHours: Math.round((stats.total_billable_hours || 0) * 100) / 100,
+          totalNonBillableHours: Math.round((stats.total_non_billable_hours || 0) * 100) / 100,
+          thisMonthCases: stats.this_month_cases,
+          thisMonthContacts: stats.this_month_contacts,
+          thisMonthHours: Math.round((stats.this_month_hours || 0) * 100) / 100,
         }
 
-        // Calcular estadísticas
-        const totalCases = cases?.length || 0
-        const activeCases = cases?.filter(c => c.status === 'open').length || 0
-        const totalContacts = contacts?.length || 0
-        const totalTimeEntries = timeEntries?.length || 0
-
-        const totalBillableMinutes = timeEntries?.filter(t => t.is_billable).reduce((sum, t) => sum + t.duration_minutes, 0) || 0
-        const totalNonBillableMinutes = timeEntries?.filter(t => !t.is_billable).reduce((sum, t) => sum + t.duration_minutes, 0) || 0
-
-        const totalBillableHours = Math.round((totalBillableMinutes / 60) * 100) / 100
-        const totalNonBillableHours = Math.round((totalNonBillableMinutes / 60) * 100) / 100
-
-        // Estadísticas del mes actual
-        const currentMonth = new Date()
-        currentMonth.setDate(1)
-        currentMonth.setHours(0, 0, 0, 0)
-
-        const thisMonthCases = cases?.filter(c => new Date(c.created_at) >= currentMonth).length || 0
-        const thisMonthContacts = contacts?.filter(c => new Date(c.created_at) >= currentMonth).length || 0
-        
-        const thisMonthTimeEntries = timeEntries?.filter(t => new Date(t.created_at) >= currentMonth) || []
-        const thisMonthMinutes = thisMonthTimeEntries.reduce((sum, t) => sum + t.duration_minutes, 0)
-        const thisMonthHours = Math.round((thisMonthMinutes / 60) * 100) / 100
-
-        const stats = {
-          totalCases,
-          activeCases,
-          totalContacts,
-          totalTimeEntries,
-          totalBillableHours,
-          totalNonBillableHours,
-          thisMonthCases,
-          thisMonthContacts,
-          thisMonthHours,
-        }
-
-        console.log('✅ Estadísticas calculadas:', stats)
-        return stats
+        console.log('✅ Estadísticas obtenidas:', result)
+        return result
 
       } catch (error) {
-        console.error('❌ Error obteniendo estadísticas:', error)
-        throw error
+        console.error('❌ Error en consulta de estadísticas:', error)
+        // Fallback a consultas individuales
+        return await getStatsFallback(user.org_id)
       }
     },
     enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
   })
+
+  // Función fallback para cuando no existe la función RPC
+  const getStatsFallback = async (orgId: string): Promise<DashboardStats> => {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1)
+    startOfMonth.setHours(0, 0, 0, 0)
+
+    // Consultas paralelas para mejor performance
+    const [casesResult, contactsResult, timeEntriesResult] = await Promise.all([
+      supabase
+        .from('cases')
+        .select('id, status, created_at'),
+      supabase
+        .from('contacts')
+        .select('id, created_at'),
+      supabase
+        .from('time_entries')
+        .select('duration_minutes, is_billable, created_at')
+    ])
+
+    if (casesResult.error) throw casesResult.error
+    if (contactsResult.error) throw contactsResult.error
+    if (timeEntriesResult.error) throw timeEntriesResult.error
+
+    const cases = casesResult.data || []
+    const contacts = contactsResult.data || []
+    const timeEntries = timeEntriesResult.data || []
+
+    // Calcular estadísticas
+    const totalCases = cases.length
+    const activeCases = cases.filter(c => c.status === 'open').length
+    const totalContacts = contacts.length
+    const totalTimeEntries = timeEntries.length
+
+    const totalBillableHours = timeEntries
+      .filter(te => te.is_billable)
+      .reduce((sum, te) => sum + (te.duration_minutes / 60), 0)
+
+    const totalNonBillableHours = timeEntries
+      .filter(te => !te.is_billable)
+      .reduce((sum, te) => sum + (te.duration_minutes / 60), 0)
+
+    const thisMonthCases = cases.filter(c => 
+      new Date(c.created_at) >= startOfMonth
+    ).length
+
+    const thisMonthContacts = contacts.filter(c => 
+      new Date(c.created_at) >= startOfMonth
+    ).length
+
+    const thisMonthHours = timeEntries
+      .filter(te => new Date(te.created_at) >= startOfMonth)
+      .reduce((sum, te) => sum + (te.duration_minutes / 60), 0)
+
+    return {
+      totalCases,
+      activeCases,
+      totalContacts,
+      totalTimeEntries,
+      totalBillableHours: Math.round(totalBillableHours * 100) / 100,
+      totalNonBillableHours: Math.round(totalNonBillableHours * 100) / 100,
+      thisMonthCases,
+      thisMonthContacts,
+      thisMonthHours: Math.round(thisMonthHours * 100) / 100,
+    }
+  }
 
   return {
     stats: stats || {
