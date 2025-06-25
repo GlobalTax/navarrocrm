@@ -138,7 +138,7 @@ export const DatabaseStatsPanel = () => {
               <div className="flex items-center gap-2 text-orange-600">
                 <AlertTriangle className="h-4 w-4" />
                 <span className="text-sm">
-                  {stats.slowQueries} slow queries detected (>1s)
+                  {stats.slowQueries} slow queries detected (&gt;1s)
                 </span>
               </div>
             )}
