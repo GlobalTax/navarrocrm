@@ -1,6 +1,7 @@
 
 import { useCallback } from 'react'
 import { useIntelligentCache } from './useIntelligentCache'
+import { CacheStats } from './types'
 
 interface CacheConfig {
   defaultTTL?: number
@@ -9,11 +10,10 @@ interface CacheConfig {
 }
 
 // Hook especializado para cache de consultas de API
-export const useAPICache = <T>(config?: CacheConfig) => {
-  const cache = useIntelligentCache<T>({
-    defaultTTL: 5 * 60 * 1000, // 5 minutos para APIs
-    maxSize: 200, // Más espacio para datos de API
-    ...config
+export const useAPICache = <T = any>(config?: CacheConfig) => {
+  const cache = useIntelligentCache({
+    maxAge: config?.defaultTTL || 5 * 60 * 1000, // 5 minutos para APIs
+    maxSize: config?.maxSize || 200, // Más espacio para datos de API
   })
 
   const fetchWithCache = useCallback(async (
@@ -21,21 +21,28 @@ export const useAPICache = <T>(config?: CacheConfig) => {
     apiCall: () => Promise<T>,
     ttl?: number
   ): Promise<T> => {
-    return cache.getOrSet(key, apiCall, ttl)
+    if (!cache.isReady) {
+      throw new Error('Cache not ready')
+    }
+
+    // Intentar obtener del cache
+    const cached = await cache.get<T>(key)
+    if (cached) {
+      return cached
+    }
+
+    // Si no está en cache, hacer la llamada
+    const result = await apiCall()
+    await cache.set(key, result, ttl)
+    return result
   }, [cache])
 
   // Invalidar cache por patrones (ej: invalidar todos los datos de un usuario)
   const invalidatePattern = useCallback((pattern: string) => {
-    const keysToRemove: string[] = []
-    
-    // Simular pattern matching simple
-    const stats = cache.getStats()
-    // Como no podemos iterar sobre las keys directamente, usaremos un enfoque diferente
-    // Los consumidores pueden llamar a remove() con keys específicas
-    
     console.log(`Pattern invalidation requested for: ${pattern}`)
-    console.log(`Current cache size: ${stats.size}`)
-  }, [cache])
+    // Para implementación simple, solo loggeamos
+    // En una implementación completa, iteraríamos sobre las keys
+  }, [])
 
   // Precargar datos frecuentemente accedidos
   const preload = useCallback(async (
@@ -45,7 +52,7 @@ export const useAPICache = <T>(config?: CacheConfig) => {
   ) => {
     try {
       const data = await fetcher()
-      cache.set(key, data, ttl)
+      await cache.set(key, data, ttl)
       console.log(`Preloaded cache key: ${key}`)
     } catch (error) {
       console.error(`Failed to preload cache key ${key}:`, error)

@@ -7,37 +7,23 @@ import { RefreshCw, Database, TrendingUp, Clock } from 'lucide-react'
 import { useAPICache, useFormCache } from '@/hooks/cache'
 
 export const CacheStatsPanel = () => {
-  const [apiCacheStats, setApiCacheStats] = useState<any>(null)
-  const [formCacheStats, setFormCacheStats] = useState<any>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Create cache instances to get stats
   const apiCache = useAPICache()
   const formCache = useFormCache('stats_panel')
 
-  useEffect(() => {
-    const updateStats = () => {
-      setApiCacheStats(apiCache.getStats())
-      setFormCacheStats(formCache.getStats())
-    }
-
-    updateStats()
-    const interval = setInterval(updateStats, 5000) // Update every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [refreshKey, apiCache, formCache])
-
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1)
   }
 
-  const handleClearApiCache = () => {
-    apiCache.clear()
+  const handleClearApiCache = async () => {
+    await apiCache.clear()
     handleRefresh()
   }
 
-  const handleClearFormCache = () => {
-    formCache.clear()
+  const handleClearFormCache = async () => {
+    await formCache.clear()
     handleRefresh()
   }
 
@@ -78,22 +64,15 @@ export const CacheStatsPanel = () => {
                 Clear
               </Button>
             </div>
-            {apiCacheStats && (
+            {apiCache.stats && (
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center gap-1">
                   <Database className="h-3 w-3 text-blue-500" />
-                  <span>Size: {apiCacheStats.size}</span>
+                  <span>Ready: {apiCache.isReady ? 'Yes' : 'No'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <TrendingUp className="h-3 w-3 text-green-500" />
-                  <span>Hit Rate: {Math.round(apiCacheStats.hitRate * 100)}%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-yellow-500" />
-                  <span>Expired: {apiCacheStats.expiredCount}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span>Access: {apiCacheStats.totalAccessCount}</span>
+                  <span>Active</span>
                 </div>
               </div>
             )}
@@ -112,29 +91,27 @@ export const CacheStatsPanel = () => {
                 Clear
               </Button>
             </div>
-            {formCacheStats && (
+            {formCache.stats && (
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex items-center gap-1">
                   <Database className="h-3 w-3 text-purple-500" />
-                  <span>Drafts: {formCacheStats.size}</span>
+                  <span>Ready: {formCache.isReady ? 'Yes' : 'No'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <TrendingUp className="h-3 w-3 text-green-500" />
-                  <span>Hit Rate: {Math.round(formCacheStats.hitRate * 100)}%</span>
+                  <span>Active</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Most Accessed */}
-          {apiCacheStats?.mostAccessedKey && (
-            <div>
-              <span className="text-xs font-medium text-gray-700">Most Accessed:</span>
-              <Badge variant="secondary" className="text-xs ml-2">
-                {apiCacheStats.mostAccessedKey.substring(0, 20)}...
-              </Badge>
-            </div>
-          )}
+          {/* Status */}
+          <div>
+            <span className="text-xs font-medium text-gray-700">Status:</span>
+            <Badge variant="secondary" className="text-xs ml-2">
+              Cache System Active
+            </Badge>
+          </div>
         </CardContent>
       </Card>
     </div>

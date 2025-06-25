@@ -34,8 +34,8 @@ export const useCachedQuery = <T>({
   })
 
   // Funciones adicionales para manejo de cache
-  const invalidateCache = useCallback(() => {
-    apiCache.remove(cacheKey)
+  const invalidateCache = useCallback(async () => {
+    await apiCache.remove(cacheKey)
   }, [apiCache, cacheKey])
 
   const preloadCache = useCallback(async () => {
@@ -46,6 +46,6 @@ export const useCachedQuery = <T>({
     ...queryResult,
     invalidateCache,
     preloadCache,
-    cacheStats: apiCache.getStats()
+    cacheStats: apiCache.stats
   }
 }

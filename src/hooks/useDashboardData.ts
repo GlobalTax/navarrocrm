@@ -2,6 +2,22 @@
 import { useQueryCache } from '@/hooks/cache/useQueryCache'
 import { useApp } from '@/contexts/AppContext'
 
+export interface PerformanceData {
+  month: string
+  horas: number
+  facturado: number
+  objetivo: number
+}
+
+export interface RecentActivity {
+  id: string
+  type: 'case' | 'task' | 'time_entry' | 'client' | 'proposal'
+  title: string
+  description: string
+  timestamp: Date
+  user: string
+}
+
 interface DashboardData {
   quickStats: {
     todayHours: number
@@ -9,13 +25,8 @@ interface DashboardData {
     monthHours: number
     activeClients: number
   }
-  recentActivity: Array<{
-    id: string
-    type: 'case' | 'task' | 'time_entry'
-    title: string
-    timestamp: Date
-    user: string
-  }>
+  recentActivity: RecentActivity[]
+  performanceData: PerformanceData[]
   upcomingTasks: Array<{
     id: string
     title: string
@@ -40,18 +51,48 @@ export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'mont
             activeClients: 0
           },
           recentActivity: [],
+          performanceData: [],
           upcomingTasks: []
         }
       }
 
-      // Calcular fechas según el rango
-      const now = new Date()
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      const startOfWeek = new Date(today)
-      startOfWeek.setDate(today.getDate() - today.getDay())
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      // Mock data con performance data
+      const mockPerformanceData: PerformanceData[] = [
+        { month: 'Ene', horas: 140, facturado: 120, objetivo: 160 },
+        { month: 'Feb', horas: 155, facturado: 135, objetivo: 160 },
+        { month: 'Mar', horas: 168, facturado: 150, objetivo: 160 },
+        { month: 'Abr', horas: 145, facturado: 128, objetivo: 160 },
+        { month: 'May', horas: 172, facturado: 158, objetivo: 160 },
+        { month: 'Jun', horas: 165, facturado: 142, objetivo: 160 }
+      ]
 
-      // Simular datos por ahora - aquí irían las consultas reales
+      const mockRecentActivity: RecentActivity[] = [
+        {
+          id: '1',
+          type: 'case',
+          title: 'Nuevo caso creado',
+          description: 'Consulta fiscal - Cliente ABC S.L.',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          user: 'Usuario'
+        },
+        {
+          id: '2',
+          type: 'time_entry',
+          title: 'Tiempo registrado',
+          description: '2.5h en revisión contrato',
+          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+          user: 'Usuario'
+        },
+        {
+          id: '3',
+          type: 'client',
+          title: 'Cliente actualizado',
+          description: 'Datos de contacto de XYZ Corp',
+          timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
+          user: 'Usuario'
+        }
+      ]
+
       const mockData: DashboardData = {
         quickStats: {
           todayHours: Math.floor(Math.random() * 8),
@@ -59,22 +100,8 @@ export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'mont
           monthHours: Math.floor(Math.random() * 160),
           activeClients: Math.floor(Math.random() * 25) + 5
         },
-        recentActivity: [
-          {
-            id: '1',
-            type: 'case',
-            title: 'Nuevo caso creado: Consulta fiscal',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-            user: 'Usuario'
-          },
-          {
-            id: '2',
-            type: 'time_entry',
-            title: 'Tiempo registrado: 2.5h en revisión contrato',
-            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-            user: 'Usuario'
-          }
-        ],
+        recentActivity: mockRecentActivity,
+        performanceData: mockPerformanceData,
         upcomingTasks: [
           {
             id: '1',
