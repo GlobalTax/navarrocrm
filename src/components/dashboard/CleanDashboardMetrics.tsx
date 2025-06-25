@@ -108,7 +108,7 @@ export const CleanDashboardMetrics = () => {
       icon: Calendar,
       trend: {
         value: quickStats?.todayHours && quickStats.todayHours >= 6 ? '+bueno' : 'continúa',
-        type: quickStats?.todayHours && quickStats.todayHours >= 6 ? 'positive' : 'neutral' as const
+        type: (quickStats?.todayHours && quickStats.todayHours >= 6 ? 'positive' : 'neutral') as const
       }
     },
     {
@@ -118,7 +118,7 @@ export const CleanDashboardMetrics = () => {
       icon: Target,
       trend: {
         value: `${Math.round((quickStats?.weekHours || 0) / 40 * 100)}%`,
-        type: (quickStats?.weekHours || 0) > 30 ? 'positive' : 'neutral' as const
+        type: ((quickStats?.weekHours || 0) > 30 ? 'positive' : 'neutral') as const
       }
     },
     {
@@ -128,7 +128,7 @@ export const CleanDashboardMetrics = () => {
       icon: TrendingUp,
       trend: {
         value: `${utilizationRate}%`,
-        type: utilizationRate >= 80 ? 'positive' : utilizationRate >= 60 ? 'neutral' : 'negative' as const
+        type: (utilizationRate >= 80 ? 'positive' : utilizationRate >= 60 ? 'neutral' : 'negative') as const
       }
     },
     {
@@ -138,7 +138,7 @@ export const CleanDashboardMetrics = () => {
       icon: Users,
       trend: {
         value: quickStats?.activeClients ? '+activos' : 'sin actividad',
-        type: quickStats?.activeClients ? 'positive' : 'neutral' as const
+        type: (quickStats?.activeClients ? 'positive' : 'neutral') as const
       }
     },
     {
@@ -158,7 +158,7 @@ export const CleanDashboardMetrics = () => {
       icon: CheckCircle,
       trend: {
         value: dashboardData?.upcomingTasks?.some(task => new Date(task.dueDate) < new Date()) ? 'vencidas' : 'al día',
-        type: dashboardData?.upcomingTasks?.some(task => new Date(task.dueDate) < new Date()) ? 'negative' : 'positive' as const
+        type: (dashboardData?.upcomingTasks?.some(task => new Date(task.dueDate) < new Date()) ? 'negative' : 'positive') as const
       }
     },
     {
@@ -168,7 +168,7 @@ export const CleanDashboardMetrics = () => {
       icon: DollarSign,
       trend: {
         value: monthlyHours > 100 ? '+objetivo' : 'por debajo',
-        type: monthlyHours > 100 ? 'positive' : 'neutral' as const
+        type: (monthlyHours > 100 ? 'positive' : 'neutral') as const
       }
     },
     {
@@ -178,7 +178,7 @@ export const CleanDashboardMetrics = () => {
       icon: Clock,
       trend: {
         value: utilizationRate >= 80 ? 'excelente' : utilizationRate >= 60 ? 'buena' : 'mejorable',
-        type: utilizationRate >= 80 ? 'positive' : utilizationRate >= 60 ? 'neutral' : 'negative' as const
+        type: (utilizationRate >= 80 ? 'positive' : utilizationRate >= 60 ? 'neutral' : 'negative') as const
       }
     }
   ]
