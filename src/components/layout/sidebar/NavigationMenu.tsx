@@ -13,21 +13,21 @@ export function NavigationMenu({ collapsed = false }: NavigationMenuProps) {
   return (
     <div className="space-y-1">
       {navigationData.map((section) => (
-        <div key={section.section} className="space-y-1">
+        <div key={section.title} className="space-y-1">
           {!collapsed && (
             <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              {section.section}
+              {section.title}
             </h3>
           )}
           {section.items.map((item) => {
-            const isActive = location.pathname === item.href || 
-                           (item.href !== '/' && location.pathname.startsWith(item.href))
+            const isActive = location.pathname === item.url || 
+                           (item.url !== '/' && location.pathname.startsWith(item.url))
             const Icon = item.icon
 
             return (
               <Link
-                key={item.name}
-                to={item.href}
+                key={item.title}
+                to={item.url}
                 className={`
                   group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors
                   ${isActive
@@ -36,13 +36,13 @@ export function NavigationMenu({ collapsed = false }: NavigationMenuProps) {
                   }
                   ${collapsed ? 'justify-center' : ''}
                 `}
-                title={collapsed ? item.name : undefined}
+                title={collapsed ? item.title : undefined}
               >
                 <Icon
                   className={`flex-shrink-0 h-5 w-5 ${collapsed ? '' : 'mr-3'}`}
                   aria-hidden="true"
                 />
-                {!collapsed && item.name}
+                {!collapsed && item.title}
               </Link>
             )
           })}
