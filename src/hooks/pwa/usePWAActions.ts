@@ -2,8 +2,8 @@
 import { useCallback } from 'react'
 
 export const usePWAActions = (
-  deferredPromptRef: React.RefObject<any>,
-  registrationRef: React.RefObject<ServiceWorkerRegistration | null>,
+  deferredPromptRef: React.MutableRefObject<any>,
+  registrationRef: React.MutableRefObject<ServiceWorkerRegistration | null>,
   setPwaState: (updater: (prev: any) => any) => void,
   isOnline: boolean
 ) => {
