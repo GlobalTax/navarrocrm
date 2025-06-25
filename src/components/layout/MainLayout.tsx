@@ -1,7 +1,8 @@
 
 import { Header } from './Header'
-import { Sidebar } from './Sidebar'
+import { CollapsibleSidebar } from './CollapsibleSidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 interface MainLayoutProps {
@@ -13,7 +14,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar />
+      <CollapsibleSidebar />
       <div className="flex-1 flex flex-col">
         <Header />
         <main className="flex-1 p-6 overflow-auto">
@@ -28,6 +29,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onToggle={toggle}
         onMinimize={minimize}
       />
+      
+      {/* Global Notifications */}
+      <NotificationCenter />
     </div>
   )
 }

@@ -1,43 +1,51 @@
 
-import { NavLink } from 'react-router-dom'
-import { cn } from "@/lib/utils"
+import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { navigationData } from './NavigationData'
 
-export const NavigationMenu = () => {
+interface NavigationMenuProps {
+  collapsed?: boolean
+}
+
+export function NavigationMenu({ collapsed = false }: NavigationMenuProps) {
+  const location = useLocation()
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-1">
       {navigationData.map((section) => (
-        <div key={section.title} className="space-y-1">
-          <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            {section.title}
-          </h3>
-          <div className="space-y-1">
-            {section.items.map((item) => {
-              const Icon = item.icon
-              return (
-                <NavLink
-                  key={item.title}
-                  to={item.url}
-                  className={({ isActive }) =>
-                    cn(
-                      isActive
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                      'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
-                    )
+        <div key={section.section} className="space-y-1">
+          {!collapsed && (
+            <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              {section.section}
+            </h3>
+          )}
+          {section.items.map((item) => {
+            const isActive = location.pathname === item.href || 
+                           (item.href !== '/' && location.pathname.startsWith(item.href))
+            const Icon = item.icon
+
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`
+                  group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors
+                  ${isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }
-                >
-                  <Icon className="mr-3 h-4 w-4" />
-                  {item.title}
-                  {item.badge && (
-                    <span className="ml-auto bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              )
-            })}
-          </div>
+                  ${collapsed ? 'justify-center' : ''}
+                `}
+                title={collapsed ? item.name : undefined}
+              >
+                <Icon
+                  className={`flex-shrink-0 h-5 w-5 ${collapsed ? '' : 'mr-3'}`}
+                  aria-hidden="true"
+                />
+                {!collapsed && item.name}
+              </Link>
+            )
+          })}
         </div>
       ))}
     </div>
