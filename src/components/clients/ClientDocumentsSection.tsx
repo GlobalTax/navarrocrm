@@ -84,7 +84,7 @@ export const ClientDocumentsSection = ({ clientId }: ClientDocumentsSectionProps
               <FileCheck className="h-5 w-5 text-green-600" />
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {metrics.contractsCount}
+              {documents.filter(d => d.file_name.toLowerCase().includes('contrato')).length}
             </div>
             <div className="text-sm text-gray-600">Contratos</div>
           </CardContent>
@@ -96,7 +96,7 @@ export const ClientDocumentsSection = ({ clientId }: ClientDocumentsSectionProps
               <FileText className="h-5 w-5 text-blue-600" />
             </div>
             <div className="text-2xl font-bold text-blue-600">
-              {metrics.proposalsCount}
+              {documents.filter(d => d.file_name.toLowerCase().includes('propuesta')).length}
             </div>
             <div className="text-sm text-gray-600">Propuestas</div>
           </CardContent>
@@ -108,7 +108,7 @@ export const ClientDocumentsSection = ({ clientId }: ClientDocumentsSectionProps
               <FileX className="h-5 w-5 text-red-600" />
             </div>
             <div className="text-2xl font-bold text-red-600">
-              {metrics.legalCount}
+              {documents.filter(d => d.file_name.toLowerCase().includes('legal') || d.file_name.toLowerCase().includes('informe')).length}
             </div>
             <div className="text-sm text-gray-600">Documentos Legales</div>
           </CardContent>
@@ -120,7 +120,10 @@ export const ClientDocumentsSection = ({ clientId }: ClientDocumentsSectionProps
               <File className="h-5 w-5 text-gray-600" />
             </div>
             <div className="text-2xl font-bold text-gray-600">
-              {metrics.generalCount}
+              {documents.filter(d => !d.file_name.toLowerCase().includes('contrato') && 
+                                    !d.file_name.toLowerCase().includes('propuesta') && 
+                                    !d.file_name.toLowerCase().includes('legal') && 
+                                    !d.file_name.toLowerCase().includes('informe')).length}
             </div>
             <div className="text-sm text-gray-600">Generales</div>
           </CardContent>
