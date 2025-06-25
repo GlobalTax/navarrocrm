@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -130,13 +129,57 @@ export const usePWA = () => {
     }
   }
 
+  const handleFileOpen = (files: FileList) => {
+    console.log('Files opened via PWA:', files)
+    
+    // Convertir FileList a Array
+    const fileArray = Array.from(files)
+    
+    // Redireccionar a la página de upload con los archivos
+    const uploadUrl = new URL('/upload', window.location.origin)
+    
+    // En una implementación real, los archivos se pasarían a través del state
+    // o se almacenarían temporalmente para su procesamiento
+    window.location.href = uploadUrl.toString()
+    
+    return fileArray
+  }
+
+  const handleProtocolAction = (action: string) => {
+    console.log('Protocol action:', action)
+    
+    // Parsear la acción del protocolo web+crm://
+    const urlParams = new URLSearchParams(action)
+    const actionType = urlParams.get('type')
+    const entityId = urlParams.get('id')
+    
+    switch (actionType) {
+      case 'client':
+        window.location.href = entityId ? `/clients/${entityId}` : '/contacts'
+        break
+      case 'case':
+        window.location.href = entityId ? `/cases/${entityId}` : '/cases'
+        break
+      case 'proposal':
+        window.location.href = entityId ? `/proposals/${entityId}` : '/proposals'
+        break
+      case 'timer':
+        window.location.href = '/time-tracking'
+        break
+      default:
+        window.location.href = '/'
+    }
+  }
+
   return {
     isInstallable,
     isInstalled,
     isOnline,
     installApp,
     registerForPushNotifications,
-    requestBackgroundSync
+    requestBackgroundSync,
+    handleFileOpen,
+    handleProtocolAction
   }
 }
 

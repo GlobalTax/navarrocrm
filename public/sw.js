@@ -1,4 +1,3 @@
-
 const CACHE_NAME = 'crm-asesoria-v1.0.0'
 const STATIC_CACHE = 'crm-static-v1.0.0'
 const DYNAMIC_CACHE = 'crm-dynamic-v1.0.0'
@@ -64,6 +63,119 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+// Detectar requests especiales de PWA
+function isPWAHandlerRequest(request) {
+  const url = new URL(request.url)
+  return url.pathname === '/share' || url.pathname === '/upload'
+}
+
+// Manejar requests especiales de PWA
+async function handlePWARequest(request) {
+  try {
+    const networkResponse = await fetch(request)
+    return networkResponse
+  } catch (error) {
+    // Fallback para handlers PWA cuando están offline
+    const url = new URL(request.url)
+    
+    if (url.pathname === '/share') {
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Compartir - CRM Asesoría</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                margin: 0; padding: 20px; background: #f5f5f5;
+                display: flex; align-items: center; justify-content: center;
+                min-height: 100vh;
+              }
+              .pwa-container {
+                text-align: center; background: white; padding: 40px;
+                border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                max-width: 400px;
+              }
+              .pwa-icon { font-size: 48px; margin-bottom: 20px; }
+              h1 { color: #333; margin-bottom: 10px; }
+              p { color: #666; line-height: 1.6; }
+              .retry-btn {
+                background: #0061FF; color: white; border: none;
+                padding: 12px 24px; border-radius: 6px; cursor: pointer;
+                margin-top: 20px; font-size: 16px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="pwa-container">
+              <div class="pwa-icon">📤</div>
+              <h1>Función de Compartir</h1>
+              <p>Esta función requiere conexión a internet.</p>
+              <p>Los archivos se procesarán cuando recuperes la conexión.</p>
+              <button class="retry-btn" onclick="window.location.reload()">
+                Reintentar
+              </button>
+            </div>
+          </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      })
+    }
+    
+    if (url.pathname === '/upload') {
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Subir Archivos - CRM Asesoría</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                margin: 0; padding: 20px; background: #f5f5f5;
+                display: flex; align-items: center; justify-content: center;
+                min-height: 100vh;
+              }
+              .pwa-container {
+                text-align: center; background: white; padding: 40px;
+                border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                max-width: 400px;
+              }
+              .pwa-icon { font-size: 48px; margin-bottom: 20px; }
+              h1 { color: #333; margin-bottom: 10px; }
+              p { color: #666; line-height: 1.6; }
+              .retry-btn {
+                background: #0061FF; color: white; border: none;
+                padding: 12px 24px; border-radius: 6px; cursor: pointer;
+                margin-top: 20px; font-size: 16px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="pwa-container">
+              <div class="pwa-icon">📁</div>
+              <h1>Subir Archivos</h1>
+              <p>Esta función requiere conexión a internet.</p>
+              <p>Los archivos se subirán cuando recuperes la conexión.</p>
+              <button class="retry-btn" onclick="window.location.reload()">
+                Reintentar
+              </button>
+            </div>
+          </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      })
+    }
+    
+    return createOfflineResponse(request)
+  }
+}
+
 // Interceptar requests
 self.addEventListener('fetch', (event) => {
   const { request } = event
@@ -71,6 +183,12 @@ self.addEventListener('fetch', (event) => {
   
   // Ignorar requests de analytics y otros servicios externos
   if (url.hostname !== self.location.hostname) {
+    return
+  }
+
+  // Estrategia para PWA handlers
+  if (isPWAHandlerRequest(request)) {
+    event.respondWith(handlePWARequest(request))
     return
   }
 

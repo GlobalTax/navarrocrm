@@ -1,8 +1,8 @@
 
 {
-  "name": "CRM Asesoría Legal Pro",
-  "short_name": "CRM Legal",
-  "description": "CRM líder para asesorías multidisciplinares - Gestión de expedientes, time-tracking, facturación y portal cliente",
+  "name": "CRM Asesoría - Gestión Integral de Despachos",
+  "short_name": "CRM Asesoría",
+  "description": "Sistema completo de gestión para despachos de abogados y asesorías. Gestiona clientes, casos, propuestas, facturación y más.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,21 +10,8 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "es",
+  "dir": "ltr",
   "categories": ["business", "productivity", "finance"],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "414x896",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -83,34 +70,119 @@
       "url": "/contacts?action=new",
       "icons": [
         {
-          "src": "/icons/shortcut-new-contact.png",
-          "sizes": "96x96"
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
         }
       ]
     },
     {
-      "name": "Control de Tiempo",
-      "short_name": "Timer",
-      "description": "Iniciar seguimiento de tiempo",
+      "name": "Nuevo Caso",
+      "short_name": "Caso",
+      "description": "Crear un nuevo caso",
+      "url": "/cases?action=new",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Nueva Propuesta",
+      "short_name": "Propuesta",
+      "description": "Crear una nueva propuesta",
+      "url": "/proposals?action=new",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Time Tracking",
+      "short_name": "Tiempo",
+      "description": "Registrar tiempo de trabajo",
       "url": "/time-tracking",
       "icons": [
         {
-          "src": "/icons/shortcut-timer.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Expedientes",
-      "short_name": "Casos",
-      "description": "Ver expedientes activos",
-      "url": "/cases",
-      "icons": [
-        {
-          "src": "/icons/shortcut-cases.png",
-          "sizes": "96x96"
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
         }
       ]
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard principal con métricas en tiempo real"
+    },
+    {
+      "src": "/screenshots/contacts.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Gestión de contactos y clientes"
+    },
+    {
+      "src": "/screenshots/cases.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Gestión de casos y expedientes"
+    },
+    {
+      "src": "/screenshots/mobile-dashboard.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard optimizado para móvil"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+crm",
+      "url": "/?action=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/upload",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "image/*": [".png", ".jpg", ".jpeg", ".gif"],
+        "text/plain": [".txt"],
+        "application/msword": [".doc"],
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "application/pdf", "text/plain"]
+        }
+      ]
+    }
+  }
 }
