@@ -1,13 +1,12 @@
 
-import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { ProposalFormData, PricingTierFormData } from '../types/proposal.schema';
+import { ProposalFormData } from '../types/proposal.schema';
 
 interface ProposalFormManagerProps {
   form: UseFormReturn<ProposalFormData>;
 }
 
-export const ProposalFormManager: React.FC<ProposalFormManagerProps> = ({ form }) => {
+export const useProposalFormManager = (form: UseFormReturn<ProposalFormData>) => {
   const addPricingTier = () => {
     console.log('Adding new pricing tier');
     try {
@@ -133,9 +132,4 @@ export const ProposalFormManager: React.FC<ProposalFormManagerProps> = ({ form }
     removeService,
     calculateTierTotal
   };
-};
-
-export const useProposalFormManager = (form: UseFormReturn<ProposalFormData>) => {
-  const manager = ProposalFormManager({ form });
-  return manager;
 };
