@@ -2684,17 +2684,7 @@ export type Database = {
       }
       get_dashboard_stats: {
         Args: { org_id_param: string; current_month?: string }
-        Returns: {
-          total_cases: number
-          active_cases: number
-          total_contacts: number
-          total_time_entries: number
-          total_billable_hours: number
-          total_non_billable_hours: number
-          this_month_cases: number
-          this_month_contacts: number
-          this_month_hours: number
-        }[]
+        Returns: Json
       }
       get_task_stats: {
         Args: { org_uuid: string }

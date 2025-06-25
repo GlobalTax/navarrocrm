@@ -39,9 +39,9 @@ export const useDashboardStats = () => {
       console.log('📊 Obteniendo estadísticas para org:', user.org_id)
 
       try {
-        // Intentar usar la función RPC optimizada
+        // Usar la función RPC optimizada que retorna JSON
         const { data: statsData, error: statsError } = await supabase
-          .rpc('get_dashboard_stats' as any, { 
+          .rpc('get_dashboard_stats', { 
             org_id_param: user.org_id,
             current_month: new Date().toISOString().slice(0, 7) // YYYY-MM
           })
@@ -51,23 +51,22 @@ export const useDashboardStats = () => {
           throw statsError
         }
 
-        // Si la función RPC no existe o no devuelve datos, usar consultas individuales como fallback
-        if (!statsData || statsData.length === 0) {
+        // La función ahora retorna JSON directamente
+        if (!statsData) {
           console.log('📊 Usando fallback para estadísticas')
           return await getStatsFallback(user.org_id)
         }
 
-        const stats = statsData[0]
         const result = {
-          totalCases: stats.total_cases,
-          activeCases: stats.active_cases,
-          totalContacts: stats.total_contacts,
-          totalTimeEntries: stats.total_time_entries,
-          totalBillableHours: Math.round((stats.total_billable_hours || 0) * 100) / 100,
-          totalNonBillableHours: Math.round((stats.total_non_billable_hours || 0) * 100) / 100,
-          thisMonthCases: stats.this_month_cases,
-          thisMonthContacts: stats.this_month_contacts,
-          thisMonthHours: Math.round((stats.this_month_hours || 0) * 100) / 100,
+          totalCases: statsData.totalCases || 0,
+          activeCases: statsData.activeCases || 0,
+          totalContacts: statsData.totalContacts || 0,
+          totalTimeEntries: statsData.totalTimeEntries || 0,
+          totalBillableHours: Math.round((statsData.totalBillableHours || 0) * 100) / 100,
+          totalNonBillableHours: Math.round((statsData.totalNonBillableHours || 0) * 100) / 100,
+          thisMonthCases: statsData.thisMonthCases || 0,
+          thisMonthContacts: statsData.thisMonthContacts || 0,
+          thisMonthHours: Math.round((statsData.thisMonthHours || 0) * 100) / 100,
         }
 
         console.log('✅ Estadísticas obtenidas:', result)
