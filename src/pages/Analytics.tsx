@@ -2,11 +2,17 @@
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { AnalyticsSection } from '@/components/analytics/AnalyticsSection'
+import { RealTimeMetricsChart } from '@/components/analytics/RealTimeMetricsChart'
+import { WebVitalsDisplay } from '@/components/analytics/WebVitalsDisplay'
+import { ErrorAnalyticsPanel } from '@/components/analytics/ErrorAnalyticsPanel'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCRMAnalytics } from '@/hooks/useCRMAnalytics'
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { Button } from '@/components/ui/button'
+import { ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function Analytics() {
   const analytics = useCRMAnalytics()
@@ -36,18 +42,31 @@ export default function Analytics() {
       <StandardPageHeader
         title="Analytics Dashboard"
         description="Análisis detallado del uso de la aplicación y métricas de rendimiento"
+        actions={
+          <Link to="/advanced-analytics">
+            <Button variant="outline">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Dashboard Avanzado
+            </Button>
+          </Link>
+        }
       />
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Resumen</TabsTrigger>
+          <TabsTrigger value="realtime">Tiempo Real</TabsTrigger>
           <TabsTrigger value="crm">Actividad CRM</TabsTrigger>
-          <TabsTrigger value="performance">Rendimiento</TabsTrigger>
-          <TabsTrigger value="events">Eventos</TabsTrigger>
+          <TabsTrigger value="performance">Web Vitals</TabsTrigger>
+          <TabsTrigger value="errors">Errores</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           <AnalyticsSection />
+        </TabsContent>
+
+        <TabsContent value="realtime" className="space-y-6">
+          <RealTimeMetricsChart />
         </TabsContent>
 
         <TabsContent value="crm" className="space-y-6">
@@ -101,54 +120,11 @@ export default function Analytics() {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Métricas de Rendimiento Web</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-muted-foreground">
-                Las métricas de rendimiento se recopilarán automáticamente durante el uso de la aplicación.
-                <br />
-                Incluye métricas de Web Vitals: LCP, FID, CLS
-              </div>
-            </CardContent>
-          </Card>
+          <WebVitalsDisplay />
         </TabsContent>
 
-        <TabsContent value="events" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Eventos de la Sesión</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {sessionEvents.length > 0 ? (
-                  sessionEvents.slice(-10).map((event, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 border rounded">
-                      <div>
-                        <span className="font-medium">{event.category}</span>
-                        <span className="mx-2">•</span>
-                        <span>{event.action}</span>
-                        {event.label && (
-                          <>
-                            <span className="mx-2">•</span>
-                            <span className="text-muted-foreground">{event.label}</span>
-                          </>
-                        )}
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(event.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    No hay eventos registrados en esta sesión
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="errors" className="space-y-6">
+          <ErrorAnalyticsPanel />
         </TabsContent>
       </Tabs>
     </StandardPageContainer>
