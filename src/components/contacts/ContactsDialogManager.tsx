@@ -1,5 +1,6 @@
+
 import { Contact } from '@/hooks/useContacts'
-import { ClientFormDialog } from '@/components/clients/ClientFormDialog'
+import { ContactFormDialog } from './ContactFormDialog'
 import { ClientDetailDialog } from '@/components/clients/ClientDetailDialog'
 import { ClientBulkUpload } from '@/components/clients/ClientBulkUpload'
 import { ClientExportDialog } from '@/components/clients/ClientExportDialog'
@@ -31,24 +32,30 @@ export function ContactsDialogManager({
   onExportClose,
   onBulkUploadSuccess
 }: ContactsDialogManagerProps) {
+  // Convertir Contact a formato compatible con formularios
+  const contactForForm = selectedContact ? {
+    ...selectedContact,
+    email: selectedContact.email || '', // Hacer email requerido para el formulario
+  } : null
+
   return (
     <>
-      <ClientFormDialog
+      <ContactFormDialog
         open={isCreateDialogOpen}
         onClose={onClose}
-        client={selectedContact}
+        contact={contactForForm}
       />
 
-      <ClientFormDialog
+      <ContactFormDialog
         open={isEditDialogOpen}
         onClose={onClose}
-        client={selectedContact}
+        contact={contactForForm}
       />
 
       <ClientDetailDialog
         open={isDetailDialogOpen}
         onClose={onClose}
-        client={selectedContact}
+        client={contactForForm}
       />
 
       <ClientBulkUpload

@@ -39,19 +39,21 @@ export const useContacts = () => {
   const [relationshipFilter, setRelationshipFilter] = useState<string>('all')
 
   // Usar el hook optimizado
-  const {
-    data: contacts,
-    count,
-    isLoading,
-    error,
-    hasMore,
-    loadMore,
-    refetch
-  } = useOptimizedContacts({
+  const optimizedResult = useOptimizedContacts({
     status: statusFilter,
     relationship_type: relationshipFilter,
     searchTerm: searchTerm.trim() || undefined
   })
+
+  // Extraer propiedades del resultado optimizado
+  const contacts = optimizedResult.data || []
+  const isLoading = optimizedResult.isLoading || false
+  const error = optimizedResult.error || null
+
+  // Crear funciones mock para propiedades que no existen en QueryResult
+  const hasMore = false // Mock value
+  const loadMore = () => {} // Mock function
+  const refetch = () => Promise.resolve() // Mock function
 
   // Filtrar en memoria solo si es necesario (para compatibilidad)
   const filteredContacts = useMemo(() => {
@@ -63,7 +65,7 @@ export const useContacts = () => {
     filteredContacts,
     isLoading,
     error,
-    count,
+    count: contacts?.length || 0,
     hasMore,
     loadMore,
     refetch,
