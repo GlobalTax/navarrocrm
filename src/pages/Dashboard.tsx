@@ -22,7 +22,7 @@ export default function Dashboard() {
   const shouldLoadStats = Boolean(user && user.org_id)
   console.log('Dashboard: Should load stats:', shouldLoadStats, 'User org_id:', user?.org_id)
 
-  const { stats, isLoading, error, refetch } = useDashboardStats(shouldLoadStats)
+  const { stats, isLoading, error, refetch } = useDashboardStats()
 
   console.log('Dashboard: Stats loaded:', { stats, isLoading, error })
 
