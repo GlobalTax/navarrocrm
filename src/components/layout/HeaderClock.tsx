@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Clock, Play, Pause, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeaderTimerDialog } from './HeaderTimerDialog'
@@ -40,16 +40,16 @@ export const HeaderClock = () => {
     }
   }, [isTimerRunning, isTimerPaused])
 
-  const formatTime = (date: Date) => {
+  const formatTime = useCallback((date: Date) => {
     return date.toLocaleTimeString('es-ES', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       hour12: false
     })
-  }
+  }, [])
 
-  const formatTimerTime = (totalSeconds: number) => {
+  const formatTimerTime = useCallback((totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const secs = totalSeconds % 60
@@ -58,25 +58,32 @@ export const HeaderClock = () => {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
+  }, [])
 
-  const handleTimerStart = () => {
+  const handleTimerStart = useCallback(() => {
     setIsTimerRunning(true)
     setIsTimerPaused(false)
     console.log('⏱️ Timer iniciado desde header')
-  }
+  }, [])
 
-  const handleTimerPause = () => {
+  const handleTimerPause = useCallback(() => {
     setIsTimerPaused(true)
     console.log('⏱️ Timer pausado desde header')
-  }
+  }, [])
 
-  const handleTimerResume = () => {
+  const handleTimerResume = useCallback(() => {
     setIsTimerPaused(false)
     console.log('⏱️ Timer reanudado desde header')
-  }
+  }, [])
 
-  const handleTimerStop = () => {
+  const handleTimerReset = useCallback(() => {
+    setIsTimerRunning(false)
+    setIsTimerPaused(false)
+    setTimerSeconds(0)
+    console.log('⏱️ Timer reiniciado desde header')
+  }, [])
+
+  const handleTimerStop = useCallback(() => {
     if (timerSeconds > 0) {
       // Abrir diálogo para registrar el tiempo
       setShowTimerDialog(true)
@@ -84,25 +91,18 @@ export const HeaderClock = () => {
       // Si no hay tiempo registrado, simplemente resetear
       handleTimerReset()
     }
-  }
+  }, [timerSeconds, handleTimerReset])
 
-  const handleTimerReset = () => {
-    setIsTimerRunning(false)
-    setIsTimerPaused(false)
-    setTimerSeconds(0)
-    console.log('⏱️ Timer reiniciado desde header')
-  }
-
-  const handleTimerSaved = () => {
+  const handleTimerSaved = useCallback(() => {
     // Resetear el timer después de guardar
     handleTimerReset()
     setShowTimerDialog(false)
-  }
+  }, [handleTimerReset])
 
-  const handleDialogClose = () => {
+  const handleDialogClose = useCallback(() => {
     setShowTimerDialog(false)
     // No resetear el timer, mantener el tiempo para que el usuario pueda intentar guardar de nuevo
-  }
+  }, [])
 
   return (
     <>

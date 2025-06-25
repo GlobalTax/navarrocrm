@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,7 +44,7 @@ export const Timer = () => {
     }
   }, [isRunning, isPaused])
 
-  const formatTime = (totalSeconds: number) => {
+  const formatTime = useCallback((totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const secs = totalSeconds % 60
@@ -52,26 +53,34 @@ export const Timer = () => {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
+  }, [])
 
-  const handleStart = () => {
+  const handleStart = useCallback(() => {
     setIsRunning(true)
     setIsPaused(false)
     startTimeRef.current = new Date()
     console.log('⏱️ Timer iniciado')
-  }
+  }, [])
 
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     setIsPaused(true)
     console.log('⏱️ Timer pausado')
-  }
+  }, [])
 
-  const handleResume = () => {
+  const handleResume = useCallback(() => {
     setIsPaused(false)
     console.log('⏱️ Timer reanudado')
-  }
+  }, [])
 
-  const handleStop = async () => {
+  const handleReset = useCallback(() => {
+    setIsRunning(false)
+    setIsPaused(false)
+    setSeconds(0)
+    startTimeRef.current = null
+    console.log('⏱️ Timer reiniciado')
+  }, [])
+
+  const handleStop = useCallback(async () => {
     if (seconds === 0) {
       toast.error('No hay tiempo registrado para guardar')
       return
@@ -105,27 +114,19 @@ export const Timer = () => {
       console.error('❌ Error al registrar tiempo:', error)
       toast.error('Error al registrar el tiempo')
     }
-  }
+  }, [seconds, description, selectedCaseId, isBillable, createTimeEntry])
 
-  const handleReset = () => {
-    setIsRunning(false)
-    setIsPaused(false)
-    setSeconds(0)
-    startTimeRef.current = null
-    console.log('⏱️ Timer reiniciado')
-  }
-
-  const getTimerStatus = () => {
+  const getTimerStatus = useCallback(() => {
     if (!isRunning) return 'Detenido'
     if (isPaused) return 'Pausado'
     return 'En marcha'
-  }
+  }, [isRunning, isPaused])
 
-  const getStatusColor = () => {
+  const getStatusColor = useCallback(() => {
     if (!isRunning) return 'text-gray-500'
     if (isPaused) return 'text-yellow-600'
     return 'text-green-600'
-  }
+  }, [isRunning, isPaused])
 
   return (
     <Card className="w-full max-w-md mx-auto">

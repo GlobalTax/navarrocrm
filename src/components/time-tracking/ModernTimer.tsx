@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -42,7 +42,7 @@ export const ModernTimer = () => {
     }
   }, [isRunning, isPaused])
 
-  const formatTime = (totalSeconds: number) => {
+  const formatTime = useCallback((totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
     const secs = totalSeconds % 60
@@ -51,22 +51,32 @@ export const ModernTimer = () => {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
+  }, [])
 
-  const handleStart = () => {
+  const handleStart = useCallback(() => {
     setIsRunning(true)
     setIsPaused(false)
-  }
+  }, [])
 
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     setIsPaused(true)
-  }
+  }, [])
 
-  const handleResume = () => {
+  const handleResume = useCallback(() => {
     setIsPaused(false)
-  }
+  }, [])
 
-  const handleStop = async () => {
+  const handleReset = useCallback(() => {
+    setIsRunning(false)
+    setIsPaused(false)
+    setSeconds(0)
+  }, [])
+
+  const addQuickTime = useCallback((minutes: number) => {
+    setSeconds(prev => prev + (minutes * 60))
+  }, [])
+
+  const handleStop = useCallback(async () => {
     if (seconds === 0) {
       toast.error('No hay tiempo registrado para guardar')
       return
@@ -98,29 +108,19 @@ export const ModernTimer = () => {
       console.error('❌ Error al registrar tiempo:', error)
       toast.error('Error al registrar el tiempo')
     }
-  }
+  }, [seconds, description, selectedCaseId, isBillable, createTimeEntry])
 
-  const handleReset = () => {
-    setIsRunning(false)
-    setIsPaused(false)
-    setSeconds(0)
-  }
-
-  const addQuickTime = (minutes: number) => {
-    setSeconds(prev => prev + (minutes * 60))
-  }
-
-  const getTimerColor = () => {
+  const getTimerColor = useCallback(() => {
     if (!isRunning) return 'text-gray-400'
     if (isPaused) return 'text-yellow-500'
     return 'text-green-500'
-  }
+  }, [isRunning, isPaused])
 
-  const getTimerBg = () => {
+  const getTimerBg = useCallback(() => {
     if (!isRunning) return 'bg-gray-50'
     if (isPaused) return 'bg-yellow-50'
     return 'bg-green-50'
-  }
+  }, [isRunning, isPaused])
 
   return (
     <Card className="w-full">
