@@ -13,6 +13,9 @@ interface CasesTabsContentProps {
   selectedCases: string[]
   onSelectCase: (caseId: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
+  searchResultsWithScore?: Array<{ item: Case; score: number; highlights: any[] }>
+  searchTerm?: string
+  isSearching?: boolean
 }
 
 export function CasesTabsContent({
@@ -23,7 +26,10 @@ export function CasesTabsContent({
   onArchiveCase,
   selectedCases,
   onSelectCase,
-  onSelectAll
+  onSelectAll,
+  searchResultsWithScore,
+  searchTerm,
+  isSearching
 }: CasesTabsContentProps) {
   return (
     <Card>
@@ -35,6 +41,9 @@ export function CasesTabsContent({
               <span className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full">
                 {filteredCases.length}
               </span>
+              {isSearching && (
+                <div className="animate-spin h-3 w-3 border border-current border-t-transparent rounded-full" />
+              )}
             </TabsTrigger>
             <TabsTrigger value="stages">
               Etapas
@@ -51,6 +60,8 @@ export function CasesTabsContent({
               selectedCases={selectedCases}
               onSelectCase={onSelectCase}
               onSelectAll={onSelectAll}
+              searchResultsWithScore={searchResultsWithScore}
+              searchTerm={searchTerm}
             />
           </TabsContent>
           

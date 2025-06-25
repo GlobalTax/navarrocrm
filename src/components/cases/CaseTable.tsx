@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Case } from '@/hooks/useCases'
+import { SearchHighlight } from '@/components/search/SearchHighlight'
 
 interface CaseTableProps {
   cases: Case[]
@@ -19,6 +20,8 @@ interface CaseTableProps {
   selectedCases: string[]
   onSelectCase: (caseId: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
+  searchResultsWithScore?: Array<{ item: Case; score: number; highlights: any[] }>
+  searchTerm?: string
 }
 
 const getStatusColor = (status: string) => {
@@ -47,10 +50,24 @@ export function CaseTable({
   onArchiveCase,
   selectedCases,
   onSelectCase,
-  onSelectAll
+  onSelectAll,
+  searchResultsWithScore = [],
+  searchTerm = ''
 }: CaseTableProps) {
   const allSelected = cases.length > 0 && selectedCases.length === cases.length
   const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
+
+  // Crear un mapa para acceder rápidamente a los highlights
+  const highlightMap = new Map()
+  searchResultsWithScore.forEach(result => {
+    highlightMap.set(result.item.id, result.highlights)
+  })
+
+  const getHighlights = (case_: Case, field: string) => {
+    const highlights = highlightMap.get(case_.id) || []
+    const fieldHighlight = highlights.find((h: any) => h.field === field)
+    return fieldHighlight?.matches || []
+  }
 
   return (
     <div className="rounded-md border">
@@ -92,12 +109,19 @@ export function CaseTable({
                   />
                 </TableCell>
                 <TableCell className="font-medium">
-                  Sin número
+                  <SearchHighlight
+                    text={case_.matter_number || 'Sin número'}
+                    matches={getHighlights(case_, 'matter_number')}
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{case_.title}</span>
+                    <SearchHighlight
+                      text={case_.title}
+                      matches={getHighlights(case_, 'title')}
+                      className="font-medium"
+                    />
                     {case_.status === 'closed' && (
                       <Archive className="h-4 w-4 text-purple-500" />
                     )}
@@ -106,12 +130,15 @@ export function CaseTable({
                 <TableCell>Sin cliente asignado</TableCell>
                 <TableCell>
                   {case_.practice_area && (
-                    <Badge variant="outline">{case_.practice_area}</Badge>
+                    <Badge variant="outline">
+                      <SearchHighlight
+                        text={case_.practice_area}
+                        matches={getHighlights(case_, 'practice_area')}
+                      />
+                    </Badge>
                   )}
                 </TableCell>
-                <TableCell>
-                  Sin asignar
-                </TableCell>
+                <TableCell>Sin asignar</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(case_.status)}>
                     {getStatusLabel(case_.status)}

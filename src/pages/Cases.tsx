@@ -26,6 +26,10 @@ export default function Cases() {
     setPracticeAreaFilter,
     solicitorFilter,
     setSolicitorFilter,
+    isSearching,
+    searchStats,
+    searchResultsWithScore,
+    clearAllFilters,
     createCase,
     isCreating,
     isCreateSuccess,
@@ -127,19 +131,7 @@ export default function Cases() {
     ...users.map(user => ({ label: user.email, value: user.id }))
   ]
 
-  const hasActiveFilters = Boolean(
-    statusFilter !== 'all' || 
-    practiceAreaFilter !== 'all' || 
-    solicitorFilter !== 'all' || 
-    searchTerm
-  )
-
-  const handleClearFilters = () => {
-    setSearchTerm('')
-    setStatusFilter('all')
-    setPracticeAreaFilter('all')
-    setSolicitorFilter('all')
-  }
+  const hasActiveFilters = searchStats.isFiltered
 
   return (
     <StandardPageContainer>
@@ -205,7 +197,13 @@ export default function Cases() {
           }
         ]}
         hasActiveFilters={hasActiveFilters}
-        onClearFilters={handleClearFilters}
+        onClearFilters={clearAllFilters}
+      />
+
+      <SearchStats 
+        stats={searchStats}
+        isSearching={isSearching}
+        searchTerm={searchTerm}
       />
 
       <CasesBulkActions selectedCases={selectedCases} />
@@ -219,6 +217,9 @@ export default function Cases() {
         selectedCases={selectedCases}
         onSelectCase={handleSelectCase}
         onSelectAll={handleSelectAll}
+        searchResultsWithScore={searchResultsWithScore}
+        searchTerm={searchTerm}
+        isSearching={isSearching}
       />
 
       <CasesDialogManager
