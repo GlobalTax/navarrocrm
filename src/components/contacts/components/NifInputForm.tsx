@@ -116,7 +116,9 @@ export const NifInputForm = ({
         type="button"
         variant="outline"
         onClick={onSearch}
-        disabled={!nif || !isValidFormat(nif) || isLoading || disabled}
+        disabled={!nif || !isValidFormat(nif) || disabled}
+        loading={isLoading}
+        loadingText="Buscando empresa..."
         className="shrink-0"
       >
         {isLoading ? (
