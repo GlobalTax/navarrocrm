@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -13,6 +12,9 @@ export interface CompanyData {
   legal_representative?: string
   status: 'activo' | 'inactivo'
   client_type: 'empresa'
+  // Propiedades adicionales para información de prueba
+  isSimulated?: boolean
+  warning?: string
 }
 
 // Función de validación centralizada y mejorada
@@ -225,14 +227,12 @@ export const useCompanyLookup = () => {
         business_sector: data.data.business_sector?.trim() || undefined,
         legal_representative: data.data.legal_representative?.trim() || undefined,
         status: data.data.status === 'activo' ? 'activo' : 'inactivo',
-        client_type: 'empresa'
+        client_type: 'empresa',
+        isSimulated: data.isSimulated,
+        warning: data.warning
       }
       
-      return { 
-        ...sanitizedData, 
-        isSimulated: data.isSimulated, 
-        warning: data.warning 
-      }
+      return sanitizedData
     } catch (error) {
       console.error('💥 useCompanyLookup - Error de captura:', {
         error,
