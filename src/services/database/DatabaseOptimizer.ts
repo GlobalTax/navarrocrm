@@ -62,7 +62,7 @@ export class DatabaseOptimizer {
   }
 
   // Ejecutar query optimizada
-  async executeQuery<T>(
+  async executeQuery<T = any>(
     table: string,
     options: QueryOptions = {}
   ): Promise<QueryResult<T>> {
@@ -80,15 +80,12 @@ export class DatabaseOptimizer {
       orderBy,
       orderDirection = 'desc',
       filters = {},
-      select = ['*'],
-      cache = true,
-      cacheTime = 5 * 60 * 1000
+      select = ['*']
     } = options
 
-    const cacheKey = this.generateCacheKey(table, options)
-
     try {
-      let query = supabase
+      // Crear query base usando any para evitar problemas de tipado
+      let query = (supabase as any)
         .from(table)
         .select(select.join(', '), { count: 'exact' })
 
@@ -124,7 +121,7 @@ export class DatabaseOptimizer {
       this.updateStats(table, queryTime)
 
       const result: QueryResult<T> = {
-        data: data || [],
+        data: (data as T[]) || [],
         count: count || 0,
         page,
         totalPages: Math.ceil((count || 0) / limit),
@@ -189,7 +186,7 @@ export class DatabaseOptimizer {
   }
 
   // Query con búsqueda full-text
-  async searchQuery<T>(
+  async searchQuery<T = any>(
     table: string,
     searchTerm: string,
     searchColumns: string[],
@@ -203,7 +200,7 @@ export class DatabaseOptimizer {
     }
 
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from(table)
         .select(options.select?.join(', ') || '*', { count: 'exact' })
 
@@ -253,7 +250,7 @@ export class DatabaseOptimizer {
       console.log(`🔍 [DatabaseOptimizer] Search executed: ${table} for "${searchTerm}" in ${queryTime}ms`)
 
       return {
-        data: data || [],
+        data: (data as T[]) || [],
         count: count || 0,
         page,
         totalPages: Math.ceil((count || 0) / limit),
@@ -279,7 +276,7 @@ export class DatabaseOptimizer {
   }
 
   // Query con relaciones
-  async queryWithRelations<T>(
+  async queryWithRelations<T = any>(
     table: string,
     relations: string[],
     options: QueryOptions = {}
@@ -292,7 +289,7 @@ export class DatabaseOptimizer {
     }
 
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from(table)
         .select(`
           *,
@@ -338,7 +335,7 @@ export class DatabaseOptimizer {
       console.log(`🔍 [DatabaseOptimizer] Relations query executed: ${table} in ${queryTime}ms`)
 
       return {
-        data: data || [],
+        data: (data as T[]) || [],
         count: count || 0,
         page,
         totalPages: Math.ceil((count || 0) / limit),
