@@ -225,7 +225,11 @@ const ClientDetail = () => {
         </TabsContent>
 
         <TabsContent value="communications" className="space-y-6 mt-6">
-          <ClientCommunicationsSection clientId={client.id} />
+          <ClientCommunicationsSection 
+            clientId={client.id} 
+            clientName={client.name}
+            clientEmail={client.email || undefined}
+          />
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6 mt-6">
