@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
 import { Clock, MousePointer, Eye, AlertTriangle, Navigation, User, Activity } from 'lucide-react'
-import { Timeline } from '@/components/ui/timeline'
 
 interface SessionEvent {
   id: string

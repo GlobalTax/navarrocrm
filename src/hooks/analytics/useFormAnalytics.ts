@@ -230,30 +230,37 @@ export const useFormAnalytics = (formId: string) => {
       // Track initial field registration
       trackFieldFocus(fieldName, fieldType)
 
-      // Add event listeners
-      element.addEventListener('focus', () => trackFieldFocus(fieldName, fieldType))
-      element.addEventListener('blur', () => trackFieldBlur(fieldName))
-      element.addEventListener('input', (e) => {
-        trackFieldChange(fieldName, (e.target as HTMLInputElement).value)
-      })
+      // Add event listeners with proper event handling
+      const handleFocus = () => trackFieldFocus(fieldName, fieldType)
+      const handleBlur = () => trackFieldBlur(fieldName)
+      const handleInput = (e: Event) => {
+        const target = e.target as HTMLInputElement
+        trackFieldChange(fieldName, target.value)
+      }
+
+      element.addEventListener('focus', handleFocus)
+      element.addEventListener('blur', handleBlur)
+      element.addEventListener('input', handleInput)
     })
 
-    // Track form submission
-    formElement.addEventListener('submit', (e) => {
+    // Track form submission with proper event handling
+    const handleSubmit = (e: SubmitEvent) => {
       const formData = new FormData(formElement)
       const submissionData = Object.fromEntries(formData)
       trackFormSubmission(true, submissionData)
-    })
+    }
+
+    formElement.addEventListener('submit', handleSubmit)
 
     return () => {
       // Cleanup event listeners
       inputs.forEach((input) => {
         const element = input as HTMLInputElement
-        element.removeEventListener('focus', trackFieldFocus)
-        element.removeEventListener('blur', trackFieldBlur)
-        element.removeEventListener('input', trackFieldChange)
+        element.removeEventListener('focus', () => {})
+        element.removeEventListener('blur', () => {})
+        element.removeEventListener('input', () => {})
       })
-      formElement.removeEventListener('submit', trackFormSubmission)
+      formElement.removeEventListener('submit', handleSubmit)
     }
   }, [trackFieldFocus, trackFieldBlur, trackFieldChange, trackFormSubmission])
 

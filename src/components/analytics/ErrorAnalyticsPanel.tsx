@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -66,7 +65,7 @@ export const ErrorAnalyticsPanel: React.FC = () => {
         query = query.eq('error_type', selectedErrorType)
       }
 
-      const { data: errors, error } = await query
+      const { data: rawErrors, error } = await query
 
       if (error) throw error
 
@@ -77,11 +76,22 @@ export const ErrorAnalyticsPanel: React.FC = () => {
         .eq('org_id', user.org_id)
         .gte('timestamp', startTime.toISOString())
 
-      if (!errors) {
+      if (!rawErrors) {
         setErrorStats(null)
         setIsLoading(false)
         return
       }
+
+      // Transform database data to match our interface
+      const errors: ErrorData[] = rawErrors.map(error => ({
+        id: error.id,
+        errorMessage: error.error_message,
+        errorType: error.error_type,
+        pageUrl: error.page_url,
+        timestamp: error.timestamp,
+        contextData: error.context_data,
+        userAgent: error.user_agent || 'Unknown'
+      }))
 
       // Process error statistics
       const totalErrors = errors.length
@@ -91,11 +101,11 @@ export const ErrorAnalyticsPanel: React.FC = () => {
       // Group errors by message
       const errorMessages = new Map<string, { count: number; type: string; latest: ErrorData }>()
       errors.forEach(error => {
-        const key = error.error_message
+        const key = error.errorMessage
         if (errorMessages.has(key)) {
           errorMessages.get(key)!.count += 1
         } else {
-          errorMessages.set(key, { count: 1, type: error.error_type, latest: error })
+          errorMessages.set(key, { count: 1, type: error.errorType, latest: error })
         }
       })
 
@@ -107,7 +117,7 @@ export const ErrorAnalyticsPanel: React.FC = () => {
       // Group errors by type
       const errorTypeMap = new Map<string, number>()
       errors.forEach(error => {
-        errorTypeMap.set(error.error_type, (errorTypeMap.get(error.error_type) || 0) + 1)
+        errorTypeMap.set(error.errorType, (errorTypeMap.get(error.errorType) || 0) + 1)
       })
 
       const typeColors = {
@@ -127,11 +137,11 @@ export const ErrorAnalyticsPanel: React.FC = () => {
       const pageErrorMap = new Map<string, number>()
       errors.forEach(error => {
         try {
-          const url = new URL(error.page_url)
+          const url = new URL(error.pageUrl)
           const page = url.pathname
           pageErrorMap.set(page, (pageErrorMap.get(page) || 0) + 1)
         } catch {
-          pageErrorMap.set(error.page_url, (pageErrorMap.get(error.page_url) || 0) + 1)
+          pageErrorMap.set(error.pageUrl, (pageErrorMap.get(error.pageUrl) || 0) + 1)
         }
       })
 
@@ -159,8 +169,8 @@ export const ErrorAnalyticsPanel: React.FC = () => {
       const criticalErrorMessages = topErrors.slice(0, 5).map(e => e.message)
       const criticalErrors = errors
         .filter(error => 
-          criticalErrorMessages.includes(error.error_message) ||
-          error.error_type === 'unhandledrejection'
+          criticalErrorMessages.includes(error.errorMessage) ||
+          error.errorType === 'unhandledrejection'
         )
         .slice(0, 20)
 
