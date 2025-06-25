@@ -10,32 +10,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { MetricCardProps } from '../types/MetricCardTypes'
-
-interface QuickStats {
-  todayHours: number
-  weekHours: number
-  monthHours: number
-  activeClients: number
-}
-
-interface PerformanceData {
-  month: string
-  horas: number
-  facturado: number
-  objetivo: number
-}
-
-interface DashboardData {
-  quickStats?: QuickStats
-  performanceData?: PerformanceData[]
-  upcomingTasks?: Array<{
-    id: string
-    title: string
-    dueDate: Date
-    priority: 'low' | 'medium' | 'high' | 'urgent'
-    case?: string
-  }>
-}
+import { DashboardData } from '@/types/dashboardTypes'
 
 export const calculateMetrics = (dashboardData: DashboardData | undefined): Omit<MetricCardProps, 'className'>[] => {
   const quickStats = dashboardData?.quickStats

@@ -1,40 +1,7 @@
 
 import { useQueryCache } from '@/hooks/cache/useQueryCache'
 import { useApp } from '@/contexts/AppContext'
-
-export interface PerformanceData {
-  month: string
-  horas: number
-  facturado: number
-  objetivo: number
-}
-
-export interface RecentActivity {
-  id: string
-  type: 'case' | 'task' | 'time_entry' | 'client' | 'proposal'
-  title: string
-  description: string
-  timestamp: Date
-  user: string
-}
-
-interface DashboardData {
-  quickStats: {
-    todayHours: number
-    weekHours: number
-    monthHours: number
-    activeClients: number
-  }
-  recentActivity: RecentActivity[]
-  performanceData: PerformanceData[]
-  upcomingTasks: Array<{
-    id: string
-    title: string
-    dueDate: Date
-    priority: 'low' | 'medium' | 'high' | 'urgent'
-    case?: string
-  }>
-}
+import { DashboardData, PerformanceData, RecentActivity } from '@/types/dashboardTypes'
 
 export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'month') => {
   const { user } = useApp()
