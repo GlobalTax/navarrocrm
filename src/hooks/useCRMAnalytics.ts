@@ -11,7 +11,7 @@ export const useCRMAnalytics = () => {
     contactId: string,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('contacts', action, contactId, undefined, properties)
+    analytics.trackEvent('contacts', action, { contactId, ...properties })
   }, [analytics])
 
   const trackCaseAction = useCallback((
@@ -19,7 +19,7 @@ export const useCRMAnalytics = () => {
     caseId: string,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('cases', action, caseId, undefined, properties)
+    analytics.trackEvent('cases', action, { caseId, ...properties })
   }, [analytics])
 
   const trackProposalAction = useCallback((
@@ -28,7 +28,11 @@ export const useCRMAnalytics = () => {
     value?: number,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('proposals', action, proposalId, value, properties)
+    analytics.trackEvent('proposals', action, { 
+      proposalId, 
+      value, 
+      ...properties 
+    })
   }, [analytics])
 
   const trackTimeEntry = useCallback((
@@ -36,7 +40,10 @@ export const useCRMAnalytics = () => {
     duration?: number,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('time_tracking', action, undefined, duration, properties)
+    analytics.trackEvent('time_tracking', action, { 
+      duration, 
+      ...properties 
+    })
   }, [analytics])
 
   const trackSearchUsage = useCallback((
@@ -45,8 +52,10 @@ export const useCRMAnalytics = () => {
     resultsCount: number,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('search', 'search_performed', searchTerm, resultsCount, {
+    analytics.trackEvent('search', 'search_performed', {
+      searchTerm,
       category,
+      resultsCount,
       ...properties
     })
   }, [analytics])
@@ -56,7 +65,10 @@ export const useCRMAnalytics = () => {
     action: string,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('feature_usage', action, feature, undefined, properties)
+    analytics.trackEvent('feature_usage', action, { 
+      feature, 
+      ...properties 
+    })
   }, [analytics])
 
   return {

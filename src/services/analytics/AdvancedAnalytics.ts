@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import {
   AnalyticsEvent,
@@ -183,7 +182,7 @@ export class AdvancedAnalytics {
   private estimateTimeToInteractive(): number | undefined {
     // Estimación básica del TTI
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
-    return navigation ? navigation.domInteractive - navigation.navigationStart : undefined
+    return navigation ? navigation.domInteractive - navigation.fetchStart : undefined
   }
 
   private setupErrorHandlers() {
@@ -226,13 +225,14 @@ export class AdvancedAnalytics {
     // Resource errors
     window.addEventListener('error', (event) => {
       if (event.target !== window) {
+        const target = event.target as HTMLElement
         this.trackError({
-          errorMessage: `Resource failed to load: ${(event.target as any)?.src || (event.target as any)?.href}`,
+          errorMessage: `Resource failed to load: ${target?.getAttribute('src') || target?.getAttribute('href')}`,
           errorType: 'resource',
           pageUrl: window.location.href,
           contextData: {
-            element: event.target?.tagName,
-            source: (event.target as any)?.src || (event.target as any)?.href
+            element: target?.tagName,
+            source: target?.getAttribute('src') || target?.getAttribute('href')
           },
           timestamp: Date.now(),
           sessionId: this.sessionId,
@@ -349,7 +349,6 @@ export class AdvancedAnalytics {
     })
   }
 
-  // Métodos públicos
   public setUser(userId: string, orgId: string) {
     this.userId = userId
     this.orgId = orgId
