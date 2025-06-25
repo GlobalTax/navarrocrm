@@ -1,5 +1,6 @@
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PWAInfoPanel } from '@/components/pwa/PWAInfoPanel'
 
@@ -15,6 +16,12 @@ describe('PWAInfoPanel', () => {
     isInstalled: true,
     isOnline: true,
     isInstallable: false,
+    isUpdateAvailable: false,
+    isUpdateReady: false,
+    deferredPrompt: null,
+    installPWA: vi.fn().mockResolvedValue(true),
+    updatePWA: vi.fn(),
+    syncData: vi.fn(),
     getDeviceInfo: vi.fn().mockReturnValue({
       platform: 'Web',
       language: 'es-ES',
@@ -36,7 +43,11 @@ describe('PWAInfoPanel', () => {
       { name: 'app-cache-v1', size: 15 },
       { name: 'api-cache-v1', size: 8 }
     ]),
-    checkConnectivity: vi.fn().mockResolvedValue(true)
+    checkConnectivity: vi.fn().mockResolvedValue(true),
+    requestBackgroundSync: vi.fn().mockResolvedValue(true),
+    installApp: vi.fn().mockResolvedValue(true),
+    handleFileOpen: vi.fn(),
+    handleProtocolAction: vi.fn()
   }
 
   beforeEach(() => {

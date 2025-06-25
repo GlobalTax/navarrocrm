@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { usePWA } from '@/hooks/usePWA'
 
-// Mock de los hooks internos
+// Mock de todos los hooks internos
 vi.mock('@/hooks/pwa/usePWAState', () => ({
   usePWAState: vi.fn()
 }))

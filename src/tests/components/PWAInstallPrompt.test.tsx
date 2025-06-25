@@ -1,5 +1,6 @@
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
 
@@ -33,7 +34,11 @@ describe('PWAInstallPrompt', () => {
     }),
     checkConnectivity: vi.fn().mockResolvedValue(true),
     clearCache: vi.fn().mockResolvedValue(true),
-    getCacheStats: vi.fn().mockResolvedValue([])
+    getCacheStats: vi.fn().mockResolvedValue([]),
+    requestBackgroundSync: vi.fn().mockResolvedValue(true),
+    installApp: vi.fn().mockResolvedValue(true),
+    handleFileOpen: vi.fn(),
+    handleProtocolAction: vi.fn()
   }
 
   beforeEach(() => {
