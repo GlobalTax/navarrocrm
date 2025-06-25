@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { usePWA } from '@/hooks/usePWA'
 import { Download, Smartphone, Zap, Wifi, Bell, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { PWAInfoPanel } from './PWAInfoPanel'
 
 export const PWAInstallButton = () => {
   const { 
@@ -36,11 +37,38 @@ export const PWAInstallButton = () => {
     )
   }
 
-  // Si ya está instalada, no mostrar nada
-  if (isInstalled || !isInstallable) {
+  // Si ya está instalada, mostrar información en lugar del botón de instalación
+  if (isInstalled) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="relative">
+            <Smartphone className="h-4 w-4 mr-2" />
+            PWA Info
+            <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-800">
+              Instalada
+            </Badge>
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5" />
+              Información de la PWA
+            </DialogTitle>
+          </DialogHeader>
+          <PWAInfoPanel />
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  // Si no es instalable, no mostrar nada
+  if (!isInstallable) {
     return null
   }
 
+  // Mostrar prompt de instalación
   return (
     <Dialog>
       <DialogTrigger asChild>
