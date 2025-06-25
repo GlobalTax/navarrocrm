@@ -1,10 +1,11 @@
+
 import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from 'react-error-boundary'
 
 import { AppProvider } from '@/contexts/AppContext'
-import { QueryProvider } from '@/contexts/QueryContext'
+import { QueryClient } from '@/contexts/QueryContext'
 
 import { MainLayout } from '@/components/layout/MainLayout'
 
@@ -35,7 +36,7 @@ import AdvancedAI from '@/pages/AdvancedAI'
 import AIAdmin from '@/pages/AIAdmin'
 import IntelligentDashboard from '@/pages/IntelligentDashboard'
 
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 import ShareHandler from '@/pages/ShareHandler'
 import UploadHandler from '@/pages/UploadHandler'
@@ -44,8 +45,8 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       <Toaster />
-      <ErrorBoundary>
-        <QueryProvider>
+      <ErrorBoundary fallback={<div>Something went wrong</div>}>
+        <QueryClient>
           <AppProvider>
             <BrowserRouter>
               <Routes>
@@ -60,8 +61,8 @@ function App() {
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 
                 {/* Protected Routes */}
-                <Route element={<ProtectedRoute />}>
-                  <Route element={<MainLayout />}>
+                <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                  <Route element={<MainLayout><Outlet /></MainLayout>}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/contacts" element={<Contacts />} />
                     <Route path="/clients" element={<Clients />} />
@@ -89,7 +90,7 @@ function App() {
               </Routes>
             </BrowserRouter>
           </AppProvider>
-        </QueryProvider>
+        </QueryClient>
       </ErrorBoundary>
     </div>
   )
