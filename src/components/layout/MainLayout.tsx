@@ -3,6 +3,7 @@ import { Header } from './Header'
 import { CollapsibleSidebar } from './CollapsibleSidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
 import { NotificationCenter } from '@/components/notifications/NotificationCenter'
+import { CacheStatsPanel } from '@/components/dev/CacheStatsPanel'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 interface MainLayoutProps {
@@ -32,6 +33,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       
       {/* Global Notifications */}
       <NotificationCenter />
+      
+      {/* Cache Stats Panel (Development Only) */}
+      <CacheStatsPanel />
     </div>
   )
 }

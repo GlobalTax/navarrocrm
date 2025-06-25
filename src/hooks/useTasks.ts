@@ -1,9 +1,9 @@
 
-import { useTaskQueries } from './tasks/useTaskQueries'
+import { useTaskQueriesWithCache } from './tasks/useTaskQueriesWithCache'
 import { useTaskMutations } from './tasks/useTaskMutations'
 
 export const useTasks = () => {
-  const queryResults = useTaskQueries()
+  const queryResults = useTaskQueriesWithCache()
   const mutations = useTaskMutations()
 
   return {

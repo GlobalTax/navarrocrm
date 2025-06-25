@@ -1,7 +1,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { useTaskForm } from '@/hooks/useTaskForm'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Info } from 'lucide-react'
+import { useTaskFormWithCache } from '@/hooks/useTaskFormWithCache'
 import { TaskBasicFields } from './form/TaskBasicFields'
 import { TaskDateFields } from './form/TaskDateFields'
 import { TaskAssignmentFields } from './form/TaskAssignmentFields'
@@ -19,8 +21,10 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
     handleInputChange,
     handleSubmit,
     isCreating,
-    isUpdating
-  } = useTaskForm({ task, isOpen, onClose })
+    isUpdating,
+    hasSavedData,
+    clearSavedData
+  } = useTaskFormWithCache({ task, isOpen, onClose })
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -30,6 +34,23 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
             {task ? 'Editar Tarea' : 'Nueva Tarea'}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Draft Recovery Alert */}
+        {!task && hasSavedData && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between">
+              <span>Se ha recuperado un borrador guardado automáticamente.</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={clearSavedData}
+              >
+                Descartar borrador
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <TaskBasicFields
