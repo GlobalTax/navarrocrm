@@ -1,454 +1,279 @@
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useApp } from '@/contexts/AppContext'
-import { supabase } from '@/integrations/supabase/client'
-import { Clock, MousePointer, Eye, AlertTriangle, Navigation, User, Activity } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Clock, User, Eye, MousePointer2, AlertTriangle } from 'lucide-react'
+import { AnalyticsWidget } from './AnalyticsWidget'
 
 interface SessionEvent {
   id: string
-  type: 'page_view' | 'click' | 'error' | 'performance'
-  timestamp: string
-  data: any
-  pageUrl: string
+  type: 'page_view' | 'click' | 'form_submit' | 'error' | 'scroll'
+  timestamp: Date
+  page: string
+  details: string
   duration?: number
 }
 
-interface SessionTimeline {
+interface UserSession {
   sessionId: string
   userId?: string
-  startTime: string
-  endTime?: string
-  events: SessionEvent[]
+  startTime: Date
+  endTime?: Date
   totalDuration: number
   pageViews: number
   interactions: number
   errors: number
+  events: SessionEvent[]
+  userAgent: string
+  location?: string
 }
 
 export const SessionAnalyticsTimeline: React.FC = () => {
-  const { user } = useApp()
-  const [sessions, setSessions] = useState<SessionTimeline[]>([])
-  const [selectedSession, setSelectedSession] = useState<SessionTimeline | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState('24h')
-
-  useEffect(() => {
-    fetchSessionsData()
-  }, [user?.org_id, timeRange])
-
-  const fetchSessionsData = async () => {
-    if (!user?.org_id) return
-
-    try {
-      const now = new Date()
-      const timeRanges = {
-        '1h': new Date(now.getTime() - 60 * 60 * 1000),
-        '24h': new Date(now.getTime() - 24 * 60 * 60 * 1000),
-        '7d': new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      }
-      
-      const startTime = timeRanges[timeRange as keyof typeof timeRanges]
-
-      // Fetch sessions
-      const { data: sessionsData, error: sessionsError } = await supabase
-        .from('analytics_sessions')
-        .select('*')
-        .eq('org_id', user.org_id)
-        .gte('start_time', startTime.toISOString())
-        .order('start_time', { ascending: false })
-        .limit(20)
-
-      if (sessionsError) throw sessionsError
-
-      if (!sessionsData || sessionsData.length === 0) {
-        setSessions([])
-        setSelectedSession(null)
-        setIsLoading(false)
-        return
-      }
-
-      // For each session, fetch all related events
-      const sessionTimelines: SessionTimeline[] = []
-
-      for (const session of sessionsData) {
-        const sessionId = session.session_id
-
-        // Fetch events for this session
-        const [eventsResult, interactionsResult, errorsResult, performanceResult] = await Promise.all([
-          supabase
-            .from('analytics_events')
-            .select('*')
-            .eq('session_id', sessionId)
-            .order('timestamp', { ascending: true }),
-          
-          supabase
-            .from('analytics_interactions')
-            .select('*')
-            .eq('session_id', sessionId)
-            .order('timestamp', { ascending: true }),
-          
-          supabase
-            .from('analytics_errors')
-            .select('*')
-            .eq('session_id', sessionId)
-            .order('timestamp', { ascending: true }),
-          
-          supabase
-            .from('analytics_performance')
-            .select('*')
-            .eq('session_id', sessionId)
-            .order('timestamp', { ascending: true })
-        ])
-
-        // Combine all events into a timeline
-        const allEvents: SessionEvent[] = []
-
-        // Add page view events
-        eventsResult.data?.forEach(event => {
-          if (event.event_type === 'navigation' && event.event_name === 'page_view') {
-            allEvents.push({
-              id: event.id,
-              type: 'page_view',
-              timestamp: event.timestamp,
-              data: event.event_data,
-              pageUrl: event.page_url
-            })
-          }
-        })
-
-        // Add interaction events
-        interactionsResult.data?.forEach(interaction => {
-          allEvents.push({
-            id: interaction.id,
-            type: 'click',
-            timestamp: interaction.timestamp,
-            data: interaction.interaction_data,
-            pageUrl: interaction.page_url
-          })
-        })
-
-        // Add error events
-        errorsResult.data?.forEach(error => {
-          allEvents.push({
-            id: error.id,
-            type: 'error',
-            timestamp: error.timestamp,
-            data: {
-              message: error.error_message,
-              type: error.error_type,
-              stack: error.error_stack
-            },
-            pageUrl: error.page_url
-          })
-        })
-
-        // Add performance events
-        performanceResult.data?.forEach(perf => {
-          allEvents.push({
-            id: perf.id,
-            type: 'performance',
-            timestamp: perf.timestamp,
-            data: {
-              lcp: perf.largest_contentful_paint,
-              fid: perf.first_input_delay,
-              cls: perf.cumulative_layout_shift,
-              loadTime: perf.load_time
-            },
-            pageUrl: perf.page_url
-          })
-        })
-
-        // Sort events by timestamp
-        allEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-
-        // Calculate durations between events
-        for (let i = 0; i < allEvents.length - 1; i++) {
-          const currentTime = new Date(allEvents[i].timestamp).getTime()
-          const nextTime = new Date(allEvents[i + 1].timestamp).getTime()
-          allEvents[i].duration = nextTime - currentTime
+  // Datos simulados de sesiones (en implementación real vendrían de la API)
+  const sessions: UserSession[] = [
+    {
+      sessionId: 'sess_1',
+      userId: 'user_123',
+      startTime: new Date(Date.now() - 1000 * 60 * 45),
+      totalDuration: 45 * 60 * 1000,
+      pageViews: 12,
+      interactions: 28,
+      errors: 1,
+      events: [
+        {
+          id: '1',
+          type: 'page_view',
+          timestamp: new Date(Date.now() - 1000 * 60 * 45),
+          page: '/dashboard',
+          details: 'Dashboard principal',
+          duration: 120000
+        },
+        {
+          id: '2',
+          type: 'click',
+          timestamp: new Date(Date.now() - 1000 * 60 * 43),
+          page: '/dashboard',
+          details: 'Botón "Ver contactos"'
+        },
+        {
+          id: '3',
+          type: 'page_view',
+          timestamp: new Date(Date.now() - 1000 * 60 * 42),
+          page: '/contacts',
+          details: 'Lista de contactos',
+          duration: 300000
         }
-
-        const sessionTimeline: SessionTimeline = {
-          sessionId: session.session_id,
-          userId: session.user_id,
-          startTime: session.start_time,
-          endTime: session.end_time,
-          events: allEvents,
-          totalDuration: session.end_time 
-            ? new Date(session.end_time).getTime() - new Date(session.start_time).getTime()
-            : Date.now() - new Date(session.start_time).getTime(),
-          pageViews: allEvents.filter(e => e.type === 'page_view').length,
-          interactions: allEvents.filter(e => e.type === 'click').length,
-          errors: allEvents.filter(e => e.type === 'error').length
+      ],
+      userAgent: 'Chrome 120.0',
+      location: 'Madrid, España'
+    },
+    {
+      sessionId: 'sess_2',
+      startTime: new Date(Date.now() - 1000 * 60 * 30),
+      totalDuration: 30 * 60 * 1000,
+      pageViews: 8,
+      interactions: 15,
+      errors: 0,
+      events: [
+        {
+          id: '4',
+          type: 'page_view',
+          timestamp: new Date(Date.now() - 1000 * 60 * 30),
+          page: '/cases',
+          details: 'Lista de expedientes'
         }
+      ],
+      userAgent: 'Safari 17.0',
+      location: 'Barcelona, España'
+    }
+  ]
 
-        sessionTimelines.push(sessionTimeline)
-      }
+  const getEventIcon = (type: SessionEvent['type']) => {
+    switch (type) {
+      case 'page_view': return <Eye className="h-3 w-3" />
+      case 'click': return <MousePointer2 className="h-3 w-3" />
+      case 'form_submit': return <Clock className="h-3 w-3" />
+      case 'error': return <AlertTriangle className="h-3 w-3" />
+      case 'scroll': return <Clock className="h-3 w-3" />
+      default: return <Clock className="h-3 w-3" />
+    }
+  }
 
-      setSessions(sessionTimelines)
-      if (sessionTimelines.length > 0 && !selectedSession) {
-        setSelectedSession(sessionTimelines[0])
-      }
-      setIsLoading(false)
-
-    } catch (error) {
-      console.error('Error fetching session data:', error)
-      setIsLoading(false)
+  const getEventColor = (type: SessionEvent['type']) => {
+    switch (type) {
+      case 'page_view': return 'text-blue-600 bg-blue-50'
+      case 'click': return 'text-green-600 bg-green-50'
+      case 'form_submit': return 'text-purple-600 bg-purple-50'
+      case 'error': return 'text-red-600 bg-red-50'
+      case 'scroll': return 'text-gray-600 bg-gray-50'
+      default: return 'text-gray-600 bg-gray-50'
     }
   }
 
   const formatDuration = (ms: number) => {
     const minutes = Math.floor(ms / 60000)
     const seconds = Math.floor((ms % 60000) / 1000)
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+    return `${minutes}m ${seconds}s`
   }
 
-  const formatTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const time = new Date(timestamp)
-    const diffMs = now.getTime() - time.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMins / 60)
-
-    if (diffHours > 0) return `hace ${diffHours}h`
-    if (diffMins > 0) return `hace ${diffMins}m`
-    return 'ahora'
-  }
-
-  const getEventIcon = (type: string) => {
-    switch (type) {
-      case 'page_view': return <Eye className="h-4 w-4 text-blue-500" />
-      case 'click': return <MousePointer className="h-4 w-4 text-green-500" />
-      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />
-      case 'performance': return <Activity className="h-4 w-4 text-purple-500" />
-      default: return <Clock className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getEventColor = (type: string) => {
-    switch (type) {
-      case 'page_view': return 'bg-blue-50 border-blue-200'
-      case 'click': return 'bg-green-50 border-green-200'
-      case 'error': return 'bg-red-50 border-red-200'
-      case 'performance': return 'bg-purple-50 border-purple-200'
-      default: return 'bg-gray-50 border-gray-200'
-    }
-  }
-
-  const getPageFromUrl = (url: string) => {
-    try {
-      return new URL(url).pathname
-    } catch {
-      return url
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Card className="animate-pulse">
-          <CardHeader>
-            <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const totalSessions = sessions.length
+  const avgDuration = sessions.reduce((sum, session) => sum + session.totalDuration, 0) / totalSessions
+  const totalPageViews = sessions.reduce((sum, session) => sum + session.pageViews, 0)
+  const totalInteractions = sessions.reduce((sum, session) => sum + session.interactions, 0)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Timeline de Sesiones</h2>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1h">1 hora</SelectItem>
-            <SelectItem value="24h">24 horas</SelectItem>
-            <SelectItem value="7d">7 días</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Métricas de sesiones */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <AnalyticsWidget
+          title="Sesiones Activas"
+          value={totalSessions}
+          icon={<User className="h-4 w-4" />}
+          trend="up"
+          trendValue={`${totalSessions} sesiones`}
+        />
+        
+        <AnalyticsWidget
+          title="Duración Promedio"
+          value={formatDuration(avgDuration)}
+          icon={<Clock className="h-4 w-4" />}
+          trend="up"
+          trendValue="Buen engagement"
+        />
+        
+        <AnalyticsWidget
+          title="Páginas por Sesión"
+          value={(totalPageViews / totalSessions).toFixed(1)}
+          icon={<Eye className="h-4 w-4" />}
+          trend="up"
+          trendValue="Navegación activa"
+        />
+        
+        <AnalyticsWidget
+          title="Interacciones Totales"
+          value={totalInteractions}
+          icon={<MousePointer2 className="h-4 w-4" />}
+          trend="up"
+          trendValue={`${totalInteractions} clics`}
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sessions List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sesiones Recientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-600 overflow-y-auto">
-              {sessions.map((session) => (
-                <div
-                  key={session.sessionId}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedSession?.sessionId === session.sessionId
-                      ? 'bg-blue-50 border-blue-300'
-                      : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setSelectedSession(session)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-gray-500" />
-                      <span className="font-medium text-sm">
-                        {session.userId ? `Usuario ${session.userId.slice(0, 8)}` : 'Anónimo'}
-                      </span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {formatTimeAgo(session.startTime)}
-                    </span>
+      {/* Timeline de sesiones */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {sessions.map((session) => (
+          <Card key={session.sessionId}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {session.userId ? session.userId.slice(0, 2).toUpperCase() : 'AN'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <CardTitle className="text-sm">
+                      {session.userId ? `Usuario ${session.userId.slice(0, 8)}...` : 'Usuario Anónimo'}
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground">
+                      {session.location} • {session.userAgent}
+                    </p>
                   </div>
-                  
-                  <div className="mt-2 flex items-center space-x-4 text-xs text-muted-foreground">
-                    <span>{formatDuration(session.totalDuration)}</span>
-                    <span>{session.pageViews} páginas</span>
-                    <span>{session.interactions} clicks</span>
+                </div>
+                <Badge variant="secondary">
+                  {formatDuration(session.totalDuration)}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {/* Estadísticas de la sesión */}
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-4">
+                    <span className="text-muted-foreground">
+                      {session.pageViews} páginas
+                    </span>
+                    <span className="text-muted-foreground">
+                      {session.interactions} clics
+                    </span>
                     {session.errors > 0 && (
-                      <Badge variant="destructive" className="text-xs">
+                      <span className="text-red-600">
                         {session.errors} errores
-                      </Badge>
+                      </span>
                     )}
                   </div>
-                </div>
-              ))}
-              
-              {sessions.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No hay sesiones para el período seleccionado
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Timeline */}
-        <div className="lg:col-span-2">
-          {selectedSession ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  Timeline de Sesión
-                  <span className="ml-2 text-sm font-normal text-muted-foreground">
-                    {selectedSession.userId ? `Usuario ${selectedSession.userId.slice(0, 8)}` : 'Anónimo'}
+                  <span className="text-xs text-muted-foreground">
+                    Hace {Math.floor((Date.now() - session.startTime.getTime()) / 60000)}m
                   </span>
-                </CardTitle>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <span>Duración: {formatDuration(selectedSession.totalDuration)}</span>
-                  <span>Eventos: {selectedSession.events.length}</span>
-                  <span>Comenzó: {new Date(selectedSession.startTime).toLocaleString()}</span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-600 overflow-y-auto">
-                  {selectedSession.events.map((event, index) => (
-                    <div key={event.id} className="relative">
-                      {index < selectedSession.events.length - 1 && (
-                        <div className="absolute left-6 top-12 w-0.5 h-8 bg-gray-200"></div>
-                      )}
-                      
-                      <div className={`flex items-start space-x-3 p-3 rounded-lg border ${getEventColor(event.type)}`}>
-                        <div className="flex-shrink-0 p-2 bg-white rounded-full border">
-                          {getEventIcon(event.type)}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className="text-xs">
-                                {event.type}
-                              </Badge>
-                              <span className="text-sm font-medium">
-                                {getPageFromUrl(event.pageUrl)}
-                              </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(event.timestamp).toLocaleTimeString()}
-                              {event.duration && (
-                                <span className="ml-2">
-                                  (+{formatDuration(event.duration)})
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="mt-1 text-sm text-muted-foreground">
-                            {event.type === 'page_view' && (
-                              <span>Vista de página</span>
-                            )}
-                            {event.type === 'click' && event.data.tagName && (
-                              <span>
-                                Click en {event.data.tagName.toLowerCase()}
-                                {event.data.text && `: "${event.data.text.slice(0, 50)}"`}
-                              </span>
-                            )}
-                            {event.type === 'error' && (
-                              <span className="text-red-600">
-                                Error: {event.data.message}
-                              </span>
-                            )}
-                            {event.type === 'performance' && (
-                              <div className="space-y-1">
-                                {event.data.lcp && (
-                                  <div>LCP: {Math.round(event.data.lcp)}ms</div>
-                                )}
-                                {event.data.fid && (
-                                  <div>FID: {Math.round(event.data.fid)}ms</div>
-                                )}
-                                {event.data.loadTime && (
-                                  <div>Load Time: {Math.round(event.data.loadTime)}ms</div>
-                                )}
-                              </div>
-                            )}
-                          </div>
 
-                          {event.data && event.type === 'error' && event.data.stack && (
-                            <details className="mt-2">
-                              <summary className="cursor-pointer text-xs text-muted-foreground">
-                                Ver stack trace
-                              </summary>
-                              <pre className="mt-1 text-xs bg-gray-100 p-2 rounded overflow-x-auto">
-                                {event.data.stack}
-                              </pre>
-                            </details>
+                {/* Timeline de eventos */}
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {session.events.slice(0, 5).map((event, index) => (
+                    <div key={event.id} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
+                      <div className={`p-1 rounded-full ${getEventColor(event.type)}`}>
+                        {getEventIcon(event.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">
+                          {event.details}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{event.page}</span>
+                          {event.duration && (
+                            <span>• {formatDuration(event.duration)}</span>
                           )}
                         </div>
                       </div>
+                      <span className="text-xs text-muted-foreground">
+                        {event.timestamp.toLocaleTimeString('es-ES', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
                     </div>
                   ))}
-                  
-                  {selectedSession.events.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No hay eventos registrados para esta sesión
-                    </div>
+                  {session.events.length > 5 && (
+                    <Button variant="ghost" size="sm" className="w-full">
+                      Ver {session.events.length - 5} eventos más
+                    </Button>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center py-8 text-muted-foreground">
-                  Selecciona una sesión para ver su timeline
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {/* Insights de comportamiento */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Insights de Comportamiento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h4 className="font-medium text-sm text-blue-800 mb-2">Páginas Populares</h4>
+              <p className="text-xs text-blue-700">
+                Dashboard y Contactos son las páginas más visitadas
+              </p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-lg">
+              <h4 className="font-medium text-sm text-green-800 mb-2">Tiempo de Engagement</h4>
+              <p className="text-xs text-green-700">
+                Los usuarios pasan más tiempo en la sección de expedientes
+              </p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <h4 className="font-medium text-sm text-purple-800 mb-2">Patrones de Uso</h4>
+              <p className="text-xs text-purple-700">
+                Picos de actividad entre 9:00-12:00 y 14:00-17:00
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

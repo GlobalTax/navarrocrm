@@ -11,12 +11,11 @@ import { useCRMAnalytics } from '@/hooks/useCRMAnalytics'
 import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Button } from '@/components/ui/button'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Settings } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function Analytics() {
   const analytics = useCRMAnalytics()
-  const [sessionEvents, setSessionEvents] = useState(analytics.getSessionEvents())
 
   useEffect(() => {
     analytics.trackPageView('/analytics', 'Analytics Dashboard')
@@ -43,12 +42,20 @@ export default function Analytics() {
         title="Analytics Dashboard"
         description="Análisis detallado del uso de la aplicación y métricas de rendimiento"
         actions={
-          <Link to="/advanced-analytics">
-            <Button variant="outline">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Dashboard Avanzado
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/advanced-analytics">
+              <Button variant="outline">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Dashboard Avanzado
+              </Button>
+            </Link>
+            <Link to="/advanced-analytics-admin">
+              <Button variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Centro de Control
+              </Button>
+            </Link>
+          </div>
         }
       />
 

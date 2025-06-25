@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -7,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { QueryClient } from '@/contexts/QueryContext'
 import { AppProvider } from '@/contexts/AppContext'
 import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
+import { AdvancedAnalyticsProvider } from '@/components/analytics/AdvancedAnalyticsProvider'
 
 import { MainLayout } from '@/components/layout/MainLayout'
 
@@ -32,6 +32,8 @@ import IntegrationSettings from '@/pages/IntegrationSettings'
 import Workflows from '@/pages/Workflows'
 import RecurrentFees from '@/pages/RecurrentFees'
 import Analytics from '@/pages/Analytics'
+import AdvancedAnalyticsDashboard from '@/pages/AdvancedAnalyticsDashboard'
+import AdvancedAnalyticsAdmin from '@/pages/AdvancedAnalyticsAdmin'
 import Academia from '@/pages/Academia'
 import AdvancedAI from '@/pages/AdvancedAI'
 import AIAdmin from '@/pages/AIAdmin'
@@ -71,49 +73,53 @@ function App() {
       <ProviderErrorBoundary>
         <QueryClient>
           <AppProvider>
-            <GlobalStateProvider>
-              <BrowserRouter>
-                <Routes>
-                  {/* PWA Handler Routes */}
-                  <Route path="/share" element={<ShareHandler />} />
-                  <Route path="/upload" element={<UploadHandler />} />
-                  
-                  {/* Existing Routes */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/setup" element={<Setup />} />
-                  <Route path="/unauthorized" element={<Unauthorized />} />
-                  
-                  {/* Protected Routes */}
-                  <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                    <Route element={<MainLayout><Outlet /></MainLayout>}>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/contacts" element={<Contacts />} />
-                      <Route path="/clients" element={<Clients />} />
-                      <Route path="/clients/:id" element={<ClientDetail />} />
-                      <Route path="/cases" element={<Cases />} />
-                      <Route path="/proposals" element={<Proposals />} />
-                      <Route path="/tasks" element={<Tasks />} />
-                      <Route path="/time-tracking" element={<TimeTracking />} />
-                      <Route path="/calendar" element={<Calendar />} />
-                      <Route path="/documents" element={<Documents />} />
-                      <Route path="/users" element={<Users />} />
-                      <Route path="/reports" element={<Reports />} />
-                      <Route path="/integrations" element={<IntegrationSettings />} />
-                      <Route path="/workflows" element={<Workflows />} />
-                      <Route path="/recurrent-fees" element={<RecurrentFees />} />
-                      <Route path="/analytics" element={<Analytics />} />
-                      <Route path="/academia" element={<Academia />} />
-                      <Route path="/ai-assistant" element={<AdvancedAI />} />
-                      <Route path="/ai-admin" element={<AIAdmin />} />
-                      <Route path="/intelligent-dashboard" element={<IntelligentDashboard />} />
+            <AdvancedAnalyticsProvider>
+              <GlobalStateProvider>
+                <BrowserRouter>
+                  <Routes>
+                    {/* PWA Handler Routes */}
+                    <Route path="/share" element={<ShareHandler />} />
+                    <Route path="/upload" element={<UploadHandler />} />
+                    
+                    {/* Existing Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/setup" element={<Setup />} />
+                    <Route path="/unauthorized" element={<Unauthorized />} />
+                    
+                    {/* Protected Routes */}
+                    <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                      <Route element={<MainLayout><Outlet /></MainLayout>}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/contacts" element={<Contacts />} />
+                        <Route path="/clients" element={<Clients />} />
+                        <Route path="/clients/:id" element={<ClientDetail />} />
+                        <Route path="/cases" element={<Cases />} />
+                        <Route path="/proposals" element={<Proposals />} />
+                        <Route path="/tasks" element={<Tasks />} />
+                        <Route path="/time-tracking" element={<TimeTracking />} />
+                        <Route path="/calendar" element={<Calendar />} />
+                        <Route path="/documents" element={<Documents />} />
+                        <Route path="/users" element={<Users />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/integrations" element={<IntegrationSettings />} />
+                        <Route path="/workflows" element={<Workflows />} />
+                        <Route path="/recurrent-fees" element={<RecurrentFees />} />
+                        <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/advanced-analytics" element={<AdvancedAnalyticsDashboard />} />
+                        <Route path="/advanced-analytics-admin" element={<AdvancedAnalyticsAdmin />} />
+                        <Route path="/academia" element={<Academia />} />
+                        <Route path="/ai-assistant" element={<AdvancedAI />} />
+                        <Route path="/ai-admin" element={<AIAdmin />} />
+                        <Route path="/intelligent-dashboard" element={<IntelligentDashboard />} />
+                      </Route>
                     </Route>
-                  </Route>
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </GlobalStateProvider>
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </GlobalStateProvider>
+            </AdvancedAnalyticsProvider>
           </AppProvider>
         </QueryClient>
       </ProviderErrorBoundary>

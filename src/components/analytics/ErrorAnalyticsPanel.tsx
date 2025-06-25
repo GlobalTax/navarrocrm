@@ -1,397 +1,150 @@
-import React, { useState, useEffect } from 'react'
+
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useApp } from '@/contexts/AppContext'
-import { supabase } from '@/integrations/supabase/client'
-import { AlertTriangle, Bug, Wifi, FileX, TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
+import { AlertTriangle, Bug, Wifi, Code, RefreshCw } from 'lucide-react'
+import { AnalyticsWidget } from './AnalyticsWidget'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 interface ErrorData {
   id: string
-  errorMessage: string
-  errorType: string
-  pageUrl: string
-  timestamp: string
-  contextData: any
-  userAgent: string
-}
-
-interface ErrorStats {
-  totalErrors: number
-  errorRate: number
-  topErrors: Array<{ message: string; count: number; type: string }>
-  errorsByType: Array<{ type: string; count: number; color: string }>
-  errorsByPage: Array<{ page: string; count: number }>
-  errorTrend: Array<{ time: string; count: number }>
-  criticalErrors: ErrorData[]
+  type: 'error' | 'unhandledrejection' | 'resource' | 'network'
+  message: string
+  count: number
+  lastOccurred: Date
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  affectedUsers: number
 }
 
 export const ErrorAnalyticsPanel: React.FC = () => {
-  const { user } = useApp()
-  const [errorStats, setErrorStats] = useState<ErrorStats | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState('24h')
-  const [selectedErrorType, setSelectedErrorType] = useState<string>('all')
+  // Datos simulados de errores (en implementación real vendrían de la API)
+  const errorData: ErrorData[] = [
+    {
+      id: '1',
+      type: 'error',
+      message: 'Cannot read property of undefined',
+      count: 12,
+      lastOccurred: new Date(Date.now() - 1000 * 60 * 15),
+      severity: 'high',
+      affectedUsers: 8
+    },
+    {
+      id: '2',
+      type: 'network',
+      message: 'Failed to fetch /api/contacts',
+      count: 5,
+      lastOccurred: new Date(Date.now() - 1000 * 60 * 30),
+      severity: 'medium',
+      affectedUsers: 3
+    },
+    {
+      id: '3',
+      type: 'resource',
+      message: 'Failed to load image resource',
+      count: 3,
+      lastOccurred: new Date(Date.now() - 1000 * 60 * 45),
+      severity: 'low',
+      affectedUsers: 2
+    }
+  ]
 
-  useEffect(() => {
-    fetchErrorData()
-  }, [user?.org_id, timeRange, selectedErrorType])
+  const errorsByType = [
+    { name: 'JavaScript', value: 12, color: '#ff6b6b' },
+    { name: 'Network', value: 5, color: '#4ecdc4' },
+    { name: 'Resource', value: 3, color: '#45b7d1' },
+    { name: 'Unhandled', value: 1, color: '#96ceb4' }
+  ]
 
-  const fetchErrorData = async () => {
-    if (!user?.org_id) return
+  const errorTrend = [
+    { time: '00:00', errores: 0 },
+    { time: '06:00', errores: 2 },
+    { time: '12:00', errores: 8 },
+    { time: '18:00', errores: 15 },
+    { time: '24:00', errores: 21 }
+  ]
 
-    try {
-      const now = new Date()
-      const timeRanges = {
-        '1h': new Date(now.getTime() - 60 * 60 * 1000),
-        '24h': new Date(now.getTime() - 24 * 60 * 60 * 1000),
-        '7d': new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-        '30d': new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-      }
-      
-      const startTime = timeRanges[timeRange as keyof typeof timeRanges]
-
-      // Fetch errors
-      let query = supabase
-        .from('analytics_errors')
-        .select('*')
-        .eq('org_id', user.org_id)
-        .gte('timestamp', startTime.toISOString())
-        .order('timestamp', { ascending: false })
-
-      if (selectedErrorType !== 'all') {
-        query = query.eq('error_type', selectedErrorType)
-      }
-
-      const { data: rawErrors, error } = await query
-
-      if (error) throw error
-
-      // Also fetch total events for error rate calculation
-      const { data: events } = await supabase
-        .from('analytics_events')
-        .select('id')
-        .eq('org_id', user.org_id)
-        .gte('timestamp', startTime.toISOString())
-
-      if (!rawErrors) {
-        setErrorStats(null)
-        setIsLoading(false)
-        return
-      }
-
-      // Transform database data to match our interface
-      const errors: ErrorData[] = rawErrors.map(error => ({
-        id: error.id,
-        errorMessage: error.error_message,
-        errorType: error.error_type,
-        pageUrl: error.page_url,
-        timestamp: error.timestamp,
-        contextData: error.context_data,
-        userAgent: error.user_agent || 'Unknown'
-      }))
-
-      // Process error statistics
-      const totalErrors = errors.length
-      const totalEvents = events?.length || 1
-      const errorRate = (totalErrors / totalEvents) * 100
-
-      // Group errors by message
-      const errorMessages = new Map<string, { count: number; type: string; latest: ErrorData }>()
-      errors.forEach(error => {
-        const key = error.errorMessage
-        if (errorMessages.has(key)) {
-          errorMessages.get(key)!.count += 1
-        } else {
-          errorMessages.set(key, { count: 1, type: error.errorType, latest: error })
-        }
-      })
-
-      const topErrors = Array.from(errorMessages.entries())
-        .map(([message, data]) => ({ message, count: data.count, type: data.type }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10)
-
-      // Group errors by type
-      const errorTypeMap = new Map<string, number>()
-      errors.forEach(error => {
-        errorTypeMap.set(error.errorType, (errorTypeMap.get(error.errorType) || 0) + 1)
-      })
-
-      const typeColors = {
-        'error': '#ef4444',
-        'unhandledrejection': '#f97316',
-        'resource': '#eab308',
-        'network': '#06b6d4'
-      }
-
-      const errorsByType = Array.from(errorTypeMap.entries()).map(([type, count]) => ({
-        type,
-        count,
-        color: typeColors[type as keyof typeof typeColors] || '#6b7280'
-      }))
-
-      // Group errors by page
-      const pageErrorMap = new Map<string, number>()
-      errors.forEach(error => {
-        try {
-          const url = new URL(error.pageUrl)
-          const page = url.pathname
-          pageErrorMap.set(page, (pageErrorMap.get(page) || 0) + 1)
-        } catch {
-          pageErrorMap.set(error.pageUrl, (pageErrorMap.get(error.pageUrl) || 0) + 1)
-        }
-      })
-
-      const errorsByPage = Array.from(pageErrorMap.entries())
-        .map(([page, count]) => ({ page, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10)
-
-      // Create error trend (group by hour or day)
-      const trendMap = new Map<string, number>()
-      errors.forEach(error => {
-        const date = new Date(error.timestamp)
-        const key = timeRange === '1h' || timeRange === '24h'
-          ? `${date.getHours()}:00`
-          : date.toLocaleDateString()
-        
-        trendMap.set(key, (trendMap.get(key) || 0) + 1)
-      })
-
-      const errorTrend = Array.from(trendMap.entries())
-        .map(([time, count]) => ({ time, count }))
-        .sort((a, b) => a.time.localeCompare(b.time))
-
-      // Identify critical errors (high frequency or specific types)
-      const criticalErrorMessages = topErrors.slice(0, 5).map(e => e.message)
-      const criticalErrors = errors
-        .filter(error => 
-          criticalErrorMessages.includes(error.errorMessage) ||
-          error.errorType === 'unhandledrejection'
-        )
-        .slice(0, 20)
-
-      const stats: ErrorStats = {
-        totalErrors,
-        errorRate,
-        topErrors,
-        errorsByType,
-        errorsByPage,
-        errorTrend,
-        criticalErrors
-      }
-
-      setErrorStats(stats)
-      setIsLoading(false)
-
-    } catch (error) {
-      console.error('Error fetching error analytics:', error)
-      setIsLoading(false)
+  const getSeverityColor = (severity: ErrorData['severity']) => {
+    switch (severity) {
+      case 'critical': return 'text-red-600 bg-red-50'
+      case 'high': return 'text-orange-600 bg-orange-50'
+      case 'medium': return 'text-yellow-600 bg-yellow-50'
+      case 'low': return 'text-blue-600 bg-blue-50'
+      default: return 'text-gray-600 bg-gray-50'
     }
   }
 
-  const getErrorIcon = (type: string) => {
+  const getTypeIcon = (type: ErrorData['type']) => {
     switch (type) {
-      case 'error': return <Bug className="h-4 w-4" />
-      case 'unhandledrejection': return <AlertTriangle className="h-4 w-4" />
-      case 'resource': return <FileX className="h-4 w-4" />
-      case 'network': return <Wifi className="h-4 w-4" />
-      default: return <AlertTriangle className="h-4 w-4" />
+      case 'error': return <Bug className="h-3 w-3" />
+      case 'network': return <Wifi className="h-3 w-3" />
+      case 'resource': return <Code className="h-3 w-3" />
+      case 'unhandledrejection': return <AlertTriangle className="h-3 w-3" />
+      default: return <AlertTriangle className="h-3 w-3" />
     }
   }
 
-  const getErrorTypeColor = (type: string) => {
-    switch (type) {
-      case 'error': return 'bg-red-500 text-white'
-      case 'unhandledrejection': return 'bg-orange-500 text-white'
-      case 'resource': return 'bg-yellow-500 text-white'
-      case 'network': return 'bg-blue-500 text-white'
-      default: return 'bg-gray-500 text-white'
-    }
-  }
-
-  const formatTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const errorTime = new Date(timestamp)
-    const diffMs = now.getTime() - errorTime.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
-
-    if (diffDays > 0) return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`
-    if (diffHours > 0) return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`
-    if (diffMins > 0) return `hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`
-    return 'hace un momento'
-  }
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-full"></div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
-  }
-
-  if (!errorStats) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Análisis de Errores</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            No hay datos de errores para el período seleccionado
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  const totalErrors = errorData.reduce((sum, error) => sum + error.count, 0)
+  const criticalErrors = errorData.filter(e => e.severity === 'critical').length
+  const affectedUsers = Math.max(...errorData.map(e => e.affectedUsers))
 
   return (
     <div className="space-y-6">
-      {/* Header with filters */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Análisis de Errores</h2>
-        <div className="flex space-x-2">
-          <Select value={selectedErrorType} onValueChange={setSelectedErrorType}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              <SelectItem value="error">JavaScript</SelectItem>
-              <SelectItem value="unhandledrejection">Promise</SelectItem>
-              <SelectItem value="resource">Recursos</SelectItem>
-              <SelectItem value="network">Red</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1h">1 hora</SelectItem>
-              <SelectItem value="24h">24 horas</SelectItem>
-              <SelectItem value="7d">7 días</SelectItem>
-              <SelectItem value="30d">30 días</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Overview Stats */}
+      {/* Métricas de errores */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Errores</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{errorStats.totalErrors}</div>
-            <p className="text-xs text-muted-foreground">
-              últimas {timeRange}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasa de Error</CardTitle>
-            <TrendingUp className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{errorStats.errorRate.toFixed(2)}%</div>
-            <p className="text-xs text-muted-foreground">
-              errores/eventos totales
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tipos de Error</CardTitle>
-            <Bug className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{errorStats.errorsByType.length}</div>
-            <p className="text-xs text-muted-foreground">
-              categorías diferentes
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Errores Críticos</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{errorStats.criticalErrors.length}</div>
-            <p className="text-xs text-muted-foreground">
-              requieren atención
-            </p>
-          </CardContent>
-        </Card>
+        <AnalyticsWidget
+          title="Errores Totales"
+          value={totalErrors}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          trend={totalErrors > 10 ? 'down' : 'neutral'}
+          trendValue={`${totalErrors} errores`}
+        />
+        
+        <AnalyticsWidget
+          title="Errores Críticos"
+          value={criticalErrors}
+          icon={<Bug className="h-4 w-4" />}
+          trend={criticalErrors > 0 ? 'down' : 'up'}
+          trendValue={criticalErrors > 0 ? `${criticalErrors} críticos` : 'Sin críticos'}
+        />
+        
+        <AnalyticsWidget
+          title="Usuarios Afectados"
+          value={affectedUsers}
+          icon={<AlertTriangle className="h-4 w-4" />}
+          trend="neutral"
+          trendValue={`${affectedUsers} usuarios`}
+        />
+        
+        <AnalyticsWidget
+          title="Tasa de Errores"
+          value="2.1%"
+          icon={<Code className="h-4 w-4" />}
+          trend="down"
+          trendValue="-0.5% vs ayer"
+        />
       </div>
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Error Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tendencia de Errores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={errorStats.errorTrend}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Line 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  dot={{ fill: '#ef4444' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Errors by Type */}
+        {/* Distribución de errores por tipo */}
         <Card>
           <CardHeader>
             <CardTitle>Errores por Tipo</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
-                  data={errorStats.errorsByType}
+                  data={errorsByType}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ type, count }) => `${type}: ${count}`}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
-                  dataKey="count"
+                  dataKey="value"
                 >
-                  {errorStats.errorsByType.map((entry, index) => (
+                  {errorsByType.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -400,98 +153,91 @@ export const ErrorAnalyticsPanel: React.FC = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Detailed Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Errors */}
+        {/* Tendencia de errores */}
         <Card>
           <CardHeader>
-            <CardTitle>Errores Más Frecuentes</CardTitle>
+            <CardTitle>Tendencia de Errores (24h)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {errorStats.topErrors.slice(0, 8).map((error, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    {getErrorIcon(error.type)}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{error.message}</p>
-                      <Badge className={`text-xs ${getErrorTypeColor(error.type)}`}>
-                        {error.type}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-red-600">{error.count}</p>
-                    <p className="text-xs text-muted-foreground">ocurrencias</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Errors by Page */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Páginas con Más Errores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {errorStats.errorsByPage.slice(0, 8).map((page, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{page.page}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-red-600">{page.count}</p>
-                    <p className="text-xs text-muted-foreground">errores</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={errorTrend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="errores" fill="#ff6b6b" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Critical Errors */}
+      {/* Lista de errores recientes */}
       <Card>
         <CardHeader>
-          <CardTitle>Errores Críticos Recientes</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Errores Recientes</CardTitle>
+            <Button variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Actualizar
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {errorStats.criticalErrors.slice(0, 10).map((error, index) => (
-              <div key={error.id} className="border rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getErrorIcon(error.errorType)}
-                    <Badge className={getErrorTypeColor(error.errorType)}>
-                      {error.errorType}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {formatTimeAgo(error.timestamp)}
-                    </span>
+            {errorData.map((error) => (
+              <div key={error.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {getTypeIcon(error.type)}
+                      <h4 className="font-medium text-sm">{error.message}</h4>
+                      <Badge className={getSeverityColor(error.severity)}>
+                        {error.severity}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span>Ocurrencias: {error.count}</span>
+                      <span>Usuarios afectados: {error.affectedUsers}</span>
+                      <span>Hace {Math.floor((Date.now() - error.lastOccurred.getTime()) / 60000)} min</span>
+                    </div>
                   </div>
-                  <Badge variant="destructive">CRÍTICO</Badge>
+                  <Button variant="outline" size="sm">
+                    Ver detalles
+                  </Button>
                 </div>
-                <p className="font-medium text-sm">{error.errorMessage}</p>
-                <p className="text-xs text-muted-foreground">
-                  Página: {error.pageUrl}
-                </p>
-                {error.contextData && Object.keys(error.contextData).length > 0 && (
-                  <details className="text-xs">
-                    <summary className="cursor-pointer text-muted-foreground">
-                      Ver detalles técnicos
-                    </summary>
-                    <pre className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-x-auto">
-                      {JSON.stringify(error.contextData, null, 2)}
-                    </pre>
-                  </details>
-                )}
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recomendaciones de resolución */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recomendaciones</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+              <h4 className="font-medium text-sm text-red-800 mb-1">Prioridad Alta</h4>
+              <p className="text-xs text-red-700">
+                Revisar errores de "Cannot read property of undefined" - afectan a múltiples usuarios.
+              </p>
+            </div>
+            <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <h4 className="font-medium text-sm text-yellow-800 mb-1">Prioridad Media</h4>
+              <p className="text-xs text-yellow-700">
+                Investigar fallos de red en /api/contacts - podría ser un problema de conectividad.
+              </p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-medium text-sm text-blue-800 mb-1">Optimización</h4>
+              <p className="text-xs text-blue-700">
+                Implementar manejo de errores más robusto para recursos externos.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
