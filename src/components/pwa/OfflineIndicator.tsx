@@ -7,21 +7,24 @@ import { usePWA } from '@/hooks/usePWA'
 import { Wifi, WifiOff, RefreshCw, CheckCircle } from 'lucide-react'
 
 export const OfflineIndicator = () => {
-  const { isOnline, requestBackgroundSync } = usePWA()
+  const { isOnline, requestBackgroundSync, syncData } = usePWA()
   const [showReconnected, setShowReconnected] = useState(false)
   const [pendingSync, setPendingSync] = useState(false)
 
   useEffect(() => {
     if (isOnline && !showReconnected) {
       setShowReconnected(true)
+      // Sincronizar datos automáticamente cuando se recupera la conexión
+      syncData()
       const timer = setTimeout(() => setShowReconnected(false), 3000)
       return () => clearTimeout(timer)
     }
-  }, [isOnline])
+  }, [isOnline, showReconnected, syncData])
 
   const handleRetry = async () => {
     setPendingSync(true)
     await requestBackgroundSync('manual-retry')
+    await syncData()
     setTimeout(() => setPendingSync(false), 1000)
   }
 

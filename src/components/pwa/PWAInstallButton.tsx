@@ -4,12 +4,39 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { usePWA } from '@/hooks/usePWA'
-import { Download, Smartphone, Zap, Wifi, Bell } from 'lucide-react'
+import { Download, Smartphone, Zap, Wifi, Bell, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 export const PWAInstallButton = () => {
-  const { isInstallable, isInstalled, isOnline, installApp } = usePWA()
+  const { 
+    isInstallable, 
+    isInstalled, 
+    isOnline, 
+    installPWA,
+    isUpdateAvailable,
+    isUpdateReady,
+    updatePWA
+  } = usePWA()
 
+  // Si hay actualización disponible, mostrar botón de actualización
+  if (isUpdateAvailable || isUpdateReady) {
+    return (
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={updatePWA}
+        className="relative"
+      >
+        <RefreshCw className="h-4 w-4 mr-2" />
+        {isUpdateReady ? 'Actualizar' : 'Actualizando...'}
+        <Badge variant="secondary" className="ml-2 text-xs bg-blue-100 text-blue-800">
+          Nueva versión
+        </Badge>
+      </Button>
+    )
+  }
+
+  // Si ya está instalada, no mostrar nada
   if (isInstalled || !isInstallable) {
     return null
   }
@@ -88,7 +115,7 @@ export const PWAInstallButton = () => {
               </span>
             </div>
             
-            <Button onClick={installApp} className="w-full ml-4">
+            <Button onClick={installPWA} className="w-full ml-4">
               <Download className="h-4 w-4 mr-2" />
               Instalar Ahora
             </Button>

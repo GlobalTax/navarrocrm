@@ -4,6 +4,7 @@ import { CollapsibleSidebar } from './CollapsibleSidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
 import { CacheStatsPanel } from '@/components/dev/CacheStatsPanel'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
+import { PWAUpdateNotification } from '@/components/pwa/PWAUpdateNotification'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 interface MainLayoutProps {
@@ -31,7 +32,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onMinimize={minimize}
       />
       
-      {/* PWA Offline Indicator */}
+      {/* PWA Components */}
+      <PWAUpdateNotification />
       <OfflineIndicator />
       
       {/* Cache Stats Panel (Development Only) */}
