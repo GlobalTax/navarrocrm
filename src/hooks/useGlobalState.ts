@@ -2,16 +2,30 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
 
+interface NotificationAction {
+  label: string
+  onClick: () => void
+  variant?: 'default' | 'destructive' | 'outline'
+}
+
+interface Notification {
+  id: string
+  type: 'success' | 'error' | 'warning' | 'info'
+  title: string
+  message: string
+  description?: string
+  timestamp: Date
+  read: boolean
+  persistent?: boolean
+  action?: NotificationAction
+  autoClose?: boolean
+  duration?: number
+}
+
 interface GlobalState {
   isLoading: boolean
   error: string | null
-  notifications: Array<{
-    id: string
-    type: 'success' | 'error' | 'warning' | 'info'
-    message: string
-    description?: string
-    timestamp: Date
-  }>
+  notifications: Notification[]
   sidebarCollapsed: boolean
   theme: 'light' | 'dark' | 'system'
   language: 'es' | 'en'
@@ -20,12 +34,14 @@ interface GlobalState {
 interface UseGlobalStateReturn extends GlobalState {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
-  addNotification: (notification: Omit<GlobalState['notifications'][0], 'id' | 'timestamp'>) => void
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
   removeNotification: (id: string) => void
+  markAsRead: (id: string) => void
+  clearNotifications: () => void
+  markAllAsRead: () => void
   toggleSidebar: () => void
   setTheme: (theme: GlobalState['theme']) => void
   setLanguage: (language: GlobalState['language']) => void
-  clearNotifications: () => void
 }
 
 const initialState: GlobalState = {
@@ -90,25 +106,30 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     setState(prev => ({ ...prev, error }))
   }, [])
 
-  const addNotification = useCallback((notification: Omit<GlobalState['notifications'][0], 'id' | 'timestamp'>) => {
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const id = Math.random().toString(36).substr(2, 9)
-    const newNotification = {
+    const newNotification: Notification = {
       ...notification,
       id,
-      timestamp: new Date()
+      timestamp: new Date(),
+      read: false
     }
 
     setState(prev => ({
       ...prev,
-      notifications: [...prev.notifications, newNotification]
+      notifications: [newNotification, ...prev.notifications.slice(0, 99)] // Limitar a 100 notificaciones
     }))
 
-    // Auto-remover notificación después de 5 segundos
-    const timeout = setTimeout(() => {
-      removeNotification(id)
-    }, 5000)
+    // Auto-remover notificación si no es persistente
+    if (notification.autoClose !== false && !notification.persistent) {
+      const duration = notification.duration || 5000
+      const timeout = setTimeout(() => {
+        removeNotification(id)
+      }, duration)
+      notificationTimeoutRef.current.set(id, timeout)
+    }
 
-    notificationTimeoutRef.current.set(id, timeout)
+    return id
   }, [])
 
   const removeNotification = useCallback((id: string) => {
@@ -123,6 +144,20 @@ export const useGlobalState = (): UseGlobalStateReturn => {
       clearTimeout(timeout)
       notificationTimeoutRef.current.delete(id)
     }
+  }, [])
+
+  const markAsRead = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      notifications: prev.notifications.map(n => n.id === id ? { ...n, read: true } : n)
+    }))
+  }, [])
+
+  const markAllAsRead = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      notifications: prev.notifications.map(n => ({ ...n, read: true }))
+    }))
   }, [])
 
   const clearNotifications = useCallback(() => {
@@ -164,7 +199,6 @@ export const useGlobalState = (): UseGlobalStateReturn => {
 
   const setLanguage = useCallback((language: GlobalState['language']) => {
     setState(prev => ({ ...prev, language }))
-    // Aquí podrías implementar cambio de idioma
   }, [])
 
   return {
@@ -173,6 +207,8 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     setError,
     addNotification,
     removeNotification,
+    markAsRead,
+    markAllAsRead,
     clearNotifications,
     toggleSidebar,
     setTheme,

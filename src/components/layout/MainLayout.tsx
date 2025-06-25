@@ -1,8 +1,6 @@
-
 import { Header } from './Header'
 import { CollapsibleSidebar } from './CollapsibleSidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
-import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 import { CacheStatsPanel } from '@/components/dev/CacheStatsPanel'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
@@ -14,7 +12,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex dark:bg-gray-900">
       <CollapsibleSidebar />
       <div className="flex-1 flex flex-col">
         <Header />
@@ -30,9 +28,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onToggle={toggle}
         onMinimize={minimize}
       />
-      
-      {/* Global Notifications */}
-      <NotificationCenter />
       
       {/* Cache Stats Panel (Development Only) */}
       <CacheStatsPanel />
