@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { Bell, LogOut, Settings, User } from 'lucide-react'
 
@@ -14,7 +15,7 @@ import {
 import { useApp } from '@/contexts/AppContext'
 import { HeaderClock } from './HeaderClock'
 import { HeaderTimerDialog } from './HeaderTimerDialog'
-import { NotificationCenter } from './NotificationCenter'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton'
 
@@ -22,9 +23,16 @@ export const Header = () => {
   const { user, signOut } = useApp()
   const [isOpen, setIsOpen] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const [isTimerDialogOpen, setIsTimerDialogOpen] = useState(false)
+  const [timerSeconds, setTimerSeconds] = useState(0)
 
   const handleSignOut = async () => {
     await signOut()
+  }
+
+  const handleTimerSave = () => {
+    setIsTimerDialogOpen(false)
+    setTimerSeconds(0)
   }
 
   return (
@@ -40,7 +48,20 @@ export const Header = () => {
         
         <HeaderClock />
 
-        <HeaderTimerDialog />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsTimerDialogOpen(true)}
+        >
+          Timer
+        </Button>
+
+        <HeaderTimerDialog
+          isOpen={isTimerDialogOpen}
+          onClose={() => setIsTimerDialogOpen(false)}
+          onSave={handleTimerSave}
+          timerSeconds={timerSeconds}
+        />
 
         <div className="relative">
           <Button
@@ -55,7 +76,7 @@ export const Header = () => {
 
           {isNotificationOpen && (
             <div className="absolute right-0 top-full mt-2 z-50">
-              <NotificationCenter onClose={() => setIsNotificationOpen(false)} />
+              <NotificationCenter />
             </div>
           )}
         </div>

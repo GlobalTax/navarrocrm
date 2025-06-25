@@ -10,6 +10,13 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
 }
 
+// Extender la interfaz ServiceWorkerRegistration para incluir sync
+interface ServiceWorkerRegistrationWithSync extends ServiceWorkerRegistration {
+  sync?: {
+    register(tag: string): Promise<void>
+  }
+}
+
 export const usePWA = () => {
   const [isInstallable, setIsInstallable] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
@@ -101,13 +108,20 @@ export const usePWA = () => {
   }
 
   const requestBackgroundSync = async (tag: string) => {
-    if (!('serviceWorker' in navigator) || !('sync' in window.ServiceWorkerRegistration.prototype)) {
-      console.warn('Background sync no soportado')
+    if (!('serviceWorker' in navigator)) {
+      console.warn('Service Worker no soportado')
       return false
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready
+      const registration = await navigator.serviceWorker.ready as ServiceWorkerRegistrationWithSync
+      
+      // Verificar si background sync está disponible
+      if (!registration.sync) {
+        console.warn('Background sync no soportado')
+        return false
+      }
+
       await registration.sync.register(tag)
       return true
     } catch (error) {
