@@ -70,8 +70,8 @@ export const useDashboardStats = () => {
           return await getStatsFallback(user.org_id)
         }
 
-        // Hacer type assertion para que TypeScript entienda el tipo
-        const typedStatsData = statsData as DashboardStatsResponse
+        // Hacer type assertion segura usando unknown primero
+        const typedStatsData = statsData as unknown as DashboardStatsResponse
 
         const result = {
           totalCases: typedStatsData.totalCases || 0,
