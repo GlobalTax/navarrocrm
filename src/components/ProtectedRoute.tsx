@@ -6,14 +6,12 @@ interface ProtectedRouteProps {
   children: React.ReactNode
   allowedRoles?: ('partner' | 'area_manager' | 'senior' | 'junior' | 'finance' | 'client')[]
   redirectTo?: string
-  requireRealUser?: boolean
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   allowedRoles,
-  redirectTo = '/login',
-  requireRealUser = false
+  redirectTo = '/'
 }) => {
   const { user, authLoading } = useApp()
   const location = useLocation()
@@ -30,14 +28,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     )
   }
 
-  // Si no hay usuario en absoluto
+  // Si no hay usuario, redirigir a la página principal (que mostrará Welcome)
   if (!user) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />
-  }
-
-  // Si se requiere usuario real y el actual es temporal
-  if (requireRealUser && user.app_metadata?.temp_user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   // Verificar roles si se especificaron

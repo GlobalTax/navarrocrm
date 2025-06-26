@@ -1,9 +1,9 @@
 
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useApp } from '@/contexts/AppContext'
 import { ErrorBoundary } from '@/components/errors'
 import { MainLayout } from '@/components/layout/MainLayout'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Index from '@/pages/Index'
 import Dashboard from '@/pages/Dashboard'
 import Clients from '@/pages/Clients'
@@ -22,19 +22,6 @@ import Deals from '@/pages/Deals'
 import Login from '@/pages/Login'
 
 function App() {
-  const { user } = useApp()
-
-  // Componente de ruta protegida simplificado
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    // Siempre permitir acceso si hay usuario (real o temporal)
-    if (user) {
-      return <>{children}</>
-    }
-    
-    // Redireccionar a login solo si no hay usuario
-    return <Navigate to="/login" replace />
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <ErrorBoundary>
@@ -60,6 +47,8 @@ function App() {
                 </div>
               </div>
             } />
+            
+            {/* Rutas protegidas */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <MainLayout>

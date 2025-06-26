@@ -18,7 +18,6 @@ import { HeaderClock } from './HeaderClock'
 import { HeaderTimerDialog } from './HeaderTimerDialog'
 import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton'
-import { Badge } from '@/components/ui/badge'
 
 export const Header = () => {
   const { user, signOut } = useApp()
@@ -28,18 +27,16 @@ export const Header = () => {
   const [isTimerDialogOpen, setIsTimerDialogOpen] = useState(false)
   const [timerSeconds, setTimerSeconds] = useState(0)
 
-  const isTemporaryUser = user?.app_metadata?.temp_user === true
-
   const handleSignOut = async () => {
     console.log('🚪 [Header] Iniciando cierre de sesión')
     try {
       await signOut()
-      console.log('✅ [Header] Sesión cerrada, navegando a login')
-      navigate('/login', { replace: true })
+      console.log('✅ [Header] Sesión cerrada, navegando a inicio')
+      navigate('/', { replace: true })
     } catch (error) {
       console.error('❌ [Header] Error al cerrar sesión:', error)
       // Forzar navegación incluso si hay error
-      navigate('/login', { replace: true })
+      navigate('/', { replace: true })
     }
   }
 
@@ -54,11 +51,6 @@ export const Header = () => {
         <h1 className="text-lg font-semibold text-gray-900">
           CRM Asesoría Legal
         </h1>
-        {isTemporaryUser && (
-          <Badge variant="outline" className="text-xs">
-            Modo Demo
-          </Badge>
-        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -105,7 +97,7 @@ export const Header = () => {
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.user_metadata?.avatar_url} />
                 <AvatarFallback>
-                  {user?.email?.charAt(0).toUpperCase()}
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -117,13 +109,8 @@ export const Header = () => {
                   {user?.user_metadata?.full_name || user?.full_name || 'Usuario'}
                 </p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {user?.email}
+                  {user?.email || 'demo@legalflow.com'}
                 </p>
-                {isTemporaryUser && (
-                  <p className="text-xs text-orange-600">
-                    Usuario temporal
-                  </p>
-                )}
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -138,9 +125,7 @@ export const Header = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>
-                {isTemporaryUser ? 'Ir a Login' : 'Cerrar sesión'}
-              </span>
+              <span>Cerrar sesión</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

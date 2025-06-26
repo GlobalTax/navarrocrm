@@ -4,9 +4,9 @@ import { useApp } from '@/contexts/AppContext'
 import Welcome from './Welcome'
 
 const Index = () => {
-  const { session, user, isSetup, authLoading } = useApp()
+  const { user, authLoading } = useApp()
 
-  // Mostrar loading durante la inicialización
+  // Loading mientras se verifica la autenticación
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -18,24 +18,14 @@ const Index = () => {
     )
   }
 
-  // Si el setup no está configurado, ir al setup
-  if (isSetup === false) {
-    return <Navigate to="/setup" replace />
-  }
-
-  // Si hay usuario real (no temporal), ir al dashboard
-  if (user && !user.app_metadata?.temp_user) {
-    console.log('🏠 [Index] Usuario real detectado, redirigiendo al dashboard')
+  // Si hay usuario real, ir al dashboard
+  if (user) {
+    console.log('🏠 [Index] Usuario detectado, redirigiendo al dashboard')
     return <Navigate to="/dashboard" replace />
   }
 
-  // Si hay usuario temporal, permitir ir al dashboard también
-  if (user && user.app_metadata?.temp_user) {
-    console.log('🏠 [Index] Usuario temporal detectado, mostrando página de bienvenida')
-    return <Welcome />
-  }
-
   // Si no hay usuario, mostrar página de bienvenida
+  console.log('🏠 [Index] No hay usuario, mostrando página de bienvenida')
   return <Welcome />
 }
 

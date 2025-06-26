@@ -16,29 +16,10 @@ export const useApp = () => {
   return context
 }
 
-// Generar UUIDs válidos para desarrollo
-const generateValidUUID = () => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  // Fallback para entornos que no soporten crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c == 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
-
-// UUIDs fijos para desarrollo (se generan una vez y se reutilizan)
-const TEMP_USER_ID = generateValidUUID()
-const TEMP_ORG_ID = generateValidUUID()
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [isSetup, setIsSetup] = useState<boolean | null>(true)
-  const [setupLoading, setSetupLoading] = useState(false)
   
   const initializationStarted = useRef(false)
   const profileEnrichmentInProgress = useRef(false)
@@ -53,37 +34,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       org_id: newUser.org_id
     })
     setUser(newUser)
-  }
-
-  const createTempUser = () => {
-    const tempUser: AuthUser = {
-      id: TEMP_USER_ID,
-      email: 'dev@legalflow.com',
-      role: 'partner' as UserRole,
-      org_id: TEMP_ORG_ID,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      aud: 'authenticated',
-      app_metadata: { temp_user: true },
-      user_metadata: { temp_user: true },
-      first_name: 'Usuario',
-      last_name: 'Temporal',
-      full_name: 'Usuario Temporal'
-    }
-    
-    const tempSession: Session = {
-      access_token: 'temp-access-token',
-      refresh_token: 'temp-refresh-token',
-      expires_in: 3600,
-      expires_at: Date.now() + 3600000,
-      token_type: 'bearer',
-      user: tempUser as any
-    }
-    
-    console.log('🚧 [AppContext] Creando usuario temporal para desarrollo')
-    setUser(tempUser)
-    setSession(tempSession)
-    setAuthLoading(false)
   }
 
   const clearAuthState = () => {
@@ -134,9 +84,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
         }, 0)
       } else {
-        // Si no hay sesión real, crear usuario temporal para desarrollo
-        console.log('👤 [AppContext] No hay sesión real, creando usuario temporal')
-        createTempUser()
+        console.log('👤 [AppContext] No hay sesión inicial')
       }
       setAuthLoading(false)
     })
