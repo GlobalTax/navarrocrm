@@ -1,122 +1,204 @@
 
-import { useCallback } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { useHybridCache } from './useHybridCache'
+import { ENV_CONFIG } from '@/config/environment'
 
-interface APIRequestOptions {
-  priority?: 'low' | 'medium' | 'high'
-  ttl?: number
-  forceRefresh?: boolean
-  cacheKey?: string
+interface OptimizedAPICacheConfig {
+  defaultTTL?: number
+  highPriorityTTL?: number
+  maxItems?: number
+  enablePersistence?: boolean
+  enablePreloading?: boolean
 }
 
-// Hook especializado para cache de APIs con características optimizadas
-export const useOptimizedAPICache = <T = any>() => {
+interface CacheMetrics {
+  hits: number
+  misses: number
+  hitRate: number
+  totalRequests: number
+  cacheSize: number
+}
+
+export const useOptimizedAPICache = (config?: OptimizedAPICacheConfig) => {
+  const {
+    defaultTTL = 5 * 60 * 1000, // 5 minutos
+    highPriorityTTL = 10 * 60 * 1000, // 10 minutos
+    maxItems = 1000,
+    enablePersistence = true,
+    enablePreloading = true
+  } = config || {}
+
   const cache = useHybridCache({
-    maxMemorySize: 100, // 100MB para datos de API
-    maxMemoryItems: 1000,
-    memoryTTL: 5 * 60 * 1000, // 5 minutos en memoria para APIs
-    persistentTTL: 30 * 60 * 1000, // 30 minutos en IndexedDB
-    strategy: 'LRU',
-    enablePersistence: true
+    maxMemorySize: 100, // 100MB
+    maxIndexedDBSize: ENV_CONFIG.cache.maxSize,
+    maxMemoryItems: maxItems,
+    memoryTTL: 2 * 60 * 1000, // 2 minutos en memoria
+    persistentTTL: defaultTTL,
+    enablePersistence
   })
 
-  const fetchWithCache = useCallback(async (
-    key: string,
-    apiCall: () => Promise<T>,
-    options: APIRequestOptions = {}
-  ): Promise<T> => {
-    if (!cache.isReady) {
-      throw new Error('API Cache not ready')
+  const metricsRef = useRef<CacheMetrics>({
+    hits: 0,
+    misses: 0,
+    hitRate: 0,
+    totalRequests: 0,
+    cacheSize: 0
+  })
+
+  // Actualizar métricas
+  const updateMetrics = useCallback((isHit: boolean) => {
+    const metrics = metricsRef.current
+    metrics.totalRequests++
+    
+    if (isHit) {
+      metrics.hits++
+    } else {
+      metrics.misses++
     }
+    
+    metrics.hitRate = metrics.hits / metrics.totalRequests
+    
+    if (cache.stats) {
+      metrics.cacheSize = cache.stats.memoryItems + cache.stats.persistentItems
+    }
+  }, [cache.stats])
 
-    const { priority = 'medium', ttl, forceRefresh = false, cacheKey } = options
-    const finalKey = cacheKey || `api_${key}`
+  // Función principal para obtener/cachear datos
+  const fetchWithCache = useCallback(async <T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    options?: {
+      ttl?: number
+      priority?: 'low' | 'medium' | 'high'
+      forceRefresh?: boolean
+    }
+  ): Promise<T> => {
+    const { ttl, priority = 'medium', forceRefresh = false } = options || {}
 
-    // Si no es refresh forzado, intentar obtener del cache
-    if (!forceRefresh) {
-      const cached = await cache.get<T>(finalKey)
-      if (cached) {
-        console.log(`🎯 [APICache] Cache hit para: ${finalKey}`)
-        return cached
+    // Si no se fuerza refresh, intentar obtener del cache
+    if (!forceRefresh && cache.isReady) {
+      const cachedData = await cache.get<T>(key)
+      if (cachedData !== null) {
+        updateMetrics(true)
+        if (ENV_CONFIG.development.enableLogs) {
+          console.log(`🎯 [Cache HIT] ${key}`)
+        }
+        return cachedData
       }
     }
 
-    console.log(`🔄 [APICache] Fetching fresh data para: ${finalKey}`)
-    
+    // Cache miss - obtener datos
+    updateMetrics(false)
+    if (ENV_CONFIG.development.enableLogs) {
+      console.log(`💾 [Cache MISS] ${key}`)
+    }
+
     try {
-      const result = await apiCall()
+      const data = await fetcher()
       
-      // Almacenar con prioridad alta si es una consulta importante
-      await cache.set(finalKey, result, {
-        ttl,
+      // Cachear los datos obtenidos
+      if (cache.isReady) {
+        const cacheTTL = ttl || (priority === 'high' ? highPriorityTTL : defaultTTL)
+        await cache.set(key, data, {
+          ttl: cacheTTL,
+          priority,
+          forceMemory: priority === 'high'
+        })
+      }
+
+      return data
+    } catch (error) {
+      console.error(`❌ [Cache] Error fetching data for ${key}:`, error)
+      throw error
+    }
+  }, [cache, updateMetrics, defaultTTL, highPriorityTTL])
+
+  // Precargar datos críticos
+  const preloadData = useCallback(async <T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    priority: 'high' | 'medium' = 'medium'
+  ) => {
+    if (!enablePreloading || !cache.isReady) return
+
+    try {
+      const data = await fetcher()
+      await cache.set(key, data, {
+        ttl: priority === 'high' ? highPriorityTTL : defaultTTL,
         priority,
         forceMemory: priority === 'high'
       })
       
-      return result
-    } catch (error) {
-      console.error(`❌ [APICache] Error fetching ${finalKey}:`, error)
-      
-      // En caso de error, intentar usar datos cacheados aunque sean stale
-      const staleData = await cache.get<T>(finalKey)
-      if (staleData) {
-        console.log(`💾 [APICache] Usando datos stale para: ${finalKey}`)
-        return staleData
+      if (ENV_CONFIG.development.enableLogs) {
+        console.log(`🚀 [Cache PRELOAD] ${key}`)
       }
-      
-      throw error
+    } catch (error) {
+      console.warn(`⚠️ [Cache] Error preloading ${key}:`, error)
+    }
+  }, [cache, enablePreloading, defaultTTL, highPriorityTTL])
+
+  // Invalidar cache por patrón
+  const invalidatePattern = useCallback(async (pattern: string) => {
+    if (!cache.isReady) return
+
+    // Para una implementación simple, limpiamos todo el cache
+    // En una implementación avanzada, iteraríamos sobre las keys
+    await cache.clear()
+    
+    if (ENV_CONFIG.development.enableLogs) {
+      console.log(`🗑️ [Cache INVALIDATE] Pattern: ${pattern}`)
     }
   }, [cache])
 
-  // Precargar datos frecuentemente accedidos
-  const preload = useCallback(async (
-    key: string,
-    fetcher: () => Promise<T>,
-    options: APIRequestOptions = {}
-  ) => {
-    try {
-      await fetchWithCache(key, fetcher, { ...options, priority: 'high' })
-      console.log(`📦 [APICache] Precargado: ${key}`)
-    } catch (error) {
-      console.warn(`⚠️ [APICache] Error precargando ${key}:`, error)
-    }
-  }, [fetchWithCache])
-
-  // Invalidar por patrones (ej: invalidar todos los datos de contactos)
-  const invalidatePattern = useCallback(async (pattern: string) => {
+  // Invalidar cache específico
+  const invalidateKey = useCallback(async (key: string) => {
     if (!cache.isReady) return
     
-    console.log(`🗑️ [APICache] Invalidando patrón: ${pattern}`)
-    // Para una implementación completa, necesitaríamos iterar sobre las keys
-    // Por ahora, registramos la intención
-  }, [cache.isReady])
+    await cache.remove(key)
+    
+    if (ENV_CONFIG.development.enableLogs) {
+      console.log(`🗑️ [Cache INVALIDATE] Key: ${key}`)
+    }
+  }, [cache])
 
-  // Batch para múltiples llamadas
-  const batchFetch = useCallback(async <K extends string>(
-    requests: Record<K, () => Promise<any>>,
-    options: APIRequestOptions = {}
-  ): Promise<Record<K, any>> => {
-    const results = {} as Record<K, any>
-    
-    await Promise.all(
-      Object.entries(requests).map(async ([key, fetcher]) => {
-        try {
-          results[key as K] = await fetchWithCache(key, fetcher as () => Promise<any>, options)
-        } catch (error) {
-          console.error(`❌ [APICache] Error en batch para ${key}:`, error)
-          results[key as K] = null
-        }
-      })
-    )
-    
-    return results
-  }, [fetchWithCache])
+  // Obtener métricas
+  const getMetrics = useCallback((): CacheMetrics & { cacheStats?: any } => {
+    return {
+      ...metricsRef.current,
+      cacheStats: cache.stats
+    }
+  }, [cache.stats])
+
+  // Limpiar cache
+  const clearCache = useCallback(async () => {
+    if (cache.isReady) {
+      await cache.clear()
+      // Reset metrics
+      metricsRef.current = {
+        hits: 0,
+        misses: 0,
+        hitRate: 0,
+        totalRequests: 0,
+        cacheSize: 0
+      }
+    }
+  }, [cache])
 
   return {
-    ...cache,
+    // Funciones principales
     fetchWithCache,
-    preload,
+    preloadData,
+    
+    // Gestión de cache
     invalidatePattern,
-    batchFetch
+    invalidateKey,
+    clearCache,
+    
+    // Métricas y estadísticas
+    getMetrics,
+    
+    // Estado del cache
+    isReady: cache.isReady,
+    stats: cache.stats
   }
 }

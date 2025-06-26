@@ -1,165 +1,159 @@
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 import { useHybridCache } from './useHybridCache'
-import { ENV_CONFIG } from '@/config/environment'
 
 interface FormCacheOptions {
-  autoSaveInterval?: number // milliseconds
-  retentionTime?: number // milliseconds
-  enableAutoSave?: boolean
+  autoSave?: boolean
+  saveInterval?: number
+  maxVersions?: number
 }
 
-// Hook especializado para cache de formularios con auto-guardado
-export const useOptimizedFormCache = <T = any>(
-  formId: string, 
+interface FormVersion {
+  data: any
+  timestamp: number
+  version: number
+}
+
+export const useOptimizedFormCache = (
+  formId: string,
   options: FormCacheOptions = {}
 ) => {
   const {
-    autoSaveInterval = 3000, // 3 segundos
-    retentionTime = 24 * 60 * 60 * 1000, // 24 horas
-    enableAutoSave = true
+    autoSave = true,
+    saveInterval = 30000, // 30 segundos
+    maxVersions = 5
   } = options
 
   const cache = useHybridCache({
-    maxMemorySize: 10, // 10MB para formularios
+    maxMemorySize: 50, // 50MB para formularios
     maxMemoryItems: 100,
-    memoryTTL: retentionTime,
-    persistentTTL: retentionTime,
-    strategy: 'FIFO', // FIFO es mejor para formularios temporales
+    memoryTTL: 30 * 60 * 1000, // 30 minutos en memoria
+    persistentTTL: 24 * 60 * 60 * 1000, // 24 horas en IndexedDB
     enablePersistence: true
   })
 
-  const formKey = `form_${formId}`
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>()
+  const versionCounterRef = useRef(0)
 
-  const saveFormData = useCallback(async (data: T, options?: { immediate?: boolean }) => {
-    if (!cache.isReady) {
-      console.warn('❌ [FormCache] Cache no está listo')
-      return false
-    }
+  // Generar clave de cache para el formulario
+  const getFormKey = useCallback((suffix = '') => {
+    return `form-${formId}${suffix ? `-${suffix}` : ''}`
+  }, [formId])
 
-    try {
-      await cache.set(formKey, data, {
-        priority: 'medium',
-        ttl: retentionTime,
-        forceMemory: options?.immediate || false
-      })
-      
-      if (ENV_CONFIG.development.enableLogs) {
-        console.log(`💾 [FormCache] Datos guardados para: ${formId}`)
-      }
-      return true
-    } catch (error) {
-      console.error(`❌ [FormCache] Error guardando formulario ${formId}:`, error)
-      return false
-    }
-  }, [cache, formKey, formId, retentionTime])
+  // Guardar datos del formulario
+  const saveFormData = useCallback(async (data: any, isAutoSave = false) => {
+    if (!cache.isReady) return
 
-  const loadFormData = useCallback(async (): Promise<T | null> => {
-    if (!cache.isReady) {
-      return null
-    }
-
-    try {
-      const data = await cache.get<T>(formKey)
-      if (data && ENV_CONFIG.development.enableLogs) {
-        console.log(`📂 [FormCache] Datos cargados para: ${formId}`)
-      }
-      return data
-    } catch (error) {
-      console.error(`❌ [FormCache] Error cargando formulario ${formId}:`, error)
-      return null
-    }
-  }, [cache, formKey, formId])
-
-  const clearFormData = useCallback(async (): Promise<boolean> => {
-    if (!cache.isReady) {
-      return false
-    }
-
-    try {
-      await cache.remove(formKey)
-      if (ENV_CONFIG.development.enableLogs) {
-        console.log(`🗑️ [FormCache] Datos eliminados para: ${formId}`)
-      }
-      return true
-    } catch (error) {
-      console.error(`❌ [FormCache] Error eliminando formulario ${formId}:`, error)
-      return false
-    }
-  }, [cache, formKey, formId])
-
-  const hasSavedData = useCallback(async (): Promise<boolean> => {
-    if (!cache.isReady) {
-      return false
-    }
-
-    try {
-      const data = await cache.get(formKey)
-      return data !== null
-    } catch (error) {
-      console.error(`❌ [FormCache] Error verificando formulario ${formId}:`, error)
-      return false
-    }
-  }, [cache, formKey, formId])
-
-  // Auto-save con debounce mejorado
-  const autoSave = useCallback((data: T): (() => void) => {
-    if (!enableAutoSave || !cache.isReady) {
-      return () => {}
-    }
-
-    const timeoutId = setTimeout(() => {
-      saveFormData(data)
-    }, autoSaveInterval)
-
-    return () => clearTimeout(timeoutId)
-  }, [saveFormData, autoSaveInterval, enableAutoSave, cache.isReady])
-
-  // Crear snapshot del formulario para recuperación
-  const createSnapshot = useCallback(async (data: T, label?: string): Promise<string> => {
-    if (!cache.isReady) {
-      throw new Error('Cache not ready')
-    }
-
-    const snapshotKey = `${formKey}_snapshot_${Date.now()}`
-    const snapshotData = {
+    const version = ++versionCounterRef.current
+    const formVersion: FormVersion = {
       data,
-      label: label || 'Auto-snapshot',
       timestamp: Date.now(),
-      formId
+      version
     }
 
-    await cache.set(snapshotKey, snapshotData, {
-      priority: 'low',
-      ttl: 7 * 24 * 60 * 60 * 1000 // 7 días para snapshots
+    // Guardar versión actual
+    await cache.set(getFormKey(), formVersion, {
+      ttl: 24 * 60 * 60 * 1000, // 24 horas
+      priority: 'high',
+      forceMemory: true
     })
 
-    console.log(`📸 [FormCache] Snapshot creado: ${snapshotKey}`)
-    return snapshotKey
-  }, [cache, formKey, formId])
-
-  // Validar integridad de datos guardados
-  const validateSavedData = useCallback(async (validator: (data: T) => boolean): Promise<boolean> => {
-    const data = await loadFormData()
-    if (!data) return false
-    
-    try {
-      return validator(data)
-    } catch (error) {
-      console.error(`❌ [FormCache] Error validando datos de ${formId}:`, error)
-      return false
+    // Guardar en historial de versiones
+    if (!isAutoSave) {
+      const historyKey = getFormKey('history')
+      const history = await cache.get<FormVersion[]>(historyKey) || []
+      
+      history.unshift(formVersion)
+      
+      // Mantener solo las últimas versiones
+      if (history.length > maxVersions) {
+        history.splice(maxVersions)
+      }
+      
+      await cache.set(historyKey, history, {
+        ttl: 7 * 24 * 60 * 60 * 1000, // 7 días
+        priority: 'medium'
+      })
     }
-  }, [loadFormData, formId])
+
+    console.log(`💾 [Form Cache] Saved ${formId} (v${version})${isAutoSave ? ' [AUTO]' : ''}`)
+  }, [cache, getFormKey, formId, maxVersions])
+
+  // Cargar datos del formulario
+  const loadFormData = useCallback(async (): Promise<any | null> => {
+    if (!cache.isReady) return null
+
+    const formVersion = await cache.get<FormVersion>(getFormKey())
+    return formVersion?.data || null
+  }, [cache, getFormKey])
+
+  // Obtener historial de versiones
+  const getFormHistory = useCallback(async (): Promise<FormVersion[]> => {
+    if (!cache.isReady) return []
+
+    const history = await cache.get<FormVersion[]>(getFormKey('history'))
+    return history || []
+  }, [cache, getFormKey])
+
+  // Restaurar versión específica
+  const restoreVersion = useCallback(async (version: number) => {
+    const history = await getFormHistory()
+    const targetVersion = history.find(v => v.version === version)
+    
+    if (targetVersion) {
+      await saveFormData(targetVersion.data)
+      return targetVersion.data
+    }
+    
+    return null
+  }, [getFormHistory, saveFormData])
+
+  // Limpiar datos del formulario
+  const clearFormData = useCallback(async () => {
+    if (!cache.isReady) return
+
+    await cache.remove(getFormKey())
+    await cache.remove(getFormKey('history'))
+    
+    console.log(`🗑️ [Form Cache] Cleared ${formId}`)
+  }, [cache, getFormKey, formId])
+
+  // Auto-save con debounce
+  const scheduleAutoSave = useCallback((data: any) => {
+    if (!autoSave) return
+
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      saveFormData(data, true)
+    }, saveInterval)
+  }, [autoSave, saveFormData, saveInterval])
+
+  // Limpiar timeout al desmontar
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+    }
+  }, [])
 
   return {
-    isReady: cache.isReady,
+    // Funciones principales
     saveFormData,
     loadFormData,
     clearFormData,
-    hasSavedData,
-    autoSave,
-    createSnapshot,
-    validateSavedData,
-    stats: cache.stats
+    
+    // Historial de versiones
+    getFormHistory,
+    restoreVersion,
+    
+    // Auto-save
+    scheduleAutoSave,
+    
+    // Estado
+    isReady: cache.isReady
   }
 }

@@ -1,126 +1,104 @@
 
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { useIntelligentCache } from './useIntelligentCache'
+import { useCallback, useRef } from 'react'
+import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query'
+import { useOptimizedAPICache } from './useOptimizedAPICache'
 
-interface QueryCacheOptions {
+interface QueryCacheOptions<T> {
   ttl?: number
+  priority?: 'low' | 'medium' | 'high'
   staleTime?: number
-  cacheTime?: number
   refetchOnMount?: boolean
   refetchOnWindowFocus?: boolean
+  refetchOnReconnect?: boolean
+  enableCaching?: boolean
+  preload?: boolean
 }
 
-// Hook para cache de consultas con invalidación inteligente
 export const useQueryCache = <T>(
-  queryKey: string,
+  queryKey: string | string[],
   queryFn: () => Promise<T>,
-  options: QueryCacheOptions = {}
+  options: QueryCacheOptions<T> = {}
 ) => {
-  const { get, set, isReady } = useIntelligentCache()
-  const [data, setData] = useState<T | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
-  const lastFetchRef = useRef<number>(0)
-  const hasFetchedRef = useRef(false)
-
   const {
     ttl = 5 * 60 * 1000, // 5 minutos
-    staleTime = 30 * 1000, // 30 segundos
-    refetchOnMount = true,
-    refetchOnWindowFocus = false
+    priority = 'medium',
+    staleTime = 2 * 60 * 1000, // 2 minutos
+    refetchOnMount = false,
+    refetchOnWindowFocus = false,
+    refetchOnReconnect = true,
+    enableCaching = true,
+    preload = false
   } = options
 
-  // Estabilizar fetchData usando refs
-  const fetchData = useCallback(async (forceRefresh = false) => {
-    if (!isReady) return
+  const queryClient = useQueryClient()
+  const apiCache = useOptimizedAPICache()
+  const preloadedRef = useRef(false)
 
-    setIsLoading(true)
-    setError(null)
+  // Normalizar query key
+  const normalizedKey = Array.isArray(queryKey) ? queryKey.join('-') : queryKey
+  const cacheKey = `query-${normalizedKey}`
 
-    try {
-      const now = Date.now()
-      
-      // Si no es refresh forzado y los datos no están stale, usar cache
-      if (!forceRefresh && (now - lastFetchRef.current) < staleTime) {
-        const cached = await get<T>(queryKey)
-        if (cached) {
-          setData(cached)
-          setIsLoading(false)
-          return cached
-        }
-      }
-
-      // Hacer la consulta fresca
-      console.log(`🔄 [QueryCache] Fetching fresh data for: ${queryKey}`)
-      const result = await queryFn()
-      
-      // Guardar en cache
-      await set(queryKey, result, ttl)
-      setData(result)
-      lastFetchRef.current = now
-      
-      return result
-    } catch (err) {
-      console.error(`❌ [QueryCache] Error fetching ${queryKey}:`, err)
-      setError(err as Error)
-      
-      // En caso de error, intentar usar datos cacheados aunque sean stale
-      const cached = await get<T>(queryKey)
-      if (cached) {
-        setData(cached)
-        console.log(`💾 [QueryCache] Using stale cache for: ${queryKey}`)
-      }
-    } finally {
-      setIsLoading(false)
+  // Función de consulta optimizada con cache
+  const optimizedQueryFn = useCallback(async (): Promise<T> => {
+    if (enableCaching && apiCache.isReady) {
+      return apiCache.fetchWithCache(cacheKey, queryFn, {
+        ttl,
+        priority
+      })
     }
-  }, [queryKey, queryFn, get, set, isReady, ttl, staleTime])
-
-  // Fetch inicial solo una vez
-  useEffect(() => {
-    if (refetchOnMount && !hasFetchedRef.current && isReady) {
-      hasFetchedRef.current = true
-      fetchData()
-    }
-  }, [refetchOnMount, isReady, fetchData])
-
-  // Refetch en focus de ventana
-  useEffect(() => {
-    if (!refetchOnWindowFocus) return
-
-    const handleFocus = () => {
-      const now = Date.now()
-      if ((now - lastFetchRef.current) > staleTime) {
-        fetchData()
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [refetchOnWindowFocus, fetchData, staleTime])
-
-  const invalidate = useCallback(async () => {
-    if (!isReady) return
-    await fetchData(true)
-  }, [fetchData, isReady])
-
-  const prefetch = useCallback(async () => {
-    if (!isReady) return
     
-    const cached = await get<T>(queryKey)
-    if (!cached) {
-      await fetchData()
-    }
-  }, [get, queryKey, fetchData, isReady])
+    // Fallback sin cache
+    return queryFn()
+  }, [apiCache, cacheKey, queryFn, ttl, priority, enableCaching])
 
-  const isStale = (Date.now() - lastFetchRef.current) > staleTime
+  // Configuración de react-query
+  const queryConfig: UseQueryOptions<T> = {
+    queryKey: Array.isArray(queryKey) ? queryKey : [queryKey],
+    queryFn: optimizedQueryFn,
+    staleTime,
+    refetchOnMount,
+    refetchOnWindowFocus,
+    refetchOnReconnect,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+  }
+
+  const query = useQuery(queryConfig)
+
+  // Precargar datos si está habilitado
+  if (preload && !preloadedRef.current && apiCache.isReady) {
+    preloadedRef.current = true
+    apiCache.preloadData(cacheKey, queryFn, priority)
+  }
+
+  // Función para invalidar cache
+  const invalidate = useCallback(async () => {
+    // Invalidar en react-query
+    await queryClient.invalidateQueries({ 
+      queryKey: Array.isArray(queryKey) ? queryKey : [queryKey] 
+    })
+    
+    // Invalidar en cache híbrido
+    if (enableCaching) {
+      await apiCache.invalidateKey(cacheKey)
+    }
+  }, [queryClient, queryKey, apiCache, cacheKey, enableCaching])
+
+  // Función para refetch forzado
+  const refetchWithoutCache = useCallback(async () => {
+    // Invalidar cache primero
+    if (enableCaching) {
+      await apiCache.invalidateKey(cacheKey)
+    }
+    
+    // Refetch
+    return query.refetch()
+  }, [apiCache, cacheKey, query, enableCaching])
 
   return {
-    data,
-    isLoading,
-    error,
-    refetch: useCallback(() => fetchData(true), [fetchData]),
+    ...query,
     invalidate,
-    prefetch,
-    isStale
+    refetchWithoutCache,
+    cacheStats: apiCache.getMetrics()
   }
 }

@@ -90,8 +90,11 @@ export const useDashboardStats = () => {
     {
       ttl: 5 * 60 * 1000, // 5 minutos en cache
       staleTime: 30 * 1000, // 30 segundos stale time
+      priority: 'high', // Alta prioridad para dashboard
       refetchOnMount: true,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      enableCaching: true,
+      preload: true // Precargar datos críticos
     }
   )
 

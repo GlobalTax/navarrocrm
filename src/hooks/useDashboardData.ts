@@ -92,7 +92,10 @@ export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'mont
     {
       ttl: 3 * 60 * 1000, // 3 minutos
       staleTime: 60 * 1000, // 1 minuto
-      refetchOnMount: true
+      priority: 'high', // Alta prioridad para dashboard
+      refetchOnMount: true,
+      enableCaching: true,
+      preload: true
     }
   )
 
