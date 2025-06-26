@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createMockAppContext, createMockGlobalContext } from './testFactories'
 
 // Mock del contexto de la aplicación
@@ -69,13 +69,13 @@ export const AllProviders: React.FC<AllProvidersProps> = ({
 
   return (
     <BrowserRouter>
-      <QueryProvider client={testQueryClient}>
+      <QueryClientProvider client={testQueryClient}>
         <MockGlobalStateProvider value={globalContextValue}>
           <MockAppProvider value={appContextValue}>
             {children}
           </MockAppProvider>
         </MockGlobalStateProvider>
-      </QueryProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   )
 }
