@@ -12,7 +12,20 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      // Optimizaciones para TypeScript
+      tsDecorators: true,
+      plugins: [
+        // Plugin para mejor manejo de tipos en desarrollo
+        ...(mode === 'development' ? [
+          ['@swc/plugin-transform-imports', {
+            '@': {
+              transform: './src/{{member}}',
+            },
+          }]
+        ] : [])
+      ],
+    }),
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -160,10 +173,18 @@ export default defineConfig(({ mode }) => ({
       'clsx',
       'tailwind-merge',
       '@tanstack/react-query'
-    ]
+    ],
+    // Excluir dependencias que causan problemas de tipos
+    exclude: ['@swc/helpers']
   },
   define: {
     __DEV__: mode === 'development',
     __PROD__: mode === 'production'
+  },
+  // Configuración específica para TypeScript
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
+    target: 'esnext',
+    format: 'esm'
   }
 }));
