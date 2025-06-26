@@ -10,7 +10,7 @@ import {
 } from './AdvancedErrorFallbacks'
 
 // Función para determinar el tipo de error y el fallback apropiado
-const getErrorFallback = (error: Error, errorInfo: any) => {
+const getErrorFallback = (error: Error, errorInfo?: any) => {
   const errorMessage = error.message.toLowerCase()
   
   // Error de red
@@ -64,11 +64,17 @@ export const ErrorManager: React.FC<ErrorManagerProps> = ({
   children, 
   fallback 
 }) => {
+  const [storedErrorInfo, setStoredErrorInfo] = React.useState<any>(null)
+
   return (
     <ErrorBoundary
-      FallbackComponent={fallback}
+      FallbackComponent={fallback || ((props) => {
+        const FallbackComponent = getErrorFallback(props.error, storedErrorInfo)
+        return <FallbackComponent {...props} />
+      })}
       onError={(error, errorInfo) => {
         console.error('ErrorManager caught error:', error, errorInfo)
+        setStoredErrorInfo(errorInfo)
         
         // Aquí se podría integrar con servicios de monitoreo
         // como Sentry, LogRocket, etc.
@@ -86,6 +92,8 @@ export const withErrorHandling = <P extends object>(
   entityName?: string
 ) => {
   const WithErrorHandlingComponent = (props: P) => {
+    const [storedErrorInfo, setStoredErrorInfo] = React.useState<any>(null)
+
     const getFallbackForType = (error: Error) => {
       switch (errorType) {
         case 'network':
@@ -110,11 +118,11 @@ export const withErrorHandling = <P extends object>(
             />
           )
         default:
-          return ({ resetErrorBoundary, errorInfo }: any) => (
+          return ({ resetErrorBoundary }: any) => (
             <GenericErrorFallback 
               error={error} 
               resetErrorBoundary={resetErrorBoundary}
-              componentStack={errorInfo?.componentStack}
+              componentStack={storedErrorInfo?.componentStack}
             />
           )
       }
@@ -122,12 +130,13 @@ export const withErrorHandling = <P extends object>(
 
     return (
       <ErrorBoundary
-        FallbackComponent={({ error, resetErrorBoundary, errorInfo }) => {
+        FallbackComponent={({ error, resetErrorBoundary }) => {
           const FallbackComponent = getFallbackForType(error)
-          return <FallbackComponent resetErrorBoundary={resetErrorBoundary} errorInfo={errorInfo} />
+          return <FallbackComponent resetErrorBoundary={resetErrorBoundary} />
         }}
         onError={(error, errorInfo) => {
           console.error(`Error in ${WrappedComponent.displayName || WrappedComponent.name}:`, error, errorInfo)
+          setStoredErrorInfo(errorInfo)
         }}
       >
         <WrappedComponent {...props} />
