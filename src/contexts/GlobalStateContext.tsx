@@ -9,6 +9,7 @@ const GlobalStateContext = createContext<GlobalStateContextType | undefined>(und
 export const useGlobalStateContext = () => {
   const context = useContext(GlobalStateContext)
   if (context === undefined) {
+    console.warn('useGlobalStateContext must be used within a GlobalStateProvider')
     throw new Error('useGlobalStateContext must be used within a GlobalStateProvider')
   }
   return context

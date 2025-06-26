@@ -101,7 +101,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Información técnica para desarrollo */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="text-sm">
                   <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
                     Detalles técnicos (solo desarrollo)

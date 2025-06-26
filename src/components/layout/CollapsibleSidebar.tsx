@@ -7,8 +7,9 @@ import { QuickActionsSection } from './sidebar/QuickActionsSection'
 import { AIAssistantSection } from './sidebar/AIAssistantSection'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
-export const CollapsibleSidebar = React.memo(() => {
+const CollapsibleSidebarContent = React.memo(() => {
   const { sidebarCollapsed, toggleSidebar } = useGlobalSidebar()
 
   return (
@@ -46,6 +47,20 @@ export const CollapsibleSidebar = React.memo(() => {
         </nav>
       </div>
     </div>
+  )
+})
+
+CollapsibleSidebarContent.displayName = 'CollapsibleSidebarContent'
+
+export const CollapsibleSidebar = React.memo(() => {
+  return (
+    <ErrorBoundary fallback={
+      <div className="w-16 h-full bg-white border-r border-gray-200 flex items-center justify-center">
+        <div className="text-xs text-gray-500">Cargando...</div>
+      </div>
+    }>
+      <CollapsibleSidebarContent />
+    </ErrorBoundary>
   )
 })
 
