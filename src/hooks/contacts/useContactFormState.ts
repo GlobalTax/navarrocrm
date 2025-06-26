@@ -1,9 +1,10 @@
 
 import { useSharedFormState } from '../shared/useSharedFormState'
 import { contactSchema } from './contactFormSchema'
-import { defaultContactFormValues, type Contact } from './contactFormTypes'
+import { defaultContactFormValues } from './contactFormTypes'
 import { mapBaseEntityToFormData } from '@/types/shared/baseFormTypes'
 import type { ContactFormData } from '@/components/contacts/ContactFormTabs'
+import type { Contact } from '@/hooks/useContacts'
 
 const mapContactToFormData = (contact: Contact): ContactFormData => ({
   ...mapBaseEntityToFormData(contact),

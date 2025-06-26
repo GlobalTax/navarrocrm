@@ -914,6 +914,78 @@ export type Database = {
           },
         ]
       }
+      hubspot_companies: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: number | null
+          properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hubspot_contacts: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: number | null
+          properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hubspot_deals: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: number | null
+          properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       matter_notifications: {
         Row: {
           case_id: string
