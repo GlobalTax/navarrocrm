@@ -22,19 +22,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [isSetup, setIsSetup] = useState<boolean | null>(true) // Cambiar a true por defecto
-  const [setupLoading, setSetupLoading] = useState(false) // Cambiar a false
+  const [isSetup, setIsSetup] = useState<boolean | null>(true)
+  const [setupLoading, setSetupLoading] = useState(false)
   
   const initializationStarted = useRef(false)
   const profileEnrichmentInProgress = useRef(false)
 
-  // Estado combinado de carga inicial - solo para inicialización crítica
   const isInitializing = authLoading && setupLoading
 
-  // Obtener acciones de autenticación del hook
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
-  // Función mejorada para establecer el usuario con validación
   const setUserWithValidation = (newUser: AuthUser) => {
     console.log('👤 [AppContext] Estableciendo usuario:', {
       id: newUser.id,
@@ -45,7 +42,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(newUser)
   }
 
-  // Crear usuario temporal para modo desarrollo
   const createTempUser = () => {
     const tempUser: AuthUser = {
       id: 'temp-user-dev',
@@ -54,6 +50,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       org_id: 'temp-org-dev',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      aud: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
       first_name: 'Usuario',
       last_name: 'Temporal',
       full_name: 'Usuario Temporal'
@@ -80,31 +79,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     console.log('🚀 [AppContext] Inicialización rápida...')
     
-    // Para desarrollo, crear usuario temporal inmediatamente
     createTempUser()
     
-    // Configurar listener de autenticación solo si hay conexión real a Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
       
       if (session?.user) {
-        // Usuario real de Supabase
         const basicUser = session.user as AuthUser
         console.log('👤 [AppContext] Usuario real establecido')
         setUser(basicUser)
         setSession(session)
         
-        // Enriquecer perfil de forma asíncrona
         await enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
       } else if (event === 'SIGNED_OUT') {
         console.log('👤 [AppContext] Usuario cerró sesión, volviendo a temporal')
-        createTempUser() // Volver al usuario temporal
+        createTempUser()
       }
       
       setAuthLoading(false)
     })
 
-    // Verificar sesión inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const basicUser = session.user as AuthUser
@@ -114,7 +108,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
       }
-      // Si no hay sesión real, el usuario temporal ya está creado
       setAuthLoading(false)
     })
 
@@ -123,7 +116,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [])
 
-  // Wrapper para signOut que mantiene usuario temporal
   const signOut = async () => {
     console.log('🚪 [AppContext] Cerrando sesión')
     try {
@@ -131,15 +123,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (error) {
       console.log('Error cerrando sesión:', error)
     }
-    // Crear usuario temporal después del logout
     createTempUser()
   }
 
   const value: AppState = {
     user,
     session,
-    authLoading: false, // Siempre false ya que tenemos usuario temporal
-    isSetup: true, // Siempre true para desarrollo
+    authLoading: false,
+    isSetup: true,
     setupLoading: false,
     isInitializing: false,
     signIn,
