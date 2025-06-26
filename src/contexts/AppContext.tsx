@@ -22,37 +22,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Control de inicialización único
   const initRef = useRef(false)
-  const profileEnrichmentRef = useRef(false)
+  const enrichmentInProgress = useRef(false)
 
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
-  // Función para enriquecer perfil de forma controlada
+  // Función simplificada para enriquecer perfil
   const enrichUserProfile = async (basicUser: User) => {
-    if (profileEnrichmentRef.current) return
-    profileEnrichmentRef.current = true
+    if (enrichmentInProgress.current) return
+    enrichmentInProgress.current = true
 
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('users')
-        .select('role, org_id, full_name')
+        .select('role, org_id, email')
         .eq('id', basicUser.id)
         .single()
 
+      if (error) {
+        console.log('⚠️ [AppContext] Error al obtener perfil:', error.message)
+        // Usar usuario básico como fallback
+        const fallbackUser: AuthUser = {
+          ...basicUser,
+          role: 'junior' as UserRole,
+          org_id: undefined
+        }
+        setUser(fallbackUser)
+        return
+      }
+
       if (profile) {
-        const enrichedUser = {
+        const enrichedUser: AuthUser = {
           ...basicUser,
           role: profile.role as UserRole,
-          org_id: profile.org_id,
-          full_name: profile.full_name
-        } as AuthUser
-
-        console.log('👤 [AppContext] Usuario enriquecido:', enrichedUser.email)
+          org_id: profile.org_id
+        }
+        
+        console.log('✅ [AppContext] Usuario enriquecido:', enrichedUser.email)
         setUser(enrichedUser)
       }
     } catch (error) {
-      console.log('⚠️ [AppContext] No se pudo enriquecer perfil:', error)
+      console.error('❌ [AppContext] Error crítico:', error)
+      // Fallback seguro
+      const fallbackUser: AuthUser = {
+        ...basicUser,
+        role: 'junior' as UserRole,
+        org_id: undefined
+      }
+      setUser(fallbackUser)
     } finally {
-      profileEnrichmentRef.current = false
+      enrichmentInProgress.current = false
     }
   }
 
@@ -61,49 +79,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     console.log('🧹 [AppContext] Limpiando estado')
     setUser(null)
     setSession(null)
-    profileEnrichmentRef.current = false
+    enrichmentInProgress.current = false
   }
 
-  // Inicialización única y controlada
+  // Inicialización única y estable
   useEffect(() => {
     if (initRef.current) return
     initRef.current = true
 
     console.log('🚀 [AppContext] Inicializando autenticación...')
     
-    // 1. Configurar listener PRIMERO
+    // Configurar listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 [AppContext] Auth event:', event)
       
-      setSession(session)
-      
-      if (session?.user) {
-        const basicUser = session.user as AuthUser
-        setUser(basicUser)
-        
-        // Enriquecer perfil después de un pequeño delay
-        setTimeout(() => {
-          enrichUserProfile(session.user)
-        }, 100)
-      } else {
+      if (event === 'SIGNED_OUT' || !session) {
         clearAuthState()
+        setAuthLoading(false)
+        return
       }
-      
-      // Marcar como no loading después de procesar
-      setAuthLoading(false)
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setSession(session)
+        
+        if (session?.user) {
+          const basicUser = session.user as AuthUser
+          setUser(basicUser)
+          
+          // Enriquecer perfil de forma asíncrona
+          setTimeout(() => {
+            enrichUserProfile(session.user)
+          }, 100)
+        }
+        
+        setAuthLoading(false)
+      }
     })
 
-    // 2. Verificar sesión inicial
+    // Verificar sesión inicial
     const checkInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const { data: { session } } = await supabase.auth.getSession()
         
-        if (error) {
-          console.warn('⚠️ [AppContext] Error obteniendo sesión inicial:', error)
-          setAuthLoading(false)
-          return
-        }
-
         if (session?.user) {
           console.log('👤 [AppContext] Sesión inicial encontrada')
           setSession(session)
@@ -114,29 +131,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setTimeout(() => {
             enrichUserProfile(session.user)
           }, 100)
-        } else {
-          console.log('👤 [AppContext] No hay sesión inicial')
         }
       } catch (error) {
-        console.error('❌ [AppContext] Error en sesión inicial:', error)
+        console.error('❌ [AppContext] Error verificando sesión:', error)
       } finally {
         setAuthLoading(false)
       }
     }
 
-    // Timeout de seguridad
-    const timeoutId = setTimeout(() => {
-      console.log('⏰ [AppContext] Timeout de inicialización')
-      setAuthLoading(false)
-    }, 3000)
-
-    checkInitialSession().then(() => {
-      clearTimeout(timeoutId)
-    })
+    checkInitialSession()
 
     return () => {
       subscription.unsubscribe()
-      clearTimeout(timeoutId)
     }
   }, [])
 
