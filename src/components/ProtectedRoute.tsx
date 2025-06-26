@@ -1,5 +1,6 @@
 
-import { Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 
 interface ProtectedRouteProps {
@@ -14,9 +15,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/'
 }) => {
   const { user, authLoading } = useApp()
+  const navigate = useNavigate()
   const location = useLocation()
 
-  // Mostrar loading durante la carga inicial
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        console.log('🔒 [ProtectedRoute] Usuario no autenticado, redirigiendo a:', redirectTo)
+        navigate(redirectTo, { state: { from: location }, replace: true })
+      } else if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
+        console.log('🚫 [ProtectedRoute] Usuario sin permisos para:', location.pathname)
+        navigate('/unauthorized', { replace: true })
+      }
+    }
+  }, [user, authLoading, allowedRoles, navigate, location, redirectTo])
+
+  // Mostrar loading mientras se verifica autenticación
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -28,16 +42,28 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     )
   }
 
-  // Si no hay usuario - redirección DIRECTA
+  // Si no hay usuario, mostrar loading mientras se redirige
   if (!user) {
-    console.log('🔒 [ProtectedRoute] Usuario no autenticado, redirigiendo a:', redirectTo)
-    return <Navigate to={redirectTo} state={{ from: location }} replace />
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirigiendo...</p>
+        </div>
+      </div>
+    )
   }
 
-  // Verificar roles si se especificaron
+  // Verificar permisos de rol
   if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
-    console.log('🚫 [ProtectedRoute] Usuario sin permisos para:', location.pathname)
-    return <Navigate to="/unauthorized" replace />
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando permisos...</p>
+        </div>
+      </div>
+    )
   }
 
   // Usuario autenticado y autorizado

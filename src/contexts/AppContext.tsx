@@ -22,121 +22,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
-  // Función simplificada para enriquecer perfil - SIN setTimeout
-  const enrichUserProfile = async (basicUser: User) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('users')
-        .select('role, org_id, email')
-        .eq('id', basicUser.id)
-        .single()
-
-      if (error) {
-        console.log('⚠️ [AppContext] Error al obtener perfil:', error.message)
-        // Usar usuario básico como fallback
-        const fallbackUser: AuthUser = {
-          ...basicUser,
-          role: 'junior' as UserRole,
-          org_id: undefined
-        }
-        setUser(fallbackUser)
-        return
-      }
-
-      if (profile) {
-        const enrichedUser: AuthUser = {
-          ...basicUser,
-          role: profile.role as UserRole,
-          org_id: profile.org_id
-        }
-        
-        console.log('✅ [AppContext] Usuario enriquecido:', enrichedUser.email)
-        setUser(enrichedUser)
-      }
-    } catch (error) {
-      console.error('❌ [AppContext] Error crítico:', error)
-      // Fallback seguro
-      const fallbackUser: AuthUser = {
-        ...basicUser,
-        role: 'junior' as UserRole,
-        org_id: undefined
-      }
-      setUser(fallbackUser)
-    }
-  }
-
-  // Inicialización única y simplificada
   useEffect(() => {
     console.log('🚀 [AppContext] Inicializando autenticación...')
     
-    // Configurar listener de cambios de auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Función para manejar cambios de autenticación
+    const handleAuthChange = async (event: string, session: Session | null) => {
       console.log('🔄 [AppContext] Auth event:', event)
       
-      if (event === 'SIGNED_OUT' || !session) {
-        console.log('🧹 [AppContext] Limpiando estado')
+      setSession(session)
+      
+      if (!session) {
         setUser(null)
-        setSession(null)
         setAuthLoading(false)
         return
       }
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        setSession(session)
-        
-        if (session?.user) {
-          const basicUser = session.user as AuthUser
-          setUser(basicUser)
-          
-          // Enriquecer perfil DIRECTAMENTE - sin setTimeout
-          await enrichUserProfile(session.user)
-        }
-        
-        setAuthLoading(false)
-      }
-    })
-
-    // Verificar sesión inicial
-    const checkInitialSession = async () => {
+      // Usuario básico primero
+      const basicUser = session.user as AuthUser
+      setUser(basicUser)
+      setAuthLoading(false)
+      
+      // Intentar enriquecer perfil en segundo plano (sin bloquear)
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session?.user) {
-          console.log('👤 [AppContext] Sesión inicial encontrada')
-          setSession(session)
-          const basicUser = session.user as AuthUser
-          setUser(basicUser)
-          
-          // Enriquecer perfil DIRECTAMENTE
-          await enrichUserProfile(session.user)
-        } else {
-          console.log('👤 [AppContext] No hay sesión inicial')
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role, org_id')
+          .eq('id', session.user.id)
+          .single()
+
+        if (profile) {
+          const enrichedUser: AuthUser = {
+            ...session.user,
+            role: profile.role as UserRole,
+            org_id: profile.org_id
+          }
+          setUser(enrichedUser)
         }
       } catch (error) {
-        console.error('❌ [AppContext] Error verificando sesión:', error)
-      } finally {
+        console.log('⚠️ [AppContext] No se pudo enriquecer el perfil:', error)
+        // Mantener el usuario básico
+      }
+    }
+
+    // Configurar listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange)
+
+    // Verificar sesión inicial
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        await handleAuthChange('initial', session)
+      } catch (error) {
+        console.error('❌ [AppContext] Error inicializando:', error)
         setAuthLoading(false)
       }
     }
 
-    checkInitialSession()
+    initializeAuth()
 
     return () => {
       subscription.unsubscribe()
     }
-  }, []) // Sin dependencias adicionales
+  }, [])
 
   const signOut = async () => {
-    console.log('🚪 [AppContext] Cerrando sesión')
     try {
       await baseSignOut()
-      setUser(null)
-      setSession(null)
     } catch (error) {
-      console.log('⚠️ Error cerrando sesión:', error)
-      setUser(null)
-      setSession(null)
+      console.error('❌ Error cerrando sesión:', error)
     }
+    setUser(null)
+    setSession(null)
   }
 
   const value: AppState = {

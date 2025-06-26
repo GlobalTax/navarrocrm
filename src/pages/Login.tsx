@@ -18,14 +18,12 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  // Si ya está autenticado - redirección DIRECTA
+  // Si ya está autenticado, redirigir
   if (!authLoading && user) {
-    console.log('🔐 [Login] Usuario ya autenticado, redirigiendo a:', from)
     navigate(from, { replace: true })
     return null
   }
 
-  // Loading simplificado
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -50,8 +48,6 @@ export default function Login() {
     try {
       await signIn(email, password)
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
-      
-      // Navegación DIRECTA después del login exitoso
       navigate(from, { replace: true })
     } catch (error: any) {
       console.error('❌ [Login] Error:', error)
