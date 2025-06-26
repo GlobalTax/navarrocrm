@@ -1,6 +1,7 @@
 
 import { Navigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
+import Welcome from './Welcome'
 
 const Index = () => {
   const { session, user, isSetup, authLoading } = useApp()
@@ -17,16 +18,18 @@ const Index = () => {
     )
   }
 
-  // Redirecciones simplificadas y directas
+  // Si hay sesión o usuario, ir al dashboard
   if (session || user) {
     return <Navigate to="/dashboard" replace />
   }
 
+  // Si el setup no está configurado, ir al setup
   if (isSetup === false) {
     return <Navigate to="/setup" replace />
   }
 
-  return <Navigate to="/login" replace />
+  // Mostrar página de bienvenida en lugar de redirigir al login
+  return <Welcome />
 }
 
 export default Index

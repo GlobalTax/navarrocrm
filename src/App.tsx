@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 import { ErrorBoundary } from '@/components/errors'
 import { MainLayout } from '@/components/layout/MainLayout'
+import Index from '@/pages/Index'
 import Dashboard from '@/pages/Dashboard'
 import Clients from '@/pages/Clients'
 import Cases from '@/pages/Cases'
@@ -13,6 +14,7 @@ import TimeTracking from '@/pages/TimeTracking'
 import AIAdmin from '@/pages/AIAdmin'
 import AdvancedAI from '@/pages/AdvancedAI'
 import IntelligentDashboardPage from '@/pages/IntelligentDashboard'
+import PredictiveAnalytics from '@/pages/PredictiveAnalytics'
 import Workflows from '@/pages/Workflows'
 import Contacts from '@/pages/Contacts'
 import EnhancedAdvancedAI from '@/pages/EnhancedAdvancedAI'
@@ -32,6 +34,7 @@ function App() {
       <ErrorBoundary>
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/login" element={
               <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
@@ -126,6 +129,13 @@ function App() {
                 </MainLayout>
               </ProtectedRoute>
             } />
+            <Route path="/predictive-analytics" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <PredictiveAnalytics />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/workflows" element={
               <ProtectedRoute>
                 <MainLayout>
@@ -140,7 +150,7 @@ function App() {
                 </MainLayout>
               </ProtectedRoute>
             } />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </ErrorBoundary>
