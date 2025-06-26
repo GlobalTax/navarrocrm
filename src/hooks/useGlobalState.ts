@@ -1,6 +1,5 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
-import { useApp } from '@/contexts/AppContext'
 
 interface NotificationAction {
   label: string
@@ -89,7 +88,6 @@ const createDebounce = <T extends (...args: any[]) => void>(
 }
 
 export const useGlobalState = (): UseGlobalStateReturn => {
-  const { user } = useApp()
   const [state, setState] = useState<GlobalState>(initialState)
   const notificationTimeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map())
   const saveToStorageRef = useRef<(state: Partial<GlobalState>) => void>()

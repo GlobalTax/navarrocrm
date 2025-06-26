@@ -71,10 +71,10 @@ window.addEventListener('appinstalled', () => {
 
 createRoot(document.getElementById("root")!).render(
   <QueryClient>
-    <GlobalStateProvider>
-      <AppProvider>
+    <AppProvider>
+      <GlobalStateProvider>
         <App />
-      </AppProvider>
-    </GlobalStateProvider>
+      </GlobalStateProvider>
+    </AppProvider>
   </QueryClient>
 );
