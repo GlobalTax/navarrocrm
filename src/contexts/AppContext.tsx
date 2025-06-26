@@ -1,11 +1,10 @@
+
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AppState, AuthUser, UserRole } from './types'
 import { useAuthActions } from './hooks/useAuthActions'
 import { enrichUserProfileAsync } from './utils/profileHandler'
-import { initializeSystemSetup } from './utils/systemSetup'
-import { getInitialSession } from './utils/sessionValidator'
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
@@ -44,8 +43,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const initializationStarted = useRef(false)
   const profileEnrichmentInProgress = useRef(false)
 
-  const isInitializing = authLoading && setupLoading
-
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
   const setUserWithValidation = (newUser: AuthUser) => {
@@ -67,8 +64,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       aud: 'authenticated',
-      app_metadata: {},
-      user_metadata: {},
+      app_metadata: { temp_user: true },
+      user_metadata: { temp_user: true },
       first_name: 'Usuario',
       last_name: 'Temporal',
       full_name: 'Usuario Temporal'
@@ -83,12 +80,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: tempUser as any
     }
     
-    console.log('🚧 [AppContext] Creando usuario temporal para desarrollo:', {
-      userId: TEMP_USER_ID,
-      orgId: TEMP_ORG_ID
-    })
+    console.log('🚧 [AppContext] Creando usuario temporal para desarrollo')
     setUser(tempUser)
     setSession(tempSession)
+    setAuthLoading(false)
+  }
+
+  const clearAuthState = () => {
+    console.log('🧹 [AppContext] Limpiando estado de autenticación')
+    setUser(null)
+    setSession(null)
     setAuthLoading(false)
   }
 
@@ -96,10 +97,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (initializationStarted.current) return
     initializationStarted.current = true
 
-    console.log('🚀 [AppContext] Inicialización con UUIDs válidos...')
+    console.log('🚀 [AppContext] Inicializando autenticación...')
     
-    createTempUser()
-    
+    // Configurar listener de cambios de auth PRIMERO
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
       
@@ -109,15 +109,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUser(basicUser)
         setSession(session)
         
-        await enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
+        // Enriquecer perfil de forma asíncrona
+        setTimeout(() => {
+          enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
+        }, 0)
       } else if (event === 'SIGNED_OUT') {
-        console.log('👤 [AppContext] Usuario cerró sesión, volviendo a temporal')
-        createTempUser()
+        console.log('👤 [AppContext] Usuario cerró sesión')
+        clearAuthState()
       }
       
       setAuthLoading(false)
     })
 
+    // LUEGO verificar sesión existente
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const basicUser = session.user as AuthUser
@@ -125,7 +129,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUser(basicUser)
         setSession(session)
         
-        enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
+        // Enriquecer perfil de forma asíncrona
+        setTimeout(() => {
+          enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
+        }, 0)
+      } else {
+        // Si no hay sesión real, crear usuario temporal para desarrollo
+        console.log('👤 [AppContext] No hay sesión real, creando usuario temporal')
+        createTempUser()
       }
       setAuthLoading(false)
     })
@@ -139,19 +150,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     console.log('🚪 [AppContext] Cerrando sesión')
     try {
       await baseSignOut()
+      clearAuthState()
     } catch (error) {
       console.log('Error cerrando sesión:', error)
+      clearAuthState()
     }
-    createTempUser()
   }
 
   const value: AppState = {
     user,
     session,
-    authLoading: false,
+    authLoading,
     isSetup: true,
     setupLoading: false,
-    isInitializing: false,
+    isInitializing: authLoading,
     signIn,
     signUp,
     signOut,

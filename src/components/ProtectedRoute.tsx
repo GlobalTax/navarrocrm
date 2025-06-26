@@ -6,17 +6,19 @@ interface ProtectedRouteProps {
   children: React.ReactNode
   allowedRoles?: ('partner' | 'area_manager' | 'senior' | 'junior' | 'finance' | 'client')[]
   redirectTo?: string
+  requireRealUser?: boolean
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   allowedRoles,
-  redirectTo = '/login'
+  redirectTo = '/login',
+  requireRealUser = false
 }) => {
-  const { user, session, isSetup, authLoading } = useApp()
+  const { user, authLoading } = useApp()
   const location = useLocation()
 
-  // Solo mostrar loading durante carga crítica y por tiempo limitado
+  // Mostrar loading durante carga inicial
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -28,18 +30,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     )
   }
 
-  // Verificar autenticación
-  if (!user && !session) {
+  // Si no hay usuario en absoluto
+  if (!user) {
     return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
-  // Verificar setup solo si definitivamente no está configurado
-  if (isSetup === false) {
-    return <Navigate to="/setup" replace />
+  // Si se requiere usuario real y el actual es temporal
+  if (requireRealUser && user.app_metadata?.temp_user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   // Verificar roles si se especificaron
-  if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
     return <Navigate to="/unauthorized" replace />
   }
 

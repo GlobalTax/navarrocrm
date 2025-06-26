@@ -1,17 +1,29 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Building2, Users, FileText, Clock, BarChart3, Workflow } from 'lucide-react'
+import { Building2, Users, FileText, Clock, BarChart3, Workflow, LogIn, Play } from 'lucide-react'
+import { useApp } from '@/contexts/AppContext'
+import { Badge } from '@/components/ui/badge'
 
 const Welcome = () => {
+  const { user } = useApp()
+  const isTemporaryUser = user?.app_metadata?.temp_user === true
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Bienvenido a LegalFlow CRM
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900">
+              Bienvenido a LegalFlow CRM
+            </h1>
+            {isTemporaryUser && (
+              <Badge variant="outline" className="text-sm">
+                Modo Demo
+              </Badge>
+            )}
+          </div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             El CRM líder para asesorías multidisciplinares. Gestiona expedientes, 
             controla tiempos, genera propuestas y mantén conectado a tu equipo.
@@ -99,18 +111,55 @@ const Welcome = () => {
             <CardHeader>
               <CardTitle>¿Listo para empezar?</CardTitle>
               <CardDescription>
-                Accede al sistema para gestionar tu asesoría de forma más eficiente
+                {isTemporaryUser 
+                  ? "Explora el sistema en modo demo o inicia sesión con tu cuenta"
+                  : "Accede al sistema para gestionar tu asesoría de forma más eficiente"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button 
-                className="w-full" 
-                onClick={() => window.location.href = '/dashboard'}
-              >
-                Ir al Dashboard
-              </Button>
+              {isTemporaryUser ? (
+                <>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => window.location.href = '/dashboard'}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Continuar Demo
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full" 
+                    onClick={() => window.location.href = '/login'}
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Iniciar Sesión
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => window.location.href = '/login'}
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Iniciar Sesión
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full" 
+                    onClick={() => window.location.href = '/dashboard'}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Probar Demo
+                  </Button>
+                </>
+              )}
               <p className="text-sm text-gray-500">
-                Sistema en desarrollo - Acceso directo disponible
+                {isTemporaryUser 
+                  ? "Actualmente en modo demostración"
+                  : "Demo disponible sin registro"
+                }
               </p>
             </CardContent>
           </Card>
