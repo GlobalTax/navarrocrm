@@ -1,55 +1,88 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import type { Proposal } from '@/hooks/useProposals'
 
 interface DealsPipelineProps {
   deals: Proposal[]
 }
 
+const stages = [
+  { id: 'draft', title: 'Borrador', color: 'bg-gray-100' },
+  { id: 'sent', title: 'Enviado', color: 'bg-blue-100' },
+  { id: 'won', title: 'Ganado', color: 'bg-green-100' },
+  { id: 'lost', title: 'Perdido', color: 'bg-red-100' }
+]
+
 export function DealsPipeline({ deals }: DealsPipelineProps) {
-  const stages = [
-    { id: 'draft', name: 'Borrador', deals: deals.filter(d => d.status === 'draft') },
-    { id: 'sent', name: 'Enviado', deals: deals.filter(d => d.status === 'sent') },
-    { id: 'won', name: 'Ganado', deals: deals.filter(d => d.status === 'won') },
-    { id: 'lost', name: 'Perdido', deals: deals.filter(d => d.status === 'lost') }
-  ]
+  const dealsByStage = stages.reduce((acc, stage) => {
+    acc[stage.id] = deals.filter(deal => deal.status === stage.id)
+    return acc
+  }, {} as Record<string, Proposal[]>)
+
+  const onDragEnd = (result: any) => {
+    // TODO: Implement drag and drop functionality
+    console.log('Drag ended:', result)
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {stages.map((stage) => (
-        <Card key={stage.id} className="border-0.5 border-black rounded-[10px]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center justify-between">
-              {stage.name}
-              <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-                {stage.deals.length}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {stage.deals.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
-                No hay deals en esta etapa
-              </p>
-            ) : (
-              stage.deals.map((deal) => (
-                <div
-                  key={deal.id}
-                  className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <h4 className="font-medium text-sm">{deal.title}</h4>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {deal.client?.name || 'Sin cliente'}
-                  </p>
-                  <p className="text-xs font-medium text-green-600 mt-1">
-                    €{deal.total_amount?.toLocaleString() || '0'}
-                  </p>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <DragDropContext onDragEnd={onDragEnd}>
+        {stages.map((stage) => (
+          <Card key={stage.id} className={stage.color}>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center justify-between">
+                {stage.title}
+                <Badge variant="secondary">
+                  {dealsByStage[stage.id]?.length || 0}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Droppable droppableId={stage.id}>
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-3 min-h-[200px]"
+                  >
+                    {dealsByStage[stage.id]?.map((deal, index) => (
+                      <Draggable
+                        key={deal.id}
+                        draggableId={deal.id}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <Card
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="bg-white shadow-sm hover:shadow-md transition-shadow cursor-grab"
+                          >
+                            <CardContent className="p-4">
+                              <h4 className="font-medium text-sm mb-2 line-clamp-2">
+                                {deal.title}
+                              </h4>
+                              <p className="text-xs text-muted-foreground mb-2">
+                                {deal.client?.name || 'Sin cliente'}
+                              </p>
+                              <p className="text-sm font-medium text-green-600">
+                                €{deal.total_amount?.toLocaleString() || '0'}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </CardContent>
+          </Card>
+        ))}
+      </DragDropContext>
     </div>
   )
 }
