@@ -1,5 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import type { Case } from './types'
@@ -7,7 +8,7 @@ import type { Case } from './types'
 export const useCasesQueries = () => {
   const { user } = useApp()
 
-  const { data: cases = [], isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['cases', user?.org_id],
     queryFn: async () => {
       if (!user?.org_id) {
@@ -40,6 +41,9 @@ export const useCasesQueries = () => {
     },
     enabled: !!user?.org_id,
   })
+
+  // Memoizar el array cases para evitar recreaciones innecesarias
+  const cases = useMemo(() => data || [], [data])
 
   return {
     cases,
