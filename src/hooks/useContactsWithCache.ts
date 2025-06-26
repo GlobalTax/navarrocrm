@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { useCachedQuery } from '@/hooks/cache'
+import { useOptimizedAPICache } from '@/hooks/cache'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 
@@ -35,35 +35,67 @@ export const useContactsWithCache = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [relationshipFilter, setRelationshipFilter] = useState<string>('all')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+  const [contacts, setContacts] = useState<Contact[]>([])
 
-  const { data: contacts = [], isLoading, error, invalidateCache } = useCachedQuery({
-    queryKey: ['contacts', user?.org_id || ''],
-    queryFn: async () => {
-      if (!user?.org_id) {
-        console.log('👥 No org_id disponible para obtener contactos')
-        return []
-      }
-      
-      console.log('👥 Obteniendo contactos desde API (cache miss):', user.org_id)
-      
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false })
+  // Usar el nuevo cache híbrido optimizado para APIs
+  const apiCache = useOptimizedAPICache<Contact[]>()
 
-      if (error) {
-        console.error('❌ Error fetching contacts:', error)
-        throw error
-      }
-      
-      console.log('✅ Contactos obtenidos desde API:', data?.length || 0)
-      return data || []
-    },
-    cacheTTL: 10 * 60 * 1000, // 10 minutos (contacts don't change as frequently)
-    reactQueryOptions: {
-      enabled: !!user?.org_id,
+  const fetchContacts = async (): Promise<Contact[]> => {
+    if (!user?.org_id) {
+      console.log('👥 No org_id disponible para obtener contactos')
+      return []
     }
-  })
+    
+    console.log('👥 Obteniendo contactos desde API:', user.org_id)
+    
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('❌ Error fetching contacts:', error)
+      throw error
+    }
+    
+    console.log('✅ Contactos obtenidos desde API:', data?.length || 0)
+    return data || []
+  }
+
+  const loadContacts = async (forceRefresh = false) => {
+    if (!user?.org_id || !apiCache.isReady) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const data = await apiCache.fetchWithCache(
+        `contacts_${user.org_id}`,
+        fetchContacts,
+        {
+          priority: 'high', // Los contactos son datos críticos
+          forceRefresh,
+          ttl: 10 * 60 * 1000, // 10 minutos de cache
+        }
+      )
+      
+      setContacts(data)
+    } catch (err) {
+      console.error('❌ Error loading contacts:', err)
+      setError(err as Error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Cargar contactos cuando el cache esté listo
+  React.useEffect(() => {
+    if (apiCache.isReady && user?.org_id) {
+      loadContacts()
+    }
+  }, [apiCache.isReady, user?.org_id])
 
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,8 +109,31 @@ export const useContactsWithCache = () => {
     return matchesSearch && matchesStatus && matchesRelationship
   })
 
-  const refetch = () => {
-    invalidateCache()
+  const refetch = async () => {
+    await loadContacts(true) // Forzar refresh
+  }
+
+  // Precargar datos relacionados cuando sea apropiado
+  const preloadRelatedData = async () => {
+    if (!apiCache.isReady || !user?.org_id) return
+
+    try {
+      // Precargar estadísticas de contactos
+      await apiCache.preload(
+        `contact_stats_${user.org_id}`,
+        async () => {
+          const { data } = await supabase
+            .from('contacts')
+            .select('status, relationship_type')
+            .eq('org_id', user.org_id)
+          
+          return data || []
+        },
+        { priority: 'medium' }
+      )
+    } catch (error) {
+      console.warn('⚠️ Error precargando datos relacionados:', error)
+    }
   }
 
   return {
@@ -87,12 +142,14 @@ export const useContactsWithCache = () => {
     isLoading,
     error,
     refetch,
+    preloadRelatedData,
     searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,  
     relationshipFilter,
-    setRelationshipFilter
+    setRelationshipFilter,
+    cacheStats: apiCache.stats
   }
 }
 

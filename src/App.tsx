@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -45,6 +44,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 
 import ShareHandler from '@/pages/ShareHandler'
 import UploadHandler from '@/pages/UploadHandler'
+
+// Importar el nuevo panel de estadísticas
+import { HybridCacheStatsPanel } from '@/components/dev/HybridCacheStatsPanel'
 
 // Error boundary para providers críticos
 const ProviderErrorBoundary = ({ children }: { children: React.ReactNode }) => (
@@ -121,6 +123,10 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </BrowserRouter>
+                
+                {/* Panel de estadísticas del cache híbrido - solo en desarrollo */}
+                <HybridCacheStatsPanel />
+                
               </GlobalStateProvider>
             </AdvancedAnalyticsProvider>
           </AppProvider>
