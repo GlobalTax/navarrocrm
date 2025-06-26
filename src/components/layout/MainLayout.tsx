@@ -3,7 +3,7 @@ import { Header } from './Header'
 import { CollapsibleSidebar } from './CollapsibleSidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
 import { CacheStatsPanel } from '@/components/dev/CacheStatsPanel'
-import { PWAStatusManager } from '@/components/pwa/PWAStatusManager'
+import { PWAEnhancedStatusManager } from '@/components/pwa/PWAEnhancedStatusManager'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 interface MainLayoutProps {
@@ -31,11 +31,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onMinimize={minimize}
       />
       
-      {/* PWA Status Manager - Unified PWA functionality */}
-      <PWAStatusManager
-        showInstallPrompt={true}
-        showOfflineStatus={true}
-        showUpdatePrompt={true}
+      {/* PWA Enhanced Status Manager - Sistema mejorado de feedback visual */}
+      <PWAEnhancedStatusManager
+        showStatusIndicator={true}
+        showSyncNotifications={true}
+        showOfflineIndicator={false} // Desactivado porque ya está en el indicador principal
+        showUpdateNotifications={true}
+        statusPosition="top-right"
+        compactMode={false}
       />
       
       {/* Cache Stats Panel (Development Only) */}
