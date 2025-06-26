@@ -8,8 +8,7 @@ import {
   Clock, 
   BarChart3, 
   Settings,
-  UserCircle,
-  Building2
+  UserCircle
 } from 'lucide-react'
 
 export interface NavigationItem {
@@ -34,7 +33,6 @@ export const getNavigationSections = (): NavigationSection[] => [
   {
     title: 'Gestión',
     items: [
-      { name: 'Clientes', href: '/clients', icon: Building2 },
       { name: 'Contactos', href: '/contacts', icon: UserCircle },
       { name: 'Casos', href: '/cases', icon: FolderOpen },
       { name: 'Tareas', href: '/tasks', icon: CheckSquare },
@@ -55,7 +53,7 @@ export const getNavigationSections = (): NavigationSection[] => [
 export const navigationData = getNavigationSections()
 
 export const quickActions = [
-  { name: 'Nuevo Cliente', href: '/clients?action=new' },
+  { name: 'Nuevo Contacto', href: '/contacts?action=new' },
   { name: 'Nueva Tarea', href: '/tasks?action=new' },
   { name: 'Nuevo Caso', href: '/cases?action=new' },
   { name: 'Nueva Propuesta', href: '/proposals?action=new' }

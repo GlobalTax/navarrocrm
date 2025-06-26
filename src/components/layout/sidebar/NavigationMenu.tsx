@@ -10,7 +10,6 @@ import {
   FileBarChart,
   Bot,
   Briefcase,
-  Building2,
   Contact,
   Workflow,
   BarChart3,
@@ -27,12 +26,6 @@ const navigationItems = [
     name: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    current: false,
-  },
-  {
-    name: 'Clientes',
-    href: '/clients',
-    icon: Building2,
     current: false,
   },
   {

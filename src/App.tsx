@@ -6,7 +6,6 @@ import { MainLayout } from '@/components/layout/MainLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Index from '@/pages/Index'
 import Dashboard from '@/pages/Dashboard'
-import Clients from '@/pages/Clients'
 import Cases from '@/pages/Cases'
 import Tasks from '@/pages/Tasks'
 import Proposals from '@/pages/Proposals'
@@ -52,13 +51,6 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Dashboard />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/clients" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Clients />
                 </MainLayout>
               </ProtectedRoute>
             } />
@@ -139,6 +131,10 @@ function App() {
                 </MainLayout>
               </ProtectedRoute>
             } />
+            
+            {/* Redirección de /clients a /contacts para compatibilidad */}
+            <Route path="/clients" element={<Navigate to="/contacts" replace />} />
+            
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
