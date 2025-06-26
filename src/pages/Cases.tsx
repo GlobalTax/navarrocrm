@@ -4,7 +4,6 @@ import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
 import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
-import { SearchStats } from '@/components/search/SearchStats'
 import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
@@ -199,12 +198,6 @@ export default function Cases() {
         ]}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={clearAllFilters}
-      />
-
-      <SearchStats 
-        stats={searchStats}
-        isSearching={isSearching}
-        searchTerm={searchTerm}
       />
 
       <CasesBulkActions selectedCases={selectedCases} />

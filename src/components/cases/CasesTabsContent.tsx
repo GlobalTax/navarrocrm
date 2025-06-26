@@ -41,9 +41,6 @@ export function CasesTabsContent({
               <span className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full">
                 {filteredCases.length}
               </span>
-              {isSearching && (
-                <div className="animate-spin h-3 w-3 border border-current border-t-transparent rounded-full" />
-              )}
             </TabsTrigger>
             <TabsTrigger value="stages">
               Etapas
