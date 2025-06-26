@@ -21,7 +21,7 @@ const Deals = () => {
       <StandardPageHeader
         title="M&A Deals"
         description="Gestión de operaciones de compraventa de empresas"
-        action={
+        actions={
           <Button onClick={handleNewDeal} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Nueva Operación

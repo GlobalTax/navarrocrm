@@ -52,3 +52,13 @@ export const getNavigationSections = (): NavigationSection[] => [
     ]
   }
 ]
+
+// Legacy exports for compatibility
+export const navigationData = getNavigationSections()
+
+export const quickActions = [
+  { name: 'Nuevo Cliente', href: '/clients?action=new' },
+  { name: 'Nueva Tarea', href: '/tasks?action=new' },
+  { name: 'Nuevo Caso', href: '/cases?action=new' },
+  { name: 'Nueva Propuesta', href: '/proposals?action=new' }
+]
