@@ -28,6 +28,9 @@ export default {
 			},
 			colors: {
 				border: 'hsl(var(--border))',
+				'border-light': 'hsl(var(--border-light))',
+				'border-muted': 'hsl(var(--border-muted))', 
+				'border-secondary': 'hsl(var(--border-secondary))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
@@ -161,10 +164,22 @@ export default {
 		// Plugin personalizado para utilidades CAPITTAL
 		function({ addUtilities }: any) {
 			const newUtilities = {
-				// Utilidades de borde CAPITTAL
+				// Utilidades de borde CAPITTAL - Negro y Grises
 				'.border-capittal': {
 					'border-width': '0.5px',
 					'border-color': 'hsl(var(--border))',
+				},
+				'.border-capittal-light': {
+					'border-width': '0.5px',
+					'border-color': 'hsl(var(--border-light))',
+				},
+				'.border-capittal-muted': {
+					'border-width': '0.5px',
+					'border-color': 'hsl(var(--border-muted))',
+				},
+				'.border-capittal-secondary': {
+					'border-width': '0.5px',
+					'border-color': 'hsl(var(--border-secondary))',
 				},
 				// Utilidades de radius CAPITTAL
 				'.rounded-capittal': {

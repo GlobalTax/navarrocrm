@@ -6,10 +6,58 @@ Este documento define el sistema de diseño CAPITTAL que debe mantenerse consist
 
 ## 📋 Especificaciones
 
-### Bordes
+### Sistema de Bordes CAPITTAL
+El sistema CAPITTAL utiliza un enfoque estratégico de bordes con **negro** para elementos principales y **grises** para jerarquía visual:
+
+#### Bordes Negros (Principal)
 - **Ancho**: 0.5px solid black
+- **Uso**: Botones principales, inputs activos, cards importantes, elementos de CTA
 - **Clase**: `.border-capittal` o `.capittal-border`
-- **Variable CSS**: `--border: 0 0% 0%` (negro puro)
+- **Variable CSS**: `--border: 0 0% 0%`
+
+#### Bordes Grises (Secundarios)
+- **Gris Claro**: Para separadores y elementos de fondo
+  - **Clase**: `.border-capittal-light` o `.capittal-border-light`
+  - **Variable CSS**: `--border-light: 0 0% 90%`
+  - **Uso**: Separadores, dividers, cards de fondo, elementos sutiles
+
+- **Gris Medio**: Para estados deshabilitados/inactivos
+  - **Clase**: `.border-capittal-muted` o `.capittal-border-muted`
+  - **Variable CSS**: `--border-muted: 0 0% 75%`
+  - **Uso**: Inputs deshabilitados, botones inactivos, elementos no disponibles
+
+- **Gris Oscuro**: Para elementos secundarios
+  - **Clase**: `.border-capittal-secondary` o `.capittal-border-secondary`
+  - **Variable CSS**: `--border-secondary: 0 0% 60%`
+  - **Uso**: Navegación secundaria, botones secundarios, elementos de apoyo
+
+### Reglas de Uso de Bordes
+
+#### ✅ Usar NEGRO cuando:
+- Elemento es interactuable y principal (botón primario)
+- Input está activo o en foco
+- Card contiene información crítica
+- Elemento requiere máxima atención visual
+- Call-to-action principal
+
+#### ✅ Usar GRIS CLARO cuando:
+- Separando secciones visualmente
+- Elementos de fondo o contenedores
+- Dividers entre elementos de lista
+- Cards informativos no críticos
+- Sidebar y navegación sutil
+
+#### ✅ Usar GRIS MEDIO cuando:
+- Elemento está deshabilitado
+- Estado inactivo temporal
+- Placeholders o elementos vacíos
+- Feedback de "no disponible"
+
+#### ✅ Usar GRIS OSCURO cuando:
+- Botones secundarios (no destructivos)
+- Navegación secundaria
+- Elementos de apoyo importantes pero no principales
+- Herramientas y utilidades
 
 ### Border-radius
 - **Valor**: 10px consistente
@@ -25,40 +73,42 @@ Este documento define el sistema de diseño CAPITTAL que debe mantenerse consist
 - **Fondo**: Blanco (`bg-white`)
 - **Texto**: Negro (`text-black`)
 - **Secundario**: Grises (`text-gray-500`, `bg-gray-50`)
-- **Variables CSS**:
-  - `--background: 0 0% 100%` (blanco)
-  - `--foreground: 0 0% 0%` (negro)
 
 ### Sombras
 - **Base**: `shadow-sm` (equivale a `shadow-capittal`)
 - **Hover**: `shadow-lg` (equivale a `shadow-capittal-lg`)
-- **Clases**: `.shadow-capittal`, `.shadow-capittal-lg`
 
 ## 🎯 Componentes Estándar
 
-### Cards
+### Cards Principales
 ```css
 .capittal-card {
   @apply bg-white capittal-border capittal-radius shadow-sm;
   transition: all 0.2s ease-out;
 }
+```
 
-.capittal-card:hover {
-  @apply shadow-lg;
-  transform: translateY(-2px);
+### Cards Secundarias
+```css
+.capittal-card-secondary {
+  @apply bg-white capittal-border-light capittal-radius shadow-sm;
+  transition: all 0.2s ease-out;
 }
 ```
 
-### Botones
+### Botones Principales
 ```css
 .capittal-button {
   @apply capittal-border capittal-radius bg-white text-black;
   transition: all 0.2s ease-out;
 }
+```
 
-.capittal-button:hover {
-  @apply shadow-lg;
-  transform: translateY(-2px);
+### Botones Secundarios
+```css
+.capittal-button-secondary {
+  @apply capittal-border-secondary capittal-radius bg-white text-black;
+  transition: all 0.2s ease-out;
 }
 ```
 
@@ -69,8 +119,15 @@ Este documento define el sistema de diseño CAPITTAL que debe mantenerse consist
   transition: all 0.2s ease-out;
 }
 
-.capittal-input:focus {
-  @apply ring-2 ring-black ring-offset-2;
+.capittal-input:disabled {
+  @apply capittal-border-muted bg-gray-50 text-gray-400;
+}
+```
+
+### Separadores
+```css
+.capittal-separator {
+  @apply capittal-border-light;
 }
 ```
 
@@ -78,6 +135,10 @@ Este documento define el sistema de diseño CAPITTAL que debe mantenerse consist
 ```css
 .capittal-badge {
   @apply capittal-border capittal-radius bg-white text-black px-2 py-1 text-xs font-medium;
+}
+
+.capittal-badge-secondary {
+  @apply capittal-border-light capittal-radius bg-gray-50 text-gray-700 px-2 py-1 text-xs font-medium;
 }
 ```
 
@@ -88,81 +149,123 @@ Este documento define el sistema de diseño CAPITTAL que debe mantenerse consist
 - **Transición**: `0.2s-0.3s ease-out`
 - **Clase**: `.hover-lift`
 
-### Animaciones
-- **Fade-in**: Para elementos que aparecen (`.animate-fade-in-capittal`)
-- **Scale-in**: Para modals (`.animate-scale-in-capittal`)
-- **Hover-lift**: Para interacciones (`.hover-lift`)
-
-### Transiciones Estándar
-- **Rápida**: `0.2s ease-out` (`.transition-capittal`)
-- **Lenta**: `0.3s ease-out` (`.transition-capittal-slow`)
+### Estados Deshabilitados
+- **Bordes**: Automáticamente usan `border-muted`
+- **Fondo**: `bg-gray-50`
+- **Texto**: `text-gray-400`
+- **Cursor**: `cursor-not-allowed`
 
 ## 🛠️ Clases Utilitarias
 
-### Aplicación Rápida
-- `.capittal-card` - Card completa con todos los estilos
-- `.capittal-button` - Botón completo con todos los estilos  
-- `.capittal-input` - Input completo con todos los estilos
-- `.capittal-badge` - Badge completa con todos los estilos
+### Aplicación Rápida por Tipo
+```tsx
+// Card principal (negra)
+<div className="capittal-card hover-lift">Contenido importante</div>
 
-### Elementos Individuales
-- `.capittal-border` - Solo el borde
-- `.capittal-radius` - Solo el border-radius
-- `.border-capittal` - Utilidad de Tailwind para borde
-- `.rounded-capittal` - Utilidad de Tailwind para radius
+// Card secundaria (gris claro)
+<div className="capittal-card-secondary hover-lift">Información de apoyo</div>
 
-### Efectos
-- `.hover-lift` - Efecto de elevación en hover
-- `.transition-capittal` - Transición estándar rápida
-- `.transition-capittal-slow` - Transición estándar lenta
+// Botón principal (negro)
+<button className="capittal-button hover-lift">Acción Principal</button>
+
+// Botón secundario (gris oscuro)
+<button className="capittal-button-secondary hover-lift">Acción Secundaria</button>
+
+// Separador (gris claro)
+<hr className="capittal-separator" />
+
+// Badge principal
+<span className="capittal-badge">Importante</span>
+
+// Badge secundario
+<span className="capittal-badge-secondary">Información</span>
+```
+
+### Aplicación Manual con Tailwind
+```tsx
+// Elementos principales
+<div className="border-capittal rounded-capittal shadow-capittal">Principal</div>
+
+// Separadores y elementos sutiles
+<div className="border-capittal-light rounded-capittal">Separador</div>
+
+// Estados deshabilitados
+<input className="border-capittal-muted rounded-capittal" disabled />
+
+// Elementos secundarios
+<button className="border-capittal-secondary rounded-capittal">Secundario</button>
+```
 
 ## 🚫 Reglas de Uso
 
 ### ✅ HACER
-- Usar las clases predefinidas (`.capittal-*`)
-- Mantener consistencia en todos los componentes
+- Usar negro para elementos principales e interactivos
+- Usar gris claro para separadores y elementos de fondo
+- Usar gris medio para estados deshabilitados
+- Usar gris oscuro para elementos secundarios importantes
+- Mantener consistencia en toda la aplicación
 - Aplicar `.hover-lift` a elementos interactivos
-- Usar transiciones estándar definidas
 
 ### ❌ NO HACER
-- Modificar los valores base del sistema
-- Crear bordes de otros grosores sin justificación
-- Usar border-radius diferentes a 10px
-- Cambiar las transiciones estándar
-- Modificar las variables CSS sin consultar
+- Mezclar bordes negros y grises en el mismo contexto sin jerarquía clara
+- Usar gris medio para elementos activos
+- Usar negro para separadores sutiles
+- Cambiar las variables CSS sin actualizar la documentación
+- Ignorar los estados deshabilitados
 
-## 📝 Implementación
+## 📝 Ejemplos de Implementación
 
-### En componentes nuevos:
+### Dashboard Principal
 ```tsx
-// Card estándar
+// Métricas importantes - negro
 <div className="capittal-card hover-lift">
-  <h3>Título</h3>
-  <p>Contenido</p>
+  <h3>Ingresos Mensuales</h3>
+  <p>€45,230</p>
 </div>
 
-// Botón estándar
-<button className="capittal-button hover-lift">
-  Acción
-</button>
-
-// Input estándar
-<input className="capittal-input" />
+// Información de apoyo - gris claro
+<div className="capittal-card-secondary">
+  <h4>Notas del mes</h4>
+  <p>Información complementaria</p>
+</div>
 ```
 
-### Con Tailwind:
+### Formularios
 ```tsx
-// Aplicación manual
-<div className="bg-white border-capittal rounded-capittal shadow-capittal hover-lift">
-  Contenido
-</div>
+// Input activo - negro
+<input className="capittal-input" type="text" />
+
+// Input deshabilitado - gris medio automático
+<input className="capittal-input" type="text" disabled />
+
+// Botón enviar - negro
+<button className="capittal-button">Enviar</button>
+
+// Botón cancelar - gris oscuro
+<button className="capittal-button-secondary">Cancelar</button>
+```
+
+### Navegación
+```tsx
+// Navegación principal - negro implícito
+<nav className="space-y-1">
+  <a className="capittal-button">Dashboard</a>
+</nav>
+
+// Separador - gris claro
+<hr className="capittal-separator my-4" />
+
+// Navegación secundaria - gris oscuro
+<nav className="space-y-1">
+  <a className="capittal-button-secondary">Configuración</a>
+</nav>
 ```
 
 ## 🔧 Mantenimiento
 
 Este sistema está configurado en:
-- `src/index.css` - Variables CSS y clases base
-- `tailwind.config.ts` - Configuración de Tailwind
+- `src/index.css` - Variables CSS, clases base, y reglas de bordes
+- `tailwind.config.ts` - Configuración de Tailwind y utilidades
 - `index.html` - Carga de fuentes
 
-**¡NO MODIFICAR sin revisar este documento!**
+**¡El sistema de bordes es fundamental para la jerarquía visual de CAPITTAL!**
