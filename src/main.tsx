@@ -1,5 +1,7 @@
 
 import { createRoot } from 'react-dom/client'
+import { QueryClient } from '@/contexts/QueryContext'
+import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
 import { AppProvider } from '@/contexts/AppContext'
 import App from './App.tsx'
 import './index.css'
@@ -68,7 +70,11 @@ window.addEventListener('appinstalled', () => {
 })
 
 createRoot(document.getElementById("root")!).render(
-  <AppProvider>
-    <App />
-  </AppProvider>
+  <QueryClient>
+    <GlobalStateProvider>
+      <AppProvider>
+        <App />
+      </AppProvider>
+    </GlobalStateProvider>
+  </QueryClient>
 );
