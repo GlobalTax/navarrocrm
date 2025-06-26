@@ -9,6 +9,7 @@ import Dashboard from '@/pages/Dashboard'
 import Cases from '@/pages/Cases'
 import Tasks from '@/pages/Tasks'
 import Proposals from '@/pages/Proposals'
+import Deals from '@/pages/Deals'
 import TimeTracking from '@/pages/TimeTracking'
 import AIAdmin from '@/pages/AIAdmin'
 import AdvancedAI from '@/pages/AdvancedAI'
@@ -65,6 +66,13 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Cases />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/deals" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Deals />
                 </MainLayout>
               </ProtectedRoute>
             } />

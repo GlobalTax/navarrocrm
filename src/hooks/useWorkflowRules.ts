@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import type { Tables } from '@/integrations/supabase/types'
@@ -112,7 +113,12 @@ export const useWorkflowRules = () => {
   }
 
   useEffect(() => {
-    fetchRules()
+    // Reducir la frecuencia de fetchRules para evitar rate limiting
+    const timeoutId = setTimeout(() => {
+      fetchRules()
+    }, 1000) // Delay inicial de 1 segundo
+
+    return () => clearTimeout(timeoutId)
   }, [user?.org_id])
 
   return {

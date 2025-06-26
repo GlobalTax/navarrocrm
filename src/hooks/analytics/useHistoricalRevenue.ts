@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -30,6 +31,7 @@ export const useHistoricalRevenue = (monthsBack: number = 12) => {
 
         if (error) {
           console.error('❌ Error fetching historical revenue:', error)
+          // Silenciar errores 404/400 para evitar spam en consola
           return []
         }
 
@@ -41,9 +43,10 @@ export const useHistoricalRevenue = (monthsBack: number = 12) => {
       }
     },
     enabled: !!user?.org_id,
-    retry: 1,
+    retry: false, // No reintentar para reducir spam
     refetchOnWindowFocus: false,
-    // Aumentar intervalo para reducir rate limiting
-    refetchInterval: 10 * 60 * 1000, // 10 minutos
+    // Reducir significativamente la frecuencia para evitar rate limiting
+    refetchInterval: 20 * 60 * 1000, // 20 minutos
+    staleTime: 15 * 60 * 1000, // 15 minutos
   })
 }
