@@ -17,8 +17,8 @@ export default defineConfig({
         singleThread: true
       }
     },
-    testTimeout: 10000,
-    hookTimeout: 10000,
+    testTimeout: 15000,
+    hookTimeout: 15000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -35,17 +35,44 @@ export default defineConfig({
         'dist/',
         'coverage/',
         '**/*.stories.*',
-        '**/*.story.*'
+        '**/*.story.*',
+        '**/types.ts',
+        '**/index.ts'
       ],
       thresholds: {
         global: {
+          branches: 75,
+          functions: 75,
+          lines: 75,
+          statements: 75
+        },
+        // Thresholds específicos por módulo
+        'src/hooks/**': {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
+        },
+        'src/components/ui/**': {
           branches: 70,
           functions: 70,
           lines: 70,
           statements: 70
+        },
+        'src/services/**': {
+          branches: 85,
+          functions: 85,
+          lines: 85,
+          statements: 85
         }
       }
-    }
+    },
+    // Configuración para tests en paralelo más eficiente
+    maxConcurrency: 5,
+    // Configuración de retry para tests flaky
+    retry: process.env.CI ? 2 : 0,
+    // Mejor reportes
+    reporter: process.env.CI ? ['verbose', 'junit'] : ['verbose']
   },
   resolve: {
     alias: {

@@ -794,6 +794,63 @@ export type Database = {
           },
         ]
       }
+      "Contacts hubspot": {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          email: string | null
+          firstname: string | null
+          id: string | null
+          lastname: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          created_at?: string | null
+          email?: string | null
+          firstname?: string | null
+          id?: string | null
+          lastname?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          created_at?: string | null
+          email?: string | null
+          firstname?: string | null
+          id?: string | null
+          lastname?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      "CRM hubspot companies": {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          domain: string | null
+          id: string | null
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          created_at?: string | null
+          domain?: string | null
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          created_at?: string | null
+          domain?: string | null
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body_template: string

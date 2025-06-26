@@ -144,3 +144,68 @@ export const createServiceWorkerMock = () => ({
   addEventListener: vi.fn(),
   removeEventListener: vi.fn()
 })
+
+// Mock de Cache API para testing
+export const createCacheMock = () => ({
+  put: vi.fn().mockResolvedValue(undefined),
+  match: vi.fn().mockResolvedValue(null),
+  keys: vi.fn().mockResolvedValue([]),
+  delete: vi.fn().mockResolvedValue(true),
+  add: vi.fn().mockResolvedValue(undefined),
+  addAll: vi.fn().mockResolvedValue(undefined),
+})
+
+// Utilidades para testing de conectividad
+export const NetworkTestUtils = {
+  simulateOnline: () => {
+    Object.defineProperty(navigator, 'onLine', {
+      writable: true,
+      value: true
+    })
+    window.dispatchEvent(new Event('online'))
+  },
+  
+  simulateOffline: () => {
+    Object.defineProperty(navigator, 'onLine', {
+      writable: true,
+      value: false
+    })
+    window.dispatchEvent(new Event('offline'))
+  },
+  
+  mockSuccessfulFetch: () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ success: true })
+    })
+  },
+  
+  mockFailedFetch: () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
+  }
+}
+
+// Helpers para testing de notificaciones
+export const NotificationTestUtils = {
+  mockPermissionGranted: () => {
+    Object.defineProperty(Notification, 'permission', {
+      value: 'granted',
+      writable: true
+    })
+  },
+  
+  mockPermissionDenied: () => {
+    Object.defineProperty(Notification, 'permission', {
+      value: 'denied',
+      writable: true
+    })
+  },
+  
+  mockPermissionDefault: () => {
+    Object.defineProperty(Notification, 'permission', {
+      value: 'default',
+      writable: true
+    })
+  }
+}
