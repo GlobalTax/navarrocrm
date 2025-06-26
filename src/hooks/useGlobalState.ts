@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useApp } from '@/contexts/AppContext'
 
 interface NotificationAction {
@@ -34,7 +34,7 @@ interface GlobalState {
 interface UseGlobalStateReturn extends GlobalState {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => string
   removeNotification: (id: string) => void
   markAsRead: (id: string) => void
   clearNotifications: () => void
@@ -51,6 +51,20 @@ const initialState: GlobalState = {
   sidebarCollapsed: false,
   theme: 'system',
   language: 'es'
+}
+
+// Memoizar las opciones de tema para evitar recreaciones
+const themeOptions = {
+  light: () => document.documentElement.classList.remove('dark'),
+  dark: () => document.documentElement.classList.add('dark'),
+  system: () => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (prefersDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
 }
 
 export const useGlobalState = (): UseGlobalStateReturn => {
@@ -106,7 +120,21 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     setState(prev => ({ ...prev, error }))
   }, [])
 
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+  const removeNotification = useCallback((id: string) => {
+    setState(prev => ({
+      ...prev,
+      notifications: prev.notifications.filter(n => n.id !== id)
+    }))
+
+    // Limpiar timeout si existe
+    const timeout = notificationTimeoutRef.current.get(id)
+    if (timeout) {
+      clearTimeout(timeout)
+      notificationTimeoutRef.current.delete(id)
+    }
+  }, [])
+
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>): string => {
     const id = Math.random().toString(36).substr(2, 9)
     const newNotification: Notification = {
       ...notification,
@@ -130,21 +158,7 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     }
 
     return id
-  }, [])
-
-  const removeNotification = useCallback((id: string) => {
-    setState(prev => ({
-      ...prev,
-      notifications: prev.notifications.filter(n => n.id !== id)
-    }))
-
-    // Limpiar timeout si existe
-    const timeout = notificationTimeoutRef.current.get(id)
-    if (timeout) {
-      clearTimeout(timeout)
-      notificationTimeoutRef.current.delete(id)
-    }
-  }, [])
+  }, [removeNotification])
 
   const markAsRead = useCallback((id: string) => {
     setState(prev => ({
@@ -181,26 +195,17 @@ export const useGlobalState = (): UseGlobalStateReturn => {
   const setTheme = useCallback((theme: GlobalState['theme']) => {
     setState(prev => ({ ...prev, theme }))
     
-    // Aplicar tema inmediatamente
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else if (theme === 'light') {
-      document.documentElement.classList.remove('dark')
-    } else {
-      // system - usar preferencia del sistema
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      if (prefersDark) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    }
+    // Aplicar tema inmediatamente usando las opciones memoizadas
+    themeOptions[theme]()
   }, [])
 
   const setLanguage = useCallback((language: GlobalState['language']) => {
     setState(prev => ({ ...prev, language }))
   }, [])
 
+  // Memoizar solo las propiedades críticas para el rendimiento
+  const memoizedNotificationsCount = useMemo(() => state.notifications.length, [state.notifications.length])
+  
   return {
     ...state,
     setLoading,
