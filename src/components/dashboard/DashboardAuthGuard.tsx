@@ -34,7 +34,26 @@ export const DashboardAuthGuard = ({ children, user, authLoading }: DashboardAut
     )
   }
 
+  // Mejorar la validación del org_id con timeout para el enriquecimiento
   if (!user.org_id) {
+    // Dar un poco más de tiempo para que el enriquecimiento complete
+    // Si el usuario está autenticado pero no tiene org_id, puede ser que aún esté cargando
+    const isLikelyStillEnriching = !user.role || user.role === 'junior'
+    
+    if (isLikelyStillEnriching) {
+      // Mostrar loading un poco más de tiempo para el enriquecimiento
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando perfil de usuario...</p>
+            <p className="text-sm text-gray-500 mt-2">Obteniendo información de la organización</p>
+          </div>
+        </div>
+      )
+    }
+
+    // Si definitivamente no hay org_id después del enriquecimiento
     return (
       <StandardPageContainer>
         <div className="min-h-[60vh] flex items-center justify-center">
@@ -51,6 +70,10 @@ export const DashboardAuthGuard = ({ children, user, authLoading }: DashboardAut
               <p className="text-gray-600 mb-6">
                 Tu cuenta no está asociada a ninguna organización. Esto puede deberse a que el sistema aún no ha completado la configuración inicial.
               </p>
+              <div className="text-sm text-gray-500 mb-4">
+                Usuario: {user.email} <br/>
+                ID: {user.id}
+              </div>
             </div>
             <div className="space-y-3">
               <Button onClick={() => window.location.reload()} className="w-full">
@@ -66,6 +89,14 @@ export const DashboardAuthGuard = ({ children, user, authLoading }: DashboardAut
       </StandardPageContainer>
     )
   }
+
+  // Usuario completamente validado con org_id
+  console.log('✅ [DashboardAuthGuard] Usuario autorizado para dashboard:', {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    org_id: user.org_id
+  })
 
   return <>{children}</>
 }

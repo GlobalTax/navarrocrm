@@ -17,7 +17,7 @@ export const enrichUserProfileAsync = async (
     profileEnrichmentInProgress.current = true
     console.log('👤 [ProfileHandler] Enriqueciendo perfil:', authUser.id)
     
-    // Función con retry automático
+    // Función con retry automático mejorada
     const fetchUserProfile = async (retries = 3): Promise<any> => {
       for (let attempt = 1; attempt <= retries; attempt++) {
         try {
@@ -28,7 +28,7 @@ export const enrichUserProfileAsync = async (
               .from('users')
               .select('role, org_id')
               .eq('id', authUser.id)
-              .single(),
+              .single(), // Usar .single() ya que esperamos exactamente un registro
             new Promise<never>((_, reject) => {
               setTimeout(() => reject(new Error('TIMEOUT')), 3000)
             })
@@ -54,6 +54,7 @@ export const enrichUserProfileAsync = async (
 
     const userData = await fetchUserProfile()
 
+    // Validar que los datos críticos estén presentes
     if (userData && userData.org_id) {
       const enrichedUser: AuthUser = {
         ...authUser,
@@ -66,15 +67,38 @@ export const enrichUserProfileAsync = async (
         org_id: userData.org_id,
         user_id: authUser.id
       })
+      
+      // Asegurar que el usuario enriquecido se establece correctamente
       setUser(enrichedUser)
+    } else if (userData) {
+      // Si encontramos al usuario pero sin org_id, usar usuario básico con advertencia
+      console.warn('⚠️ [ProfileHandler] Usuario encontrado pero sin org_id:', userData)
+      const basicUser: AuthUser = {
+        ...authUser,
+        role: userData.role as UserRole || 'junior',
+        org_id: undefined
+      }
+      setUser(basicUser)
     } else {
-      console.warn('⚠️ [ProfileHandler] Usuario sin org_id en BD, usando básico')
-      setUser(authUser as AuthUser)
+      // Si no encontramos datos del usuario, crear un registro básico
+      console.warn('⚠️ [ProfileHandler] No se encontraron datos del usuario en la tabla users')
+      const basicUser: AuthUser = {
+        ...authUser,
+        role: 'junior' as UserRole,
+        org_id: undefined
+      }
+      setUser(basicUser)
     }
   } catch (error: any) {
     console.error('❌ [ProfileHandler] Error crítico enriqueciendo perfil:', error.message)
-    // Usar usuario básico si todo falla
-    setUser(authUser as AuthUser)
+    
+    // Fallback: usar usuario básico sin crash
+    const fallbackUser: AuthUser = {
+      ...authUser,
+      role: 'junior' as UserRole,
+      org_id: undefined
+    }
+    setUser(fallbackUser)
   } finally {
     profileEnrichmentInProgress.current = false
   }

@@ -34,6 +34,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Obtener acciones de autenticación del hook
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
+  // Función mejorada para establecer el usuario con validación
+  const setUserWithValidation = (newUser: AuthUser) => {
+    console.log('👤 [AppContext] Estableciendo usuario:', {
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+      org_id: newUser.org_id
+    })
+    setUser(newUser)
+  }
+
   useEffect(() => {
     if (initializationStarted.current) return
     initializationStarted.current = true
@@ -50,13 +61,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSession(session)
       
       if (session?.user) {
-        // Configurar usuario básico inmediatamente
+        // Configurar usuario básico inmediatamente para evitar bloqueos
         const basicUser = session.user as AuthUser
+        console.log('👤 [AppContext] Usuario básico establecido temporalmente')
         setUser(basicUser)
         
-        // Enriquecer perfil en segundo plano sin bloquear
-        enrichUserProfileAsync(session.user, setUser, profileEnrichmentInProgress)
+        // Enriquecer perfil de forma asíncrona
+        console.log('👤 [AppContext] Iniciando enriquecimiento del perfil...')
+        await enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
       } else {
+        console.log('👤 [AppContext] Limpiando usuario (sin sesión)')
         setUser(null)
       }
       
@@ -64,11 +78,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     })
 
     // Obtener sesión inicial
-    getInitialSession(setSession, setAuthLoading).then((session) => {
+    getInitialSession(setSession, setAuthLoading).then(async (session) => {
       if (session?.user) {
         const basicUser = session.user as AuthUser
+        console.log('👤 [AppContext] Usuario inicial básico establecido')
         setUser(basicUser)
-        enrichUserProfileAsync(session.user, setUser, profileEnrichmentInProgress)
+        
+        // Enriquecer perfil inmediatamente en la carga inicial
+        console.log('👤 [AppContext] Enriquecimiento inicial del perfil...')
+        await enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
       }
     })
 
@@ -79,6 +97,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Wrapper para signOut que también limpia el estado local
   const signOut = async () => {
+    console.log('🚪 [AppContext] Cerrando sesión y limpiando estado')
     await baseSignOut()
     // Limpiar estado local inmediatamente
     setUser(null)
