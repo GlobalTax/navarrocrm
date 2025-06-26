@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
@@ -17,6 +16,23 @@ export const useApp = () => {
   }
   return context
 }
+
+// Generar UUIDs válidos para desarrollo
+const generateValidUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // Fallback para entornos que no soporten crypto.randomUUID
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c == 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
+// UUIDs fijos para desarrollo (se generan una vez y se reutilizan)
+const TEMP_USER_ID = generateValidUUID()
+const TEMP_ORG_ID = generateValidUUID()
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -44,10 +60,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const createTempUser = () => {
     const tempUser: AuthUser = {
-      id: 'temp-user-dev',
+      id: TEMP_USER_ID,
       email: 'dev@legalflow.com',
       role: 'partner' as UserRole,
-      org_id: 'temp-org-dev',
+      org_id: TEMP_ORG_ID,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       aud: 'authenticated',
@@ -67,7 +83,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       user: tempUser as any
     }
     
-    console.log('🚧 [AppContext] Creando usuario temporal para desarrollo')
+    console.log('🚧 [AppContext] Creando usuario temporal para desarrollo:', {
+      userId: TEMP_USER_ID,
+      orgId: TEMP_ORG_ID
+    })
     setUser(tempUser)
     setSession(tempSession)
     setAuthLoading(false)
@@ -77,7 +96,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (initializationStarted.current) return
     initializationStarted.current = true
 
-    console.log('🚀 [AppContext] Inicialización rápida...')
+    console.log('🚀 [AppContext] Inicialización con UUIDs válidos...')
     
     createTempUser()
     
