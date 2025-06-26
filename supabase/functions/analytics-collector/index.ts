@@ -39,13 +39,26 @@ serve(async (req) => {
 
     const results = []
 
-    // Insertar eventos
-    if (events && events.length > 0) {
+    // Validar y filtrar eventos con org_id válido
+    const validEvents = events?.filter(event => event.orgId && event.orgId !== 'undefined') || []
+    const validPerformance = performance?.filter(perf => perf.orgId && perf.orgId !== 'undefined') || []
+    const validErrors = errors?.filter(err => err.orgId && err.orgId !== 'undefined') || []
+    const validInteractions = interactions?.filter(interaction => interaction.orgId && interaction.orgId !== 'undefined') || []
+
+    console.log('✅ Datos válidos después de filtrado:', {
+      validEvents: validEvents.length,
+      validPerformance: validPerformance.length,
+      validErrors: validErrors.length,
+      validInteractions: validInteractions.length
+    })
+
+    // Insertar eventos válidos
+    if (validEvents.length > 0) {
       const { data, error } = await supabaseClient
         .from('analytics_events')
-        .insert(events.map(event => ({
+        .insert(validEvents.map(event => ({
           org_id: event.orgId,
-          user_id: event.userId,
+          user_id: event.userId || null,
           session_id: event.sessionId,
           event_type: event.eventType,
           event_name: event.eventName,
@@ -61,17 +74,17 @@ serve(async (req) => {
         throw error
       }
 
-      results.push({ type: 'events', count: events.length, success: true })
-      console.log('✅ Eventos insertados:', events.length)
+      results.push({ type: 'events', count: validEvents.length, success: true })
+      console.log('✅ Eventos insertados:', validEvents.length)
     }
 
-    // Insertar métricas de performance
-    if (performance && performance.length > 0) {
+    // Insertar métricas de performance válidas
+    if (validPerformance.length > 0) {
       const { data, error } = await supabaseClient
         .from('analytics_performance')
-        .insert(performance.map(perf => ({
+        .insert(validPerformance.map(perf => ({
           org_id: perf.orgId,
-          user_id: perf.userId,
+          user_id: perf.userId || null,
           session_id: perf.sessionId,
           page_url: perf.pageUrl,
           load_time: perf.loadTime,
@@ -89,17 +102,17 @@ serve(async (req) => {
         throw error
       }
 
-      results.push({ type: 'performance', count: performance.length, success: true })
-      console.log('✅ Métricas de performance insertadas:', performance.length)
+      results.push({ type: 'performance', count: validPerformance.length, success: true })
+      console.log('✅ Métricas de performance insertadas:', validPerformance.length)
     }
 
-    // Insertar errores
-    if (errors && errors.length > 0) {
+    // Insertar errores válidos
+    if (validErrors.length > 0) {
       const { data, error } = await supabaseClient
         .from('analytics_errors')
-        .insert(errors.map(err => ({
+        .insert(validErrors.map(err => ({
           org_id: err.orgId,
-          user_id: err.userId,
+          user_id: err.userId || null,
           session_id: err.sessionId,
           error_message: err.errorMessage,
           error_stack: err.errorStack,
@@ -115,17 +128,17 @@ serve(async (req) => {
         throw error
       }
 
-      results.push({ type: 'errors', count: errors.length, success: true })
-      console.log('✅ Errores insertados:', errors.length)
+      results.push({ type: 'errors', count: validErrors.length, success: true })
+      console.log('✅ Errores insertados:', validErrors.length)
     }
 
-    // Insertar interacciones
-    if (interactions && interactions.length > 0) {
+    // Insertar interacciones válidas
+    if (validInteractions.length > 0) {
       const { data, error } = await supabaseClient
         .from('analytics_interactions')
-        .insert(interactions.map(interaction => ({
+        .insert(validInteractions.map(interaction => ({
           org_id: interaction.orgId,
-          user_id: interaction.userId,
+          user_id: interaction.userId || null,
           session_id: interaction.sessionId,
           interaction_type: interaction.interactionType,
           element_path: interaction.elementPath,
@@ -139,18 +152,18 @@ serve(async (req) => {
         throw error
       }
 
-      results.push({ type: 'interactions', count: interactions.length, success: true })
-      console.log('✅ Interacciones insertadas:', interactions.length)
+      results.push({ type: 'interactions', count: validInteractions.length, success: true })
+      console.log('✅ Interacciones insertadas:', validInteractions.length)
     }
 
-    // Insertar o actualizar sesión
-    if (session) {
+    // Insertar o actualizar sesión válida
+    if (session && session.orgId && session.orgId !== 'undefined') {
       const { data, error } = await supabaseClient
         .from('analytics_sessions')
         .upsert({
           session_id: session.sessionId,
           org_id: session.orgId,
-          user_id: session.userId,
+          user_id: session.userId || null,
           start_time: new Date(session.startTime).toISOString(),
           end_time: session.endTime ? new Date(session.endTime).toISOString() : null,
           page_views: session.pageViews || 0,

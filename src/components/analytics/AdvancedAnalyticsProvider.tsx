@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useRef } from 'react'
 import { useAdvancedAnalytics } from '@/hooks/analytics/useAdvancedAnalytics'
 import { useApp } from '@/contexts/AppContext'
 
@@ -30,26 +30,43 @@ interface AdvancedAnalyticsProviderProps {
 
 export const AdvancedAnalyticsProvider: React.FC<AdvancedAnalyticsProviderProps> = ({ children }) => {
   const { user } = useApp()
+  const isInitializedRef = useRef(false)
+  const pageViewTrackedRef = useRef(false)
+  
   const analytics = useAdvancedAnalytics({
     enabled: true,
     debug: import.meta.env.MODE === 'development',
     trackPerformance: true,
     trackErrors: true,
     trackInteractions: true,
-    trackPageViews: true
+    trackPageViews: false, // Desactivamos el tracking automático para controlarlo manualmente
+    flushInterval: 30000, // Incrementamos el intervalo para reducir requests
+    batchSize: 20 // Incrementamos el batch size
   })
 
-  // Track página inicial cuando el provider se monta
+  // Track página inicial cuando el provider se monta (solo una vez)
   useEffect(() => {
-    if (analytics.isInitialized) {
+    if (analytics.isInitialized && !pageViewTrackedRef.current && user?.org_id) {
       analytics.trackPageView()
+      pageViewTrackedRef.current = true
+      console.log('📊 [Analytics] Tracked initial page view')
     }
-  }, [analytics.isInitialized])
+  }, [analytics.isInitialized, user?.org_id])
 
-  // Track cambios de ruta
+  // Track cambios de ruta con debounce
   useEffect(() => {
+    if (!analytics.isInitialized || !user?.org_id) return
+
+    let timeoutId: number
+    
     const handleLocationChange = () => {
-      analytics.trackPageView()
+      clearTimeout(timeoutId)
+      timeoutId = window.setTimeout(() => {
+        if (user?.org_id) {
+          analytics.trackPageView()
+          console.log('📊 [Analytics] Tracked route change')
+        }
+      }, 500) // Debounce de 500ms
     }
 
     // Escuchar cambios de ruta del navegador
@@ -61,30 +78,60 @@ export const AdvancedAnalyticsProvider: React.FC<AdvancedAnalyticsProviderProps>
 
     history.pushState = function(...args) {
       originalPushState.apply(this, args)
-      setTimeout(handleLocationChange, 0)
+      handleLocationChange()
     }
 
     history.replaceState = function(...args) {
       originalReplaceState.apply(this, args)
-      setTimeout(handleLocationChange, 0)
+      handleLocationChange()
     }
 
     return () => {
+      clearTimeout(timeoutId)
       window.removeEventListener('popstate', handleLocationChange)
       history.pushState = originalPushState
       history.replaceState = originalReplaceState
     }
-  }, [analytics])
+  }, [analytics.isInitialized, user?.org_id])
+
+  // Wrapper para trackEvent que valida org_id
+  const safeTrackEvent = (eventType: string, eventName: string, eventData?: Record<string, any>) => {
+    if (user?.org_id && analytics.isInitialized) {
+      analytics.trackEvent(eventType, eventName, eventData)
+    }
+  }
+
+  // Wrapper para trackPageView que valida org_id
+  const safeTrackPageView = (url?: string, title?: string) => {
+    if (user?.org_id && analytics.isInitialized) {
+      analytics.trackPageView(url, title)
+    }
+  }
 
   const value: AdvancedAnalyticsContextType = {
-    trackEvent: analytics.trackEvent,
-    trackPageView: analytics.trackPageView,
-    trackClick: analytics.trackClick,
-    trackFormSubmit: analytics.trackFormSubmit,
-    trackSearch: analytics.trackSearch,
-    trackFeatureUsage: analytics.trackFeatureUsage,
+    trackEvent: safeTrackEvent,
+    trackPageView: safeTrackPageView,
+    trackClick: (elementId: string, additionalData?: Record<string, any>) => {
+      safeTrackEvent('interaction', 'click', { elementId, ...additionalData })
+    },
+    trackFormSubmit: (formName: string, additionalData?: Record<string, any>) => {
+      safeTrackEvent('interaction', 'form_submit', { formName, ...additionalData })
+    },
+    trackSearch: (searchTerm: string, resultsCount?: number, additionalData?: Record<string, any>) => {
+      safeTrackEvent('search', 'search_performed', { 
+        searchTerm, 
+        resultsCount, 
+        ...additionalData 
+      })
+    },
+    trackFeatureUsage: (feature: string, action: string, additionalData?: Record<string, any>) => {
+      safeTrackEvent('feature_usage', action, { 
+        feature, 
+        ...additionalData 
+      })
+    },
     flush: analytics.flush,
-    isInitialized: analytics.isInitialized
+    isInitialized: analytics.isInitialized && !!user?.org_id
   }
 
   return (

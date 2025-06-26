@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -18,6 +19,7 @@ import NotFound from '@/pages/NotFound'
 
 import Dashboard from '@/pages/Dashboard'
 import Contacts from '@/pages/Contacts'
+import ContactDetail from '@/pages/ContactDetail'
 import Clients from '@/pages/Clients'
 import ClientDetail from '@/pages/ClientDetail'
 import Cases from '@/pages/Cases'
@@ -92,6 +94,7 @@ function App() {
                       <Route element={<MainLayout><Outlet /></MainLayout>}>
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/contacts" element={<Contacts />} />
+                        <Route path="/contacts/:id" element={<ContactDetail />} />
                         <Route path="/clients" element={<Clients />} />
                         <Route path="/clients/:id" element={<ClientDetail />} />
                         <Route path="/cases" element={<Cases />} />
