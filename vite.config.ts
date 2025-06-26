@@ -13,18 +13,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      // Optimizaciones para TypeScript
+      // Optimizaciones básicas para TypeScript
       tsDecorators: true,
-      plugins: [
-        // Plugin para mejor manejo de tipos en desarrollo
-        ...(mode === 'development' ? [
-          ['@swc/plugin-transform-imports', {
-            '@': {
-              transform: './src/{{member}}',
-            },
-          }]
-        ] : [])
-      ],
     }),
     mode === 'development' && componentTagger(),
     VitePWA({
