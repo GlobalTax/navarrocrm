@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -31,12 +30,7 @@ export const useHistoricalRevenue = (monthsBack: number = 12) => {
 
         if (error) {
           console.error('❌ Error fetching historical revenue:', error)
-          // Si la función no existe, devolver datos vacíos en lugar de fallar
-          if (error.code === 'PGRST202') {
-            console.log('⚠️ Función get_historical_revenue no encontrada, devolviendo datos vacíos')
-            return []
-          }
-          throw error
+          return []
         }
 
         console.log('✅ Ingresos históricos obtenidos:', data?.length || 0)
@@ -49,5 +43,7 @@ export const useHistoricalRevenue = (monthsBack: number = 12) => {
     enabled: !!user?.org_id,
     retry: 1,
     refetchOnWindowFocus: false,
+    // Aumentar intervalo para reducir rate limiting
+    refetchInterval: 10 * 60 * 1000, // 10 minutos
   })
 }

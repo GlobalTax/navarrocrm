@@ -1,60 +1,94 @@
-
 import { 
   Home, 
   Users, 
-  FolderOpen, 
-  CheckSquare, 
   FileText, 
   Clock, 
-  BarChart3, 
-  Settings,
-  UserCircle
+  Briefcase, 
+  Settings, 
+  Calculator,
+  Calendar,
+  MessageSquare,
+  Target,
+  GraduationCap,
+  BarChart3,
+  Brain
 } from 'lucide-react'
 
-export interface NavigationItem {
-  name: string
-  href: string
-  icon: any
-  current?: boolean
-  badge?: string | number
+export const navigationData = {
+  main: [
+    {
+      title: 'Inicio',
+      href: '/dashboard',
+      icon: Home
+    },
+    {
+      title: 'Contactos',
+      href: '/contacts',
+      icon: Users
+    },
+    {
+      title: 'Expedientes',
+      href: '/cases',
+      icon: FileText
+    },
+    {
+      title: 'Deals',
+      href: '/deals',
+      icon: Target
+    },
+    {
+      title: 'Tiempo',
+      href: '/time',
+      icon: Clock
+    },
+    {
+      title: 'Propuestas',
+      href: '/proposals',
+      icon: Briefcase
+    },
+    {
+      title: 'Calendario',
+      href: '/calendar',
+      icon: Calendar
+    }
+  ],
+  
+  tools: [
+    {
+      title: 'Tareas',
+      href: '/tasks',
+      icon: MessageSquare
+    },
+    {
+      title: 'Academia',
+      href: '/academia',
+      icon: GraduationCap
+    },
+    {
+      title: 'Calculadora',
+      href: '/calculator',
+      icon: Calculator
+    }
+  ],
+  
+  analytics: [
+    {
+      title: 'Analítica',
+      href: '/analytics',
+      icon: BarChart3
+    },
+    {
+      title: 'IA Avanzada',
+      href: '/ai-tools',
+      icon: Brain
+    }
+  ],
+  
+  admin: [
+    {
+      title: 'Configuración',
+      href: '/settings',
+      icon: Settings
+    }
+  ]
 }
-
-export interface NavigationSection {
-  title?: string
-  items: NavigationItem[]
-}
-
-export const getNavigationSections = (): NavigationSection[] => [
-  {
-    items: [
-      { name: 'Dashboard', href: '/dashboard', icon: Home },
-    ]
-  },
-  {
-    title: 'Gestión',
-    items: [
-      { name: 'Contactos', href: '/contacts', icon: UserCircle },
-      { name: 'Casos', href: '/cases', icon: FolderOpen },
-      { name: 'Tareas', href: '/tasks', icon: CheckSquare },
-      { name: 'Propuestas', href: '/proposals', icon: FileText },
-    ]
-  },
-  {
-    title: 'Herramientas',
-    items: [
-      { name: 'Time Tracking', href: '/time-tracking', icon: Clock },
-      { name: 'Workflows', href: '/workflows', icon: Settings },
-      { name: 'Analytics', href: '/predictive-analytics', icon: BarChart3 },
-    ]
-  }
-]
-
-// Legacy exports for compatibility
-export const navigationData = getNavigationSections()
-
-export const quickActions = [
-  { name: 'Nuevo Contacto', href: '/contacts?action=new' },
-  { name: 'Nueva Tarea', href: '/tasks?action=new' },
-  { name: 'Nuevo Caso', href: '/cases?action=new' },
-  { name: 'Nueva Propuesta', href: '/proposals?action=new' }
-]

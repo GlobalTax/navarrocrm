@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -31,12 +30,7 @@ export const useChurnRiskClients = () => {
 
         if (error) {
           console.error('❌ Error fetching churn risk clients:', error)
-          // Si la función no existe, devolver datos vacíos en lugar de fallar
-          if (error.code === 'PGRST202') {
-            console.log('⚠️ Función identify_churn_risk_clients no encontrada, devolviendo datos vacíos')
-            return []
-          }
-          throw error
+          return []
         }
 
         console.log('✅ Clientes en riesgo obtenidos:', data?.length || 0)
@@ -49,5 +43,7 @@ export const useChurnRiskClients = () => {
     enabled: !!user?.org_id,
     retry: 1,
     refetchOnWindowFocus: false,
+    // Aumentar intervalo para reducir rate limiting
+    refetchInterval: 5 * 60 * 1000, // 5 minutos
   })
 }

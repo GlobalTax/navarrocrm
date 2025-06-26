@@ -1,6 +1,5 @@
-
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -86,6 +85,9 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar Tiempo</DialogTitle>
+          <DialogDescription>
+            Registra el tiempo trabajado en un caso específico o como tiempo general.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
