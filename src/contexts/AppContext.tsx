@@ -44,11 +44,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // Intentar enriquecer perfil en segundo plano
       try {
-        const { data: profile } = await supabase
+        console.log('🔍 [AppContext] Enriqueciendo perfil para usuario:', session.user.id)
+        
+        const { data: profile, error } = await supabase
           .from('users')
           .select('role, org_id')
           .eq('id', session.user.id)
           .single()
+
+        if (error) {
+          console.error('❌ [AppContext] Error obteniendo perfil:', {
+            error: error,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          })
+          
+          // Si el usuario no existe en la tabla users, mantener usuario básico
+          if (error.code === 'PGRST116') {
+            console.warn('⚠️ [AppContext] Usuario no encontrado en tabla users, usando perfil básico')
+          }
+          return
+        }
 
         if (profile) {
           const enrichedUser: AuthUser = {
@@ -57,10 +75,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             org_id: profile.org_id
           }
           setUser(enrichedUser)
-          console.log('✅ [AppContext] Perfil enriquecido:', profile.role, profile.org_id)
+          console.log('✅ [AppContext] Perfil enriquecido:', {
+            role: profile.role,
+            org_id: profile.org_id
+          })
         }
       } catch (error) {
-        console.log('⚠️ [AppContext] No se pudo enriquecer el perfil, usando usuario básico')
+        console.error('❌ [AppContext] Error crítico enriqueciendo perfil:', error)
       }
     }
 
@@ -70,10 +91,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Verificar sesión inicial
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        console.log('🔍 [AppContext] Verificando sesión inicial...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('❌ [AppContext] Error obteniendo sesión inicial:', error)
+        }
+        
         await handleAuthChange('initial', session)
       } catch (error) {
-        console.error('❌ [AppContext] Error inicializando:', error)
+        console.error('❌ [AppContext] Error inicializando autenticación:', error)
         setAuthLoading(false)
       }
     }
