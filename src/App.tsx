@@ -18,7 +18,6 @@ import PredictiveAnalytics from '@/pages/PredictiveAnalytics'
 import Workflows from '@/pages/Workflows'
 import Contacts from '@/pages/Contacts'
 import EnhancedAdvancedAI from '@/pages/EnhancedAdvancedAI'
-import Deals from '@/pages/Deals'
 import Login from '@/pages/Login'
 
 function App() {
@@ -74,13 +73,6 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Cases />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/deals" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Deals />
                 </MainLayout>
               </ProtectedRoute>
             } />

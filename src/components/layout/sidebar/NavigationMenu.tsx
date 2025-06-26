@@ -15,8 +15,7 @@ import {
   Workflow,
   BarChart3,
   UserPlus,
-  Calendar,
-  TrendingUp
+  Calendar
 } from 'lucide-react'
 
 interface NavigationMenuProps {
@@ -46,12 +45,6 @@ const navigationItems = [
     name: 'Expedientes',
     href: '/cases',
     icon: FileText,
-    current: false,
-  },
-  {
-    name: 'Oportunidades',
-    href: '/deals',
-    icon: TrendingUp,
     current: false,
   },
   {

@@ -9,8 +9,7 @@ import {
   BarChart3, 
   Settings,
   UserCircle,
-  Building2,
-  Handshake
+  Building2
 } from 'lucide-react'
 
 export interface NavigationItem {
@@ -38,7 +37,6 @@ export const getNavigationSections = (): NavigationSection[] => [
       { name: 'Clientes', href: '/clients', icon: Building2 },
       { name: 'Contactos', href: '/contacts', icon: UserCircle },
       { name: 'Casos', href: '/cases', icon: FolderOpen },
-      { name: 'M&A Deals', href: '/deals', icon: Handshake },
       { name: 'Tareas', href: '/tasks', icon: CheckSquare },
       { name: 'Propuestas', href: '/proposals', icon: FileText },
     ]
