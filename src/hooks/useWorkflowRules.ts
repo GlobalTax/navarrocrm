@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import type { Tables } from '@/integrations/supabase/types'
@@ -23,7 +24,6 @@ export const useWorkflowRules = () => {
         .order('created_at', { ascending: false })
 
       if (error) {
-        // Si hay error 400, puede ser que la tabla no esté accesible aún
         if (error.code === '400' || error.code === 'PGRST116') {
           console.log('⚠️ Tabla workflow_rules no accesible, devolviendo datos vacíos')
           setRules([])

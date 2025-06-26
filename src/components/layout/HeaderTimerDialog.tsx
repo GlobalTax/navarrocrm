@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,6 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
   const [isBillable, setIsBillable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Solo ejecutar hooks cuando el diálogo esté abierto
   const { cases = [] } = useCases()
   const { createTimeEntry } = useTimeEntries()
 
@@ -56,7 +56,6 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
 
       toast.success(`Tiempo registrado: ${minutes} minutos`)
       
-      // Resetear formulario
       setSelectedCaseId('none')
       setDescription('')
       setIsBillable(true)
@@ -70,18 +69,12 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
     }
   }
 
-  const handleClose = () => {
-    // No resetear el formulario al cerrar, por si el usuario quiere intentar de nuevo
-    onClose()
-  }
-
-  // Si no está abierto, no renderizar nada
   if (!isOpen) {
     return null
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar Tiempo</DialogTitle>
@@ -91,7 +84,6 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Tiempo registrado */}
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <p className="text-lg font-mono font-bold text-blue-700">
               {formatTime(timerSeconds)}
@@ -101,7 +93,6 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             </p>
           </div>
 
-          {/* Caso (opcional) */}
           <div className="space-y-2">
             <Label htmlFor="case-select">Caso (Opcional)</Label>
             <Select value={selectedCaseId} onValueChange={setSelectedCaseId}>
@@ -125,7 +116,6 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             </Select>
           </div>
 
-          {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description">Descripción del trabajo *</Label>
             <Textarea
@@ -138,7 +128,6 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             />
           </div>
 
-          {/* Facturable */}
           <div className="flex items-center justify-between">
             <Label htmlFor="billable">Tiempo facturable</Label>
             <Switch
@@ -148,11 +137,10 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             />
           </div>
 
-          {/* Botones */}
           <div className="flex gap-2 pt-4">
             <Button
               variant="outline"
-              onClick={handleClose}
+              onClick={onClose}
               className="flex-1"
               disabled={isLoading}
             >

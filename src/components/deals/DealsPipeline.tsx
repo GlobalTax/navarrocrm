@@ -22,7 +22,6 @@ export function DealsPipeline({ deals }: DealsPipelineProps) {
   }, {} as Record<string, Proposal[]>)
 
   const onDragEnd = (result: any) => {
-    // TODO: Implement drag and drop functionality
     console.log('Drag ended:', result)
   }
 
