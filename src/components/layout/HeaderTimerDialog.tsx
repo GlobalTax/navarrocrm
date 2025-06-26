@@ -83,10 +83,10 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="timer-dialog-description">
         <DialogHeader>
           <DialogTitle>Registrar Tiempo</DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="timer-dialog-description">
             Registra el tiempo trabajado en un caso específico o como tiempo general.
           </DialogDescription>
         </DialogHeader>

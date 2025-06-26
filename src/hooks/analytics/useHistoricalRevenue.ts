@@ -16,37 +16,14 @@ export const useHistoricalRevenue = (monthsBack: number = 12) => {
   return useQuery({
     queryKey: ['historical-revenue', user?.org_id, monthsBack],
     queryFn: async (): Promise<HistoricalRevenueData[]> => {
-      if (!user?.org_id) {
-        console.log('📊 No org_id disponible para obtener ingresos históricos')
-        return []
-      }
-
-      console.log('📊 Obteniendo ingresos históricos para org:', user.org_id)
-
-      try {
-        const { data, error } = await supabase.rpc('get_historical_revenue', {
-          org_uuid: user.org_id,
-          months_back: monthsBack
-        })
-
-        if (error) {
-          console.error('❌ Error fetching historical revenue:', error)
-          // Silenciar errores 404/400 para evitar spam en consola
-          return []
-        }
-
-        console.log('✅ Ingresos históricos obtenidos:', data?.length || 0)
-        return data || []
-      } catch (error) {
-        console.error('❌ Error en useHistoricalRevenue:', error)
-        return []
-      }
+      // Deshabilitar temporalmente esta función para evitar errores 400
+      console.log('⚠️ Función get_historical_revenue deshabilitada temporalmente')
+      return []
     },
-    enabled: !!user?.org_id,
-    retry: false, // No reintentar para reducir spam
+    enabled: false, // Deshabilitar completamente
+    retry: false,
     refetchOnWindowFocus: false,
-    // Reducir significativamente la frecuencia para evitar rate limiting
-    refetchInterval: 20 * 60 * 1000, // 20 minutos
-    staleTime: 15 * 60 * 1000, // 15 minutos
+    refetchInterval: false, // No refetch automático
+    gcTime: 30 * 60 * 1000, // 30 minutos en cache
   })
 }

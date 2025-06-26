@@ -11,24 +11,21 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    // Configuración optimizada para conexiones más rápidas
     storageKey: 'sb-auth-token',
     storage: window.localStorage,
     flowType: 'pkce'
   },
-  // Configuración global optimizada
   global: {
     headers: {
       'x-client-info': '@supabase/ssr@0.0.1'
     }
   },
-  // Configuración de red optimizada
   db: {
     schema: 'public'
   },
-  // Reducir timeouts para conexiones más rápidas
+  // Configuración optimizada para reducir rate limiting
   realtime: {
-    timeout: 5000,
-    heartbeatIntervalMs: 30000
+    timeout: 10000,
+    heartbeatIntervalMs: 60000 // Reducir frecuencia de heartbeat
   }
 });
