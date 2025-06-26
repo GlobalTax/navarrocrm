@@ -1,22 +1,25 @@
 
-import React from 'react'
 import { Building2 } from 'lucide-react'
 
 interface SidebarHeaderProps {
   collapsed?: boolean
 }
 
-export function SidebarHeader({ collapsed = false }: SidebarHeaderProps) {
+export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ collapsed = false }) => {
   return (
-    <div className="flex items-center px-4 py-2">
+    <div className="flex items-center px-4 mb-6">
       <div className="flex items-center">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Building2 className="h-5 w-5 text-white" />
+        <div className="flex-shrink-0">
+          <Building2 className="h-8 w-8 text-blue-600" />
         </div>
         {!collapsed && (
           <div className="ml-3">
-            <p className="text-sm font-semibold text-gray-900">CRM Legal</p>
-            <p className="text-xs text-gray-500">Sistema Integral</p>
+            <h1 className="text-xl font-bold text-gray-900">
+              LegalFlow
+            </h1>
+            <p className="text-sm text-gray-500">
+              CRM Asesoría Legal
+            </p>
           </div>
         )}
       </div>
