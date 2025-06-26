@@ -101,13 +101,13 @@ async function handleCriticalRoute(request) {
   try {
     const networkResponse = await fetch(request)
     
-    if (networkResponse.ok) {
+    if (networkResponse.ok && request.method === 'GET') {
       const cache = await caches.open(DYNAMIC_CACHE)
       cache.put(request, networkResponse.clone())
       return networkResponse
     }
     
-    throw new Error('Network response not ok')
+    return networkResponse
   } catch (error) {
     console.log('🌐 [SW] Red no disponible para ruta crítica, usando cache...')
     
@@ -120,24 +120,27 @@ async function handleCriticalRoute(request) {
   }
 }
 
-// Manejar requests de Supabase
+// Manejar requests de Supabase - CORREGIDO: Solo cachear GET requests
 async function handleSupabaseRequest(request) {
   try {
     const networkResponse = await fetch(request)
     
-    if (networkResponse.ok) {
+    // Solo cachear requests GET exitosos
+    if (networkResponse.ok && request.method === 'GET') {
       const cache = await caches.open(DYNAMIC_CACHE)
       cache.put(request, networkResponse.clone())
-      return networkResponse
     }
     
-    throw new Error('Supabase request failed')
+    return networkResponse
   } catch (error) {
     console.log('🌐 [SW] Supabase offline, usando cache...')
     
-    const cachedResponse = await caches.match(request)
-    if (cachedResponse) {
-      return cachedResponse
+    // Solo buscar en cache para requests GET
+    if (request.method === 'GET') {
+      const cachedResponse = await caches.match(request)
+      if (cachedResponse) {
+        return cachedResponse
+      }
     }
     
     return new Response(JSON.stringify({ 
@@ -317,7 +320,7 @@ async function handleStaticFile(request) {
     }
 
     const networkResponse = await fetch(request)
-    if (networkResponse.ok) {
+    if (networkResponse.ok && request.method === 'GET') {
       const cache = await caches.open(STATIC_CACHE)
       cache.put(request, networkResponse.clone())
     }
@@ -335,21 +338,22 @@ async function handleApiRequest(request) {
     // Intentar red primero
     const networkResponse = await fetch(request)
     
-    if (networkResponse.ok) {
-      // Cachear respuesta exitosa
+    // Solo cachear requests GET exitosos
+    if (networkResponse.ok && request.method === 'GET') {
       const cache = await caches.open(DYNAMIC_CACHE)
       cache.put(request, networkResponse.clone())
-      return networkResponse
     }
     
-    throw new Error('Network response not ok')
+    return networkResponse
   } catch (error) {
     console.log('🌐 [SW] Red no disponible, usando cache...')
     
-    // Fallback a cache
-    const cachedResponse = await caches.match(request)
-    if (cachedResponse) {
-      return cachedResponse
+    // Solo buscar en cache para requests GET
+    if (request.method === 'GET') {
+      const cachedResponse = await caches.match(request)
+      if (cachedResponse) {
+        return cachedResponse
+      }
     }
     
     // Respuesta offline personalizada
@@ -363,9 +367,11 @@ async function handleDefaultRequest(request) {
     const networkResponse = await fetch(request)
     return networkResponse
   } catch (error) {
-    const cachedResponse = await caches.match(request)
-    if (cachedResponse) {
-      return cachedResponse
+    if (request.method === 'GET') {
+      const cachedResponse = await caches.match(request)
+      if (cachedResponse) {
+        return cachedResponse
+      }
     }
     
     return createOfflineResponse(request)
