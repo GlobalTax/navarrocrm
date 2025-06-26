@@ -5,7 +5,7 @@ import { useOptimizedAPICache } from './useOptimizedAPICache'
 
 interface QueryCacheOptions<T> {
   ttl?: number
-  priority?: 'low' | 'medium' | 'high'
+  priority?: 'medium' | 'high'
   staleTime?: number
   refetchOnMount?: boolean
   refetchOnWindowFocus?: boolean

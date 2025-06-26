@@ -69,7 +69,7 @@ export const useOptimizedAPICache = (config?: OptimizedAPICacheConfig) => {
     fetcher: () => Promise<T>,
     options?: {
       ttl?: number
-      priority?: 'low' | 'medium' | 'high'
+      priority?: 'medium' | 'high'
       forceRefresh?: boolean
     }
   ): Promise<T> => {

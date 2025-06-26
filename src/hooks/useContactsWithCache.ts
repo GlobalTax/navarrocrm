@@ -45,7 +45,7 @@ export const useContactsWithCache = () => {
   const [contacts, setContacts] = useState<Contact[]>([])
 
   // Usar el nuevo cache híbrido optimizado para APIs
-  const apiCache = useOptimizedAPICache<Contact[]>()
+  const apiCache = useOptimizedAPICache()
 
   const fetchContacts = async (): Promise<Contact[]> => {
     if (!user?.org_id) {
@@ -123,11 +123,8 @@ export const useContactsWithCache = () => {
     if (!apiCache.isReady || !user?.org_id) return
 
     try {
-      // Crear un cache separado para estadísticas de contactos
-      const statsCache = useOptimizedAPICache<ContactStats[]>()
-      
-      // Precargar estadísticas de contactos con el tipo correcto
-      await statsCache.preload(
+      // Precargar estadísticas de contactos
+      await apiCache.preloadData(
         `contact_stats_${user.org_id}`,
         async () => {
           const { data } = await supabase
@@ -137,7 +134,7 @@ export const useContactsWithCache = () => {
           
           return (data || []) as ContactStats[]
         },
-        { priority: 'medium' }
+        'medium'
       )
     } catch (error) {
       console.warn('⚠️ Error precargando datos relacionados:', error)

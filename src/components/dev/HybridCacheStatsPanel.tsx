@@ -17,7 +17,7 @@ export const HybridCacheStatsPanel = () => {
   }
 
   const handleClearApiCache = async () => {
-    await apiCache.clear()
+    await apiCache.clearCache()
     handleRefresh()
   }
 
