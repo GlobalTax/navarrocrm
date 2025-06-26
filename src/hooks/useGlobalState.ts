@@ -42,6 +42,10 @@ interface UseGlobalStateReturn extends GlobalState {
   toggleSidebar: () => void
   setTheme: (theme: GlobalState['theme']) => void
   setLanguage: (language: GlobalState['language']) => void
+  // Nuevas funciones de utilidad memoizadas
+  unreadCount: number
+  hasError: boolean
+  hasUnreadNotifications: boolean
 }
 
 const initialState: GlobalState = {
@@ -53,8 +57,8 @@ const initialState: GlobalState = {
   language: 'es'
 }
 
-// Memoizar las opciones de tema para evitar recreaciones
-const themeOptions = {
+// Constantes memoizadas fuera del componente
+const THEME_HANDLERS = Object.freeze({
   light: () => document.documentElement.classList.remove('dark'),
   dark: () => document.documentElement.classList.add('dark'),
   system: () => {
@@ -65,17 +69,46 @@ const themeOptions = {
       document.documentElement.classList.remove('dark')
     }
   }
+} as const)
+
+const MAX_NOTIFICATIONS = 100
+const NOTIFICATION_DEFAULT_DURATION = 5000
+const LOCALSTORAGE_DEBOUNCE_DELAY = 300
+const STORAGE_KEY = 'crm-global-state'
+
+// Función debounce optimizada
+const createDebounce = <T extends (...args: any[]) => void>(
+  func: T,
+  delay: number
+): T => {
+  let timeoutId: NodeJS.Timeout
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => func(...args), delay)
+  }) as T
 }
 
 export const useGlobalState = (): UseGlobalStateReturn => {
   const { user } = useApp()
   const [state, setState] = useState<GlobalState>(initialState)
   const notificationTimeoutRef = useRef<Map<string, NodeJS.Timeout>>(new Map())
+  const saveToStorageRef = useRef<(state: Partial<GlobalState>) => void>()
 
-  // Cargar estado desde localStorage al inicializar
+  // Debounced localStorage save - solo se crea una vez
+  useEffect(() => {
+    saveToStorageRef.current = createDebounce((stateToSave: Partial<GlobalState>) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
+      } catch (error) {
+        console.warn('Error saving global state to localStorage:', error)
+      }
+    }, LOCALSTORAGE_DEBOUNCE_DELAY)
+  }, [])
+
+  // Cargar estado desde localStorage al inicializar - solo una vez
   useEffect(() => {
     try {
-      const savedState = localStorage.getItem('crm-global-state')
+      const savedState = localStorage.getItem(STORAGE_KEY)
       if (savedState) {
         const parsed = JSON.parse(savedState)
         setState(prev => ({
@@ -90,18 +123,14 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     }
   }, [])
 
-  // Guardar estado en localStorage cuando cambie
+  // Guardar estado en localStorage cuando cambie - con debounce
   useEffect(() => {
-    try {
-      const stateToSave = {
-        sidebarCollapsed: state.sidebarCollapsed,
-        theme: state.theme,
-        language: state.language
-      }
-      localStorage.setItem('crm-global-state', JSON.stringify(stateToSave))
-    } catch (error) {
-      console.warn('Error saving global state to localStorage:', error)
+    const stateToSave = {
+      sidebarCollapsed: state.sidebarCollapsed,
+      theme: state.theme,
+      language: state.language
     }
+    saveToStorageRef.current?.(stateToSave)
   }, [state.sidebarCollapsed, state.theme, state.language])
 
   // Limpiar timeouts al desmontar
@@ -112,12 +141,26 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     }
   }, [])
 
+  // Valores computados memoizados para evitar recálculos
+  const computedValues = useMemo(() => {
+    const unreadCount = state.notifications.filter(n => !n.read).length
+    const hasError = Boolean(state.error)
+    const hasUnreadNotifications = unreadCount > 0
+
+    return {
+      unreadCount,
+      hasError,
+      hasUnreadNotifications
+    }
+  }, [state.notifications, state.error])
+
+  // Funciones memoizadas con useCallback
   const setLoading = useCallback((loading: boolean) => {
-    setState(prev => ({ ...prev, isLoading: loading }))
+    setState(prev => prev.isLoading !== loading ? { ...prev, isLoading: loading } : prev)
   }, [])
 
   const setError = useCallback((error: string | null) => {
-    setState(prev => ({ ...prev, error }))
+    setState(prev => prev.error !== error ? { ...prev, error } : prev)
   }, [])
 
   const removeNotification = useCallback((id: string) => {
@@ -135,7 +178,7 @@ export const useGlobalState = (): UseGlobalStateReturn => {
   }, [])
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>): string => {
-    const id = Math.random().toString(36).substr(2, 9)
+    const id = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
     const newNotification: Notification = {
       ...notification,
       id,
@@ -145,12 +188,12 @@ export const useGlobalState = (): UseGlobalStateReturn => {
 
     setState(prev => ({
       ...prev,
-      notifications: [newNotification, ...prev.notifications.slice(0, 99)] // Limitar a 100 notificaciones
+      notifications: [newNotification, ...prev.notifications.slice(0, MAX_NOTIFICATIONS - 1)]
     }))
 
     // Auto-remover notificación si no es persistente
     if (notification.autoClose !== false && !notification.persistent) {
-      const duration = notification.duration || 5000
+      const duration = notification.duration || NOTIFICATION_DEFAULT_DURATION
       const timeout = setTimeout(() => {
         removeNotification(id)
       }, duration)
@@ -163,14 +206,18 @@ export const useGlobalState = (): UseGlobalStateReturn => {
   const markAsRead = useCallback((id: string) => {
     setState(prev => ({
       ...prev,
-      notifications: prev.notifications.map(n => n.id === id ? { ...n, read: true } : n)
+      notifications: prev.notifications.map(n => 
+        n.id === id && !n.read ? { ...n, read: true } : n
+      )
     }))
   }, [])
 
   const markAllAsRead = useCallback(() => {
     setState(prev => ({
       ...prev,
-      notifications: prev.notifications.map(n => ({ ...n, read: true }))
+      notifications: prev.notifications.map(n => 
+        !n.read ? { ...n, read: true } : n
+      )
     }))
   }, [])
 
@@ -193,21 +240,20 @@ export const useGlobalState = (): UseGlobalStateReturn => {
   }, [])
 
   const setTheme = useCallback((theme: GlobalState['theme']) => {
-    setState(prev => ({ ...prev, theme }))
+    setState(prev => prev.theme !== theme ? { ...prev, theme } : prev)
     
-    // Aplicar tema inmediatamente usando las opciones memoizadas
-    themeOptions[theme]()
+    // Aplicar tema inmediatamente usando handlers memoizados
+    THEME_HANDLERS[theme]()
   }, [])
 
   const setLanguage = useCallback((language: GlobalState['language']) => {
-    setState(prev => ({ ...prev, language }))
+    setState(prev => prev.language !== language ? { ...prev, language } : prev)
   }, [])
 
-  // Memoizar solo las propiedades críticas para el rendimiento
-  const memoizedNotificationsCount = useMemo(() => state.notifications.length, [state.notifications.length])
-  
-  return {
+  // Memoizar el objeto de retorno completo
+  return useMemo(() => ({
     ...state,
+    ...computedValues,
     setLoading,
     setError,
     addNotification,
@@ -218,5 +264,18 @@ export const useGlobalState = (): UseGlobalStateReturn => {
     toggleSidebar,
     setTheme,
     setLanguage
-  }
+  }), [
+    state,
+    computedValues,
+    setLoading,
+    setError,
+    addNotification,
+    removeNotification,
+    markAsRead,
+    markAllAsRead,
+    clearNotifications,
+    toggleSidebar,
+    setTheme,
+    setLanguage
+  ])
 }

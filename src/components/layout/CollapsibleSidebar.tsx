@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { useGlobalStateContext } from '@/contexts/GlobalStateContext'
+import { useGlobalSidebar } from '@/hooks/useGlobalStateSelectors'
 import { SidebarHeader } from './sidebar/SidebarHeader'
 import { NavigationMenu } from './sidebar/NavigationMenu'
 import { QuickActionsSection } from './sidebar/QuickActionsSection'
@@ -8,8 +8,8 @@ import { AIAssistantSection } from './sidebar/AIAssistantSection'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-export function CollapsibleSidebar() {
-  const { sidebarCollapsed, toggleSidebar } = useGlobalStateContext()
+export const CollapsibleSidebar = React.memo(() => {
+  const { sidebarCollapsed, toggleSidebar } = useGlobalSidebar()
 
   return (
     <div className={`
@@ -47,4 +47,6 @@ export function CollapsibleSidebar() {
       </div>
     </div>
   )
-}
+})
+
+CollapsibleSidebar.displayName = 'CollapsibleSidebar'

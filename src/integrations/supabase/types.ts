@@ -3019,7 +3019,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      copia_contactos_hubspot: {
+        Row: {
+          apellido: string | null
+          attrs: Json | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          nombre: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      copia_empresas_hubspot: {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          id: string | null
+          nombre_empresa: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_next_billing_date: {

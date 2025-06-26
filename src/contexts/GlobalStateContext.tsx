@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react'
+import React, { createContext, useContext, ReactNode, memo } from 'react'
 import { useGlobalState } from '@/hooks/useGlobalState'
 
 type GlobalStateContextType = ReturnType<typeof useGlobalState>
@@ -18,12 +18,20 @@ interface GlobalStateProviderProps {
   children: ReactNode
 }
 
-export const GlobalStateProvider: React.FC<GlobalStateProviderProps> = ({ children }) => {
+// Memoizar el provider para evitar re-renders innecesarios
+const GlobalStateProviderComponent: React.FC<GlobalStateProviderProps> = ({ children }) => {
   const globalState = useGlobalState()
 
+  // Memoizar el valor del contexto
+  const contextValue = React.useMemo(() => globalState, [globalState])
+
   return (
-    <GlobalStateContext.Provider value={globalState}>
+    <GlobalStateContext.Provider value={contextValue}>
       {children}
     </GlobalStateContext.Provider>
   )
 }
+
+// Exportar versión memoizada
+export const GlobalStateProvider = memo(GlobalStateProviderComponent)
+GlobalStateProvider.displayName = 'GlobalStateProvider'
