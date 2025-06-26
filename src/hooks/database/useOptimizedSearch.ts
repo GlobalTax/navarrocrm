@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { DatabaseOptimizer, QueryOptions, QueryResult } from '@/services/database/DatabaseOptimizer'
 
 export const useOptimizedSearch = <T>(
@@ -20,6 +20,15 @@ export const useOptimizedSearch = <T>(
 
   const optimizer = DatabaseOptimizer.getInstance()
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Memoizar la serialización de options para evitar recreaciones innecesarias
+  const memoizedOptions = useMemo(() => JSON.stringify(options), [
+    options.page,
+    options.limit,
+    options.orderBy,
+    options.orderDirection,
+    options.filters && JSON.stringify(options.filters)
+  ])
 
   const search = useCallback(async () => {
     if (!searchTerm.trim()) {
@@ -59,7 +68,7 @@ export const useOptimizedSearch = <T>(
         }))
       }
     }, 300)
-  }, [table, searchTerm, searchColumns, JSON.stringify(options)])
+  }, [table, searchTerm, searchColumns, memoizedOptions])
 
   useEffect(() => {
     search()
