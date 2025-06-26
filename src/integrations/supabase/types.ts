@@ -194,6 +194,36 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_data: Json
+          metric_date: string
+          metric_type: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_data?: Json
+          metric_date?: string
+          metric_type: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_data?: Json
+          metric_date?: string
+          metric_type?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analytics_performance: {
         Row: {
           created_at: string
@@ -851,6 +881,57 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          filters: Json
+          id: string
+          is_active: boolean
+          last_generated: string | null
+          metrics: string[]
+          name: string
+          next_generation: string | null
+          org_id: string
+          recipients: string[]
+          schedule: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          filters?: Json
+          id?: string
+          is_active?: boolean
+          last_generated?: string | null
+          metrics?: string[]
+          name: string
+          next_generation?: string | null
+          org_id: string
+          recipients?: string[]
+          schedule?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          filters?: Json
+          id?: string
+          is_active?: boolean
+          last_generated?: string | null
+          metrics?: string[]
+          name?: string
+          next_generation?: string | null
+          org_id?: string
+          recipients?: string[]
+          schedule?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body_template: string
@@ -970,6 +1051,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      historical_metrics: {
+        Row: {
+          additional_data: Json | null
+          created_at: string
+          id: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          org_id: string
+        }
+        Insert: {
+          additional_data?: Json | null
+          created_at?: string
+          id?: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          org_id: string
+        }
+        Update: {
+          additional_data?: Json | null
+          created_at?: string
+          id?: string
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          org_id?: string
+        }
+        Relationships: []
       }
       hubspot_companies: {
         Row: {
@@ -1379,6 +1490,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      predictive_insights: {
+        Row: {
+          confidence_score: number | null
+          generated_at: string
+          id: string
+          insight_data: Json
+          insight_type: string
+          is_active: boolean
+          org_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          generated_at?: string
+          id?: string
+          insight_data?: Json
+          insight_type: string
+          is_active?: boolean
+          org_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          generated_at?: string
+          id?: string
+          insight_data?: Json
+          insight_type?: string
+          is_active?: boolean
+          org_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       proposal_line_items: {
         Row: {
@@ -3047,6 +3191,10 @@ export type Database = {
         Args: { input_date: string; frequency: string; billing_day?: number }
         Returns: string
       }
+      calculate_productivity_metrics: {
+        Args: { org_uuid: string; target_date?: string }
+        Returns: Json
+      }
       calculate_recurring_revenue_metrics: {
         Args: { org_uuid: string; target_date?: string }
         Returns: undefined
@@ -3079,6 +3227,15 @@ export type Database = {
         Args: { org_id_param: string; current_month?: string }
         Returns: Json
       }
+      get_historical_revenue: {
+        Args: { org_uuid: string; months_back?: number }
+        Returns: {
+          month_date: string
+          revenue: number
+          proposal_count: number
+          conversion_rate: number
+        }[]
+      }
       get_task_stats: {
         Args: { org_uuid: string }
         Returns: {
@@ -3093,6 +3250,16 @@ export type Database = {
       get_user_org_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      identify_churn_risk_clients: {
+        Args: { org_uuid: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          risk_score: number
+          risk_factors: string[]
+          last_activity_days: number
+        }[]
       }
       is_super_admin: {
         Args: { user_uuid?: string }
