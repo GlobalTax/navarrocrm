@@ -1,159 +1,135 @@
 
-import { vi } from 'vitest'
-
-// ==================== TIPOS DE DATOS CRM ====================
+// Testing Factories - Generadores de datos mock para testing
 
 export interface MockUser {
   id: string
   email: string
   org_id: string
-  role: 'admin' | 'senior' | 'junior' | 'finance'
-  name?: string
+  role: string
+  name: string
   created_at: string
-  last_sign_in_at?: string
+  updated_at: string
 }
 
 export interface MockClient {
   id: string
   name: string
-  email?: string
-  phone?: string
-  client_type: 'persona' | 'empresa'
-  dni_nif?: string
-  status: 'activo' | 'inactivo' | 'prospecto'
-  org_id: string
+  email: string | null
+  phone: string | null
+  client_type: string
+  dni_nif: string | null
+  status: string
   created_at: string
-  address_street?: string
-  address_city?: string
-  address_postal_code?: string
-  business_sector?: string
-  hourly_rate?: number
+  org_id: string
 }
 
 export interface MockCase {
   id: string
   title: string
-  description?: string
-  status: 'open' | 'in_progress' | 'closed' | 'archived'
-  practice_area: 'civil' | 'penal' | 'laboral' | 'mercantil' | 'fiscal'
+  description: string | null
+  status: string
+  practice_area: string
   client_id: string
   responsible_solicitor_id: string
-  org_id: string
   created_at: string
-  due_date?: string
-  estimated_hours?: number
+  org_id: string
 }
 
 export interface MockProposal {
   id: string
   title: string
-  description?: string
-  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired'
+  status: string
   total_amount: number
   is_recurring: boolean
   client_id: string
-  org_id: string
   created_at: string
-  valid_until?: string
-  services?: any[]
+  org_id: string
 }
 
 export interface MockTask {
   id: string
   title: string
-  description?: string
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  case_id?: string
-  assigned_to?: string
-  org_id: string
+  description: string | null
+  status: string
+  priority: string
+  assigned_to: string | null
+  case_id: string | null
+  due_date: string | null
   created_at: string
-  due_date?: string
-  estimated_hours?: number
+  org_id: string
 }
 
-// ==================== FACTORY FUNCTIONS ====================
-
-// Factory para crear usuarios mock
+// Factory functions para crear datos mock
 export const createMockUser = (overrides: Partial<MockUser> = {}): MockUser => ({
-  id: `user-${Math.random().toString(36).substring(2, 9)}`,
-  email: `test-${Math.random().toString(36).substring(2, 5)}@example.com`,
-  org_id: `org-${Math.random().toString(36).substring(2, 9)}`,
+  id: `user-${Math.random().toString(36).substr(2, 9)}`,
+  email: 'test@example.com',
+  org_id: 'test-org-id',
   role: 'senior',
   name: 'Test User',
   created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
   ...overrides,
 })
 
-// Factory para crear clientes mock
 export const createMockClient = (overrides: Partial<MockClient> = {}): MockClient => ({
-  id: `client-${Math.random().toString(36).substring(2, 9)}`,
+  id: `client-${Math.random().toString(36).substr(2, 9)}`,
   name: 'Test Client S.L.',
-  email: `client-${Math.random().toString(36).substring(2, 5)}@example.com`,
-  phone: '+34 600 000 000',
+  email: 'client@example.com',
+  phone: '+34 600 123 456',
   client_type: 'empresa',
-  dni_nif: `B${Math.floor(10000000 + Math.random() * 90000000)}`,
+  dni_nif: 'B12345678',
   status: 'activo',
-  org_id: `org-${Math.random().toString(36).substring(2, 9)}`,
   created_at: new Date().toISOString(),
-  address_city: 'Madrid',
-  business_sector: 'tecnologia',
-  hourly_rate: 150,
+  org_id: 'test-org-id',
   ...overrides,
 })
 
-// Factory para crear casos mock
 export const createMockCase = (overrides: Partial<MockCase> = {}): MockCase => ({
-  id: `case-${Math.random().toString(36).substring(2, 9)}`,
-  title: 'Caso de Prueba',
-  description: 'Descripción del caso de prueba',
+  id: `case-${Math.random().toString(36).substr(2, 9)}`,
+  title: 'Consulta Fiscal Trimestral',
+  description: 'Revisión de obligaciones fiscales del trimestre',
   status: 'open',
-  practice_area: 'civil',
-  client_id: `client-${Math.random().toString(36).substring(2, 9)}`,
-  responsible_solicitor_id: `user-${Math.random().toString(36).substring(2, 9)}`,
-  org_id: `org-${Math.random().toString(36).substring(2, 9)}`,
+  practice_area: 'fiscal',
+  client_id: 'test-client-id',
+  responsible_solicitor_id: 'test-user-id',
   created_at: new Date().toISOString(),
-  estimated_hours: 10,
+  org_id: 'test-org-id',
   ...overrides,
 })
 
-// Factory para crear propuestas mock
 export const createMockProposal = (overrides: Partial<MockProposal> = {}): MockProposal => ({
-  id: `proposal-${Math.random().toString(36).substring(2, 9)}`,
-  title: 'Propuesta de Servicios Legales',
-  description: 'Descripción de la propuesta',
+  id: `proposal-${Math.random().toString(36).substr(2, 9)}`,
+  title: 'Propuesta Consultoría Legal',
   status: 'draft',
-  total_amount: 2500,
+  total_amount: 1500.00,
   is_recurring: false,
-  client_id: `client-${Math.random().toString(36).substring(2, 9)}`,
-  org_id: `org-${Math.random().toString(36).substring(2, 9)}`,
+  client_id: 'test-client-id',
   created_at: new Date().toISOString(),
-  valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  org_id: 'test-org-id',
   ...overrides,
 })
 
-// Factory para crear tareas mock
 export const createMockTask = (overrides: Partial<MockTask> = {}): MockTask => ({
-  id: `task-${Math.random().toString(36).substring(2, 9)}`,
-  title: 'Tarea de Prueba',
-  description: 'Descripción de la tarea',
+  id: `task-${Math.random().toString(36).substr(2, 9)}`,
+  title: 'Revisar documentación',
+  description: 'Revisar y validar documentación del cliente',
   status: 'pending',
   priority: 'medium',
-  org_id: `org-${Math.random().toString(36).substring(2, 9)}`,
+  assigned_to: 'test-user-id',
+  case_id: 'test-case-id',
+  due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   created_at: new Date().toISOString(),
-  estimated_hours: 2,
+  org_id: 'test-org-id',
   ...overrides,
 })
 
-// ==================== BATCH FACTORIES ====================
-
-// Crear múltiples entidades
+// Funciones para crear múltiples elementos
 export const createMockUsers = (count: number, baseOverrides: Partial<MockUser> = {}): MockUser[] => {
   return Array.from({ length: count }, (_, index) => 
     createMockUser({ 
-      name: `Test User ${index + 1}`,
+      ...baseOverrides, 
       email: `user${index + 1}@example.com`,
-      ...baseOverrides 
+      name: `Test User ${index + 1}`
     })
   )
 }
@@ -161,92 +137,75 @@ export const createMockUsers = (count: number, baseOverrides: Partial<MockUser> 
 export const createMockClients = (count: number, baseOverrides: Partial<MockClient> = {}): MockClient[] => {
   return Array.from({ length: count }, (_, index) => 
     createMockClient({ 
-      name: `Cliente ${index + 1} S.L.`,
-      email: `cliente${index + 1}@example.com`,
-      ...baseOverrides 
+      ...baseOverrides, 
+      name: `Test Client ${index + 1} S.L.`,
+      email: `client${index + 1}@example.com`,
+      dni_nif: `B1234567${index}`
     })
   )
 }
 
 export const createMockCases = (count: number, baseOverrides: Partial<MockCase> = {}): MockCase[] => {
+  const practiceAreas = ['fiscal', 'civil', 'laboral', 'mercantil', 'penal']
+  const statuses = ['open', 'in_progress', 'review', 'closed']
+  
   return Array.from({ length: count }, (_, index) => 
     createMockCase({ 
-      title: `Caso ${index + 1}`,
-      ...baseOverrides 
+      ...baseOverrides, 
+      title: `Caso ${index + 1} - ${practiceAreas[index % practiceAreas.length]}`,
+      practice_area: practiceAreas[index % practiceAreas.length],
+      status: statuses[index % statuses.length]
     })
   )
 }
 
-// ==================== SCENARIO BUILDERS ====================
-
 // Escenarios completos para testing
-export const createLegalFirmScenario = (orgId: string) => {
+export const createLegalFirmScenario = () => {
+  const org_id = 'legal-firm-org-id'
+  
   const users = [
-    createMockUser({ org_id: orgId, role: 'admin', name: 'Admin Principal', email: 'admin@bufete.com' }),
-    createMockUser({ org_id: orgId, role: 'senior', name: 'Abogado Senior', email: 'senior@bufete.com' }),
-    createMockUser({ org_id: orgId, role: 'junior', name: 'Abogado Junior', email: 'junior@bufete.com' }),
-    createMockUser({ org_id: orgId, role: 'finance', name: 'Responsable Finanzas', email: 'finance@bufete.com' }),
+    createMockUser({ role: 'partner', name: 'Partner Principal', org_id }),
+    createMockUser({ role: 'senior', name: 'Senior Associate', org_id }),
+    createMockUser({ role: 'junior', name: 'Junior Associate', org_id }),
   ]
-
-  const clients = [
-    createMockClient({ org_id: orgId, client_type: 'empresa', business_sector: 'tecnologia' }),
-    createMockClient({ org_id: orgId, client_type: 'persona' }),
-    createMockClient({ org_id: orgId, status: 'prospecto' }),
-  ]
-
-  const cases = [
-    createMockCase({ 
-      org_id: orgId, 
-      client_id: clients[0].id, 
-      responsible_solicitor_id: users[1].id,
-      practice_area: 'mercantil',
-      status: 'in_progress'
-    }),
-    createMockCase({ 
-      org_id: orgId, 
-      client_id: clients[1].id, 
-      responsible_solicitor_id: users[2].id,
-      practice_area: 'civil',
-      status: 'open'
-    }),
-  ]
-
-  const proposals = [
-    createMockProposal({ 
-      org_id: orgId, 
-      client_id: clients[2].id,
-      status: 'sent',
-      is_recurring: false
-    }),
-    createMockProposal({ 
-      org_id: orgId, 
-      client_id: clients[0].id,
-      status: 'accepted',
-      is_recurring: true
-    }),
-  ]
-
-  return { users, clients, cases, proposals }
+  
+  const clients = createMockClients(5, { org_id })
+  const cases = createMockCases(8, { 
+    org_id,
+    client_id: clients[0].id,
+    responsible_solicitor_id: users[1].id 
+  })
+  
+  return {
+    org_id,
+    users,
+    clients,
+    cases,
+    tasks: Array.from({ length: 12 }, (_, index) => 
+      createMockTask({
+        org_id,
+        case_id: cases[index % cases.length].id,
+        assigned_to: users[(index % 2) + 1].id
+      })
+    )
+  }
 }
 
-// ==================== CONTEXT MOCKS ====================
-
-// Mock del contexto de la aplicación
-export const createMockAppContext = (overrides: any = {}) => ({
+// Mock contexts para testing
+export const createMockAppContext = (overrides = {}) => ({
   user: createMockUser(),
   session: { user: { id: 'test-user-id' } },
   authLoading: false,
   isSetup: true,
   setupLoading: false,
   isInitializing: false,
-  signIn: vi.fn().mockResolvedValue({ error: null }),
-  signUp: vi.fn().mockResolvedValue({ error: null }),
-  signOut: vi.fn().mockResolvedValue({ error: null }),
+  signIn: vi.fn(),
+  signUp: vi.fn(),
+  signOut: vi.fn(),
   ...overrides,
 })
 
-// Mock del contexto global
-export const createMockGlobalContext = (overrides: any = {}) => ({
+export const createMockGlobalContext = (overrides = {}) => ({
   isLoading: false,
   error: null,
   notifications: [],
