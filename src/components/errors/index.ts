@@ -25,3 +25,9 @@ export {
 
 // Re-exportar el servicio de errores
 export { errorService, useErrorService } from '@/services/errorService'
+
+// Panel de desarrollo
+export { ErrorAnalyticsPanel } from '../dev/ErrorAnalyticsPanel'
+
+// Hook de auto-recuperación
+export { useAutoRecovery } from '@/hooks/useAutoRecovery'
