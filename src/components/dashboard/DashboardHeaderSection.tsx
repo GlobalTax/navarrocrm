@@ -1,8 +1,8 @@
 
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
-import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { AuthUser } from '@/contexts/types'
+import { getRoleDisplayName } from '@/utils/dashboardPermissions'
 
 interface DashboardHeaderSectionProps {
   user: AuthUser
@@ -12,44 +12,36 @@ interface DashboardHeaderSectionProps {
   formatTime: (date: Date) => string
 }
 
-export const DashboardHeaderSection = ({ 
-  user, 
-  lastRefresh, 
-  isLoading, 
-  onRefresh, 
-  formatTime 
+export const DashboardHeaderSection = ({
+  user,
+  lastRefresh,
+  isLoading,
+  onRefresh,
+  formatTime
 }: DashboardHeaderSectionProps) => {
-  const welcomeMessage = user?.email?.split('@')[0] || 'Usuario'
-
+  const roleDisplay = getRoleDisplayName(user.role)
+  
   return (
-    <>
-      <StandardPageHeader
-        title={`Bienvenido, ${welcomeMessage}`}
-        description="Panel de control con métricas en tiempo real"
-        badges={[
-          {
-            label: `Rol: ${user.role}`,
-            variant: 'outline',
-            color: 'text-blue-600 border-blue-200 bg-blue-50'
-          }
-        ]}
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isLoading}
-            className="gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-        }
-      />
-
-      <div className="text-sm text-gray-500 mb-6">
-        Última actualización: {formatTime(lastRefresh)}
+    <div className="flex items-center justify-between mb-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 font-manrope">
+          Bienvenido, {user.full_name || user.email}
+        </h1>
+        <p className="text-gray-600 mt-1">
+          {roleDisplay} • Última actualización: {formatTime(lastRefresh)}
+        </p>
       </div>
-    </>
+      
+      <Button
+        onClick={onRefresh}
+        disabled={isLoading}
+        variant="outline"
+        size="sm"
+        className="border-0.5 border-black rounded-[10px] font-manrope"
+      >
+        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+        Actualizar
+      </Button>
+    </div>
   )
 }
