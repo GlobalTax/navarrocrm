@@ -9,8 +9,8 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ collapsed = false 
   return (
     <div className="flex items-center px-4 mb-6">
       <div className="flex items-center">
-        <div className="flex-shrink-0 capittal-border-light rounded-capittal p-2 bg-white">
-          <Building2 className="h-6 w-6 text-black" />
+        <div className="flex-shrink-0">
+          <Building2 className="h-8 w-8 text-blue-600" />
         </div>
         {!collapsed && (
           <div className="ml-3">
