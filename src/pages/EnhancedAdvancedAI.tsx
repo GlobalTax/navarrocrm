@@ -80,14 +80,12 @@ const EnhancedAdvancedAI = () => {
         description="Sistema inteligente con herramientas IA, workflows automatizados y analytics predictivos"
         primaryAction={{
           label: 'Generar Analytics',
-          onClick: generateAnalytics,
-          icon: BarChart3
+          onClick: generateAnalytics
         }}
         secondaryAction={{
           label: 'Ver Workflows',
           onClick: () => {},
-          variant: 'outline',
-          icon: Workflow
+          variant: 'outline'
         }}
       />
 
