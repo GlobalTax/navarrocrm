@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,43 +12,30 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { session, user, signIn, authLoading } = useApp()
+  const { user, signIn, authLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
-  
-  // Control de redirección
-  const redirectCheckedRef = useRef(false)
-  const [shouldRedirect, setShouldRedirect] = useState(false)
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  // Resetear estado cuando cambia el usuario
-  useEffect(() => {
-    redirectCheckedRef.current = false
-    setShouldRedirect(false)
-  }, [user?.id])
+  // Si ya está autenticado - redirección DIRECTA
+  if (!authLoading && user) {
+    console.log('🔐 [Login] Usuario ya autenticado, redirigiendo a:', from)
+    navigate(from, { replace: true })
+    return null
+  }
 
-  // Redirección controlada para usuarios autenticados
-  useEffect(() => {
-    if (authLoading) return
-
-    if ((session || user) && !redirectCheckedRef.current) {
-      console.log('🔐 [Login] Usuario autenticado detectado, preparando redirección a:', from)
-      redirectCheckedRef.current = true
-      
-      setTimeout(() => {
-        setShouldRedirect(true)
-      }, 100)
-    }
-  }, [session, user, authLoading, from])
-
-  // Ejecutar redirección
-  useEffect(() => {
-    if (shouldRedirect && (session || user)) {
-      console.log('🔐 [Login] Ejecutando redirección')
-      navigate(from, { replace: true })
-    }
-  }, [shouldRedirect, session, user, navigate, from])
+  // Loading simplificado
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando autenticación...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,6 +50,9 @@ export default function Login() {
     try {
       await signIn(email, password)
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
+      
+      // Navegación DIRECTA después del login exitoso
+      navigate(from, { replace: true })
     } catch (error: any) {
       console.error('❌ [Login] Error:', error)
       
@@ -78,20 +68,6 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Loading simplificado
-  if (authLoading || shouldRedirect) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {shouldRedirect ? 'Accediendo...' : 'Verificando autenticación...'}
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (

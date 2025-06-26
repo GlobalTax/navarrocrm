@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AppState, AuthUser, UserRole } from './types'
@@ -19,18 +19,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
-  
-  // Control de inicialización único
-  const initRef = useRef(false)
-  const enrichmentInProgress = useRef(false)
 
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
-  // Función simplificada para enriquecer perfil
+  // Función simplificada para enriquecer perfil - SIN setTimeout
   const enrichUserProfile = async (basicUser: User) => {
-    if (enrichmentInProgress.current) return
-    enrichmentInProgress.current = true
-
     try {
       const { data: profile, error } = await supabase
         .from('users')
@@ -69,24 +62,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         org_id: undefined
       }
       setUser(fallbackUser)
-    } finally {
-      enrichmentInProgress.current = false
     }
   }
 
-  // Función de limpieza de estado
-  const clearAuthState = () => {
-    console.log('🧹 [AppContext] Limpiando estado')
-    setUser(null)
-    setSession(null)
-    enrichmentInProgress.current = false
-  }
-
-  // Inicialización única y estable
+  // Inicialización única y simplificada
   useEffect(() => {
-    if (initRef.current) return
-    initRef.current = true
-
     console.log('🚀 [AppContext] Inicializando autenticación...')
     
     // Configurar listener de cambios de auth
@@ -94,7 +74,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.log('🔄 [AppContext] Auth event:', event)
       
       if (event === 'SIGNED_OUT' || !session) {
-        clearAuthState()
+        console.log('🧹 [AppContext] Limpiando estado')
+        setUser(null)
+        setSession(null)
         setAuthLoading(false)
         return
       }
@@ -106,10 +88,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const basicUser = session.user as AuthUser
           setUser(basicUser)
           
-          // Enriquecer perfil de forma asíncrona
-          setTimeout(() => {
-            enrichUserProfile(session.user)
-          }, 100)
+          // Enriquecer perfil DIRECTAMENTE - sin setTimeout
+          await enrichUserProfile(session.user)
         }
         
         setAuthLoading(false)
@@ -127,10 +107,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const basicUser = session.user as AuthUser
           setUser(basicUser)
           
-          // Enriquecer perfil
-          setTimeout(() => {
-            enrichUserProfile(session.user)
-          }, 100)
+          // Enriquecer perfil DIRECTAMENTE
+          await enrichUserProfile(session.user)
+        } else {
+          console.log('👤 [AppContext] No hay sesión inicial')
         }
       } catch (error) {
         console.error('❌ [AppContext] Error verificando sesión:', error)
@@ -144,16 +124,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, []) // Sin dependencias adicionales
 
   const signOut = async () => {
     console.log('🚪 [AppContext] Cerrando sesión')
     try {
       await baseSignOut()
-      clearAuthState()
+      setUser(null)
+      setSession(null)
     } catch (error) {
       console.log('⚠️ Error cerrando sesión:', error)
-      clearAuthState()
+      setUser(null)
+      setSession(null)
     }
   }
 
