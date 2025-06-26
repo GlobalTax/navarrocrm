@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Eye, Edit } from 'lucide-react'
 import { Contact } from '@/hooks/useContacts'
-import { useNavigate } from 'react-router-dom'
 
 interface ContactTableProps {
   contacts: Contact[]
@@ -13,12 +12,6 @@ interface ContactTableProps {
 }
 
 export function ContactTable({ contacts, onViewContact, onEditContact }: ContactTableProps) {
-  const navigate = useNavigate()
-
-  const handleViewContact = (contact: Contact) => {
-    navigate(`/contacts/${contact.id}`)
-  }
-
   return (
     <div className="rounded-md border">
       <Table>
@@ -65,7 +58,7 @@ export function ContactTable({ contacts, onViewContact, onEditContact }: Contact
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleViewContact(contact)}
+                    onClick={() => onViewContact(contact)}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
