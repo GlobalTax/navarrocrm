@@ -39,7 +39,7 @@ export const ENV_CONFIG = {
     defaultPageSize: 20
   },
   images: {
-    cloudinaryUrl: undefined as string | undefined,
+    cloudinaryUrl: import.meta.env.VITE_CLOUDINARY_URL as string | undefined,
     enableOptimization: true,
     enableWebP: true,
     enableAVIF: true,

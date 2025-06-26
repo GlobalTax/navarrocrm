@@ -15,12 +15,12 @@ interface ErrorReport {
 }
 
 class ErrorService {
-  private isDevelopment = process.env.NODE_ENV === 'development'
+  private isDevelopment = import.meta.env.DEV
   
   // Configuración para servicios externos (Sentry, LogRocket, etc.)
   private config = {
     enableExternalLogging: false,
-    sentryDsn: process.env.VITE_SENTRY_DSN,
+    sentryDsn: import.meta.env.VITE_SENTRY_DSN,
     maxErrorsPerSession: 50,
     enableConsoleLogging: true
   }

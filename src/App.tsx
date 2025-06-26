@@ -1,5 +1,5 @@
 
-import React, { useContext } from 'react'
+import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 import { ErrorBoundary } from '@/components/errors'
@@ -26,7 +26,7 @@ function App() {
     if (!session) {
       return <Navigate to="/login" replace />
     }
-    return children
+    return <>{children}</>
   }
 
   return (
@@ -41,9 +41,15 @@ function App() {
                   <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
                     Acceder a LegalFlow
                   </h2>
-                  <div className="text-center text-gray-600">
+                  <div className="text-center text-gray-600 mb-4">
                     Página de login en desarrollo
                   </div>
+                  <button 
+                    onClick={() => window.location.href = '/dashboard'}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Ir al Dashboard (Temporal)
+                  </button>
                 </div>
               </div>
             } />

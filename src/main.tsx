@@ -1,9 +1,9 @@
 
 import { createRoot } from 'react-dom/client'
+import { AppProvider } from '@/contexts/AppContext'
 import App from './App.tsx'
 import './index.css'
 import { ENV_CONFIG } from './config/environment'
-import { AppProvider } from '@/contexts/AppContext'
 
 // Registrar Service Worker mejorado
 if ('serviceWorker' in navigator && ENV_CONFIG.pwa.enableOffline) {
