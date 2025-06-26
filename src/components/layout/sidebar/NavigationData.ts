@@ -1,131 +1,54 @@
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog } from 'lucide-react'
+
+import { 
+  Home, 
+  Users, 
+  FolderOpen, 
+  CheckSquare, 
+  FileText, 
+  Clock, 
+  BarChart3, 
+  Settings,
+  UserCircle,
+  Building2,
+  Handshake
+} from 'lucide-react'
 
 export interface NavigationItem {
-  title: string
-  url: string
+  name: string
+  href: string
   icon: any
-  badge?: string
-  isActive?: boolean
+  current?: boolean
+  badge?: string | number
 }
 
 export interface NavigationSection {
-  title: string
+  title?: string
   items: NavigationItem[]
 }
 
-export interface QuickAction {
-  name: string
-  href: string
-}
-
-export const navigationData: NavigationSection[] = [
+export const getNavigationSections = (): NavigationSection[] => [
   {
-    title: "Principal",
     items: [
-      {
-        title: "Dashboard",
-        url: "/",
-        icon: BarChart3,
-      },
-      {
-        title: "Contactos",
-        url: "/contacts",
-        icon: Users,
-      },
-      {
-        title: "Casos",
-        url: "/cases",
-        icon: Briefcase,
-      },
-      {
-        title: "Propuestas",
-        url: "/proposals",
-        icon: FileText,
-      },
+      { name: 'Dashboard', href: '/dashboard', icon: Home },
     ]
   },
   {
-    title: "Productividad",
+    title: 'Gestión',
     items: [
-      {
-        title: "Tareas",
-        url: "/tasks",
-        icon: FileText,
-      },
-      {
-        title: "Time Tracking",
-        url: "/time-tracking",
-        icon: Clock,
-      },
-      {
-        title: "Calendario",
-        url: "/calendar",
-        icon: Calendar,
-      },
-      {
-        title: "Documentos",
-        url: "/documents",
-        icon: FolderOpen,
-      },
+      { name: 'Clientes', href: '/clients', icon: Building2 },
+      { name: 'Contactos', href: '/contacts', icon: UserCircle },
+      { name: 'Casos', href: '/cases', icon: FolderOpen },
+      { name: 'M&A Deals', href: '/deals', icon: Handshake },
+      { name: 'Tareas', href: '/tasks', icon: CheckSquare },
+      { name: 'Propuestas', href: '/proposals', icon: FileText },
     ]
   },
   {
-    title: "Configuración",
+    title: 'Herramientas',
     items: [
-      {
-        title: "Usuarios",
-        url: "/users",
-        icon: UserCog,
-      },
-      {
-        title: "Integraciones",
-        url: "/integrations",
-        icon: Settings,
-      },
-      {
-        title: "Reportes",
-        url: "/reports",
-        icon: BarChart3,
-      },
+      { name: 'Time Tracking', href: '/time-tracking', icon: Clock },
+      { name: 'Workflows', href: '/workflows', icon: Settings },
+      { name: 'Analytics', href: '/predictive-analytics', icon: BarChart3 },
     ]
-  },
-  {
-    title: "IA & Academia",
-    items: [
-      {
-        title: "Academia",
-        url: "/academia",
-        icon: BookOpen,
-      },
-      {
-        title: "Asistente IA",
-        url: "/ai-assistant",
-        icon: Bot,
-      },
-      {
-        title: "Admin IA",
-        url: "/ai-admin",
-        icon: Shield,
-      },
-    ]
-  }
-]
-
-export const quickActions: QuickAction[] = [
-  {
-    name: "Nuevo Cliente",
-    href: "/clients/new"
-  },
-  {
-    name: "Nuevo Caso",
-    href: "/cases/new"
-  },
-  {
-    name: "Nueva Propuesta",
-    href: "/proposals/new"
-  },
-  {
-    name: "Registrar Tiempo",
-    href: "/time-tracking"
   }
 ]
