@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import type { Json } from '@/integrations/supabase/types'
 
 export interface AnalyticsMetric {
   id: string
   org_id: string
   metric_type: string
   metric_date: string
-  metric_data: Record<string, any>
+  metric_data: Json
   created_at: string
   updated_at: string
 }
