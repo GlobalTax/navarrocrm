@@ -39,7 +39,7 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
   const [isSearching, setIsSearching] = useState(false)
   const debounceRef = useRef<NodeJS.Timeout>()
 
-  // Función de búsqueda fuzzy
+  // Memoizar la función de búsqueda fuzzy
   const fuzzyMatch = useCallback((text: string, query: string): { score: number; matches: number[] } => {
     if (!query.trim()) return { score: 1, matches: [] }
     
@@ -53,7 +53,7 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
       return { score: 1, matches }
     }
     
-    // Búsqueda fuzzy
+    // Búsqueda fuzzy simple
     let score = 0
     let queryIndex = 0
     const matches: number[] = []
@@ -72,8 +72,10 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
     }
   }, [])
 
-  // Aplicar filtros
+  // Memoizar la aplicación de filtros
   const applyFilters = useCallback((items: T[], filters: Partial<T>): T[] => {
+    if (Object.keys(filters).length === 0) return items
+    
     return items.filter(item => {
       return Object.entries(filters).every(([key, filterValue]) => {
         if (!filterValue) return true
@@ -88,12 +90,6 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
             return itemValue === filterValue
           case 'contains':
             return String(itemValue).toLowerCase().includes(String(filterValue).toLowerCase())
-          case 'range':
-            if (Array.isArray(filterValue) && filterValue.length === 2) {
-              const [min, max] = filterValue
-              return itemValue >= min && itemValue <= max
-            }
-            return true
           case 'select':
             if (Array.isArray(filterValue)) {
               return filterValue.includes(itemValue)
@@ -106,8 +102,10 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
     })
   }, [config.filters])
 
-  // Realizar búsqueda
+  // Memoizar la función de búsqueda principal
   const performSearch = useCallback((term: string, filters: Partial<T>): SearchResult<T>[] => {
+    if (!data || data.length === 0) return []
+    
     if (!term.trim() && Object.keys(filters).length === 0) {
       return data.map(item => ({ item, score: 1, highlights: [] }))
     }
@@ -166,7 +164,7 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
     }, debounceMs)
   }, [performSearch, debounceMs])
 
-  // Actualizar búsqueda cuando cambien los parámetros
+  // Efecto para actualizar búsqueda
   useEffect(() => {
     debouncedSearch(searchTerm, activeFilters)
   }, [searchTerm, activeFilters, debouncedSearch])
@@ -180,7 +178,7 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
     }
   }, [])
 
-  // Funciones públicas
+  // Funciones públicas memoizadas
   const updateSearchTerm = useCallback((term: string) => {
     setSearchTerm(term)
   }, [])
@@ -209,9 +207,9 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
     setActiveFilters({})
   }, [])
 
-  // Estadísticas de búsqueda
+  // Estadísticas de búsqueda memoizadas
   const searchStats = useMemo(() => {
-    const totalItems = data.length
+    const totalItems = data?.length || 0
     const filteredItems = searchResults.length
     const hasActiveFilters = Object.keys(activeFilters).length > 0
     const hasSearchTerm = searchTerm.trim().length > 0
@@ -223,7 +221,7 @@ export const useIntelligentSearch = <T extends Record<string, any>>(
       hasSearchTerm,
       isFiltered: hasActiveFilters || hasSearchTerm
     }
-  }, [data.length, searchResults.length, activeFilters, searchTerm])
+  }, [data?.length, searchResults.length, activeFilters, searchTerm])
 
   return {
     // Estado

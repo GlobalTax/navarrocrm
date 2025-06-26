@@ -66,12 +66,15 @@ export const Header = () => {
           Timer
         </Button>
 
-        <HeaderTimerDialog
-          isOpen={isTimerDialogOpen}
-          onClose={() => setIsTimerDialogOpen(false)}
-          onSave={handleTimerSave}
-          timerSeconds={timerSeconds}
-        />
+        {/* Solo renderizar HeaderTimerDialog cuando esté abierto */}
+        {isTimerDialogOpen && (
+          <HeaderTimerDialog
+            isOpen={isTimerDialogOpen}
+            onClose={() => setIsTimerDialogOpen(false)}
+            onSave={handleTimerSave}
+            timerSeconds={timerSeconds}
+          />
+        )}
 
         <div className="relative">
           <Button

@@ -23,7 +23,8 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
   const [isBillable, setIsBillable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { cases } = useCases()
+  // Solo ejecutar hooks cuando el diálogo esté abierto
+  const { cases = [] } = useCases()
   const { createTimeEntry } = useTimeEntries()
 
   const formatTime = (totalSeconds: number) => {
@@ -75,6 +76,11 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
     onClose()
   }
 
+  // Si no está abierto, no renderizar nada
+  if (!isOpen) {
+    return null
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -102,11 +108,17 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin caso específico</SelectItem>
-                {cases.map((case_) => (
-                  <SelectItem key={case_.id} value={case_.id}>
-                    {case_.title} ({case_.contact?.name})
+                {cases.length > 0 ? (
+                  cases.map((case_) => (
+                    <SelectItem key={case_.id} value={case_.id}>
+                      {case_.title} ({case_.contact?.name || 'Sin contacto'})
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-cases" disabled>
+                    No hay casos disponibles
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
