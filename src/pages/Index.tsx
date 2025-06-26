@@ -6,7 +6,7 @@ import Welcome from './Welcome'
 const Index = () => {
   const { session, user, isSetup, authLoading } = useApp()
 
-  // Mostrar loading solo brevemente
+  // Mostrar loading muy brevemente
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -18,8 +18,9 @@ const Index = () => {
     )
   }
 
-  // Si hay sesión o usuario, ir al dashboard
-  if (session || user) {
+  // Si hay usuario (real o temporal), ir directamente al dashboard
+  if (user) {
+    console.log('🏠 [Index] Usuario disponible, redirigiendo al dashboard')
     return <Navigate to="/dashboard" replace />
   }
 
@@ -28,7 +29,7 @@ const Index = () => {
     return <Navigate to="/setup" replace />
   }
 
-  // Mostrar página de bienvenida en lugar de redirigir al login
+  // Mostrar página de bienvenida como fallback
   return <Welcome />
 }
 

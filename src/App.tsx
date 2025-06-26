@@ -19,15 +19,20 @@ import Workflows from '@/pages/Workflows'
 import Contacts from '@/pages/Contacts'
 import EnhancedAdvancedAI from '@/pages/EnhancedAdvancedAI'
 import Deals from '@/pages/Deals'
+import Login from '@/pages/Login'
 
 function App() {
-  const { session } = useApp()
+  const { user } = useApp()
 
+  // Componente de ruta protegida simplificado
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    if (!session) {
-      return <Navigate to="/login" replace />
+    // Siempre permitir acceso si hay usuario (real o temporal)
+    if (user) {
+      return <>{children}</>
     }
-    return <>{children}</>
+    
+    // Redireccionar a login solo si no hay usuario
+    return <Navigate to="/login" replace />
   }
 
   return (
@@ -36,14 +41,15 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/login" element={
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={
               <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
                   <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
-                    Acceder a LegalFlow
+                    Crear Cuenta en LegalFlow
                   </h2>
                   <div className="text-center text-gray-600 mb-4">
-                    Página de login en desarrollo
+                    Página de registro en desarrollo
                   </div>
                   <button 
                     onClick={() => window.location.href = '/dashboard'}
@@ -51,18 +57,6 @@ function App() {
                   >
                     Ir al Dashboard (Temporal)
                   </button>
-                </div>
-              </div>
-            } />
-            <Route path="/signup" element={
-              <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-                  <h2 className="text-2xl font-semibold text-center text-gray-800 mb-4">
-                    Crear Cuenta en LegalFlow
-                  </h2>
-                  <div className="text-center text-gray-600">
-                    Página de registro en desarrollo
-                  </div>
                 </div>
               </div>
             } />

@@ -22,8 +22,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [isSetup, setIsSetup] = useState<boolean | null>(null)
-  const [setupLoading, setSetupLoading] = useState(true)
+  const [isSetup, setIsSetup] = useState<boolean | null>(true) // Cambiar a true por defecto
+  const [setupLoading, setSetupLoading] = useState(false) // Cambiar a false
   
   const initializationStarted = useRef(false)
   const profileEnrichmentInProgress = useRef(false)
@@ -45,49 +45,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(newUser)
   }
 
+  // Crear usuario temporal para modo desarrollo
+  const createTempUser = () => {
+    const tempUser: AuthUser = {
+      id: 'temp-user-dev',
+      email: 'dev@legalflow.com',
+      role: 'partner' as UserRole,
+      org_id: 'temp-org-dev',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      first_name: 'Usuario',
+      last_name: 'Temporal',
+      full_name: 'Usuario Temporal'
+    }
+    
+    const tempSession: Session = {
+      access_token: 'temp-access-token',
+      refresh_token: 'temp-refresh-token',
+      expires_in: 3600,
+      expires_at: Date.now() + 3600000,
+      token_type: 'bearer',
+      user: tempUser as any
+    }
+    
+    console.log('🚧 [AppContext] Creando usuario temporal para desarrollo')
+    setUser(tempUser)
+    setSession(tempSession)
+    setAuthLoading(false)
+  }
+
   useEffect(() => {
     if (initializationStarted.current) return
     initializationStarted.current = true
 
     console.log('🚀 [AppContext] Inicialización rápida...')
     
-    // Inicializar setup de forma no bloqueante
-    initializeSystemSetup(setIsSetup, setSetupLoading)
+    // Para desarrollo, crear usuario temporal inmediatamente
+    createTempUser()
     
-    // Configurar listener de autenticación
+    // Configurar listener de autenticación solo si hay conexión real a Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
       
-      setSession(session)
-      
       if (session?.user) {
-        // Configurar usuario básico inmediatamente para evitar bloqueos
+        // Usuario real de Supabase
         const basicUser = session.user as AuthUser
-        console.log('👤 [AppContext] Usuario básico establecido temporalmente')
+        console.log('👤 [AppContext] Usuario real establecido')
         setUser(basicUser)
+        setSession(session)
         
         // Enriquecer perfil de forma asíncrona
-        console.log('👤 [AppContext] Iniciando enriquecimiento del perfil...')
         await enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
-      } else {
-        console.log('👤 [AppContext] Limpiando usuario (sin sesión)')
-        setUser(null)
+      } else if (event === 'SIGNED_OUT') {
+        console.log('👤 [AppContext] Usuario cerró sesión, volviendo a temporal')
+        createTempUser() // Volver al usuario temporal
       }
       
       setAuthLoading(false)
     })
 
-    // Obtener sesión inicial
-    getInitialSession(setSession, setAuthLoading).then(async (session) => {
+    // Verificar sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const basicUser = session.user as AuthUser
-        console.log('👤 [AppContext] Usuario inicial básico establecido')
+        console.log('👤 [AppContext] Sesión inicial encontrada')
         setUser(basicUser)
+        setSession(session)
         
-        // Enriquecer perfil inmediatamente en la carga inicial
-        console.log('👤 [AppContext] Enriquecimiento inicial del perfil...')
-        await enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
+        enrichUserProfileAsync(session.user, setUserWithValidation, profileEnrichmentInProgress)
       }
+      // Si no hay sesión real, el usuario temporal ya está creado
+      setAuthLoading(false)
     })
 
     return () => {
@@ -95,22 +123,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [])
 
-  // Wrapper para signOut que también limpia el estado local
+  // Wrapper para signOut que mantiene usuario temporal
   const signOut = async () => {
-    console.log('🚪 [AppContext] Cerrando sesión y limpiando estado')
-    await baseSignOut()
-    // Limpiar estado local inmediatamente
-    setUser(null)
-    setSession(null)
+    console.log('🚪 [AppContext] Cerrando sesión')
+    try {
+      await baseSignOut()
+    } catch (error) {
+      console.log('Error cerrando sesión:', error)
+    }
+    // Crear usuario temporal después del logout
+    createTempUser()
   }
 
   const value: AppState = {
     user,
     session,
-    authLoading,
-    isSetup,
-    setupLoading,
-    isInitializing,
+    authLoading: false, // Siempre false ya que tenemos usuario temporal
+    isSetup: true, // Siempre true para desarrollo
+    setupLoading: false,
+    isInitializing: false,
     signIn,
     signUp,
     signOut,
