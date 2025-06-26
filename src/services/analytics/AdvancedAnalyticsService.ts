@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client'
 import { 
   AnalyticsMetrics, 
@@ -164,12 +163,13 @@ export class AdvancedAnalyticsService {
   }
 
   private async getProductivityMetrics(filters?: AnalyticsFilter) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .rpc('calculate_productivity_metrics', { 
         org_uuid: this.orgId 
       })
 
-    if (!data) {
+    if (error || !data) {
+      console.warn('Error fetching productivity metrics:', error)
       return {
         hoursTracked: 0,
         billableHours: 0,
@@ -177,6 +177,9 @@ export class AdvancedAnalyticsService {
         averageCaseTime: 0
       }
     }
+
+    // Manejar el tipo JSONB de manera segura
+    const productivityData = typeof data === 'object' && data !== null ? data as Record<string, any> : {}
 
     // Calcular tiempo promedio por caso
     const { data: closedCases } = await supabase
@@ -196,9 +199,9 @@ export class AdvancedAnalyticsService {
     }
 
     return {
-      hoursTracked: data.total_hours || 0,
-      billableHours: data.billable_hours || 0,
-      utilizationRate: data.utilization_rate || 0,
+      hoursTracked: Number(productivityData.total_hours) || 0,
+      billableHours: Number(productivityData.billable_hours) || 0,
+      utilizationRate: Number(productivityData.utilization_rate) || 0,
       averageCaseTime
     }
   }
@@ -209,8 +212,11 @@ export class AdvancedAnalyticsService {
         org_uuid: this.orgId 
       })
 
+    const metrics = typeof productivityData === 'object' && productivityData !== null ? 
+      productivityData as Record<string, any> : {}
+
     return {
-      taskCompletionRate: productivityData?.task_completion_rate || 0,
+      taskCompletionRate: Number(metrics.task_completion_rate) || 0,
       averageResponseTime: 2.5, // Horas promedio (dato mock)
       clientSatisfaction: 4.2, // Escala 1-5 (dato mock)
       teamEfficiency: 85 // Porcentaje (dato mock)

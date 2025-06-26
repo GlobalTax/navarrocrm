@@ -11,7 +11,7 @@ export const useCRMAnalytics = () => {
     contactId: string,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('contacts', action, { contactId, ...properties })
+    analytics.trackEvent('contacts', action, undefined, undefined, { contactId, ...properties })
   }, [analytics])
 
   const trackCaseAction = useCallback((
@@ -19,7 +19,7 @@ export const useCRMAnalytics = () => {
     caseId: string,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('cases', action, { caseId, ...properties })
+    analytics.trackEvent('cases', action, undefined, undefined, { caseId, ...properties })
   }, [analytics])
 
   const trackProposalAction = useCallback((
@@ -28,7 +28,7 @@ export const useCRMAnalytics = () => {
     value?: number,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('proposals', action, { 
+    analytics.trackEvent('proposals', action, undefined, value, { 
       proposalId, 
       value, 
       ...properties 
@@ -40,7 +40,7 @@ export const useCRMAnalytics = () => {
     duration?: number,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('time_tracking', action, { 
+    analytics.trackEvent('time_tracking', action, undefined, duration, { 
       duration, 
       ...properties 
     })
@@ -52,7 +52,7 @@ export const useCRMAnalytics = () => {
     resultsCount: number,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('search', 'search_performed', {
+    analytics.trackEvent('search', 'search_performed', undefined, resultsCount, {
       searchTerm,
       category,
       resultsCount,
@@ -65,7 +65,7 @@ export const useCRMAnalytics = () => {
     action: string,
     properties?: Record<string, any>
   ) => {
-    analytics.trackEvent('feature_usage', action, { 
+    analytics.trackEvent('feature_usage', action, undefined, undefined, { 
       feature, 
       ...properties 
     })

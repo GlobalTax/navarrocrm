@@ -23,10 +23,14 @@ export const useAdvancedAnalytics = () => {
   const [metricsError, setMetricsError] = useState<string | null>(null)
   const [insightsError, setInsightsError] = useState<string | null>(null)
 
+  // Estado de inicialización
+  const [isInitialized, setIsInitialized] = useState(false)
+
   // Inicializar servicio
   useEffect(() => {
     if (user?.org_id) {
       setAnalyticsService(new AdvancedAnalyticsService(user.org_id))
+      setIsInitialized(true)
     }
   }, [user?.org_id])
 
@@ -110,12 +114,41 @@ export const useAdvancedAnalytics = () => {
     ])
   }, [loadMetrics, loadInsights, loadCustomReports])
 
+  // Funciones de tracking (compatibilidad con sistema legacy)
+  const trackEvent = useCallback((
+    eventType: string,
+    eventName: string,
+    eventData?: Record<string, any>
+  ) => {
+    if (!isInitialized || !user?.org_id) return
+    
+    console.log('📊 [Analytics] Event tracked:', { eventType, eventName, eventData })
+    // Aquí se implementaría el tracking real
+  }, [isInitialized, user?.org_id])
+
+  const trackPageView = useCallback((url?: string, title?: string) => {
+    if (!isInitialized || !user?.org_id) return
+    
+    const pageUrl = url || window.location.href
+    const pageTitle = title || document.title
+    
+    console.log('📊 [Analytics] Page view tracked:', { pageUrl, pageTitle })
+    // Aquí se implementaría el tracking real
+  }, [isInitialized, user?.org_id])
+
+  const flush = useCallback(async () => {
+    if (!isInitialized) return
+    
+    console.log('📊 [Analytics] Flushing analytics data...')
+    // Aquí se implementaría el flush real
+  }, [isInitialized])
+
   // Cargar datos iniciales
   useEffect(() => {
-    if (analyticsService) {
+    if (analyticsService && isInitialized) {
       refreshAll()
     }
-  }, [analyticsService, refreshAll])
+  }, [analyticsService, isInitialized, refreshAll])
 
   // Función de utilidad para obtener métricas específicas
   const getMetricValue = useCallback((category: keyof AnalyticsMetrics, metric: string): number => {
@@ -147,12 +180,20 @@ export const useAdvancedAnalytics = () => {
     metricsError,
     insightsError,
     
-    // Acciones
+    // Estados de inicialización
+    isInitialized,
+    
+    // Acciones principales
     loadMetrics,
     loadInsights,
     loadCustomReports,
     createCustomReport,
     refreshAll,
+    
+    // Funciones de tracking (compatibilidad)
+    trackEvent,
+    trackPageView,
+    flush,
     
     // Utilidades
     getMetricValue,
