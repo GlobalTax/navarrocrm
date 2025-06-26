@@ -65,7 +65,7 @@ export function DealsPipeline({ deals }: DealsPipelineProps) {
                                 {deal.title}
                               </h4>
                               <p className="text-xs text-muted-foreground mb-2">
-                                {deal.contact?.name || 'Sin contacto'}
+                                {deal.client?.name || 'Sin cliente'}
                               </p>
                               <p className="text-sm font-medium text-green-600">
                                 €{deal.total_amount?.toLocaleString() || '0'}

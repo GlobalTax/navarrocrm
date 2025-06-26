@@ -19,7 +19,7 @@ export default function Deals() {
   // Filtrar propuestas como deals
   const filteredDeals = proposals.filter(proposal => {
     const matchesSearch = proposal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proposal.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+                         proposal.client?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || proposal.status === statusFilter
     return matchesSearch && matchesStatus
   })

@@ -1,3 +1,4 @@
+
 import { 
   Home, 
   Users, 
@@ -11,7 +12,10 @@ import {
   Target,
   GraduationCap,
   BarChart3,
-  Brain
+  Brain,
+  Plus,
+  FileCheck,
+  UserPlus
 } from 'lucide-react'
 
 export const navigationData = {
@@ -92,3 +96,19 @@ export const navigationData = {
     }
   ]
 }
+
+// Agregar quickActions que estaba faltando
+export const quickActions = [
+  {
+    name: 'Nueva Propuesta',
+    href: '/proposals'
+  },
+  {
+    name: 'Nuevo Contacto',
+    href: '/contacts'
+  },
+  {
+    name: 'Nuevo Expediente',
+    href: '/cases'
+  }
+]
