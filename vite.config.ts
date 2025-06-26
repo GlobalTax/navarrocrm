@@ -108,6 +108,19 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@/components": path.resolve(__dirname, "./src/components"),
+      "@/hooks": path.resolve(__dirname, "./src/hooks"),
+      "@/lib": path.resolve(__dirname, "./src/lib"),
+      "@/pages": path.resolve(__dirname, "./src/pages"),
+      "@/contexts": path.resolve(__dirname, "./src/contexts"),
+      "@/services": path.resolve(__dirname, "./src/services"),
+      "@/types": path.resolve(__dirname, "./src/types"),
+      "@/utils": path.resolve(__dirname, "./src/lib"),
+      "@/config": path.resolve(__dirname, "./src/config"),
+      "@/integrations": path.resolve(__dirname, "./src/integrations"),
+      "@/modules": path.resolve(__dirname, "./src/modules"),
+      "@/tests": path.resolve(__dirname, "./src/tests"),
+      "@/assets": path.resolve(__dirname, "./src/assets"),
     },
   },
   build: {
