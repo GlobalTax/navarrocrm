@@ -27,7 +27,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     // Función para manejar cambios de autenticación
     const handleAuthChange = async (event: string, session: Session | null) => {
-      console.log('🔄 [AppContext] Auth event:', event)
+      console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
       
       setSession(session)
       
@@ -42,7 +42,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUser(basicUser)
       setAuthLoading(false)
       
-      // Intentar enriquecer perfil en segundo plano (sin bloquear)
+      // Intentar enriquecer perfil en segundo plano
       try {
         const { data: profile } = await supabase
           .from('users')
@@ -57,10 +57,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             org_id: profile.org_id
           }
           setUser(enrichedUser)
+          console.log('✅ [AppContext] Perfil enriquecido:', profile.role, profile.org_id)
         }
       } catch (error) {
-        console.log('⚠️ [AppContext] No se pudo enriquecer el perfil:', error)
-        // Mantener el usuario básico
+        console.log('⚠️ [AppContext] No se pudo enriquecer el perfil, usando usuario básico')
       }
     }
 
@@ -88,11 +88,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const signOut = async () => {
     try {
       await baseSignOut()
+      setUser(null)
+      setSession(null)
     } catch (error) {
       console.error('❌ Error cerrando sesión:', error)
     }
-    setUser(null)
-    setSession(null)
   }
 
   const value: AppState = {

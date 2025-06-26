@@ -19,14 +19,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation()
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        console.log('🔒 [ProtectedRoute] Usuario no autenticado, redirigiendo a:', redirectTo)
-        navigate(redirectTo, { state: { from: location }, replace: true })
-      } else if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
-        console.log('🚫 [ProtectedRoute] Usuario sin permisos para:', location.pathname)
-        navigate('/unauthorized', { replace: true })
-      }
+    if (!authLoading && !user) {
+      console.log('🔒 [ProtectedRoute] Usuario no autenticado, redirigiendo a:', redirectTo)
+      navigate(redirectTo, { state: { from: location }, replace: true })
+    } else if (!authLoading && user && allowedRoles && user.role && !allowedRoles.includes(user.role)) {
+      console.log('🚫 [ProtectedRoute] Usuario sin permisos para:', location.pathname)
+      navigate('/unauthorized', { replace: true })
     }
   }, [user, authLoading, allowedRoles, navigate, location, redirectTo])
 

@@ -12,18 +12,13 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { user, signIn, authLoading } = useApp()
+  const { signIn, authLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
 
   const from = location.state?.from?.pathname || '/dashboard'
 
-  // Si ya está autenticado, redirigir
-  if (!authLoading && user) {
-    navigate(from, { replace: true })
-    return null
-  }
-
+  // Mostrar loading mientras se verifica autenticación inicial
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
