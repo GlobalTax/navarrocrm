@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useOptimizedAPICache } from '@/hooks/cache'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -28,6 +28,11 @@ interface Contact {
   tags: string[] | null
   internal_notes: string | null
   last_contact_date: string | null
+}
+
+interface ContactStats {
+  status: string
+  relationship_type: string
 }
 
 export const useContactsWithCache = () => {
@@ -118,8 +123,11 @@ export const useContactsWithCache = () => {
     if (!apiCache.isReady || !user?.org_id) return
 
     try {
-      // Precargar estadísticas de contactos
-      await apiCache.preload(
+      // Crear un cache separado para estadísticas de contactos
+      const statsCache = useOptimizedAPICache<ContactStats[]>()
+      
+      // Precargar estadísticas de contactos con el tipo correcto
+      await statsCache.preload(
         `contact_stats_${user.org_id}`,
         async () => {
           const { data } = await supabase
@@ -127,7 +135,7 @@ export const useContactsWithCache = () => {
             .select('status, relationship_type')
             .eq('org_id', user.org_id)
           
-          return data || []
+          return (data || []) as ContactStats[]
         },
         { priority: 'medium' }
       )

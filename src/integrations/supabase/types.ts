@@ -2945,6 +2945,21 @@ export type Database = {
           },
         ]
       }
+      wrapper_modules: {
+        Row: {
+          content: string | null
+          name: string
+        }
+        Insert: {
+          content?: string | null
+          name: string
+        }
+        Update: {
+          content?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
