@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 
 // Testing Factories - Generadores de datos mock para testing
 
