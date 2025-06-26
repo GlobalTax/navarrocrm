@@ -1,8 +1,8 @@
 
 import { createRoot } from 'react-dom/client'
 import { QueryClient } from '@/contexts/QueryContext'
-import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
 import { AppProvider } from '@/contexts/AppContext'
+import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
 import App from './App.tsx'
 import './index.css'
 import { ENV_CONFIG } from './config/environment'
