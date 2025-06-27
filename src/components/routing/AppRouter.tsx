@@ -43,7 +43,7 @@ export const AppRouter = () => {
   // If user exists but no org_id AND we're still in the enrichment process
   if (user && user.org_id === undefined) {
     // Give a short window for profile enrichment before redirecting to setup
-    const isLikelyStillEnriching = user.role === 'authenticated' || !user.role
+    const isLikelyStillEnriching = !user.role || user.role === 'junior'
     
     if (isLikelyStillEnriching) {
       // Show loading instead of immediately redirecting
