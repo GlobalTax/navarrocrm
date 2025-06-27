@@ -1,18 +1,21 @@
-
 import { useState } from 'react'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
 import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
+import { CreateTemplateDialog } from '@/components/cases/CreateTemplateDialog'
 import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
 import { useMatterTemplates } from '@/hooks/useMatterTemplates'
+import { useMatterTemplateActions } from '@/hooks/useMatterTemplateActions'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { exportCasesToCSV } from '@/utils/exportUtils'
+import { toast } from 'sonner'
 
 export default function Cases() {
   const { 
@@ -43,6 +46,14 @@ export default function Cases() {
   const { practiceAreas = [] } = usePracticeAreas()
   const { users = [] } = useUsers()
   const { templates = [] } = useMatterTemplates()
+
+  const { 
+    createTemplate,
+    isCreating: isCreatingTemplate,
+    isCreateDialogOpen,
+    openCreateDialog,
+    closeCreateDialog
+  } = useMatterTemplateActions()
 
   const [selectedCase, setSelectedCase] = useState<Case | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -101,6 +112,20 @@ export default function Cases() {
     }
   }
 
+  const handleExportCases = () => {
+    const success = exportCasesToCSV(filteredCases)
+    if (success) {
+      toast.success('Expedientes exportados exitosamente')
+    } else {
+      toast.error('Error al exportar expedientes')
+    }
+  }
+
+  const handleUseTemplate = (templateId: string) => {
+    // TODO: Implementar uso de plantilla al crear expediente
+    toast.info(`Funcionalidad de plantilla ${templateId} en desarrollo`)
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -150,7 +175,7 @@ export default function Cases() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportCases}>
               Exportar Expedientes
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -158,12 +183,16 @@ export default function Cases() {
               Plantillas ({templates.length})
             </DropdownMenuItem>
             {templates.map((template) => (
-              <DropdownMenuItem key={template.id} className="pl-8">
+              <DropdownMenuItem 
+                key={template.id} 
+                className="pl-8"
+                onClick={() => handleUseTemplate(template.id)}
+              >
                 {template.name}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={openCreateDialog}>
               Nueva Plantilla
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -242,6 +271,13 @@ export default function Cases() {
         }}
         onConfirmArchive={handleConfirmArchive}
         isArchiving={isArchiving}
+      />
+
+      <CreateTemplateDialog
+        open={isCreateDialogOpen}
+        onOpenChange={closeCreateDialog}
+        onSubmit={createTemplate}
+        isCreating={isCreatingTemplate}
       />
     </StandardPageContainer>
   )
