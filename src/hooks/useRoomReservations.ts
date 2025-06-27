@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 type ReservationWithRelations = RoomReservation & {
   office_rooms: { name: string }
-  users: { name: string | null } | null
+  users: { id: string } | null
 }
 
 export const useRoomReservations = (roomId?: string) => {
@@ -18,7 +18,7 @@ export const useRoomReservations = (roomId?: string) => {
         .select(`
           *,
           office_rooms!inner(name),
-          users!reserved_by(name)
+          users!reserved_by(id)
         `)
         .order('start_datetime')
 
@@ -33,7 +33,7 @@ export const useRoomReservations = (roomId?: string) => {
       // Transform the data to match our expected types
       const transformedData: ReservationWithRelations[] = (data || []).map(item => ({
         ...item,
-        status: item.status as 'confirmed' | 'pending' | 'cancelled', // Type assertion for status
+        status: item.status as 'confirmed' | 'pending' | 'cancelled',
         office_rooms: item.office_rooms,
         users: item.users
       }))
