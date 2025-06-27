@@ -1052,6 +1052,264 @@ export type Database = {
           },
         ]
       }
+      equipment_assignments: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          assignment_type: string
+          created_at: string | null
+          end_date: string | null
+          equipment_id: string
+          id: string
+          location: string | null
+          notes: string | null
+          org_id: string
+          purpose: string | null
+          return_condition: string | null
+          return_date: string | null
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          assignment_type?: string
+          created_at?: string | null
+          end_date?: string | null
+          equipment_id: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          org_id: string
+          purpose?: string | null
+          return_condition?: string | null
+          return_date?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          assignment_type?: string
+          created_at?: string | null
+          end_date?: string | null
+          equipment_id?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          org_id?: string
+          purpose?: string | null
+          return_condition?: string | null
+          return_date?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_assignments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_assignments_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_assignments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_inventory: {
+        Row: {
+          assigned_to: string | null
+          brand: string | null
+          category: string
+          condition: string
+          created_at: string | null
+          current_location: string | null
+          description: string | null
+          id: string
+          last_maintenance_date: string | null
+          maintenance_schedule: string | null
+          model: string | null
+          name: string
+          next_maintenance_date: string | null
+          notes: string | null
+          org_id: string
+          purchase_cost: number | null
+          purchase_date: string | null
+          qr_code: string | null
+          room_id: string | null
+          serial_number: string | null
+          status: string
+          updated_at: string | null
+          warranty_expiry: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          brand?: string | null
+          category?: string
+          condition?: string
+          created_at?: string | null
+          current_location?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          maintenance_schedule?: string | null
+          model?: string | null
+          name: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          org_id: string
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          qr_code?: string | null
+          room_id?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string | null
+          warranty_expiry?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          brand?: string | null
+          category?: string
+          condition?: string
+          created_at?: string | null
+          current_location?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          maintenance_schedule?: string | null
+          model?: string | null
+          name?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          org_id?: string
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          qr_code?: string | null
+          room_id?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string | null
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_inventory_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_inventory_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_inventory_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "office_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_maintenance: {
+        Row: {
+          actions_taken: string | null
+          completed_date: string | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          equipment_id: string
+          id: string
+          issues_found: string | null
+          maintenance_type: string
+          notes: string | null
+          org_id: string
+          performed_by: string | null
+          priority: string
+          scheduled_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          actions_taken?: string | null
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id: string
+          id?: string
+          issues_found?: string | null
+          maintenance_type?: string
+          notes?: string | null
+          org_id: string
+          performed_by?: string | null
+          priority?: string
+          scheduled_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          actions_taken?: string | null
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id?: string
+          id?: string
+          issues_found?: string | null
+          maintenance_type?: string
+          notes?: string | null
+          org_id?: string
+          performed_by?: string | null
+          priority?: string
+          scheduled_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_maintenance_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_maintenance_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historical_metrics: {
         Row: {
           additional_data: Json | null
@@ -1372,6 +1630,68 @@ export type Database = {
             columns: ["practice_area_id"]
             isOneToOne: false
             referencedRelation: "practice_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_rooms: {
+        Row: {
+          amenities: Json | null
+          capacity: number
+          created_at: string | null
+          description: string | null
+          equipment_available: string[] | null
+          floor: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean
+          is_bookable: boolean
+          location: string | null
+          name: string
+          org_id: string
+          room_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: Json | null
+          capacity?: number
+          created_at?: string | null
+          description?: string | null
+          equipment_available?: string[] | null
+          floor?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          is_bookable?: boolean
+          location?: string | null
+          name: string
+          org_id: string
+          room_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: Json | null
+          capacity?: number
+          created_at?: string | null
+          description?: string | null
+          equipment_available?: string[] | null
+          floor?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          is_bookable?: boolean
+          location?: string | null
+          name?: string
+          org_id?: string
+          room_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_rooms_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2243,6 +2563,107 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_reservations: {
+        Row: {
+          approved_by: string | null
+          attendees_count: number | null
+          attendees_emails: string[] | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          catering_requested: boolean | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          end_datetime: string
+          id: string
+          org_id: string
+          recurring_pattern: string | null
+          recurring_until: string | null
+          reserved_by: string
+          room_id: string
+          setup_requirements: string | null
+          start_datetime: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          attendees_count?: number | null
+          attendees_emails?: string[] | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          catering_requested?: boolean | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_datetime: string
+          id?: string
+          org_id: string
+          recurring_pattern?: string | null
+          recurring_until?: string | null
+          reserved_by: string
+          room_id: string
+          setup_requirements?: string | null
+          start_datetime: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          attendees_count?: number | null
+          attendees_emails?: string[] | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          catering_requested?: boolean | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_datetime?: string
+          id?: string
+          org_id?: string
+          recurring_pattern?: string | null
+          recurring_until?: string | null
+          reserved_by?: string
+          room_id?: string
+          setup_requirements?: string | null
+          start_datetime?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_reservations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reservations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reservations_reserved_by_fkey"
+            columns: ["reserved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reservations_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "office_rooms"
             referencedColumns: ["id"]
           },
         ]
@@ -3239,6 +3660,10 @@ export type Database = {
           proposal_count: number
           conversion_rate: number
         }[]
+      }
+      get_office_stats: {
+        Args: { org_uuid: string }
+        Returns: Json
       }
       get_task_stats: {
         Args: { org_uuid: string }
