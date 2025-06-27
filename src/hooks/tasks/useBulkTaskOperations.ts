@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { TaskInsert } from './types'
 
-// Interfaz temporal hasta que se actualicen los tipos de Supabase
+// Interfaces temporales hasta que se actualicen los tipos de Supabase
 export interface BulkTaskOperation {
   id: string
   org_id: string
@@ -34,9 +34,25 @@ export const useBulkTaskOperations = () => {
   const { data: operations = [], isLoading } = useQuery({
     queryKey: ['bulk-task-operations'],
     queryFn: async (): Promise<BulkTaskOperation[]> => {
-      // Las tablas no existen aún, devolvemos array vacío
-      console.log('Bulk operations table not available yet, returning empty array')
-      return []
+      // Consulta temporal directa hasta que las tablas estén disponibles
+      try {
+        // Primero intentamos consultar la tabla directamente
+        const { data, error } = await supabase
+          .from('task_bulk_operations' as any)
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20)
+        
+        if (error) {
+          console.log('Table not ready yet, returning empty array:', error.message)
+          return []
+        }
+        
+        return data || []
+      } catch (error) {
+        console.log('Operations table not ready, returning empty array')
+        return []
+      }
     }
   })
 
@@ -54,8 +70,29 @@ export const useBulkTaskOperations = () => {
       let failed = 0
       const errors: any[] = []
 
-      // Note: Operations tracking table doesn't exist yet, so we skip this part
-      console.log('Starting bulk task creation:', bulkData.tasks.length, 'tasks')
+      // Crear registro de operación masiva
+      try {
+        const { data: operationData, error: operationError } = await supabase
+          .from('task_bulk_operations' as any)
+          .insert({
+            org_id: orgId,
+            operation_type: 'create',
+            status: 'processing',
+            total_tasks: bulkData.tasks.length,
+            processed_tasks: 0,
+            failed_tasks: 0,
+            operation_data: { operation_name: bulkData.operation_name || 'Bulk task creation' },
+            created_by: userId
+          })
+          .select()
+          .single()
+
+        if (operationError) {
+          console.log('Could not create operation record:', operationError.message)
+        }
+      } catch (error) {
+        console.log('Operation tracking not available yet')
+      }
 
       // Procesar tareas en lotes
       const batchSize = 10

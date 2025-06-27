@@ -1,6 +1,6 @@
 
 import { Header } from './Header'
-import { SimpleSidebar } from './SimpleSidebar'
+import { CollapsibleSidebar } from './CollapsibleSidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
 import { CacheStatsPanel } from '@/components/dev/CacheStatsPanel'
 import { PWASimpleManager } from '@/components/pwa/PWASimpleManager'
@@ -11,19 +11,14 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  console.log('🔧 [MainLayout] Renderizando layout principal con SimpleSidebar')
-  
   const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
 
   return (
     <div className="min-h-screen bg-gray-50 flex dark:bg-gray-900">
-      {/* Sidebar fijo a la izquierda */}
-      <SimpleSidebar />
-      
-      {/* Contenido principal: Header + Main content */}  
-      <div className="flex-1 flex flex-col min-w-0">
+      <CollapsibleSidebar />
+      <div className="flex-1 flex flex-col">
         <Header />
-        <main className="flex-1 p-6 overflow-auto bg-gray-50">
+        <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
       </div>
@@ -36,20 +31,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onMinimize={minimize}
       />
       
-      {/* PWA Simple Manager - Posicionado como overlay */}
-      <div className="fixed top-4 right-4 z-50">
-        <PWASimpleManager
-          showOfflineIndicator={true}
-          showSyncNotifications={true}
-          showUpdateNotifications={true}
-          statusPosition="top-right"
-        />
-      </div>
+      {/* PWA Simple Manager - Interfaz limpia sin información técnica */}
+      <PWASimpleManager
+        showOfflineIndicator={true}
+        showSyncNotifications={true}
+        showUpdateNotifications={true}
+        statusPosition="top-right"
+      />
       
-      {/* Cache Stats Panel - Posicionado como overlay */}
-      <div className="fixed bottom-4 left-4 z-50">
-        <CacheStatsPanel />
-      </div>
+      {/* Cache Stats Panel (Development Only) */}
+      <CacheStatsPanel />
     </div>
   )
 }

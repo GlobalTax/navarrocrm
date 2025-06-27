@@ -1,6 +1,7 @@
 
-import { MainLayout } from '@/components/layout/MainLayout'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { DashboardAuthGuard } from '@/components/dashboard/DashboardAuthGuard'
+import { DashboardHeaderSection } from '@/components/dashboard/DashboardHeaderSection'
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { CleanDashboardLayout } from '@/components/dashboard/CleanDashboardLayout'
@@ -12,12 +13,22 @@ export default function Dashboard() {
     authLoading,
     isLoading,
     error,
-    handleRefresh
+    lastRefresh,
+    handleRefresh,
+    formatTime
   } = useDashboardState()
 
   return (
     <DashboardAuthGuard user={user} authLoading={authLoading}>
-      <MainLayout>
+      <StandardPageContainer>
+        <DashboardHeaderSection
+          user={user!}
+          lastRefresh={lastRefresh}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
+          formatTime={formatTime}
+        />
+        
         {isLoading ? (
           <DashboardLoadingState />
         ) : error ? (
@@ -25,7 +36,7 @@ export default function Dashboard() {
         ) : (
           <CleanDashboardLayout />
         )}
-      </MainLayout>
+      </StandardPageContainer>
     </DashboardAuthGuard>
   )
 }

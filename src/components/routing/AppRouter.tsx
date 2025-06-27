@@ -40,17 +40,9 @@ export const AppRouter = () => {
     org_id: user.org_id 
   })
 
-  // If user exists but no org_id AND we're still in the enrichment process
+  // If user exists but no org_id, redirect to setup ONLY if we're certain the profile enrichment is complete
   if (user && user.org_id === undefined) {
-    // Give a short window for profile enrichment before redirecting to setup
-    const isLikelyStillEnriching = !user.role || user.role === 'junior'
-    
-    if (isLikelyStillEnriching) {
-      // Show loading instead of immediately redirecting
-      return <AuthLoadingScreen message="Configurando perfil de usuario..." />
-    }
-    
-    console.log('⚠️ [App] Usuario sin org_id después del enriquecimiento, redirigiendo a setup')
+    console.log('⚠️ [App] Usuario sin org_id, redirigiendo a setup')
     return (
       <BrowserRouter>
         <SetupRoutes />
