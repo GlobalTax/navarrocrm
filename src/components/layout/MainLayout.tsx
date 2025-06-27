@@ -20,10 +20,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Sidebar fijo a la izquierda */}
       <SimpleSidebar />
       
-      {/* Contenido principal: Header + Main content */}
+      {/* Contenido principal: Header + Main content */}  
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto bg-gray-50">
           {children}
         </main>
       </div>
@@ -36,8 +36,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onMinimize={minimize}
       />
       
-      {/* PWA Simple Manager - Posicionado fuera del flujo principal */}
-      <div className="fixed top-4 right-4 z-40">
+      {/* PWA Simple Manager - Posicionado como overlay */}
+      <div className="fixed top-4 right-4 z-50">
         <PWASimpleManager
           showOfflineIndicator={true}
           showSyncNotifications={true}
@@ -46,8 +46,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         />
       </div>
       
-      {/* Cache Stats Panel - Posicionado fuera del flujo principal */}
-      <div className="fixed bottom-4 left-4 z-40">
+      {/* Cache Stats Panel - Posicionado como overlay */}
+      <div className="fixed bottom-4 left-4 z-50">
         <CacheStatsPanel />
       </div>
     </div>
