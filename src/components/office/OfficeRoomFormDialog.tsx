@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -11,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 import { useCreateOfficeRoom, useUpdateOfficeRoom } from '@/hooks/useOfficeRooms'
 import { OfficeRoom } from '@/types/office'
+import { supabase } from '@/integrations/supabase/client'
 
 interface OfficeRoomFormDialogProps {
   open: boolean
@@ -76,10 +76,19 @@ export const OfficeRoomFormDialog = ({
     e.preventDefault()
     
     try {
+      const user = await supabase.auth.getUser()
+      if (!user.data.user?.user_metadata?.org_id) {
+        throw new Error('No organization ID found')
+      }
+
       if (room) {
         await updateRoom.mutateAsync({ id: room.id, ...formData })
       } else {
-        await createRoom.mutateAsync(formData)
+        await createRoom.mutateAsync({
+          ...formData,
+          org_id: user.data.user.user_metadata.org_id,
+          is_active: true
+        })
       }
       onSuccess()
     } catch (error) {

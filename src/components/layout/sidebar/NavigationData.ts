@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Users,
@@ -161,3 +162,10 @@ export const navigationCategories = {
   admin: 'Administración',
   ai: 'Inteligencia Artificial'
 }
+
+// Quick actions for backward compatibility
+export const quickActions = [
+  { name: 'Nueva Tarea', href: '/tasks' },
+  { name: 'Nuevo Cliente', href: '/clients' },
+  { name: 'Nuevo Expediente', href: '/cases' }
+]

@@ -10,7 +10,11 @@ export const useRoomReservations = (roomId?: string) => {
     queryFn: async () => {
       let query = supabase
         .from('room_reservations')
-        .select('*, office_rooms(name), users(name)')
+        .select(`
+          *,
+          office_rooms!inner(name),
+          users!inner(name)
+        `)
         .order('start_datetime')
 
       if (roomId) {
@@ -20,10 +24,7 @@ export const useRoomReservations = (roomId?: string) => {
       const { data, error } = await query
 
       if (error) throw error
-      return data as (RoomReservation & { 
-        office_rooms: { name: string }
-        users: { name: string }
-      })[]
+      return data as any[]
     }
   })
 }
@@ -33,9 +34,17 @@ export const useCreateReservation = () => {
 
   return useMutation({
     mutationFn: async (reservation: Omit<RoomReservation, 'id' | 'created_at' | 'updated_at'>) => {
+      const user = await supabase.auth.getUser()
+      if (!user.data.user?.user_metadata?.org_id) {
+        throw new Error('No organization ID found')
+      }
+
       const { data, error } = await supabase
         .from('room_reservations')
-        .insert([reservation])
+        .insert([{
+          ...reservation,
+          org_id: user.data.user.user_metadata.org_id
+        }])
         .select()
         .single()
 
