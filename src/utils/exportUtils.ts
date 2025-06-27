@@ -11,8 +11,8 @@ export const exportCasesToCSV = (cases: Case[], filename: string = 'expedientes'
       'Título',
       'Estado',
       'Área de Práctica',
-      'Fecha de Apertura',
-      'Fecha de Cierre',
+      'Fecha de Creación',
+      'Fecha de Actualización',
       'Presupuesto Estimado',
       'Método de Facturación',
       'Descripción'
@@ -24,8 +24,8 @@ export const exportCasesToCSV = (cases: Case[], filename: string = 'expedientes'
       case_.title || '',
       case_.status || '',
       case_.practice_area || '',
-      case_.date_opened ? format(new Date(case_.date_opened), 'dd/MM/yyyy', { locale: es }) : '',
-      case_.date_closed ? format(new Date(case_.date_closed), 'dd/MM/yyyy', { locale: es }) : '',
+      case_.created_at ? format(new Date(case_.created_at), 'dd/MM/yyyy', { locale: es }) : '',
+      case_.updated_at ? format(new Date(case_.updated_at), 'dd/MM/yyyy', { locale: es }) : '',
       case_.estimated_budget ? `€${case_.estimated_budget.toLocaleString()}` : '',
       case_.billing_method || '',
       case_.description || ''
