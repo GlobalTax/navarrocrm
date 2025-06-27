@@ -1,13 +1,17 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { RoomReservation } from '@/types/office'
 import { toast } from 'sonner'
 
+type ReservationWithRelations = RoomReservation & {
+  office_rooms: { name: string }
+  users: { name: string }
+}
+
 export const useRoomReservations = (roomId?: string) => {
   return useQuery({
     queryKey: ['room-reservations', roomId],
-    queryFn: async () => {
+    queryFn: async (): Promise<ReservationWithRelations[]> => {
       let query = supabase
         .from('room_reservations')
         .select(`
@@ -24,7 +28,7 @@ export const useRoomReservations = (roomId?: string) => {
       const { data, error } = await query
 
       if (error) throw error
-      return data as any[]
+      return (data || []) as ReservationWithRelations[]
     }
   })
 }
