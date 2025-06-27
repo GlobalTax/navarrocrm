@@ -11,7 +11,7 @@ type ReservationWithRelations = RoomReservation & {
 export const useRoomReservations = (roomId?: string) => {
   return useQuery({
     queryKey: ['room-reservations', roomId],
-    queryFn: async (): Promise<ReservationWithRelations[]> => {
+    queryFn: async () => {
       let query = supabase
         .from('room_reservations')
         .select(`
@@ -29,8 +29,15 @@ export const useRoomReservations = (roomId?: string) => {
 
       if (error) throw error
       
-      // Return the data without type conversion since Supabase types should match
-      return data || []
+      // Transform the data to match our expected types
+      const transformedData: ReservationWithRelations[] = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'confirmed' | 'pending' | 'cancelled', // Type assertion for status
+        office_rooms: item.office_rooms,
+        users: item.users
+      }))
+      
+      return transformedData
     }
   })
 }
