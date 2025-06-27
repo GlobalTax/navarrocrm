@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Users,
@@ -15,26 +14,8 @@ import {
   UserPlus,
   Bot,
   GraduationCap,
-  Workflow,
-  Home,
-  Users as Building,
-  CheckSquare,
-  Layers
+  Workflow
 } from 'lucide-react'
-
-// Define NavigationSection type
-export interface NavigationSection {
-  title: string
-  items: NavigationItem[]
-}
-
-export interface NavigationItem {
-  title: string
-  url: string
-  icon: any
-  hasNotification: boolean
-  badge?: string
-}
 
 // Navigation items for different user roles
 export const getNavigationItems = (userRole?: string) => {
@@ -180,77 +161,3 @@ export const navigationCategories = {
   admin: 'Administración',
   ai: 'Inteligencia Artificial'
 }
-
-// Quick actions for backward compatibility
-export const quickActions = [
-  { name: 'Nueva Tarea', href: '/tasks' },
-  { name: 'Nuevo Cliente', href: '/clients' },
-  { name: 'Nuevo Expediente', href: '/cases' }
-]
-
-export const navigationItems: NavigationSection[] = [
-  {
-    title: 'Principal',
-    items: [
-      {
-        title: 'Dashboard',
-        url: '/dashboard',
-        icon: Home,
-        hasNotification: false
-      }
-    ]
-  },
-  {
-    title: 'CRM',
-    items: [
-      {
-        title: 'Contactos',
-        url: '/contacts',
-        icon: Users,
-        hasNotification: false
-      },
-      {
-        title: 'Clientes',
-        url: '/clients',
-        icon: Building,
-        hasNotification: false
-      },
-      {
-        title: 'Casos',
-        url: '/cases',
-        icon: FileText,
-        hasNotification: false
-      }
-    ]
-  },
-  {
-    title: 'Gestión',
-    items: [
-      {
-        title: 'Tareas',
-        url: '/tasks',
-        icon: CheckSquare,
-        hasNotification: false
-      },
-      {
-        title: 'Tareas Masivas',
-        url: '/bulk-tasks',
-        icon: Layers,
-        hasNotification: false,
-        badge: 'Nuevo'
-      },
-      {
-        title: 'Calendario',
-        url: '/calendar',
-        icon: Calendar,
-        hasNotification: false
-      },
-      {
-        title: 'Seguimiento Tiempo',
-        url: '/time-tracking',
-        icon: Clock,
-        hasNotification: false
-      }
-    ]
-  }
-]

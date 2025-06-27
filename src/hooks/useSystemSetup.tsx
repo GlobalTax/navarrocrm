@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
-const SETUP_CHECK_TIMEOUT = 5000 // Reducido a 5 segundos para mejor respuesta
+const SETUP_CHECK_TIMEOUT = 10000 // Aumentado a 10 segundos para ser más robusto
 
 export const useSystemSetup = () => {
   const [isSetup, setIsSetup] = useState<boolean | null>(null)

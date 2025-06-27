@@ -40,27 +40,21 @@ export const AppRouter = () => {
     org_id: user.org_id 
   })
 
-  // If user exists and has org_id, show main app
-  if (user && user.org_id) {
-    console.log('✅ [App] Usuario autenticado con org_id, mostrando aplicación completa')
+  // If user exists but no org_id, redirect to setup ONLY if we're certain the profile enrichment is complete
+  if (user && user.org_id === undefined) {
+    console.log('⚠️ [App] Usuario sin org_id, redirigiendo a setup')
     return (
       <BrowserRouter>
-        <AuthenticatedRoutes />
+        <SetupRoutes />
       </BrowserRouter>
     )
   }
 
-  // If user exists but no org_id is still loading (undefined vs null)
-  if (user && user.org_id === undefined) {
-    console.log('⏳ [App] Esperando enriquecimiento del perfil de usuario...')
-    return <AuthLoadingScreen message="Configurando perfil de usuario..." />
-  }
-
-  // Fallback: if user exists but org_id is null, redirect to setup
-  console.log('⚠️ [App] Usuario sin org_id válido, redirigiendo a setup')
+  // Normal app flow for authenticated users with org_id
+  console.log('✅ [App] Usuario autenticado con org_id, mostrando aplicación completa')
   return (
     <BrowserRouter>
-      <SetupRoutes />
+      <AuthenticatedRoutes />
     </BrowserRouter>
   )
 }

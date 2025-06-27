@@ -881,36 +881,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cuentas: {
-        Row: {
-          balance_actual: number | null
-          credito: number | null
-          datos_completos: Json | null
-          debito: number | null
-          id: string
-          nombre: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          balance_actual?: number | null
-          credito?: number | null
-          datos_completos?: Json | null
-          debito?: number | null
-          id: string
-          nombre?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          balance_actual?: number | null
-          credito?: number | null
-          datos_completos?: Json | null
-          debito?: number | null
-          id?: string
-          nombre?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       custom_reports: {
         Row: {
           created_at: string
@@ -2896,62 +2866,6 @@ export type Database = {
           },
         ]
       }
-      task_bulk_operations: {
-        Row: {
-          completed_at: string | null
-          created_at: string
-          created_by: string
-          error_log: Json | null
-          failed_tasks: number
-          id: string
-          operation_data: Json | null
-          operation_type: string
-          org_id: string
-          processed_tasks: number
-          status: string
-          total_tasks: number
-          updated_at: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string
-          created_by: string
-          error_log?: Json | null
-          failed_tasks?: number
-          id?: string
-          operation_data?: Json | null
-          operation_type: string
-          org_id: string
-          processed_tasks?: number
-          status?: string
-          total_tasks?: number
-          updated_at?: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string
-          created_by?: string
-          error_log?: Json | null
-          failed_tasks?: number
-          id?: string
-          operation_data?: Json | null
-          operation_type?: string
-          org_id?: string
-          processed_tasks?: number
-          status?: string
-          total_tasks?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_bulk_operations_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       task_comments: {
         Row: {
           content: string
@@ -3037,7 +2951,6 @@ export type Database = {
       }
       task_templates: {
         Row: {
-          category: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -3049,7 +2962,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -3061,7 +2973,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -3786,14 +3697,6 @@ export type Database = {
       is_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
-      }
-      sincronizar_cuentas_quantum: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      sincronizar_cuentas_quantum_final: {
-        Args: Record<PropertyKey, never>
-        Returns: string
       }
     }
     Enums: {

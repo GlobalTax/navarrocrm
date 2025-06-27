@@ -4,6 +4,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { 
   Building2, 
@@ -11,6 +12,7 @@ import {
   Calendar, 
   Settings, 
   Plus,
+  Users,
   MapPin,
   Clock,
   AlertTriangle
@@ -20,30 +22,10 @@ import { OfficeRoomsManager } from '@/components/office/OfficeRoomsManager'
 import { EquipmentManager } from '@/components/office/EquipmentManager'
 import { ReservationsManager } from '@/components/office/ReservationsManager'
 import { MaintenanceManager } from '@/components/office/MaintenanceManager'
-import { OfficeSetupWizard } from '@/components/office/OfficeSetupWizard'
 
 export default function OfficeManagement() {
   const [activeTab, setActiveTab] = useState('overview')
-  const [showSetupWizard, setShowSetupWizard] = useState(false)
-  const { data: stats, isLoading, refetch } = useOfficeStats()
-
-  const isSystemEmpty = !isLoading && stats && 
-    stats.totalRooms === 0 && 
-    stats.totalEquipment === 0 && 
-    stats.activeReservations === 0
-
-  const handleSetupComplete = () => {
-    setShowSetupWizard(false)
-    refetch()
-  }
-
-  if (showSetupWizard) {
-    return (
-      <StandardPageContainer>
-        <OfficeSetupWizard onComplete={handleSetupComplete} />
-      </StandardPageContainer>
-    )
-  }
+  const { data: stats, isLoading } = useOfficeStats()
 
   return (
     <StandardPageContainer>
@@ -57,33 +39,6 @@ export default function OfficeManagement() {
       />
 
       <div className="space-y-6">
-        {isSystemEmpty && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <Building2 className="h-8 w-8 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                    ¡Bienvenido a la Gestión de Oficina!
-                  </h3>
-                  <p className="text-blue-700 mb-4">
-                    Parece que es la primera vez que usas esta función. Te ayudamos a configurar 
-                    tu sistema con algunas salas y equipos de ejemplo para que puedas empezar rápidamente.
-                  </p>
-                  <Button 
-                    onClick={() => setShowSetupWizard(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Configurar Sistema Inicial
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Métricas principales */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <Card>

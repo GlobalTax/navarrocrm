@@ -4,22 +4,13 @@ import { supabase } from '@/integrations/supabase/client'
 import { RoomReservation } from '@/types/office'
 import { toast } from 'sonner'
 
-type ReservationWithRelations = RoomReservation & {
-  office_rooms: { name: string }
-  users: { id: string } | null
-}
-
 export const useRoomReservations = (roomId?: string) => {
   return useQuery({
     queryKey: ['room-reservations', roomId],
     queryFn: async () => {
       let query = supabase
         .from('room_reservations')
-        .select(`
-          *,
-          office_rooms!inner(name),
-          users!reserved_by(id)
-        `)
+        .select('*, office_rooms(name), users(name)')
         .order('start_datetime')
 
       if (roomId) {
@@ -29,16 +20,10 @@ export const useRoomReservations = (roomId?: string) => {
       const { data, error } = await query
 
       if (error) throw error
-      
-      // Transform the data to match our expected types
-      const transformedData: ReservationWithRelations[] = (data || []).map(item => ({
-        ...item,
-        status: item.status as 'confirmed' | 'pending' | 'cancelled',
-        office_rooms: item.office_rooms,
-        users: item.users
-      }))
-      
-      return transformedData
+      return data as (RoomReservation & { 
+        office_rooms: { name: string }
+        users: { name: string }
+      })[]
     }
   })
 }
@@ -48,17 +33,9 @@ export const useCreateReservation = () => {
 
   return useMutation({
     mutationFn: async (reservation: Omit<RoomReservation, 'id' | 'created_at' | 'updated_at'>) => {
-      const user = await supabase.auth.getUser()
-      if (!user.data.user?.user_metadata?.org_id) {
-        throw new Error('No organization ID found')
-      }
-
       const { data, error } = await supabase
         .from('room_reservations')
-        .insert([{
-          ...reservation,
-          org_id: user.data.user.user_metadata.org_id
-        }])
+        .insert([reservation])
         .select()
         .single()
 

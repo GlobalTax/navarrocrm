@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -7,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCreateEquipment, useUpdateEquipment } from '@/hooks/useEquipment'
 import { Equipment } from '@/types/office'
-import { supabase } from '@/integrations/supabase/client'
 
 interface EquipmentFormDialogProps {
   open: boolean
@@ -81,18 +81,10 @@ export const EquipmentFormDialog = ({
     e.preventDefault()
     
     try {
-      const user = await supabase.auth.getUser()
-      if (!user.data.user?.user_metadata?.org_id) {
-        throw new Error('No organization ID found')
-      }
-
       if (equipment) {
         await updateEquipment.mutateAsync({ id: equipment.id, ...formData })
       } else {
-        await createEquipment.mutateAsync({
-          ...formData,
-          org_id: user.data.user.user_metadata.org_id
-        })
+        await createEquipment.mutateAsync(formData)
       }
       onSuccess()
     } catch (error) {

@@ -16,6 +16,7 @@ import {
 import { useApp } from '@/contexts/AppContext'
 import { HeaderClock } from './HeaderClock'
 import { HeaderTimerDialog } from './HeaderTimerDialog'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton'
 
 export const Header = () => {
@@ -87,21 +88,8 @@ export const Header = () => {
           </Button>
 
           {isNotificationOpen && (
-            <div className="absolute right-0 top-full mt-2 z-50 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-gray-900">Notificaciones</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsNotificationOpen(false)}
-                  className="h-6 w-6 p-0"
-                >
-                  ×
-                </Button>
-              </div>
-              <div className="text-sm text-gray-500 text-center py-4">
-                No hay notificaciones nuevas
-              </div>
+            <div className="absolute right-0 top-full mt-2 z-50">
+              <NotificationCenter />
             </div>
           )}
         </div>
