@@ -26,7 +26,7 @@ export function CreateTemplateDialog({
   const [formData, setFormData] = useState<CreateTemplateData>({
     name: '',
     description: '',
-    practice_area_id: '',
+    practice_area_id: 'none',
     default_billing_method: 'hourly'
   })
 
@@ -36,7 +36,7 @@ export function CreateTemplateDialog({
     
     onSubmit({
       ...formData,
-      practice_area_id: formData.practice_area_id || undefined
+      practice_area_id: formData.practice_area_id === 'none' ? undefined : formData.practice_area_id
     })
   }
 
@@ -44,7 +44,7 @@ export function CreateTemplateDialog({
     setFormData({
       name: '',
       description: '',
-      practice_area_id: '',
+      practice_area_id: 'none',
       default_billing_method: 'hourly'
     })
     onOpenChange(false)
@@ -90,7 +90,7 @@ export function CreateTemplateDialog({
                 <SelectValue placeholder="Seleccionar área de práctica" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin área específica</SelectItem>
+                <SelectItem value="none">Sin área específica</SelectItem>
                 {practiceAreas.map((area) => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}
