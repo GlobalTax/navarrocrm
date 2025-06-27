@@ -3,23 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { TaskInsert } from './types'
+import { Database } from '@/integrations/supabase/types'
 
-// Interfaces para los datos que realmente vienen de la base de datos
-export interface BulkTaskOperationFromDB {
-  id: string
-  org_id: string
-  operation_type: 'create' | 'assign' | 'update' | 'delete'
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  total_tasks: number
-  processed_tasks: number
-  failed_tasks: number
-  operation_data: any
-  error_log: any
-  created_by: string
-  created_at: string
-  updated_at: string
-  completed_at?: string
-}
+// Tipos basados en la base de datos real
+type BulkTaskOperationRow = Database['public']['Tables']['task_bulk_operations']['Row']
+type BulkTaskOperationInsert = Database['public']['Tables']['task_bulk_operations']['Insert']
 
 export interface BulkTaskCreateData {
   tasks: TaskInsert[]
@@ -32,10 +20,10 @@ export const useBulkTaskOperations = () => {
 
   const { data: operations = [], isLoading } = useQuery({
     queryKey: ['bulk-task-operations'],
-    queryFn: async (): Promise<BulkTaskOperationFromDB[]> => {
+    queryFn: async (): Promise<BulkTaskOperationRow[]> => {
       try {
         const { data, error } = await supabase
-          .from('task_bulk_operations' as any)
+          .from('task_bulk_operations')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(20)
@@ -69,18 +57,20 @@ export const useBulkTaskOperations = () => {
 
       // Crear registro de operación masiva
       try {
+        const bulkOperation: BulkTaskOperationInsert = {
+          org_id: orgId,
+          operation_type: 'create',
+          status: 'processing',
+          total_tasks: bulkData.tasks.length,
+          processed_tasks: 0,
+          failed_tasks: 0,
+          operation_data: { operation_name: bulkData.operation_name || 'Bulk task creation' },
+          created_by: userId
+        }
+
         const { data: operationData, error: operationError } = await supabase
-          .from('task_bulk_operations' as any)
-          .insert({
-            org_id: orgId,
-            operation_type: 'create',
-            status: 'processing',
-            total_tasks: bulkData.tasks.length,
-            processed_tasks: 0,
-            failed_tasks: 0,
-            operation_data: { operation_name: bulkData.operation_name || 'Bulk task creation' },
-            created_by: userId
-          })
+          .from('task_bulk_operations')
+          .insert(bulkOperation)
           .select()
           .single()
 
