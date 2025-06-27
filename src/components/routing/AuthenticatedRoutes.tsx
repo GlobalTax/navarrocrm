@@ -1,6 +1,6 @@
 // src/components/routing/AuthenticatedRoutes.tsx
 
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Dashboard from '@/pages/Dashboard'
 import Cases from '@/pages/Cases'
 import Clients from '@/pages/Clients'
@@ -34,6 +34,7 @@ const LazyBulkTasks = lazy(() => import('@/pages/BulkTasks'))
 
 export const AuthenticatedRoutes = () => (
   <Routes>
+    <Route path="/setup" element={<Navigate to="/dashboard" replace />} />
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/cases" element={<Cases />} />
     <Route path="/clients" element={<Clients />} />
