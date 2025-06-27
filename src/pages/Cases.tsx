@@ -1,4 +1,3 @@
-
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { CasesMainContent } from '@/components/cases/CasesMainContent'
@@ -99,6 +98,7 @@ export default function Cases() {
         statusOptions={statusOptions}
         practiceAreaOptions={practiceAreaOptions}
         solicitorOptions={solicitorOptions}
+        onOpenWorkspace={handlers.handleOpenWorkspace}
       />
 
       <CasesDialogManager
@@ -127,6 +127,8 @@ export default function Cases() {
         }}
         onConfirmArchive={handlers.handleConfirmArchive}
         isArchiving={isArchiving}
+        isWorkspaceOpen={handlers.isWorkspaceOpen}
+        onWorkspaceClose={handlers.handleCloseWorkspace}
       />
 
       <CreateTemplateDialog

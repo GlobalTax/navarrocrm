@@ -12,6 +12,7 @@ export const useCasesHandlers = (
   const [selectedCase, setSelectedCase] = useState<Case | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false) // Nuevo estado
   const [selectedCases, setSelectedCases] = useState<string[]>([])
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
@@ -21,6 +22,18 @@ export const useCasesHandlers = (
   const handleViewCase = (case_: Case) => {
     setSelectedCase(case_)
     setIsDetailOpen(true)
+  }
+
+  // Nueva función para abrir el workspace
+  const handleOpenWorkspace = (case_: Case) => {
+    setSelectedCase(case_)
+    setIsWorkspaceOpen(true)
+  }
+
+  // Nueva función para cerrar el workspace
+  const handleCloseWorkspace = () => {
+    setIsWorkspaceOpen(false)
+    setSelectedCase(null)
   }
 
   const handleEditCase = (case_: Case) => {
@@ -86,6 +99,8 @@ export const useCasesHandlers = (
     setIsDetailOpen,
     isWizardOpen,
     setIsWizardOpen,
+    isWorkspaceOpen, // Nuevo estado exportado
+    setIsWorkspaceOpen,
     selectedCases,
     setSelectedCases,
     isDeleteDialogOpen,
@@ -97,6 +112,8 @@ export const useCasesHandlers = (
     caseToArchive,
     setCaseToArchive,
     handleViewCase,
+    handleOpenWorkspace, // Nueva función exportada
+    handleCloseWorkspace, // Nueva función exportada
     handleEditCase,
     handleDeleteCase,
     handleArchiveCase,

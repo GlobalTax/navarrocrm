@@ -1,37 +1,35 @@
 
 import { CaseDetailDialog } from './CaseDetailDialog'
-import { MatterWizard } from './wizard/MatterWizard'
+import { MatterFormDialog } from './MatterFormDialog'
 import { CaseDeleteDialog } from './CaseDeleteDialog'
 import { CaseArchiveDialog } from './CaseArchiveDialog'
-import { Case, CreateCaseData } from '@/hooks/useCases'
+import { CaseWorkspace } from './workspace/CaseWorkspace'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Case } from '@/hooks/useCases'
 
 interface CasesDialogManagerProps {
-  // Detail dialog
   selectedCase: Case | null
   isDetailOpen: boolean
   onDetailClose: () => void
-  
-  // Wizard dialog
   isWizardOpen: boolean
   onWizardOpenChange: (open: boolean) => void
-  onSubmit: (data: CreateCaseData) => void
+  onSubmit: (data: any) => void
   isCreating: boolean
   isCreateSuccess: boolean
   onResetCreate: () => void
-  
-  // Delete dialog
   caseToDelete: Case | null
   isDeleteDialogOpen: boolean
   onDeleteDialogClose: () => void
   onConfirmDelete: (caseId: string) => void
   isDeleting: boolean
-  
-  // Archive dialog
   caseToArchive: Case | null
   isArchiveDialogOpen: boolean
   onArchiveDialogClose: () => void
   onConfirmArchive: (caseId: string) => void
   isArchiving: boolean
+  // Nuevas props para el workspace
+  isWorkspaceOpen?: boolean
+  onWorkspaceClose?: () => void
 }
 
 export function CasesDialogManager({
@@ -53,25 +51,35 @@ export function CasesDialogManager({
   isArchiveDialogOpen,
   onArchiveDialogClose,
   onConfirmArchive,
-  isArchiving
+  isArchiving,
+  isWorkspaceOpen = false,
+  onWorkspaceClose = () => {}
 }: CasesDialogManagerProps) {
   return (
     <>
+      {/* Workspace del Expediente - Pantalla Completa */}
+      {isWorkspaceOpen && selectedCase && (
+        <CaseWorkspace case_={selectedCase} onClose={onWorkspaceClose} />
+      )}
+
+      {/* Dialog de Detalles Original */}
       <CaseDetailDialog
         case_={selectedCase}
         open={isDetailOpen}
         onClose={onDetailClose}
       />
 
-      <MatterWizard
+      {/* Wizard de Creación */}
+      <MatterFormDialog
         open={isWizardOpen}
         onOpenChange={onWizardOpenChange}
         onSubmit={onSubmit}
-        isLoading={isCreating}
-        isSuccess={isCreateSuccess}
+        isCreating={isCreating}
+        isCreateSuccess={isCreateSuccess}
         onResetCreate={onResetCreate}
       />
 
+      {/* Dialog de Eliminación */}
       <CaseDeleteDialog
         case_={caseToDelete}
         open={isDeleteDialogOpen}
@@ -80,6 +88,7 @@ export function CasesDialogManager({
         isDeleting={isDeleting}
       />
 
+      {/* Dialog de Archivo */}
       <CaseArchiveDialog
         case_={caseToArchive}
         open={isArchiveDialogOpen}
