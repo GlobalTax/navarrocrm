@@ -88,20 +88,32 @@ export const useGlobalNotifications = () => {
   }
 }
 
-// Hook optimizado para el sidebar
+// Hook optimizado para el sidebar - MÁS ROBUSTO
 export const useGlobalSidebar = () => {
   try {
-    const { sidebarCollapsed, toggleSidebar } = useGlobalStateContext()
+    const context = useGlobalStateContext()
+    console.log('🔧 [Sidebar] Contexto disponible:', !!context)
+    
+    if (!context) {
+      console.warn('🔧 [Sidebar] No hay contexto, usando fallbacks')
+      return {
+        sidebarCollapsed: false,
+        toggleSidebar: () => console.log('🔧 [Sidebar] Toggle fallback llamado')
+      }
+    }
+    
+    const { sidebarCollapsed, toggleSidebar } = context
+    console.log('🔧 [Sidebar] Estado actual:', { sidebarCollapsed })
     
     return useMemo(() => ({
-      sidebarCollapsed,
-      toggleSidebar
+      sidebarCollapsed: sidebarCollapsed ?? false,
+      toggleSidebar: toggleSidebar || (() => console.log('🔧 [Sidebar] Toggle no disponible'))
     }), [sidebarCollapsed, toggleSidebar])
   } catch (error) {
-    console.warn('useGlobalSidebar: GlobalStateContext not available, using defaults')
+    console.error('🔧 [Sidebar] Error en useGlobalSidebar:', error)
     return {
       sidebarCollapsed: false,
-      toggleSidebar: () => {}
+      toggleSidebar: () => console.log('🔧 [Sidebar] Toggle error fallback llamado')
     }
   }
 }

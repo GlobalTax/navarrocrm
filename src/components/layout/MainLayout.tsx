@@ -11,6 +11,8 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  console.log('🔧 [MainLayout] Renderizando layout principal')
+  
   const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
 
   return (

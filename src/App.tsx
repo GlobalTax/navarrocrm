@@ -1,15 +1,19 @@
 
-import React from 'react'
-import { ErrorBoundary } from '@/components/errors'
+import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
+import { AppContext } from '@/contexts/AppContext'
+import { QueryProvider } from '@/contexts/QueryContext'
 import { AppRouter } from '@/components/routing/AppRouter'
+import './App.css'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ErrorBoundary>
-        <AppRouter />
-      </ErrorBoundary>
-    </div>
+    <QueryProvider>
+      <AppContext>
+        <GlobalStateProvider>
+          <AppRouter />
+        </GlobalStateProvider>
+      </AppContext>
+    </QueryProvider>
   )
 }
 

@@ -10,7 +10,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const CollapsibleSidebarContent = React.memo(() => {
+  console.log('🔧 [CollapsibleSidebar] Renderizando sidebar...')
+  
   const { sidebarCollapsed, toggleSidebar } = useGlobalSidebar()
+  
+  console.log('🔧 [CollapsibleSidebar] Estado del sidebar:', { 
+    sidebarCollapsed, 
+    toggleSidebarAvailable: !!toggleSidebar 
+  })
 
   return (
     <div className={`
@@ -53,10 +60,12 @@ const CollapsibleSidebarContent = React.memo(() => {
 CollapsibleSidebarContent.displayName = 'CollapsibleSidebarContent'
 
 export const CollapsibleSidebar = React.memo(() => {
+  console.log('🔧 [CollapsibleSidebar] Montando componente principal')
+  
   return (
     <ErrorBoundary fallback={
       <div className="w-16 h-full bg-white border-r border-gray-200 flex items-center justify-center">
-        <div className="text-xs text-gray-500">Cargando...</div>
+        <div className="text-xs text-gray-500">Cargando menú...</div>
       </div>
     }>
       <CollapsibleSidebarContent />

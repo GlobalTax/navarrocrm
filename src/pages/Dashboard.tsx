@@ -1,5 +1,5 @@
 
-import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { MainLayout } from '@/components/layout/MainLayout'
 import { DashboardAuthGuard } from '@/components/dashboard/DashboardAuthGuard'
 import { DashboardHeaderSection } from '@/components/dashboard/DashboardHeaderSection'
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState'
@@ -20,23 +20,25 @@ export default function Dashboard() {
 
   return (
     <DashboardAuthGuard user={user} authLoading={authLoading}>
-      <StandardPageContainer>
-        <DashboardHeaderSection
-          user={user!}
-          lastRefresh={lastRefresh}
-          isLoading={isLoading}
-          onRefresh={handleRefresh}
-          formatTime={formatTime}
-        />
-        
-        {isLoading ? (
-          <DashboardLoadingState />
-        ) : error ? (
-          <DashboardError error={error.message || 'Error desconocido'} onRetry={handleRefresh} />
-        ) : (
-          <CleanDashboardLayout />
-        )}
-      </StandardPageContainer>
+      <MainLayout>
+        <div className="space-y-6">
+          <DashboardHeaderSection
+            user={user!}
+            lastRefresh={lastRefresh}
+            isLoading={isLoading}
+            onRefresh={handleRefresh}
+            formatTime={formatTime}
+          />
+          
+          {isLoading ? (
+            <DashboardLoadingState />
+          ) : error ? (
+            <DashboardError error={error.message || 'Error desconocido'} onRetry={handleRefresh} />
+          ) : (
+            <CleanDashboardLayout />
+          )}
+        </div>
+      </MainLayout>
     </DashboardAuthGuard>
   )
 }
