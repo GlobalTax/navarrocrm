@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { RoomReservation } from '@/types/office'
@@ -5,7 +6,7 @@ import { toast } from 'sonner'
 
 type ReservationWithRelations = RoomReservation & {
   office_rooms: { name: string }
-  users: { name: string }
+  users: { name: string | null } | null
 }
 
 export const useRoomReservations = (roomId?: string) => {
@@ -17,7 +18,7 @@ export const useRoomReservations = (roomId?: string) => {
         .select(`
           *,
           office_rooms!inner(name),
-          users!inner(name)
+          users(name)
         `)
         .order('start_datetime')
 
