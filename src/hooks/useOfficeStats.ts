@@ -44,7 +44,8 @@ export const useOfficeStats = () => {
           return stats
         }
 
-        return data as OfficeStats
+        // Fix the type conversion issue by being more explicit about the data structure
+        return data as unknown as OfficeStats
       } catch (error) {
         console.error('Error fetching office stats:', error)
         // Return default stats if there's an error

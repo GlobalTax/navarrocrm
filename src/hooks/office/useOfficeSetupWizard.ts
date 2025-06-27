@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useCreateOfficeRoom } from '@/hooks/useOfficeRooms'
 import { useCreateEquipment } from '@/hooks/useEquipment'
 import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
 
 export const useOfficeSetupWizard = (onComplete: () => void) => {
   const [currentStep, setCurrentStep] = useState(0)
@@ -52,11 +53,22 @@ export const useOfficeSetupWizard = (onComplete: () => void) => {
 
   const handleCreateSampleRooms = async () => {
     try {
+      // Get the user's org_id
+      const user = await supabase.auth.getUser()
+      if (!user.data.user?.user_metadata?.org_id) {
+        throw new Error('No organization ID found')
+      }
+
       const createdIds: string[] = []
       
       for (const room of sampleRooms) {
+        const roomWithOrgId = {
+          ...room,
+          org_id: user.data.user.user_metadata.org_id
+        }
+        
         const result = await new Promise((resolve, reject) => {
-          createRoom.mutate(room, {
+          createRoom.mutate(roomWithOrgId, {
             onSuccess: (data) => resolve(data),
             onError: (error) => reject(error)
           })
@@ -76,28 +88,36 @@ export const useOfficeSetupWizard = (onComplete: () => void) => {
 
   const handleCreateSampleEquipment = async () => {
     try {
+      // Get the user's org_id
+      const user = await supabase.auth.getUser()
+      if (!user.data.user?.user_metadata?.org_id) {
+        throw new Error('No organization ID found')
+      }
+
       const sampleEquipment = [
         {
           name: 'Proyector Epson',
           category: 'audiovisual',
-          status: 'available',
-          condition: 'excellent',
+          status: 'available' as const,
+          condition: 'excellent' as const,
           brand: 'Epson',
-          model: 'EB-X41'
+          model: 'EB-X41',
+          org_id: user.data.user.user_metadata.org_id
         },
         {
           name: 'Portátil Dell',
           category: 'informatica',
-          status: 'available',
-          condition: 'good',
+          status: 'available' as const,
+          condition: 'good' as const,
           brand: 'Dell',
-          model: 'Latitude 5520'
+          model: 'Latitude 5520',
+          org_id: user.data.user.user_metadata.org_id
         }
       ]
 
       for (const equipment of sampleEquipment) {
         await new Promise((resolve, reject) => {
-          createEquipment.mutate(equipment as any, {
+          createEquipment.mutate(equipment, {
             onSuccess: (data) => resolve(data),
             onError: (error) => reject(error)
           })
@@ -105,7 +125,7 @@ export const useOfficeSetupWizard = (onComplete: () => void) => {
       }
       
       setCurrentStep(2)
-      toast.success('Equipos registrados correctly')
+      toast.success('Equipos registrados correctamente')
     } catch (error) {
       console.error('Error creating sample equipment:', error)
       toast.error('Error al registrar los equipos')
