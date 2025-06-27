@@ -1,19 +1,19 @@
 
 import { GlobalStateProvider } from '@/contexts/GlobalStateContext'
-import { AppContext } from '@/contexts/AppContext'
-import { QueryProvider } from '@/contexts/QueryContext'
+import { AppProvider } from '@/contexts/AppContext'
+import { QueryClient } from '@/contexts/QueryContext'
 import { AppRouter } from '@/components/routing/AppRouter'
 import './App.css'
 
 function App() {
   return (
-    <QueryProvider>
-      <AppContext>
+    <QueryClient>
+      <AppProvider>
         <GlobalStateProvider>
           <AppRouter />
         </GlobalStateProvider>
-      </AppContext>
-    </QueryProvider>
+      </AppProvider>
+    </QueryClient>
   )
 }
 
