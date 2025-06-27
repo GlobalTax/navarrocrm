@@ -73,6 +73,13 @@ export function CaseTable({
   const isAllSelected = cases.length > 0 && selectedCases.length === cases.length
   const isIndeterminate = selectedCases.length > 0 && selectedCases.length < cases.length
 
+  // Determine the checked state for the header checkbox
+  const getHeaderCheckboxState = () => {
+    if (isAllSelected) return true
+    if (isIndeterminate) return "indeterminate"
+    return false
+  }
+
   return (
     <div className="border rounded-lg">
       <Table>
@@ -80,8 +87,7 @@ export function CaseTable({
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
-                checked={isAllSelected}
-                indeterminate={isIndeterminate}
+                checked={getHeaderCheckboxState()}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </TableHead>
