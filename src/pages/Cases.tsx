@@ -10,6 +10,7 @@ import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { CasesMainContent } from '@/components/cases/CasesMainContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
 import { CreateTemplateDialog } from '@/components/cases/CreateTemplateDialog'
+import { TemplateWizard } from '@/components/cases/wizard/TemplateWizard'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 

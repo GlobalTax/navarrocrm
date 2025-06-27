@@ -61,7 +61,10 @@ export function TemplateWizardStep2({ formData, updateTemplateData, errors }: Te
       updateBilling({
         typical_expenses: [
           ...billing.typical_expenses,
-          { ...newExpense, id: Date.now().toString() }
+          { 
+            id: Date.now().toString(),
+            ...newExpense 
+          }
         ]
       })
       setNewExpense({
@@ -240,7 +243,7 @@ export function TemplateWizardStep2({ formData, updateTemplateData, errors }: Te
         <CardContent className="space-y-4">
           <div className="space-y-3">
             {billing.typical_expenses.map((expense, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+              <div key={expense.id} className="flex items-center gap-3 p-3 border rounded-lg">
                 <div className="flex-1">
                   <div className="font-medium">{expense.name}</div>
                   <div className="text-sm text-gray-500">{expense.category}</div>

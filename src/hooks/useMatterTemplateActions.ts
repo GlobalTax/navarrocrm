@@ -31,7 +31,8 @@ export const useMatterTemplateActions = () => {
         .insert({
           ...data,
           org_id: user.org_id,
-          created_by: user.id
+          created_by: user.id,
+          template_data: JSON.stringify(data.template_data) // Convertir a JSON string
         })
         .select()
         .single()

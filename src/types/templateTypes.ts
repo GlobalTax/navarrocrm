@@ -31,6 +31,7 @@ export interface TemplateBilling {
   estimated_hours_total: number
   estimated_hours_by_stage: Record<string, number>
   typical_expenses: Array<{
+    id: string
     name: string
     estimated_amount: number
     category: string
