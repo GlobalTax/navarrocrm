@@ -12,7 +12,7 @@ interface CaseTableProps {
   cases: Case[]
   selectedCases: string[]
   onViewCase: (case_: Case) => void
-  onOpenWorkspace: (case_: Case) => void // Nueva prop
+  onOpenWorkspace: (case_: Case) => void
   onEditCase: (case_: Case) => void
   onDeleteCase: (case_: Case) => void
   onArchiveCase: (case_: Case) => void
@@ -24,7 +24,7 @@ export function CaseTable({
   cases, 
   selectedCases, 
   onViewCase, 
-  onOpenWorkspace, // Nueva prop
+  onOpenWorkspace,
   onEditCase, 
   onDeleteCase, 
   onArchiveCase, 
@@ -81,9 +81,7 @@ export function CaseTable({
             <TableHead className="w-12">
               <Checkbox
                 checked={isAllSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = isIndeterminate
-                }}
+                indeterminate={isIndeterminate}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </TableHead>

@@ -74,9 +74,7 @@ export function CasesDialogManager({
         open={isWizardOpen}
         onOpenChange={onWizardOpenChange}
         onSubmit={onSubmit}
-        isCreating={isCreating}
-        isCreateSuccess={isCreateSuccess}
-        onResetCreate={onResetCreate}
+        isLoading={isCreating}
       />
 
       {/* Dialog de Eliminación */}

@@ -7,13 +7,13 @@ import { Case } from '@/hooks/useCases'
 interface CasesTabsContentProps {
   filteredCases: Case[]
   onViewCase: (case_: Case) => void
+  onOpenWorkspace: (case_: Case) => void
   onEditCase: (case_: Case) => void
   onDeleteCase: (case_: Case) => void
   onArchiveCase: (case_: Case) => void
   selectedCases: string[]
   onSelectCase: (caseId: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
-  searchResultsWithScore?: Array<{ item: Case; score: number; highlights: any[] }>
   searchTerm?: string
   isSearching?: boolean
 }
@@ -21,13 +21,13 @@ interface CasesTabsContentProps {
 export function CasesTabsContent({
   filteredCases,
   onViewCase,
+  onOpenWorkspace,
   onEditCase,
   onDeleteCase,
   onArchiveCase,
   selectedCases,
   onSelectCase,
   onSelectAll,
-  searchResultsWithScore,
   searchTerm,
   isSearching
 }: CasesTabsContentProps) {
@@ -51,14 +51,13 @@ export function CasesTabsContent({
             <CaseTable
               cases={filteredCases}
               onViewCase={onViewCase}
+              onOpenWorkspace={onOpenWorkspace}
               onEditCase={onEditCase}
               onDeleteCase={onDeleteCase}
               onArchiveCase={onArchiveCase}
               selectedCases={selectedCases}
               onSelectCase={onSelectCase}
               onSelectAll={onSelectAll}
-              searchResultsWithScore={searchResultsWithScore}
-              searchTerm={searchTerm}
             />
           </TabsContent>
           

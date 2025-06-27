@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { CaseTable } from './CaseTable'
 import { CasesGrid } from './CasesGrid'
@@ -37,6 +38,7 @@ interface CasesMainContentProps {
   onClearFilters: () => void
   selectedCases: string[]
   onViewCase: (case_: Case) => void
+  onOpenWorkspace: (case_: Case) => void
   onEditCase: (case_: Case) => void
   onDeleteCase: (case_: Case) => void
   onArchiveCase: (case_: Case) => void
@@ -75,7 +77,7 @@ export function CasesMainContent({
   statusOptions,
   practiceAreaOptions,
   solicitorOptions
-}: CasesMainContentProps & { onOpenWorkspace: (case_: Case) => void }) {
+}: CasesMainContentProps) {
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
 
   const handleBulkDelete = () => {
@@ -88,6 +90,10 @@ export function CasesMainContent({
 
   const handleBulkExport = () => {
     alert('Exportar casos seleccionados')
+  }
+
+  const handleViewModeChange = (value: string) => {
+    setViewMode(value as 'table' | 'grid')
   }
 
   return (
@@ -206,7 +212,7 @@ export function CasesMainContent({
         </div>
       </div>
 
-      <Tabs value={viewMode} onValueChange={setViewMode}>
+      <Tabs value={viewMode} onValueChange={handleViewModeChange}>
         <div className="flex items-center justify-between mb-4">
           <TabsList>
             <TabsTrigger value="table">
@@ -261,6 +267,7 @@ export function CasesMainContent({
             cases={filteredCases}
             selectedCases={selectedCases}
             onViewCase={onViewCase}
+            onOpenWorkspace={onOpenWorkspace}
             onEditCase={onEditCase}
             onDeleteCase={onDeleteCase}
             onArchiveCase={onArchiveCase}

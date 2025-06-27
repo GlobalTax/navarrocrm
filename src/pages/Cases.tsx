@@ -1,3 +1,4 @@
+
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { CasesMainContent } from '@/components/cases/CasesMainContent'
@@ -53,6 +54,12 @@ export default function Cases() {
 
   const hasActiveFilters = searchStats.isFiltered
 
+  // Transform searchResultsWithScore to match expected type
+  const transformedSearchResults = searchResultsWithScore?.map(result => ({
+    id: result.item?.id || '',
+    score: result.score || 0
+  })) || []
+
   return (
     <StandardPageContainer>
       <StandardPageHeader
@@ -93,7 +100,7 @@ export default function Cases() {
         onArchiveCase={handlers.handleArchiveCase}
         onSelectCase={handlers.handleSelectCase}
         onSelectAll={handlers.handleSelectAll}
-        searchResultsWithScore={searchResultsWithScore}
+        searchResultsWithScore={transformedSearchResults}
         isSearching={isSearching}
         statusOptions={statusOptions}
         practiceAreaOptions={practiceAreaOptions}
