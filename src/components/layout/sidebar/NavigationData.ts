@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +21,20 @@ import {
   CheckSquare,
   Layers
 } from 'lucide-react'
+
+// Define NavigationSection type
+export interface NavigationSection {
+  title: string
+  items: NavigationItem[]
+}
+
+export interface NavigationItem {
+  title: string
+  url: string
+  icon: any
+  hasNotification: boolean
+  badge?: string
+}
 
 // Navigation items for different user roles
 export const getNavigationItems = (userRole?: string) => {

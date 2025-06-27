@@ -20,7 +20,8 @@ import {
   Users,
   Calendar,
   Tag,
-  CheckCircle
+  CheckCircle,
+  Wand2
 } from 'lucide-react'
 
 interface TaskPattern {
@@ -77,7 +78,9 @@ export const TaskWizard = () => {
         estimated_hours: pattern.estimated_hours,
         case_id: pattern.case_id || null,
         contact_id: pattern.contact_id || null,
-        due_date: null
+        due_date: null,
+        created_by: '', // Se asignará en el hook
+        org_id: '' // Se asignará en el hook
       }
       tasks.push(task)
     }

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -150,7 +149,9 @@ export const CSVTaskImporter = () => {
           estimated_hours: row.horas_estimadas ? parseFloat(row.horas_estimadas) : 1,
           case_id: null,
           contact_id: null,
-          due_date: null
+          due_date: null,
+          created_by: '', // Se asignará en el hook
+          org_id: '' // Se asignará en el hook
         }
       })
       
