@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { RoomReservation } from '@/types/office'
@@ -29,7 +28,9 @@ export const useRoomReservations = (roomId?: string) => {
       const { data, error } = await query
 
       if (error) throw error
-      return (data || []) as ReservationWithRelations[]
+      
+      // Return the data without type conversion since Supabase types should match
+      return data || []
     }
   })
 }
