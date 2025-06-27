@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AppState, AuthUser, UserRole } from './types'
 import { useAuthActions } from './hooks/useAuthActions'
+import { useSystemSetup } from '@/hooks/useSystemSetup'
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
@@ -19,7 +20,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
-
+  
+  const { isSetup, loading: setupLoading } = useSystemSetup()
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
   useEffect(() => {
@@ -126,9 +128,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     user,
     session,
     authLoading,
-    isSetup: true,
-    setupLoading: false,
-    isInitializing: authLoading,
+    isSetup: isSetup ?? true, // Default to true to prevent setup loop
+    setupLoading,
+    isInitializing: authLoading || setupLoading,
     signIn,
     signUp,
     signOut,
