@@ -42,18 +42,17 @@ export const useTaskTemplates = () => {
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['task-templates'],
     queryFn: async (): Promise<TaskTemplate[]> => {
-      // Consulta temporal que manejará el error graciosamente
+      // Consulta temporal directa hasta que las tablas estén disponibles
       try {
-        const { data, error } = await supabase.rpc('execute_sql', {
-          query: `
-            SELECT * FROM task_templates 
-            WHERE org_id = get_user_org_id() AND is_active = true
-            ORDER BY name
-          `
-        })
+        // Primero intentamos consultar la tabla directamente
+        const { data, error } = await supabase
+          .from('task_templates' as any)
+          .select('*')
+          .eq('is_active', true)
+          .order('name')
         
         if (error) {
-          console.log('Templates table not ready yet, returning empty array')
+          console.log('Templates table not ready yet, returning empty array:', error.message)
           return []
         }
         
@@ -72,8 +71,23 @@ export const useTaskTemplates = () => {
         throw new Error('No organization ID found')
       }
 
-      // Por ahora simulamos la creación exitosa
-      return { id: 'temp-id', ...template }
+      const templateData = {
+        ...template,
+        org_id: user.data.user.user_metadata.org_id,
+        created_by: user.data.user.id
+      }
+
+      const { data, error } = await supabase
+        .from('task_templates' as any)
+        .insert(templateData)
+        .select()
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task-templates'] })
@@ -87,8 +101,18 @@ export const useTaskTemplates = () => {
 
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<TaskTemplate> & { id: string }) => {
-      // Por ahora simulamos la actualización exitosa
-      return { id, ...updates }
+      const { data, error } = await supabase
+        .from('task_templates' as any)
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        throw error
+      }
+
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task-templates'] })
@@ -98,7 +122,15 @@ export const useTaskTemplates = () => {
 
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
-      // Por ahora simulamos la eliminación exitosa
+      const { error } = await supabase
+        .from('task_templates' as any)
+        .update({ is_active: false })
+        .eq('id', id)
+
+      if (error) {
+        throw error
+      }
+
       return { id }
     },
     onSuccess: () => {

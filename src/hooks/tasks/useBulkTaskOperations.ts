@@ -34,19 +34,17 @@ export const useBulkTaskOperations = () => {
   const { data: operations = [], isLoading } = useQuery({
     queryKey: ['bulk-task-operations'],
     queryFn: async (): Promise<BulkTaskOperation[]> => {
-      // Consulta temporal usando SQL directo
+      // Consulta temporal directa hasta que las tablas estén disponibles
       try {
-        const { data, error } = await supabase.rpc('execute_sql', {
-          query: `
-            SELECT * FROM task_bulk_operations 
-            WHERE org_id = get_user_org_id()
-            ORDER BY created_at DESC 
-            LIMIT 20
-          `
-        })
+        // Primero intentamos consultar la tabla directamente
+        const { data, error } = await supabase
+          .from('task_bulk_operations' as any)
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20)
         
         if (error) {
-          console.log('Table not ready yet, returning empty array')
+          console.log('Table not ready yet, returning empty array:', error.message)
           return []
         }
         
@@ -71,6 +69,30 @@ export const useBulkTaskOperations = () => {
       let processed = 0
       let failed = 0
       const errors: any[] = []
+
+      // Crear registro de operación masiva
+      try {
+        const { data: operationData, error: operationError } = await supabase
+          .from('task_bulk_operations' as any)
+          .insert({
+            org_id: orgId,
+            operation_type: 'create',
+            status: 'processing',
+            total_tasks: bulkData.tasks.length,
+            processed_tasks: 0,
+            failed_tasks: 0,
+            operation_data: { operation_name: bulkData.operation_name || 'Bulk task creation' },
+            created_by: userId
+          })
+          .select()
+          .single()
+
+        if (operationError) {
+          console.log('Could not create operation record:', operationError.message)
+        }
+      } catch (error) {
+        console.log('Operation tracking not available yet')
+      }
 
       // Procesar tareas en lotes
       const batchSize = 10
