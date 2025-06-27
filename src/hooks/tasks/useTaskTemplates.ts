@@ -3,34 +3,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
-// Interfaz temporal hasta que se actualicen los tipos de Supabase
-export interface TaskTemplate {
+// Interfaz para los datos que realmente vienen de la base de datos
+export interface TaskTemplateFromDB {
   id: string
   org_id: string
   name: string
   description?: string
-  template_data: {
-    title?: string
-    description?: string
-    priority?: string
-    status?: string
-    due_date_offset?: number // días desde creación
-    estimated_hours?: number
-    tags?: string[]
-    case_id?: string
-    contact_id?: string
-  }
-  category: string
+  template_data: any
+  category?: string
   is_active: boolean
   created_by: string
   created_at: string
   updated_at: string
 }
 
+// Interfaz para crear nuevas plantillas
 export interface TaskTemplateInsert {
   name: string
   description?: string
-  template_data: TaskTemplate['template_data']
+  template_data: any
   category?: string
   is_active?: boolean
 }
@@ -40,10 +31,10 @@ export const useTaskTemplates = () => {
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['task-templates'],
-    queryFn: async (): Promise<TaskTemplate[]> => {
+    queryFn: async (): Promise<TaskTemplateFromDB[]> => {
       try {
         const { data, error } = await supabase
-          .from('task_templates')
+          .from('task_templates' as any)
           .select('*')
           .eq('is_active', true)
           .order('name')
@@ -53,7 +44,10 @@ export const useTaskTemplates = () => {
           return []
         }
         
-        return data || []
+        return (data || []).map((item: any) => ({
+          ...item,
+          category: item.category || 'general'
+        }))
       } catch (error) {
         console.error('Templates fetch error:', error)
         return []
@@ -71,11 +65,12 @@ export const useTaskTemplates = () => {
       const templateData = {
         ...template,
         org_id: user.data.user.user_metadata.org_id,
-        created_by: user.data.user.id
+        created_by: user.data.user.id,
+        category: template.category || 'general'
       }
 
       const { data, error } = await supabase
-        .from('task_templates')
+        .from('task_templates' as any)
         .insert(templateData)
         .select()
         .single()
@@ -97,9 +92,9 @@ export const useTaskTemplates = () => {
   })
 
   const updateTemplate = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<TaskTemplate> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<TaskTemplateFromDB> & { id: string }) => {
       const { data, error } = await supabase
-        .from('task_templates')
+        .from('task_templates' as any)
         .update(updates)
         .eq('id', id)
         .select()
@@ -120,7 +115,7 @@ export const useTaskTemplates = () => {
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('task_templates')
+        .from('task_templates' as any)
         .update({ is_active: false })
         .eq('id', id)
 

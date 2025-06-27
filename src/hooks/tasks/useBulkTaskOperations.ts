@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { TaskInsert } from './types'
 
-// Interfaces temporales hasta que se actualicen los tipos de Supabase
-export interface BulkTaskOperation {
+// Interfaces para los datos que realmente vienen de la base de datos
+export interface BulkTaskOperationFromDB {
   id: string
   org_id: string
   operation_type: 'create' | 'assign' | 'update' | 'delete'
@@ -32,10 +32,10 @@ export const useBulkTaskOperations = () => {
 
   const { data: operations = [], isLoading } = useQuery({
     queryKey: ['bulk-task-operations'],
-    queryFn: async (): Promise<BulkTaskOperation[]> => {
+    queryFn: async (): Promise<BulkTaskOperationFromDB[]> => {
       try {
         const { data, error } = await supabase
-          .from('task_bulk_operations')
+          .from('task_bulk_operations' as any)
           .select('*')
           .order('created_at', { ascending: false })
           .limit(20)
@@ -70,7 +70,7 @@ export const useBulkTaskOperations = () => {
       // Crear registro de operación masiva
       try {
         const { data: operationData, error: operationError } = await supabase
-          .from('task_bulk_operations')
+          .from('task_bulk_operations' as any)
           .insert({
             org_id: orgId,
             operation_type: 'create',
