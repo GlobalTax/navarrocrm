@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useTaskTemplates, TaskTemplateInsert, TaskTemplateData } from '@/hooks/tasks/useTaskTemplates'
+import { useTaskTemplates, TaskTemplateInsert } from '@/hooks/tasks/useTaskTemplates'
 import { 
   Plus, 
   Edit, 
@@ -18,10 +18,45 @@ import {
   X
 } from 'lucide-react'
 
+// Tipo para el formulario local (sin campos requeridos de DB)
+interface TaskTemplateFormData {
+  name: string
+  description: string
+  template_data: {
+    title: string
+    description?: string
+    priority: 'low' | 'medium' | 'high' | 'urgent'
+    status: 'pending' | 'in_progress'
+    estimated_hours: number
+  }
+  category: string
+}
+
+// Helper para validar y convertir template_data
+const parseTemplateData = (data: any): TaskTemplateFormData['template_data'] => {
+  if (!data || typeof data !== 'object') {
+    return {
+      title: '',
+      description: '',
+      priority: 'medium',
+      status: 'pending',
+      estimated_hours: 1
+    }
+  }
+
+  return {
+    title: data.title || '',
+    description: data.description || '',
+    priority: data.priority || 'medium',
+    status: data.status || 'pending',
+    estimated_hours: data.estimated_hours || 1
+  }
+}
+
 export const TaskTemplateManager = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<any>(null)
-  const [formData, setFormData] = useState<TaskTemplateInsert>({
+  const [formData, setFormData] = useState<TaskTemplateFormData>({
     name: '',
     description: '',
     template_data: {
@@ -59,10 +94,14 @@ export const TaskTemplateManager = () => {
       if (editingTemplate) {
         await updateTemplate.mutateAsync({
           id: editingTemplate.id,
-          ...formData
+          ...formData,
+          template_data: formData.template_data as any // Safe cast aquí
         })
       } else {
-        await createTemplate.mutateAsync(formData)
+        await createTemplate.mutateAsync({
+          ...formData,
+          template_data: formData.template_data as any // Safe cast aquí
+        })
       }
       
       resetForm()
@@ -73,8 +112,7 @@ export const TaskTemplateManager = () => {
   }
 
   const handleEdit = (template: any) => {
-    // Type casting para template_data
-    const templateData = template.template_data as TaskTemplateData
+    const templateData = parseTemplateData(template.template_data)
     
     setFormData({
       name: template.name,
@@ -87,8 +125,7 @@ export const TaskTemplateManager = () => {
   }
 
   const handleDuplicate = (template: any) => {
-    // Type casting para template_data
-    const templateData = template.template_data as TaskTemplateData
+    const templateData = parseTemplateData(template.template_data)
     
     setFormData({
       name: `${template.name} (Copia)`,
@@ -174,10 +211,10 @@ export const TaskTemplateManager = () => {
                   <Label htmlFor="task-title">Título de la Tarea *</Label>
                   <Input
                     id="task-title"
-                    value={(formData.template_data as TaskTemplateData).title}
+                    value={formData.template_data.title}
                     onChange={(e) => setFormData({
                       ...formData,
-                      template_data: { ...(formData.template_data as TaskTemplateData), title: e.target.value }
+                      template_data: { ...formData.template_data, title: e.target.value }
                     })}
                     required
                   />
@@ -190,10 +227,10 @@ export const TaskTemplateManager = () => {
                     type="number"
                     min="0.5"
                     step="0.5"
-                    value={(formData.template_data as TaskTemplateData).estimated_hours}
+                    value={formData.template_data.estimated_hours}
                     onChange={(e) => setFormData({
                       ...formData,
-                      template_data: { ...(formData.template_data as TaskTemplateData), estimated_hours: parseFloat(e.target.value) }
+                      template_data: { ...formData.template_data, estimated_hours: parseFloat(e.target.value) }
                     })}
                   />
                 </div>
@@ -203,10 +240,10 @@ export const TaskTemplateManager = () => {
                 <Label htmlFor="task-description">Descripción de la Tarea</Label>
                 <Textarea
                   id="task-description"
-                  value={(formData.template_data as TaskTemplateData).description}
+                  value={formData.template_data.description}
                   onChange={(e) => setFormData({
                     ...formData,
-                    template_data: { ...(formData.template_data as TaskTemplateData), description: e.target.value }
+                    template_data: { ...formData.template_data, description: e.target.value }
                   })}
                   rows={3}
                 />
@@ -216,10 +253,10 @@ export const TaskTemplateManager = () => {
                 <div>
                   <Label>Prioridad</Label>
                   <Select 
-                    value={(formData.template_data as TaskTemplateData).priority} 
+                    value={formData.template_data.priority} 
                     onValueChange={(value: any) => setFormData({
                       ...formData,
-                      template_data: { ...(formData.template_data as TaskTemplateData), priority: value }
+                      template_data: { ...formData.template_data, priority: value }
                     })}
                   >
                     <SelectTrigger>
@@ -237,10 +274,10 @@ export const TaskTemplateManager = () => {
                 <div>
                   <Label>Estado Inicial</Label>
                   <Select 
-                    value={(formData.template_data as TaskTemplateData).status} 
+                    value={formData.template_data.status} 
                     onValueChange={(value: any) => setFormData({
                       ...formData,
-                      template_data: { ...(formData.template_data as TaskTemplateData), status: value }
+                      template_data: { ...formData.template_data, status: value }
                     })}
                   >
                     <SelectTrigger>
@@ -279,8 +316,7 @@ export const TaskTemplateManager = () => {
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {templates.map((template) => {
-          // Type casting para template_data
-          const templateData = template.template_data as TaskTemplateData
+          const templateData = parseTemplateData(template.template_data)
           
           return (
             <Card key={template.id} className="hover:shadow-sm transition-shadow">
