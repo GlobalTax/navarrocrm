@@ -64,6 +64,8 @@ export const OfficeSetupWizard = ({ onComplete }: OfficeSetupWizardProps) => {
     }
   }
 
+  const CurrentStepIcon = steps[currentStep].icon
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="text-center">
@@ -78,7 +80,7 @@ export const OfficeSetupWizard = ({ onComplete }: OfficeSetupWizardProps) => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <steps[currentStep].icon className="h-5 w-5" />
+            <CurrentStepIcon className="h-5 w-5" />
             {steps[currentStep].title}
           </CardTitle>
         </CardHeader>
