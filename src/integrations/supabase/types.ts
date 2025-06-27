@@ -881,6 +881,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cuentas: {
+        Row: {
+          balance_actual: number | null
+          credito: number | null
+          datos_completos: Json | null
+          debito: number | null
+          id: string
+          nombre: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          balance_actual?: number | null
+          credito?: number | null
+          datos_completos?: Json | null
+          debito?: number | null
+          id: string
+          nombre?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          balance_actual?: number | null
+          credito?: number | null
+          datos_completos?: Json | null
+          debito?: number | null
+          id?: string
+          nombre?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       custom_reports: {
         Row: {
           created_at: string
@@ -3697,6 +3727,10 @@ export type Database = {
       is_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      sincronizar_cuentas_quantum: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {
