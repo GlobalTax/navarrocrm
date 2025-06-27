@@ -9,6 +9,20 @@ import { Database } from '@/integrations/supabase/types'
 type BulkTaskOperationRow = Database['public']['Tables']['task_bulk_operations']['Row']
 type BulkTaskOperationInsert = Database['public']['Tables']['task_bulk_operations']['Insert']
 
+// Tipos para los datos de operación
+interface OperationData {
+  operation_name?: string
+  [key: string]: any
+}
+
+interface ErrorLog {
+  errors?: Array<{
+    batch: number
+    error: string
+  }>
+  [key: string]: any
+}
+
 export interface BulkTaskCreateData {
   tasks: TaskInsert[]
   template_id?: string

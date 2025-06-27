@@ -6,8 +6,17 @@ import { Database } from '@/integrations/supabase/types'
 
 // Tipos basados en la base de datos real
 type TaskTemplateRow = Database['public']['Tables']['task_templates']['Row']
-type TaskTemplateInsert = Database['public']['Tables']['task_templates']['Insert']
+export type TaskTemplateInsert = Database['public']['Tables']['task_templates']['Insert']
 type TaskTemplateUpdate = Database['public']['Tables']['task_templates']['Update']
+
+// Tipos para los datos de la plantilla
+export interface TaskTemplateData {
+  title: string
+  description?: string
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'pending' | 'in_progress'
+  estimated_hours: number
+}
 
 export const useTaskTemplates = () => {
   const queryClient = useQueryClient()

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useTaskTemplates, TaskTemplateInsert } from '@/hooks/tasks/useTaskTemplates'
+import { useTaskTemplates, TaskTemplateInsert, TaskTemplateData } from '@/hooks/tasks/useTaskTemplates'
 import { 
   Plus, 
   Edit, 
@@ -73,10 +73,13 @@ export const TaskTemplateManager = () => {
   }
 
   const handleEdit = (template: any) => {
+    // Type casting para template_data
+    const templateData = template.template_data as TaskTemplateData
+    
     setFormData({
       name: template.name,
       description: template.description || '',
-      template_data: template.template_data,
+      template_data: templateData,
       category: template.category
     })
     setEditingTemplate(template)
@@ -84,10 +87,13 @@ export const TaskTemplateManager = () => {
   }
 
   const handleDuplicate = (template: any) => {
+    // Type casting para template_data
+    const templateData = template.template_data as TaskTemplateData
+    
     setFormData({
       name: `${template.name} (Copia)`,
       description: template.description || '',
-      template_data: template.template_data,
+      template_data: templateData,
       category: template.category
     })
     setEditingTemplate(null)
@@ -168,10 +174,10 @@ export const TaskTemplateManager = () => {
                   <Label htmlFor="task-title">Título de la Tarea *</Label>
                   <Input
                     id="task-title"
-                    value={formData.template_data.title}
+                    value={(formData.template_data as TaskTemplateData).title}
                     onChange={(e) => setFormData({
                       ...formData,
-                      template_data: { ...formData.template_data, title: e.target.value }
+                      template_data: { ...(formData.template_data as TaskTemplateData), title: e.target.value }
                     })}
                     required
                   />
@@ -184,10 +190,10 @@ export const TaskTemplateManager = () => {
                     type="number"
                     min="0.5"
                     step="0.5"
-                    value={formData.template_data.estimated_hours}
+                    value={(formData.template_data as TaskTemplateData).estimated_hours}
                     onChange={(e) => setFormData({
                       ...formData,
-                      template_data: { ...formData.template_data, estimated_hours: parseFloat(e.target.value) }
+                      template_data: { ...(formData.template_data as TaskTemplateData), estimated_hours: parseFloat(e.target.value) }
                     })}
                   />
                 </div>
@@ -197,10 +203,10 @@ export const TaskTemplateManager = () => {
                 <Label htmlFor="task-description">Descripción de la Tarea</Label>
                 <Textarea
                   id="task-description"
-                  value={formData.template_data.description}
+                  value={(formData.template_data as TaskTemplateData).description}
                   onChange={(e) => setFormData({
                     ...formData,
-                    template_data: { ...formData.template_data, description: e.target.value }
+                    template_data: { ...(formData.template_data as TaskTemplateData), description: e.target.value }
                   })}
                   rows={3}
                 />
@@ -210,10 +216,10 @@ export const TaskTemplateManager = () => {
                 <div>
                   <Label>Prioridad</Label>
                   <Select 
-                    value={formData.template_data.priority} 
+                    value={(formData.template_data as TaskTemplateData).priority} 
                     onValueChange={(value: any) => setFormData({
                       ...formData,
-                      template_data: { ...formData.template_data, priority: value }
+                      template_data: { ...(formData.template_data as TaskTemplateData), priority: value }
                     })}
                   >
                     <SelectTrigger>
@@ -231,10 +237,10 @@ export const TaskTemplateManager = () => {
                 <div>
                   <Label>Estado Inicial</Label>
                   <Select 
-                    value={formData.template_data.status} 
+                    value={(formData.template_data as TaskTemplateData).status} 
                     onValueChange={(value: any) => setFormData({
                       ...formData,
-                      template_data: { ...formData.template_data, status: value }
+                      template_data: { ...(formData.template_data as TaskTemplateData), status: value }
                     })}
                   >
                     <SelectTrigger>
@@ -272,70 +278,75 @@ export const TaskTemplateManager = () => {
 
       {/* Templates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {templates.map((template) => (
-          <Card key={template.id} className="hover:shadow-sm transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{template.name}</CardTitle>
-                <Badge variant="outline">{template.category}</Badge>
-              </div>
-              {template.description && (
-                <p className="text-sm text-gray-600">{template.description}</p>
-              )}
-            </CardHeader>
-            
-            <CardContent className="pt-0">
-              <div className="space-y-2 mb-4">
-                <div className="text-sm">
-                  <span className="font-medium">Título:</span> {template.template_data.title}
+        {templates.map((template) => {
+          // Type casting para template_data
+          const templateData = template.template_data as TaskTemplateData
+          
+          return (
+            <Card key={template.id} className="hover:shadow-sm transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">{template.name}</CardTitle>
+                  <Badge variant="outline">{template.category}</Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    variant={template.template_data.priority === 'high' ? 'destructive' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {template.template_data.priority}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {template.template_data.status}
-                  </Badge>
-                  {template.template_data.estimated_hours && (
-                    <Badge variant="outline" className="text-xs">
-                      {template.template_data.estimated_hours}h
-                    </Badge>
-                  )}
-                </div>
-              </div>
+                {template.description && (
+                  <p className="text-sm text-gray-600">{template.description}</p>
+                )}
+              </CardHeader>
               
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(template)}
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
+              <CardContent className="pt-0">
+                <div className="space-y-2 mb-4">
+                  <div className="text-sm">
+                    <span className="font-medium">Título:</span> {templateData.title}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={templateData.priority === 'high' ? 'destructive' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {templateData.priority}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {templateData.status}
+                    </Badge>
+                    {templateData.estimated_hours && (
+                      <Badge variant="outline" className="text-xs">
+                        {templateData.estimated_hours}h
+                      </Badge>
+                    )}
+                  </div>
+                </div>
                 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDuplicate(template)}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
-                
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => deleteTemplate.mutate(template.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(template)}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDuplicate(template)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => deleteTemplate.mutate(template.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {templates.length === 0 && !isLoading && (

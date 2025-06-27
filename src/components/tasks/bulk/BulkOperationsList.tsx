@@ -15,6 +15,20 @@ import {
   Eye
 } from 'lucide-react'
 
+// Tipos para manejar los datos JSON
+interface OperationData {
+  operation_name?: string
+  [key: string]: any
+}
+
+interface ErrorLog {
+  errors?: Array<{
+    batch: number
+    error: string
+  }>
+  [key: string]: any
+}
+
 export const BulkOperationsList = () => {
   const { operations, isLoading } = useBulkTaskOperations()
 
@@ -96,6 +110,10 @@ export const BulkOperationsList = () => {
               ? Math.round((operation.processed_tasks / operation.total_tasks) * 100)
               : 0
 
+            // Type casting para los datos JSON
+            const operationData = operation.operation_data as OperationData
+            const errorLog = operation.error_log as ErrorLog
+
             return (
               <Card key={operation.id}>
                 <CardContent className="p-6">
@@ -104,7 +122,7 @@ export const BulkOperationsList = () => {
                       <div className="flex items-center gap-3 mb-2">
                         {getStatusIcon(operation.status)}
                         <h4 className="font-medium">
-                          {operation.operation_data?.operation_name || 
+                          {operationData?.operation_name || 
                            `Operación ${operation.operation_type}`}
                         </h4>
                         <Badge className={getStatusColor(operation.status)}>
@@ -153,20 +171,20 @@ export const BulkOperationsList = () => {
                         )}
                       </div>
 
-                      {operation.failed_tasks > 0 && operation.error_log?.errors && (
+                      {operation.failed_tasks > 0 && errorLog?.errors && (
                         <div className="mt-4 p-3 bg-red-50 rounded-lg">
                           <p className="text-sm font-medium text-red-800 mb-2">
                             Errores encontrados:
                           </p>
                           <div className="text-xs text-red-700 space-y-1">
-                            {operation.error_log.errors.slice(0, 3).map((error: any, index: number) => (
+                            {errorLog.errors.slice(0, 3).map((error, index) => (
                               <div key={index}>
                                 Lote {error.batch}: {error.error}
                               </div>
                             ))}
-                            {operation.error_log.errors.length > 3 && (
+                            {errorLog.errors.length > 3 && (
                               <div className="text-red-600">
-                                ... y {operation.error_log.errors.length - 3} errores más
+                                ... y {errorLog.errors.length - 3} errores más
                               </div>
                             )}
                           </div>
