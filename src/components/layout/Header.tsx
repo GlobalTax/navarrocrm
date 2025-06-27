@@ -1,6 +1,6 @@
 
 import { HeaderClock } from './HeaderClock'
-import { NotificationCenter } from './NotificationCenter'
+import { AdvancedNotificationCenter } from '@/components/notifications/AdvancedNotificationCenter'
 import { Button } from '@/components/ui/button'
 import { User, Settings } from 'lucide-react'
 
@@ -15,7 +15,7 @@ export const Header: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <NotificationCenter />
+          <AdvancedNotificationCenter />
           <Button variant="ghost" size="sm" className="p-2">
             <Settings className="h-4 w-4" />
           </Button>
