@@ -1,24 +1,19 @@
 
-import { useCases } from '@/hooks/useCases'
-import { usePracticeAreas } from '@/hooks/usePracticeAreas'
-import { useUsers } from '@/hooks/useUsers'
-import { useMatterTemplates } from '@/hooks/useMatterTemplates'
-import { useMatterTemplateActions } from '@/hooks/useMatterTemplateActions'
-import { useCasesHandlers } from '@/hooks/cases/useCasesHandlers'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { CasesMainContent } from '@/components/cases/CasesMainContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
 import { CreateTemplateDialog } from '@/components/cases/CreateTemplateDialog'
 import { TemplateWizard } from '@/components/cases/wizard/TemplateWizard'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { CasesLoadingState } from '@/components/cases/CasesLoadingState'
+import { CasesPageActions } from '@/components/cases/CasesPageActions'
+import { useCasesPageState } from '@/hooks/cases/useCasesPageState'
 
 export default function Cases() {
-  const { 
-    filteredCases, 
-    isLoading, 
-    searchTerm, 
+  const {
+    filteredCases,
+    isLoading,
+    searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,
@@ -37,14 +32,8 @@ export default function Cases() {
     deleteCase,
     isDeleting,
     archiveCase,
-    isArchiving
-  } = useCases()
-
-  const { practiceAreas = [] } = usePracticeAreas()
-  const { users = [] } = useUsers()
-  const { templates = [] } = useMatterTemplates()
-
-  const { 
+    isArchiving,
+    templates,
     createTemplate,
     isCreating: isCreatingTemplate,
     isCreateDialogOpen,
@@ -52,40 +41,16 @@ export default function Cases() {
     closeCreateDialog,
     isAdvancedWizardOpen,
     openAdvancedWizard,
-    closeAdvancedWizard
-  } = useMatterTemplateActions()
-
-  const handlers = useCasesHandlers(createCase, deleteCase, archiveCase)
+    closeAdvancedWizard,
+    handlers,
+    statusOptions,
+    practiceAreaOptions,
+    solicitorOptions
+  } = useCasesPageState()
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando expedientes...</p>
-        </div>
-      </div>
-    )
+    return <CasesLoadingState />
   }
-
-  const statusOptions = [
-    { label: 'Todos los estados', value: 'all' },
-    { label: 'Activos', value: 'active' },
-    { label: 'Abierto', value: 'open' },
-    { label: 'En espera', value: 'on_hold' },
-    { label: 'Cerrado', value: 'closed' },
-    { label: 'Archivados', value: 'archived' }
-  ]
-
-  const practiceAreaOptions = [
-    { label: 'Todas las áreas', value: 'all' },
-    ...practiceAreas.map(area => ({ label: area.name, value: area.name }))
-  ]
-
-  const solicitorOptions = [
-    { label: 'Todos los abogados', value: 'all' },
-    ...users.map(user => ({ label: user.email, value: user.id }))
-  ]
 
   const hasActiveFilters = searchStats.isFiltered
 
@@ -99,38 +64,14 @@ export default function Cases() {
           onClick: () => handlers.setIsWizardOpen(true)
         }}
       >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="default">
-              Acciones
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => handlers.handleExportCases(filteredCases)}>
-              Exportar Expedientes
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
-              Plantillas ({templates.length})
-            </DropdownMenuItem>
-            {templates.map((template) => (
-              <DropdownMenuItem 
-                key={template.id} 
-                className="pl-8"
-                onClick={() => handlers.handleUseTemplate(template.id)}
-              >
-                {template.name}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openCreateDialog}>
-              Nueva Plantilla Básica
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={openAdvancedWizard}>
-              Nueva Plantilla Avanzada
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <CasesPageActions
+          templates={templates}
+          filteredCases={filteredCases}
+          onExportCases={handlers.handleExportCases}
+          onUseTemplate={handlers.handleUseTemplate}
+          onOpenCreateDialog={openCreateDialog}
+          onOpenAdvancedWizard={openAdvancedWizard}
+        />
       </StandardPageHeader>
 
       <CasesMainContent
