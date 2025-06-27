@@ -48,7 +48,10 @@ export default function Cases() {
     isCreating: isCreatingTemplate,
     isCreateDialogOpen,
     openCreateDialog,
-    closeCreateDialog
+    closeCreateDialog,
+    isAdvancedWizardOpen,
+    openAdvancedWizard,
+    closeAdvancedWizard
   } = useMatterTemplateActions()
 
   const handlers = useCasesHandlers(createCase, deleteCase, archiveCase)
@@ -101,7 +104,7 @@ export default function Cases() {
               Acciones
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem onClick={() => handlers.handleExportCases(filteredCases)}>
               Exportar Expedientes
             </DropdownMenuItem>
@@ -120,7 +123,10 @@ export default function Cases() {
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={openCreateDialog}>
-              Nueva Plantilla
+              Nueva Plantilla Básica
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openAdvancedWizard}>
+              Nueva Plantilla Avanzada
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -184,6 +190,13 @@ export default function Cases() {
       <CreateTemplateDialog
         open={isCreateDialogOpen}
         onOpenChange={closeCreateDialog}
+        onSubmit={createTemplate}
+        isCreating={isCreatingTemplate}
+      />
+
+      <TemplateWizard
+        open={isAdvancedWizardOpen}
+        onOpenChange={closeAdvancedWizard}
         onSubmit={createTemplate}
         isCreating={isCreatingTemplate}
       />
