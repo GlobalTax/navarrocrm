@@ -1,21 +1,17 @@
-import { useState } from 'react'
-import { CasesStats } from '@/components/cases/CasesStats'
-import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
-import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
-import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
-import { CreateTemplateDialog } from '@/components/cases/CreateTemplateDialog'
-import { useCases, Case } from '@/hooks/useCases'
+
+import { useCases } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
 import { useMatterTemplates } from '@/hooks/useMatterTemplates'
 import { useMatterTemplateActions } from '@/hooks/useMatterTemplateActions'
+import { useCasesHandlers } from '@/hooks/cases/useCasesHandlers'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { StandardFilters } from '@/components/layout/StandardFilters'
+import { CasesMainContent } from '@/components/cases/CasesMainContent'
+import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
+import { CreateTemplateDialog } from '@/components/cases/CreateTemplateDialog'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { exportCasesToCSV } from '@/utils/exportUtils'
-import { toast } from 'sonner'
 
 export default function Cases() {
   const { 
@@ -55,76 +51,7 @@ export default function Cases() {
     closeCreateDialog
   } = useMatterTemplateActions()
 
-  const [selectedCase, setSelectedCase] = useState<Case | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isWizardOpen, setIsWizardOpen] = useState(false)
-  const [selectedCases, setSelectedCases] = useState<string[]>([])
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
-  const [caseToDelete, setCaseToDelete] = useState<Case | null>(null)
-  const [caseToArchive, setCaseToArchive] = useState<Case | null>(null)
-
-  const handleViewCase = (case_: Case) => {
-    setSelectedCase(case_)
-    setIsDetailOpen(true)
-  }
-
-  const handleEditCase = (case_: Case) => {
-    setSelectedCase(case_)
-    setIsWizardOpen(true)
-  }
-
-  const handleDeleteCase = (case_: Case) => {
-    setCaseToDelete(case_)
-    setIsDeleteDialogOpen(true)
-  }
-
-  const handleArchiveCase = (case_: Case) => {
-    setCaseToArchive(case_)
-    setIsArchiveDialogOpen(true)
-  }
-
-  const handleConfirmDelete = (caseId: string) => {
-    deleteCase(caseId)
-    setIsDeleteDialogOpen(false)
-    setCaseToDelete(null)
-  }
-
-  const handleConfirmArchive = (caseId: string) => {
-    archiveCase(caseId)
-    setIsArchiveDialogOpen(false)
-    setCaseToArchive(null)
-  }
-
-  const handleSelectCase = (caseId: string, selected: boolean) => {
-    if (selected) {
-      setSelectedCases([...selectedCases, caseId])
-    } else {
-      setSelectedCases(selectedCases.filter(id => id !== caseId))
-    }
-  }
-
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      setSelectedCases(filteredCases.map(c => c.id))
-    } else {
-      setSelectedCases([])
-    }
-  }
-
-  const handleExportCases = () => {
-    const success = exportCasesToCSV(filteredCases)
-    if (success) {
-      toast.success('Expedientes exportados exitosamente')
-    } else {
-      toast.error('Error al exportar expedientes')
-    }
-  }
-
-  const handleUseTemplate = (templateId: string) => {
-    // TODO: Implementar uso de plantilla al crear expediente
-    toast.info(`Funcionalidad de plantilla ${templateId} en desarrollo`)
-  }
+  const handlers = useCasesHandlers(createCase, deleteCase, archiveCase)
 
   if (isLoading) {
     return (
@@ -165,7 +92,7 @@ export default function Cases() {
         description="Gestiona todos los expedientes del despacho"
         primaryAction={{
           label: 'Nuevo Expediente',
-          onClick: () => setIsWizardOpen(true)
+          onClick: () => handlers.setIsWizardOpen(true)
         }}
       >
         <DropdownMenu>
@@ -175,7 +102,7 @@ export default function Cases() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleExportCases}>
+            <DropdownMenuItem onClick={() => handlers.handleExportCases(filteredCases)}>
               Exportar Expedientes
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -186,7 +113,7 @@ export default function Cases() {
               <DropdownMenuItem 
                 key={template.id} 
                 className="pl-8"
-                onClick={() => handleUseTemplate(template.id)}
+                onClick={() => handlers.handleUseTemplate(template.id)}
               >
                 {template.name}
               </DropdownMenuItem>
@@ -199,77 +126,58 @@ export default function Cases() {
         </DropdownMenu>
       </StandardPageHeader>
 
-      <CasesStats cases={filteredCases} />
-
-      <StandardFilters
-        searchPlaceholder="Buscar expedientes..."
-        searchValue={searchTerm}
+      <CasesMainContent
+        filteredCases={filteredCases}
+        templates={templates}
+        searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        filters={[
-          {
-            placeholder: 'Estado',
-            value: statusFilter,
-            onChange: setStatusFilter,
-            options: statusOptions
-          },
-          {
-            placeholder: 'Área de práctica',
-            value: practiceAreaFilter,
-            onChange: setPracticeAreaFilter,
-            options: practiceAreaOptions
-          },
-          {
-            placeholder: 'Abogado',
-            value: solicitorFilter,
-            onChange: setSolicitorFilter,
-            options: solicitorOptions
-          }
-        ]}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        practiceAreaFilter={practiceAreaFilter}
+        setPracticeAreaFilter={setPracticeAreaFilter}
+        solicitorFilter={solicitorFilter}
+        setSolicitorFilter={setSolicitorFilter}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={clearAllFilters}
-      />
-
-      <CasesBulkActions selectedCases={selectedCases} />
-
-      <CasesTabsContent
-        filteredCases={filteredCases}
-        onViewCase={handleViewCase}
-        onEditCase={handleEditCase}
-        onDeleteCase={handleDeleteCase}
-        onArchiveCase={handleArchiveCase}
-        selectedCases={selectedCases}
-        onSelectCase={handleSelectCase}
-        onSelectAll={handleSelectAll}
+        selectedCases={handlers.selectedCases}
+        onViewCase={handlers.handleViewCase}
+        onEditCase={handlers.handleEditCase}
+        onDeleteCase={handlers.handleDeleteCase}
+        onArchiveCase={handlers.handleArchiveCase}
+        onSelectCase={handlers.handleSelectCase}
+        onSelectAll={handlers.handleSelectAll}
         searchResultsWithScore={searchResultsWithScore}
-        searchTerm={searchTerm}
         isSearching={isSearching}
+        statusOptions={statusOptions}
+        practiceAreaOptions={practiceAreaOptions}
+        solicitorOptions={solicitorOptions}
       />
 
       <CasesDialogManager
-        selectedCase={selectedCase}
-        isDetailOpen={isDetailOpen}
-        onDetailClose={() => setIsDetailOpen(false)}
-        isWizardOpen={isWizardOpen}
-        onWizardOpenChange={setIsWizardOpen}
+        selectedCase={handlers.selectedCase}
+        isDetailOpen={handlers.isDetailOpen}
+        onDetailClose={() => handlers.setIsDetailOpen(false)}
+        isWizardOpen={handlers.isWizardOpen}
+        onWizardOpenChange={handlers.setIsWizardOpen}
         onSubmit={createCase}
         isCreating={isCreating}
         isCreateSuccess={isCreateSuccess}
         onResetCreate={createCaseReset}
-        caseToDelete={caseToDelete}
-        isDeleteDialogOpen={isDeleteDialogOpen}
+        caseToDelete={handlers.caseToDelete}
+        isDeleteDialogOpen={handlers.isDeleteDialogOpen}
         onDeleteDialogClose={() => {
-          setIsDeleteDialogOpen(false)
-          setCaseToDelete(null)
+          handlers.setIsDeleteDialogOpen(false)
+          handlers.setCaseToDelete(null)
         }}
-        onConfirmDelete={handleConfirmDelete}
+        onConfirmDelete={handlers.handleConfirmDelete}
         isDeleting={isDeleting}
-        caseToArchive={caseToArchive}
-        isArchiveDialogOpen={isArchiveDialogOpen}
+        caseToArchive={handlers.caseToArchive}
+        isArchiveDialogOpen={handlers.isArchiveDialogOpen}
         onArchiveDialogClose={() => {
-          setIsArchiveDialogOpen(false)
-          setCaseToArchive(null)
+          handlers.setIsArchiveDialogOpen(false)
+          handlers.setCaseToArchive(null)
         }}
-        onConfirmArchive={handleConfirmArchive}
+        onConfirmArchive={handlers.handleConfirmArchive}
         isArchiving={isArchiving}
       />
 
