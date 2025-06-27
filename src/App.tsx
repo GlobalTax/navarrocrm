@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ErrorBoundary } from '@/components/errors'
@@ -62,8 +61,17 @@ function AppContent() {
     )
   }
 
-  // If user exists but no org_id, redirect to setup
-  if (user && !user.org_id) {
+  // Debug: log user state
+  console.log('🔍 [App] Usuario actual:', { 
+    id: user.id, 
+    email: user.email, 
+    role: user.role, 
+    org_id: user.org_id 
+  })
+
+  // If user exists but no org_id, redirect to setup ONLY if we're certain the profile enrichment is complete
+  if (user && user.org_id === undefined) {
+    console.log('⚠️ [App] Usuario sin org_id, redirigiendo a setup')
     return (
       <BrowserRouter>
         <Routes>
@@ -76,10 +84,11 @@ function AppContent() {
   }
 
   // Normal app flow for authenticated users with org_id
+  console.log('✅ [App] Usuario autenticado con org_id, mostrando aplicación completa')
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={
           <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -189,7 +198,7 @@ function AppContent() {
         {/* Redirección de /clients a /contacts para compatibilidad */}
         <Route path="/clients" element={<Navigate to="/contacts" replace />} />
         
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   )

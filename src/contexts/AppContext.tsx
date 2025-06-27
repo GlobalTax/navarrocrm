@@ -44,46 +44,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUser(basicUser)
       setAuthLoading(false)
       
-      // Intentar enriquecer perfil en segundo plano
-      try {
-        console.log('🔍 [AppContext] Enriqueciendo perfil para usuario:', session.user.id)
-        
-        const { data: profile, error } = await supabase
-          .from('users')
-          .select('role, org_id')
-          .eq('id', session.user.id)
-          .single()
+      // Intentar enriquecer perfil en segundo plano con reintentos
+      setTimeout(async () => {
+        await enrichUserProfile(session.user)
+      }, 100)
+    }
 
-        if (error) {
-          console.error('❌ [AppContext] Error obteniendo perfil:', {
-            error: error,
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          })
+    // Función para enriquecer perfil con reintentos
+    const enrichUserProfile = async (authUser: User, retries = 3) => {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          console.log(`🔍 [AppContext] Enriqueciendo perfil (intento ${attempt}/${retries}) para usuario:`, authUser.id)
           
-          // Si el usuario no existe en la tabla users, mantener usuario básico
-          if (error.code === 'PGRST116') {
-            console.warn('⚠️ [AppContext] Usuario no encontrado en tabla users, usando perfil básico')
-          }
-          return
-        }
+          const { data: profile, error } = await supabase
+            .from('users')
+            .select('role, org_id')
+            .eq('id', authUser.id)
+            .maybeSingle()
 
-        if (profile) {
-          const enrichedUser: AuthUser = {
-            ...session.user,
-            role: profile.role as UserRole,
-            org_id: profile.org_id
+          if (error) {
+            console.error(`❌ [AppContext] Error en intento ${attempt}:`, {
+              error: error,
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              code: error.code
+            })
+            
+            // Si es el último intento, manejar el error
+            if (attempt === retries) {
+              if (error.code === 'PGRST116') {
+                console.warn('⚠️ [AppContext] Usuario no encontrado en tabla users, usando perfil básico')
+              }
+              return
+            }
+            
+            // Esperar antes del siguiente intento
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+            continue
           }
-          setUser(enrichedUser)
-          console.log('✅ [AppContext] Perfil enriquecido:', {
-            role: profile.role,
-            org_id: profile.org_id
-          })
+
+          if (profile && profile.org_id) {
+            const enrichedUser: AuthUser = {
+              ...authUser,
+              role: profile.role as UserRole,
+              org_id: profile.org_id
+            }
+            setUser(enrichedUser)
+            console.log('✅ [AppContext] Perfil enriquecido exitosamente:', {
+              role: profile.role,
+              org_id: profile.org_id,
+              user_id: authUser.id
+            })
+            return // Éxito, salir del bucle
+          } else if (profile) {
+            // Usuario encontrado pero sin org_id
+            console.warn('⚠️ [AppContext] Usuario encontrado pero sin org_id:', profile)
+            const basicUserWithRole: AuthUser = {
+              ...authUser,
+              role: (profile.role as UserRole) || 'junior',
+              org_id: undefined
+            }
+            setUser(basicUserWithRole)
+            return
+          } else {
+            // No se encontraron datos
+            console.warn('⚠️ [AppContext] No se encontraron datos del usuario')
+            if (attempt < retries) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+              continue
+            }
+          }
+        } catch (error: any) {
+          console.error(`❌ [AppContext] Error crítico en intento ${attempt}:`, error.message)
+          
+          if (attempt < retries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+            continue
+          }
+          
+          // Fallback final: usar usuario básico
+          const fallbackUser: AuthUser = {
+            ...authUser,
+            role: 'junior' as UserRole,
+            org_id: undefined
+          }
+          setUser(fallbackUser)
         }
-      } catch (error) {
-        console.error('❌ [AppContext] Error crítico enriqueciendo perfil:', error)
       }
     }
 
