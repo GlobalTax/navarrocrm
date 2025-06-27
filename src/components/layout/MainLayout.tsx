@@ -17,8 +17,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex dark:bg-gray-900">
+      {/* Sidebar fijo a la izquierda */}
       <SimpleSidebar />
-      <div className="flex-1 flex flex-col">
+      
+      {/* Contenido principal: Header + Main content */}
+      <div className="flex-1 flex flex-col min-w-0">
         <Header />
         <main className="flex-1 p-6 overflow-auto">
           {children}
@@ -33,16 +36,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onMinimize={minimize}
       />
       
-      {/* PWA Simple Manager - Interfaz limpia sin información técnica */}
-      <PWASimpleManager
-        showOfflineIndicator={true}
-        showSyncNotifications={true}
-        showUpdateNotifications={true}
-        statusPosition="top-right"
-      />
+      {/* PWA Simple Manager - Posicionado fuera del flujo principal */}
+      <div className="fixed top-4 right-4 z-40">
+        <PWASimpleManager
+          showOfflineIndicator={true}
+          showSyncNotifications={true}
+          showUpdateNotifications={true}
+          statusPosition="top-right"
+        />
+      </div>
       
-      {/* Cache Stats Panel (Development Only) */}
-      <CacheStatsPanel />
+      {/* Cache Stats Panel - Posicionado fuera del flujo principal */}
+      <div className="fixed bottom-4 left-4 z-40">
+        <CacheStatsPanel />
+      </div>
     </div>
   )
 }

@@ -68,11 +68,11 @@ export const SimpleSidebar: React.FC = () => {
 
   return (
     <div className={`
-      flex h-full flex-col bg-white border-r border-gray-200 transition-all duration-300 ease-in-out
+      h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col
       ${collapsed ? 'w-16' : 'w-64'}
     `}>
       {/* Toggle Button */}
-      <div className="flex justify-end p-2">
+      <div className="flex justify-end p-2 border-b border-gray-100">
         <Button
           variant="ghost"
           size="sm"
@@ -88,14 +88,15 @@ export const SimpleSidebar: React.FC = () => {
       </div>
 
       {/* Header */}
-      <div className="px-4 py-2">
-        {!collapsed && (
+      {!collapsed && (
+        <div className="px-4 py-3 border-b border-gray-100">
           <h1 className="text-xl font-bold text-gray-900">CRM Legal</h1>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="flex flex-1 flex-col pt-2 pb-4 overflow-y-auto">
-        <nav className="flex-1 px-2 space-y-1">
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto py-4">
+        <nav className="px-2 space-y-1">
           {/* Sección Principal */}
           <div className="pb-4">
             {!collapsed && (
