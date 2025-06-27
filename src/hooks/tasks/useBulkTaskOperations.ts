@@ -30,27 +30,24 @@ export interface BulkTaskCreateData {
 export const useBulkTaskOperations = () => {
   const queryClient = useQueryClient()
 
-  // Por ahora, retornamos datos simulados hasta que los tipos se actualicen
   const { data: operations = [], isLoading } = useQuery({
     queryKey: ['bulk-task-operations'],
     queryFn: async (): Promise<BulkTaskOperation[]> => {
-      // Consulta temporal directa hasta que las tablas estén disponibles
       try {
-        // Primero intentamos consultar la tabla directamente
         const { data, error } = await supabase
-          .from('task_bulk_operations' as any)
+          .from('task_bulk_operations')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(20)
         
         if (error) {
-          console.log('Table not ready yet, returning empty array:', error.message)
+          console.error('Error fetching bulk operations:', error.message)
           return []
         }
         
         return data || []
       } catch (error) {
-        console.log('Operations table not ready, returning empty array')
+        console.error('Bulk operations fetch error:', error)
         return []
       }
     }
@@ -73,7 +70,7 @@ export const useBulkTaskOperations = () => {
       // Crear registro de operación masiva
       try {
         const { data: operationData, error: operationError } = await supabase
-          .from('task_bulk_operations' as any)
+          .from('task_bulk_operations')
           .insert({
             org_id: orgId,
             operation_type: 'create',

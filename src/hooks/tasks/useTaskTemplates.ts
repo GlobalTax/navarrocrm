@@ -38,27 +38,24 @@ export interface TaskTemplateInsert {
 export const useTaskTemplates = () => {
   const queryClient = useQueryClient()
 
-  // Por ahora, retornamos datos simulados hasta que los tipos se actualicen
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['task-templates'],
     queryFn: async (): Promise<TaskTemplate[]> => {
-      // Consulta temporal directa hasta que las tablas estén disponibles
       try {
-        // Primero intentamos consultar la tabla directamente
         const { data, error } = await supabase
-          .from('task_templates' as any)
+          .from('task_templates')
           .select('*')
           .eq('is_active', true)
           .order('name')
         
         if (error) {
-          console.log('Templates table not ready yet, returning empty array:', error.message)
+          console.error('Error fetching templates:', error.message)
           return []
         }
         
         return data || []
       } catch (error) {
-        console.log('Templates table not ready, returning empty array')
+        console.error('Templates fetch error:', error)
         return []
       }
     }
@@ -78,7 +75,7 @@ export const useTaskTemplates = () => {
       }
 
       const { data, error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates')
         .insert(templateData)
         .select()
         .single()
@@ -102,7 +99,7 @@ export const useTaskTemplates = () => {
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<TaskTemplate> & { id: string }) => {
       const { data, error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates')
         .update(updates)
         .eq('id', id)
         .select()
@@ -123,7 +120,7 @@ export const useTaskTemplates = () => {
   const deleteTemplate = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates')
         .update({ is_active: false })
         .eq('id', id)
 

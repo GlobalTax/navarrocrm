@@ -3732,6 +3732,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      sincronizar_cuentas_quantum_final: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       app_role:
