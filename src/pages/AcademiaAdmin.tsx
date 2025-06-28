@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { useAcademyCategories, useAcademyCourses } from '@/hooks/useAcademy'
 import { useAcademyCategoriesMutation, useAcademyCoursesMutation } from '@/hooks/useAcademyAdmin'
@@ -7,6 +6,7 @@ import { AcademiaAdminHeader } from '@/components/academia/admin/AcademiaAdminHe
 import { CourseFormDialog } from '@/components/academia/admin/CourseFormDialog'
 import { CategoryFormDialog } from '@/components/academia/admin/CategoryFormDialog'
 import { LessonFormDialog } from '@/components/academia/admin/LessonFormDialog'
+import { AICourseGeneratorDialog } from '@/components/academia/admin/AICourseGeneratorDialog'
 import { CoursesTable } from '@/components/academia/admin/CoursesTable'
 import { LoadingState } from '@/components/academia/LoadingState'
 import { ErrorState } from '@/components/academia/ErrorState'
@@ -43,6 +43,7 @@ export default function AcademiaAdmin() {
   const [courseDialogOpen, setCourseDialogOpen] = useState(false)
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [lessonDialogOpen, setLessonDialogOpen] = useState(false)
+  const [aiCourseDialogOpen, setAiCourseDialogOpen] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [selectedCourseForLesson, setSelectedCourseForLesson] = useState<string>('')
@@ -74,6 +75,10 @@ export default function AcademiaAdmin() {
     setCourseDialogOpen(true)
   }
 
+  const handleGenerateCourseWithAI = () => {
+    setAiCourseDialogOpen(true)
+  }
+
   const handleEditCategory = (category: Category) => {
     setSelectedCategory(category)
     setCategoryDialogOpen(true)
@@ -101,6 +106,11 @@ export default function AcademiaAdmin() {
     }
   }
 
+  const handleCourseGenerated = (courseId: string) => {
+    console.log('Course generated:', courseId)
+    // Opcionalmente podrías navegar al curso generado o hacer algo específico
+  }
+
   // Type assertion to ensure courses match the expected type
   const typedCourses = (courses || []) as Course[]
 
@@ -111,6 +121,7 @@ export default function AcademiaAdmin() {
         categoriesCount={categories?.length || 0}
         onNewCourse={handleNewCourse}
         onNewCategory={handleNewCategory}
+        onGenerateCourseWithAI={handleGenerateCourseWithAI}
       />
 
       <Tabs defaultValue="courses" className="space-y-6">
@@ -227,6 +238,13 @@ export default function AcademiaAdmin() {
           setSelectedCourseForLesson('')
         }}
         courseId={selectedCourseForLesson}
+      />
+
+      <AICourseGeneratorDialog
+        open={aiCourseDialogOpen}
+        onClose={() => setAiCourseDialogOpen(false)}
+        categories={categories || []}
+        onCourseGenerated={handleCourseGenerated}
       />
     </StandardPageContainer>
   )
