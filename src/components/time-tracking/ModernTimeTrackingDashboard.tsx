@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -107,8 +106,8 @@ export function ModernTimeTrackingDashboard() {
             
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">{stat.title}</span>
-                <span className="text-lg font-bold text-gray-900">{stat.value}</span>
+                <span className="crm-widget-label">{stat.title}</span>
+                <span className="crm-widget-value">{stat.value}</span>
               </div>
               
               {/* Barra de progreso */}
@@ -119,7 +118,7 @@ export function ModernTimeTrackingDashboard() {
                 />
               </div>
               
-              <p className="text-xs text-gray-500">{stat.target}</p>
+              <p className="crm-caption">{stat.target}</p>
             </div>
           </CardContent>
         </Card>

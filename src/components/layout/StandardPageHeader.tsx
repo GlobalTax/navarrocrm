@@ -39,19 +39,19 @@ export const StandardPageHeader = ({
     <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 ${className}`}>
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+          <h1 className="crm-responsive-title">{title}</h1>
           {badges.map((badge, index) => (
             <Badge 
               key={index} 
               variant={badge.variant || 'default'}
-              className={badge.color}
+              className={`crm-badge-text ${badge.color}`}
             >
               {badge.label}
             </Badge>
           ))}
         </div>
         {description && (
-          <p className="text-gray-600 text-lg">{description}</p>
+          <p className="crm-responsive-subtitle">{description}</p>
         )}
       </div>
       
@@ -62,6 +62,7 @@ export const StandardPageHeader = ({
             <Button
               variant={secondaryAction.variant || 'outline'}
               onClick={secondaryAction.onClick}
+              className="crm-button-text"
             >
               {secondaryAction.label}
             </Button>
@@ -70,6 +71,7 @@ export const StandardPageHeader = ({
             <Button
               variant={primaryAction.variant || 'default'}
               onClick={primaryAction.onClick}
+              className="crm-button-text"
             >
               {primaryAction.label}
             </Button>

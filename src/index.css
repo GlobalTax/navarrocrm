@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,6 +99,164 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+/* === CRM TYPOGRAPHY SYSTEM === */
+@layer components {
+  /* Page Headers */
+  .crm-page-title {
+    @apply text-3xl font-bold text-gray-900 tracking-tight;
+  }
+  
+  .crm-page-subtitle {
+    @apply text-lg text-gray-600 font-medium;
+  }
+  
+  .crm-section-title {
+    @apply text-xl font-semibold text-gray-900 mb-4;
+  }
+  
+  .crm-section-subtitle {
+    @apply text-base text-gray-600 font-medium;
+  }
+
+  /* Card & Widget Typography */
+  .crm-card-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+  
+  .crm-card-subtitle {
+    @apply text-sm text-gray-600 font-medium;
+  }
+  
+  .crm-widget-value {
+    @apply text-2xl font-bold text-gray-900 tracking-tight;
+  }
+  
+  .crm-widget-label {
+    @apply text-sm font-medium text-gray-600 uppercase tracking-wide;
+  }
+
+  /* Dashboard Metrics */
+  .crm-metric-primary {
+    @apply text-4xl font-extrabold text-gray-900 tracking-tight;
+  }
+  
+  .crm-metric-secondary {
+    @apply text-2xl font-bold text-gray-700;
+  }
+  
+  .crm-metric-label {
+    @apply text-sm font-medium text-gray-500 uppercase tracking-wide;
+  }
+
+  /* Form Typography */
+  .crm-form-title {
+    @apply text-xl font-semibold text-gray-900 mb-1;
+  }
+  
+  .crm-form-description {
+    @apply text-sm text-gray-600 mb-4;
+  }
+  
+  .crm-label {
+    @apply text-sm font-medium text-gray-700 mb-1;
+  }
+  
+  .crm-input-text {
+    @apply text-base text-gray-900;
+  }
+  
+  .crm-help-text {
+    @apply text-xs text-gray-500 mt-1;
+  }
+
+  /* Navigation */
+  .crm-nav-title {
+    @apply text-base font-semibold text-gray-900;
+  }
+  
+  .crm-nav-item {
+    @apply text-sm font-medium text-gray-700 hover:text-gray-900;
+  }
+  
+  .crm-nav-item-active {
+    @apply text-sm font-semibold text-primary;
+  }
+
+  /* Table Typography */
+  .crm-table-header {
+    @apply text-sm font-semibold text-gray-900 uppercase tracking-wide;
+  }
+  
+  .crm-table-cell {
+    @apply text-sm text-gray-900;
+  }
+  
+  .crm-table-cell-secondary {
+    @apply text-sm text-gray-600;
+  }
+
+  /* Status & Badges */
+  .crm-badge-text {
+    @apply text-xs font-medium tracking-wide;
+  }
+  
+  .crm-status-text {
+    @apply text-sm font-medium;
+  }
+
+  /* Micro Typography */
+  .crm-timestamp {
+    @apply text-micro text-gray-500 font-medium tracking-wide;
+  }
+  
+  .crm-caption {
+    @apply text-xs text-gray-500;
+  }
+
+  /* Interactive Elements */
+  .crm-button-text-lg {
+    @apply text-base font-semibold;
+  }
+  
+  .crm-button-text {
+    @apply text-sm font-semibold;
+  }
+  
+  .crm-button-text-sm {
+    @apply text-xs font-semibold tracking-wide;
+  }
+
+  /* Time Tracking Specific */
+  .crm-timer-display {
+    @apply text-6xl font-extrabold text-gray-900 font-mono tracking-tighter;
+  }
+  
+  .crm-time-entry {
+    @apply text-lg font-bold text-gray-900 font-mono;
+  }
+  
+  .crm-duration-text {
+    @apply text-sm font-medium text-gray-700 font-mono;
+  }
+}
+
+/* === RESPONSIVE TYPOGRAPHY === */
+@layer utilities {
+  /* Responsive page titles */
+  .crm-responsive-title {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight;
+  }
+  
+  .crm-responsive-subtitle {
+    @apply text-base sm:text-lg text-gray-600 font-medium;
+  }
+  
+  /* Responsive metrics */
+  .crm-responsive-metric {
+    @apply text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight;
   }
 }

@@ -22,6 +22,37 @@ export default {
 			fontFamily: {
 				sans: ['Manrope', 'system-ui', 'sans-serif'],
 			},
+			fontSize: {
+				// Micro texto (8px-10px) - Para timestamps, badges pequeños
+				'micro': ['0.625rem', { lineHeight: '0.75rem', letterSpacing: '0.025em' }],
+				'xs': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.025em' }],
+				
+				// Texto base optimizado (12px-16px) - Para cuerpo de texto
+				'sm': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.015em' }],
+				'base': ['1rem', { lineHeight: '1.5rem', letterSpacing: '0.01em' }],
+				'lg': ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '0.005em' }],
+				
+				// Headers y títulos (18px-48px) - Para jerarquía clara
+				'xl': ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '0em' }],
+				'2xl': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.015em' }],
+				'3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.025em' }],
+				'4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.025em' }],
+				'5xl': ['3rem', { lineHeight: '1', letterSpacing: '-0.035em' }],
+				
+				// Display sizes para dashboards (48px+)
+				'6xl': ['3.75rem', { lineHeight: '1', letterSpacing: '-0.05em' }],
+				'7xl': ['4.5rem', { lineHeight: '1', letterSpacing: '-0.05em' }],
+				'8xl': ['6rem', { lineHeight: '1', letterSpacing: '-0.05em' }],
+				'9xl': ['8rem', { lineHeight: '1', letterSpacing: '-0.05em' }],
+			},
+			fontWeight: {
+				light: '300',
+				normal: '400',
+				medium: '500',
+				semibold: '600',
+				bold: '700',
+				extrabold: '800',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

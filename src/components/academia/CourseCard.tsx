@@ -41,16 +41,16 @@ export function CourseCard({ course, userProgress, onCourseSelect }: CourseCardP
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between mb-4">
           <div className="text-3xl">📚</div>
-          <Badge className={getLevelColor(course.level)}>
+          <Badge className={`${getLevelColor(course.level)} crm-badge-text`}>
             {getLevelText(course.level)}
           </Badge>
         </div>
-        <CardTitle className="line-clamp-2">{course.title}</CardTitle>
-        <p className="text-sm text-gray-600 line-clamp-3">{course.description || 'Sin descripción'}</p>
+        <CardTitle className="crm-card-title line-clamp-2">{course.title}</CardTitle>
+        <p className="crm-card-subtitle line-clamp-3">{course.description || 'Sin descripción'}</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex items-center justify-between crm-table-cell-secondary">
             <div className="flex items-center gap-1">
               <BookOpen className="h-4 w-4" />
               {course.total_lessons} lecciones
@@ -64,15 +64,15 @@ export function CourseCard({ course, userProgress, onCourseSelect }: CourseCardP
           </div>
           
           <div>
-            <div className="flex justify-between text-sm mb-2">
+            <div className="flex justify-between crm-table-cell mb-2">
               <span>Progreso</span>
-              <span className="font-medium">{progressPercentage}%</span>
+              <span className="font-semibold">{progressPercentage}%</span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="text-xs text-gray-500">
+            <div className="crm-caption">
               {course.academy_categories?.name || 'Sin categoría'}
             </div>
             <ChevronRight className="h-4 w-4 text-gray-400" />
