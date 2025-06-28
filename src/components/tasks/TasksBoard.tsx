@@ -42,13 +42,25 @@ export const TasksBoard = ({ tasks, onEditTask }: TasksBoardProps) => {
   ]
 
   const getTasksByStatus = (status: string) => {
-    return tasks.filter(task => {
-      if (!task || !task.id) {
-        console.warn('⚠️ Invalid task found:', task)
-        return false
-      }
-      return task.status === status
-    }) || []
+    try {
+      return tasks.filter(task => {
+        if (!task || !task.id) {
+          console.warn('⚠️ Invalid task found:', task)
+          return false
+        }
+        
+        // Mapear estados adicionales a in_progress
+        const inProgressStates = ['in_progress', 'investigation', 'drafting', 'review', 'filing', 'hearing']
+        if (status === 'in_progress' && inProgressStates.includes(task.status)) {
+          return true
+        }
+        
+        return task.status === status
+      }) || []
+    } catch (error) {
+      console.error('❌ Error filtering tasks by status:', status, error)
+      return []
+    }
   }
 
   return (
