@@ -63,9 +63,12 @@ export const useSystemSetup = () => {
           // Verificación adicional más rápida en caso de timeout
           try {
             const { data: statusData } = await supabase.rpc('get_setup_status')
-            if (statusData) {
+            if (statusData && typeof statusData === 'object' && statusData !== null && !Array.isArray(statusData)) {
               console.log('📊 [useSystemSetup] Estado detallado del setup:', statusData)
-              setIsSetup(statusData.is_setup_complete || false)
+              // Verificar que statusData tiene la propiedad is_setup_complete y es booleana
+              const setupComplete = 'is_setup_complete' in statusData ? 
+                Boolean(statusData.is_setup_complete) : false
+              setIsSetup(setupComplete)
             } else {
               console.log('🔧 [useSystemSetup] No se pudo obtener estado - asumiendo configurado')
               setIsSetup(true) // Fallback conservador
