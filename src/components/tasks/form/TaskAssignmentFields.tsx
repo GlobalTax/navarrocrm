@@ -1,19 +1,19 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { useClients } from '@/hooks/useClients'
+import { useContacts } from '@/hooks/useContacts'
 import { useCases } from '@/hooks/useCases'
 
 interface TaskAssignmentFieldsProps {
   formData: {
     case_id: string
-    client_id: string
+    contact_id: string
   }
   onInputChange: (field: string, value: string) => void
 }
 
 export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignmentFieldsProps) => {
-  const { clients } = useClients()
+  const { contacts } = useContacts()
   const { cases } = useCases()
 
   const handleCaseChange = (value: string) => {
@@ -21,22 +21,22 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
     onInputChange('case_id', finalValue)
   }
 
-  const handleClientChange = (value: string) => {
+  const handleContactChange = (value: string) => {
     const finalValue = value === 'none' ? '' : value
-    onInputChange('client_id', finalValue)
+    onInputChange('contact_id', finalValue)
   }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="case_id">Caso</Label>
+          <Label htmlFor="case_id">Expediente</Label>
           <Select value={formData.case_id || 'none'} onValueChange={handleCaseChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar caso" />
+              <SelectValue placeholder="Seleccionar expediente" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Sin caso</SelectItem>
+              <SelectItem value="none">Sin expediente</SelectItem>
               {cases?.map((caseItem) => (
                 <SelectItem key={caseItem.id} value={caseItem.id}>
                   {caseItem.title}
@@ -47,16 +47,16 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="client_id">Cliente</Label>
-          <Select value={formData.client_id || 'none'} onValueChange={handleClientChange}>
+          <Label htmlFor="contact_id">Contacto</Label>
+          <Select value={formData.contact_id || 'none'} onValueChange={handleContactChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Seleccionar cliente" />
+              <SelectValue placeholder="Seleccionar contacto" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Sin cliente</SelectItem>
-              {clients?.map((client) => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.name}
+              <SelectItem value="none">Sin contacto</SelectItem>
+              {contacts?.map((contact) => (
+                <SelectItem key={contact.id} value={contact.id}>
+                  {contact.name}
                 </SelectItem>
               ))}
             </SelectContent>
