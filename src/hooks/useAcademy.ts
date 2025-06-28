@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
+// Interfaces temporales hasta que Supabase actualice los tipos
 export interface AcademyCategory {
   id: string
   org_id: string
@@ -71,7 +72,7 @@ export const useAcademyCategories = () => {
     queryKey: ['academy-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('academy_categories')
+        .from('academy_categories' as any)
         .select('*')
         .eq('is_active', true)
         .order('sort_order')
@@ -87,7 +88,7 @@ export const useAcademyCourses = (categoryId?: string) => {
     queryKey: ['academy-courses', categoryId],
     queryFn: async () => {
       let query = supabase
-        .from('academy_courses')
+        .from('academy_courses' as any)
         .select(`
           *,
           academy_categories(*)
@@ -111,7 +112,7 @@ export const useAcademyLessons = (courseId: string) => {
     queryKey: ['academy-lessons', courseId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('academy_lessons')
+        .from('academy_lessons' as any)
         .select('*')
         .eq('course_id', courseId)
         .eq('is_published', true)
@@ -129,7 +130,7 @@ export const useUserProgress = (courseId?: string) => {
     queryKey: ['user-progress', courseId],
     queryFn: async () => {
       let query = supabase
-        .from('academy_user_progress')
+        .from('academy_user_progress' as any)
         .select('*')
 
       if (courseId) {
@@ -161,7 +162,7 @@ export const useUpdateProgress = () => {
       timeSpent?: number
     }) => {
       const { data, error } = await supabase
-        .from('academy_user_progress')
+        .from('academy_user_progress' as any)
         .upsert({
           course_id: courseId,
           lesson_id: lessonId,
