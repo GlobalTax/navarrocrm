@@ -47,12 +47,25 @@ const getPriorityColor = (priority: string) => {
 export const CaseTasksPanel = ({ caseId }: CaseTasksPanelProps) => {
   const { tasks, isLoading } = useTasks()
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false)
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
 
   // Filtrar tareas del expediente
   const caseTasks = tasks.filter(task => task.case_id === caseId)
   const pendingTasks = caseTasks.filter(task => task.status === 'pending')
   const completedTasks = caseTasks.filter(task => task.status === 'completed')
+
+  const handleTaskClick = (task: any) => {
+    setSelectedTask(task)
+  }
+
+  const handleCloseTaskDetail = () => {
+    setSelectedTask(null)
+  }
+
+  const handleEditTask = (task: any) => {
+    setSelectedTask(task)
+    setIsNewTaskOpen(true)
+  }
 
   return (
     <>
@@ -119,7 +132,7 @@ export const CaseTasksPanel = ({ caseId }: CaseTasksPanelProps) => {
                   <div
                     key={task.id}
                     className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => setSelectedTaskId(task.id)}
+                    onClick={() => handleTaskClick(task)}
                   >
                     <div className="flex-shrink-0 pt-1">
                       {task.priority === 'critical' || task.priority === 'urgent' ? (
@@ -163,16 +176,17 @@ export const CaseTasksPanel = ({ caseId }: CaseTasksPanelProps) => {
       </Card>
 
       <TaskFormDialog
-        open={isNewTaskOpen}
-        onOpenChange={setIsNewTaskOpen}
-        defaultValues={{ case_id: caseId }}
+        isOpen={isNewTaskOpen}
+        onClose={() => setIsNewTaskOpen(false)}
+        task={selectedTask}
       />
 
-      {selectedTaskId && (
+      {selectedTask && (
         <TaskDetailDrawer
-          taskId={selectedTaskId}
-          open={!!selectedTaskId}
-          onClose={() => setSelectedTaskId(null)}
+          task={selectedTask}
+          isOpen={!!selectedTask}
+          onClose={handleCloseTaskDetail}
+          onEdit={handleEditTask}
         />
       )}
     </>
