@@ -1,5 +1,6 @@
 
 import React from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { useGlobalSidebar } from '@/hooks/useGlobalStateSelectors'
 import { SidebarHeader } from './sidebar/SidebarHeader'
 import { NavigationMenu } from './sidebar/NavigationMenu'
@@ -7,7 +8,6 @@ import { QuickActionsSection } from './sidebar/QuickActionsSection'
 import { AIAssistantSection } from './sidebar/AIAssistantSection'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, Menu } from 'lucide-react'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // Componente de fallback para cuando hay errores
 const SidebarFallback = ({ collapsed }: { collapsed: boolean }) => (
@@ -54,17 +54,26 @@ const CollapsibleSidebarContent = React.memo(() => {
       </div>
 
       <div className="flex flex-1 flex-col pt-2 pb-4 overflow-y-auto">
-        <ErrorBoundary fallback={<div className="p-4 text-xs text-gray-500">Error en header</div>}>
+        <ErrorBoundary 
+          fallback={<div className="p-4 text-xs text-gray-500">Error en header</div>}
+          onError={(error) => console.error('🚨 [SidebarHeader] Error:', error)}
+        >
           <SidebarHeader collapsed={sidebarCollapsed} />
         </ErrorBoundary>
         
         <nav className="flex-1 px-2 space-y-1">
-          <ErrorBoundary fallback={<div className="p-4 text-xs text-gray-500">Error en navegación</div>}>
+          <ErrorBoundary 
+            fallback={<div className="p-4 text-xs text-gray-500">Error en navegación</div>}
+            onError={(error) => console.error('🚨 [NavigationMenu] Error:', error)}
+          >
             <NavigationMenu collapsed={sidebarCollapsed} />
           </ErrorBoundary>
           
           {!sidebarCollapsed && (
-            <ErrorBoundary fallback={<div className="p-4 text-xs text-gray-500">Error en acciones</div>}>
+            <ErrorBoundary 
+              fallback={<div className="p-4 text-xs text-gray-500">Error en acciones</div>}
+              onError={(error) => console.error('🚨 [QuickActions] Error:', error)}
+            >
               <>
                 <QuickActionsSection />
                 <AIAssistantSection />
