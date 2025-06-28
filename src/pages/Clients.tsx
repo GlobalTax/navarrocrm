@@ -1,133 +1,97 @@
-
 import { useState } from 'react'
-import { useClients } from '@/hooks/useClients'
-import { PremiumPageHeader } from '@/components/layout/PremiumPageHeader'
-import { PremiumFilters } from '@/components/layout/PremiumFilters'
-import { ClientsList } from '@/components/clients/ClientsList'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Client, useClients } from '@/hooks/useClients'
+import { ClientsTabsContent } from '@/components/clients/ClientsTabsContent'
 import { ClientsDialogManager } from '@/components/clients/ClientsDialogManager'
-import { ClientMetricsDashboard } from '@/components/clients/ClientMetricsDashboard'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
-export default function Clients() {
+const Clients = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<any>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [typeFilter, setTypeFilter] = useState('all')
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+  const [activeTab, setActiveTab] = useState('list')
 
-  const { clients } = useClients()
+  const { clients, refetch } = useClients()
 
   const handleCreateClient = () => {
+    setSelectedClient(null)
     setIsCreateDialogOpen(true)
   }
 
-  const handleViewClient = (client: any) => {
-    setSelectedClient(client)
-    setIsViewDialogOpen(true)
-  }
-
-  const handleEditClient = (client: any) => {
+  const handleEditClient = (client: Client) => {
     setSelectedClient(client)
     setIsEditDialogOpen(true)
   }
 
-  const statusOptions = [
-    { label: 'Todos los estados', value: 'all' },
-    { label: 'Activos', value: 'activo' },
-    { label: 'Inactivos', value: 'inactivo' },
-    { label: 'Prospectos', value: 'prospecto' }
-  ]
-
-  const typeOptions = [
-    { label: 'Todos los tipos', value: 'all' },
-    { label: 'Empresas', value: 'empresa' },
-    { label: 'Particulares', value: 'particular' },
-    { label: 'Autónomos', value: 'autonomo' }
-  ]
-
-  const hasActiveFilters = Boolean(
-    searchTerm || 
-    statusFilter !== 'all' || 
-    typeFilter !== 'all'
-  )
-
-  const handleClearFilters = () => {
-    setSearchTerm('')
-    setStatusFilter('all')
-    setTypeFilter('all')
+  const handleViewClient = (client: Client) => {
+    // Ya no abrimos el modal, navegamos a la página de detalle
+    // La navegación se maneja en ClientTable directamente
   }
 
-  const handleCloseDialog = () => {
+  const handleDialogClose = () => {
     setIsCreateDialogOpen(false)
-    setIsViewDialogOpen(false)
     setIsEditDialogOpen(false)
+    setIsDetailDialogOpen(false)
     setSelectedClient(null)
   }
 
+  const handleBulkUploadSuccess = () => {
+    refetch()
+  }
+
   return (
-    <div className="min-h-screen bg-premium-gray-5 p-6">
-      <div className="max-w-7xl mx-auto premium-spacing-xl">
-        <PremiumPageHeader
-          title="Clientes"
-          description="Gestiona tu cartera de clientes y prospectos comerciales"
-          badges={[
-            { label: `${clients.length} clientes`, variant: 'primary' }
-          ]}
-          primaryAction={{
-            label: 'Nuevo Cliente',
-            onClick: handleCreateClient
-          }}
-        />
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Clientes"
+        description="Gestiona tu cartera de clientes"
+        primaryAction={{
+          label: 'Nuevo Cliente',
+          onClick: handleCreateClient
+        }}
+      />
 
-        <ClientMetricsDashboard clients={clients} />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="list">
+            Gestión de Clientes
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            Análisis y Métricas
+          </TabsTrigger>
+        </TabsList>
 
-        <div className="premium-spacing-lg">
-          <PremiumFilters
-            searchPlaceholder="Buscar clientes..."
-            searchValue={searchTerm}
-            onSearchChange={setSearchTerm}
-            filters={[
-              {
-                placeholder: 'Estado',
-                value: statusFilter,
-                onChange: setStatusFilter,
-                options: statusOptions
-              },
-              {
-                placeholder: 'Tipo',
-                value: typeFilter,
-                onChange: setTypeFilter,
-                options: typeOptions
-              }
-            ]}
-            hasActiveFilters={hasActiveFilters}
-            onClearFilters={handleClearFilters}
-          />
-
-          <div className="mt-6">
-            <ClientsList 
-              onCreateClient={handleCreateClient}
-              onViewClient={handleViewClient}
-              onEditClient={handleEditClient}
-            />
-          </div>
-        </div>
-
-        <ClientsDialogManager
-          selectedClient={selectedClient}
-          isCreateDialogOpen={isCreateDialogOpen}
-          isEditDialogOpen={isEditDialogOpen}
-          isDetailDialogOpen={isViewDialogOpen}
-          isBulkUploadOpen={false}
-          isExportDialogOpen={false}
+        <ClientsTabsContent
           clients={clients}
-          onClose={handleCloseDialog}
-          onBulkUploadClose={() => {}}
-          onExportClose={() => {}}
-          onBulkUploadSuccess={() => {}}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          onCreateClient={handleCreateClient}
+          onViewClient={handleViewClient}
+          onEditClient={handleEditClient}
+          onBulkUpload={() => setIsBulkUploadOpen(true)}
+          onExport={() => setIsExportDialogOpen(true)}
         />
-      </div>
-    </div>
+      </Tabs>
+
+      <ClientsDialogManager
+        selectedClient={selectedClient}
+        isCreateDialogOpen={isCreateDialogOpen}
+        isEditDialogOpen={isEditDialogOpen}
+        isDetailDialogOpen={isDetailDialogOpen}
+        isBulkUploadOpen={isBulkUploadOpen}
+        isExportDialogOpen={isExportDialogOpen}
+        clients={clients}
+        onClose={handleDialogClose}
+        onBulkUploadClose={() => setIsBulkUploadOpen(false)}
+        onExportClose={() => setIsExportDialogOpen(false)}
+        onBulkUploadSuccess={handleBulkUploadSuccess}
+      />
+    </StandardPageContainer>
   )
 }
+
+export default Clients

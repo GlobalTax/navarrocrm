@@ -8,7 +8,7 @@ import { useApp } from '@/contexts/AppContext'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { useProposalsFilters } from '@/hooks/proposals/useProposalsFilters'
 import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
-import { ProposalsTableView } from '@/components/proposals/ProposalsTableView'
+import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
@@ -153,6 +153,8 @@ export default function Proposals() {
         }}
       />
 
+      <ProposalMetrics />
+
       <StandardFilters
         searchPlaceholder="Buscar propuestas..."
         searchValue={filters.search}
@@ -175,10 +177,12 @@ export default function Proposals() {
         onClearFilters={handleClearFilters}
       />
 
-      <ProposalsTableView
+      <ProposalsTabsView
         proposals={categorizedProposals}
         onStatusChange={handleStatusChange}
         onViewProposal={handleViewProposal}
+        onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
+        onOpenSpecificBuilder={pageState.openSpecificBuilder}
       />
     </StandardPageContainer>
   )

@@ -3,9 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Importar el Sistema de Diseño Premium */
-@import './styles/premium-design-system.css';
-
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
@@ -103,8 +100,6 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    /* Aplicar fondo premium por defecto */
-    background-color: rgb(252, 252, 253);
   }
 }
 
