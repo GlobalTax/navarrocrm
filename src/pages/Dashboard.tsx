@@ -5,7 +5,7 @@ import { PremiumCard, PremiumCardContent, PremiumCardHeader, PremiumCardTitle } 
 import { useDashboardData } from '@/hooks/useDashboardData'
 
 export default function Dashboard() {
-  const { metrics, isLoading } = useDashboardData()
+  const { data: dashboardData, isLoading } = useDashboardData()
 
   if (isLoading) {
     return (
@@ -25,7 +25,7 @@ export default function Dashboard() {
           description="Vista general de tu despacho y métricas principales"
         />
 
-        <PremiumDashboardMetrics data={metrics} />
+        <PremiumDashboardMetrics />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
           <PremiumCard className="premium-animate-slide-up">

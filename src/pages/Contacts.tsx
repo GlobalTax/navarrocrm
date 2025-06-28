@@ -14,6 +14,7 @@ export default function Contacts() {
   const [selectedContact, setSelectedContact] = useState<any>(null)
 
   const {
+    contacts,
     filteredContacts,
     searchTerm,
     setSearchTerm,
@@ -63,6 +64,13 @@ export default function Contacts() {
     setRelationshipFilter('all')
   }
 
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false)
+    setIsViewDialogOpen(false)
+    setIsEditDialogOpen(false)
+    setSelectedContact(null)
+  }
+
   return (
     <div className="min-h-screen bg-premium-gray-5 p-6">
       <div className="max-w-7xl mx-auto premium-spacing-xl">
@@ -78,7 +86,7 @@ export default function Contacts() {
           }}
         />
 
-        <ContactMetricsDashboard />
+        <ContactMetricsDashboard contacts={contacts} />
 
         <div className="premium-spacing-lg">
           <PremiumFilters
@@ -113,14 +121,17 @@ export default function Contacts() {
         </div>
 
         <ContactsDialogManager
-          isCreateDialogOpen={isCreateDialogOpen}
-          setIsCreateDialogOpen={setIsCreateDialogOpen}
-          isViewDialogOpen={isViewDialogOpen}
-          setIsViewDialogOpen={setIsViewDialogOpen}
-          isEditDialogOpen={isEditDialogOpen}
-          setIsEditDialogOpen={setIsEditDialogOpen}
           selectedContact={selectedContact}
-          setSelectedContact={setSelectedContact}
+          isCreateDialogOpen={isCreateDialogOpen}
+          isEditDialogOpen={isEditDialogOpen}
+          isDetailDialogOpen={isViewDialogOpen}
+          isBulkUploadOpen={false}
+          isExportDialogOpen={false}
+          contacts={contacts}
+          onClose={handleCloseDialog}
+          onBulkUploadClose={() => {}}
+          onExportClose={() => {}}
+          onBulkUploadSuccess={() => {}}
         />
       </div>
     </div>

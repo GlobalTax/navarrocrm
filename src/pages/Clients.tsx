@@ -58,6 +58,13 @@ export default function Clients() {
     setTypeFilter('all')
   }
 
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false)
+    setIsViewDialogOpen(false)
+    setIsEditDialogOpen(false)
+    setSelectedClient(null)
+  }
+
   return (
     <div className="min-h-screen bg-premium-gray-5 p-6">
       <div className="max-w-7xl mx-auto premium-spacing-xl">
@@ -73,7 +80,7 @@ export default function Clients() {
           }}
         />
 
-        <ClientMetricsDashboard />
+        <ClientMetricsDashboard contacts={clients} />
 
         <div className="premium-spacing-lg">
           <PremiumFilters
@@ -108,14 +115,17 @@ export default function Clients() {
         </div>
 
         <ClientsDialogManager
-          isCreateDialogOpen={isCreateDialogOpen}
-          setIsCreateDialogOpen={setIsCreateDialogOpen}
-          isViewDialogOpen={isViewDialogOpen}
-          setIsViewDialogOpen={setIsViewDialogOpen}
-          isEditDialogOpen={isEditDialogOpen}
-          setIsEditDialogOpen={setIsEditDialogOpen}
           selectedClient={selectedClient}
-          setSelectedClient={setSelectedClient}
+          isCreateDialogOpen={isCreateDialogOpen}
+          isEditDialogOpen={isEditDialogOpen}
+          isDetailDialogOpen={isViewDialogOpen}
+          isBulkUploadOpen={false}
+          isExportDialogOpen={false}
+          contacts={clients}
+          onClose={handleCloseDialog}
+          onBulkUploadClose={() => {}}
+          onExportClose={() => {}}
+          onBulkUploadSuccess={() => {}}
         />
       </div>
     </div>

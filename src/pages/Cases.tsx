@@ -8,9 +8,6 @@ export default function Cases() {
   const { 
     cases, 
     isLoading, 
-    selectedCases, 
-    handleSelectCase, 
-    handleSelectAll,
     searchTerm,
     setSearchTerm,
     statusFilter,
@@ -63,8 +60,7 @@ export default function Cases() {
           title="Expedientes"
           description="Gestiona todos los casos y expedientes del despacho"
           badges={[
-            { label: `${cases.length} expedientes`, variant: 'primary' },
-            { label: `${selectedCases.length} seleccionados`, variant: 'secondary' }
+            { label: `${cases.length} expedientes`, variant: 'primary' }
           ]}
           primaryAction={{
             label: 'Nuevo Expediente',
@@ -96,7 +92,11 @@ export default function Cases() {
           />
 
           <div className="mt-6">
-            <CasesPageContainer />
+            <CasesPageContainer>
+              <div className="text-premium-secondary">
+                Los expedientes aparecerán aquí
+              </div>
+            </CasesPageContainer>
           </div>
         </div>
       </div>
