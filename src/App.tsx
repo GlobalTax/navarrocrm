@@ -1,4 +1,3 @@
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -32,6 +31,8 @@ import IntelligentDashboard from '@/pages/IntelligentDashboard'
 import NotFound from '@/pages/NotFound'
 import Reports from '@/pages/Reports'
 import SecurityAudit from '@/pages/SecurityAudit'
+import Clients from '@/pages/Clients'
+import AcademiaAdmin from '@/pages/AcademiaAdmin'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,171 +47,49 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
+        <Toaster position="top-right" />
         <Router>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/setup" element={<Setup />} />
-            
-            {/* Index route for initial redirection */}
-            <Route path="/index" element={<Index />} />
-            
-            {/* Protected routes */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Dashboard />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/contacts" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Contacts />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/contacts/:id" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <ClientDetail />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/cases" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Cases />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/cases/:id" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <CaseDetail />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/proposals" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Proposals />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/tasks" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Tasks />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/time-tracking" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <TimeTracking />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/calendar" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Calendar />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/documents" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Documents />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/workflows" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Workflows />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/recurring-fees" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <RecurrentFees />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/advanced-ai" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <AdvancedAI />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/integration-settings" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <IntegrationSettings />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/integrations" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <IntegrationSettings />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/reports" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Reports />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/intelligent-dashboard" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <IntelligentDashboard />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/academia" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Academia />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/ai-admin" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <AIAdmin />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/users" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Users />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/security-audit" element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <SecurityAudit />
-                </MainLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* Special routes */}
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
+          <div className="min-h-screen bg-gray-50">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/setup" element={<Setup />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/contacts" element={<Contacts />} />
+                        <Route path="/clients" element={<Clients />} />
+                        <Route path="/client/:id" element={<ClientDetail />} />
+                        <Route path="/cases" element={<Cases />} />
+                        <Route path="/case/:id" element={<CaseDetail />} />
+                        <Route path="/proposals" element={<Proposals />} />
+                        <Route path="/tasks" element={<Tasks />} />
+                        <Route path="/time-tracking" element={<TimeTracking />} />
+                        <Route path="/calendar" element={<Calendar />} />
+                        <Route path="/documents" element={<Documents />} />
+                        <Route path="/users" element={<Users />} />
+                        <Route path="/integrations" element={<IntegrationSettings />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/academia" element={<Academia />} />
+                        <Route path="/academia/admin" element={<AcademiaAdmin />} />
+                        <Route path="/ai-assistant" element={<AdvancedAI />} />
+                        <Route path="/ai-admin" element={<AIAdmin />} />
+                        <Route path="/intelligent-dashboard" element={<IntelligentDashboard />} />
+                        <Route path="/workflows" element={<Workflows />} />
+                        <Route path="/security-audit" element={<SecurityAudit />} />
+                        <Route path="/recurrent-fees" element={<RecurrentFees />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </div>
         </Router>
       </AppProvider>
     </QueryClientProvider>

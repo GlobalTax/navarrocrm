@@ -1,4 +1,5 @@
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog } from 'lucide-react'
+
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench } from 'lucide-react'
 
 export interface NavigationItem {
   title: string
@@ -96,6 +97,11 @@ export const navigationData: NavigationSection[] = [
         title: "Academia",
         url: "/academia",
         icon: BookOpen,
+      },
+      {
+        title: "Admin Academia",
+        url: "/academia/admin",
+        icon: Wrench,
       },
       {
         title: "Asistente IA",
