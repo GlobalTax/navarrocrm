@@ -58,54 +58,8 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-      manifest: {
-        name: 'CRM Asesoría - Gestión Integral',
-        short_name: 'CRM Asesoría',
-        description: 'Sistema completo de gestión para despachos de abogados y asesorías',
-        theme_color: '#0061FF',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait-primary',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: '/icons/icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'maskable any'
-          },
-          {
-            src: '/icons/icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable any'
-          }
-        ],
-        shortcuts: [
-          {
-            name: 'Dashboard',
-            short_name: 'Dashboard',
-            description: 'Ir al dashboard principal',
-            url: '/dashboard',
-            icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Contactos',
-            short_name: 'Contactos',
-            description: 'Gestionar contactos',
-            url: '/contacts',
-            icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Casos',
-            short_name: 'Casos',
-            description: 'Gestionar casos',
-            url: '/cases',
-            icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
-          }
-        ]
-      }
+      manifest: false, // Usar nuestro manifest.json personalizado
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'safari-pinned-tab.svg', 'icons/*.png']
     })
   ].filter(Boolean),
   resolve: {
