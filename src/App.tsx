@@ -31,6 +31,7 @@ import Unauthorized from '@/pages/Unauthorized'
 import IntelligentDashboard from '@/pages/IntelligentDashboard'
 import NotFound from '@/pages/NotFound'
 import Reports from '@/pages/Reports'
+import SecurityAudit from '@/pages/SecurityAudit'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -192,6 +193,13 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Users />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/security-audit" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <SecurityAudit />
                 </MainLayout>
               </ProtectedRoute>
             } />
