@@ -97,9 +97,25 @@ export const useUpdateProgress = () => {
       progressPercentage: number
       timeSpent?: number
     }) => {
+      // Obtener el usuario actual
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Usuario no autenticado')
+
+      // Obtener el org_id del usuario
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', user.id)
+        .single()
+
+      if (userError) throw new Error('Error obteniendo datos del usuario')
+      if (!userData?.org_id) throw new Error('Usuario sin organización')
+
       const { data, error } = await supabase
         .from('academy_user_progress')
         .upsert({
+          user_id: user.id,
+          org_id: userData.org_id,
           course_id: courseId,
           lesson_id: lessonId,
           status,
