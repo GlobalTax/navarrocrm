@@ -13,7 +13,7 @@ export const useExportCases = () => {
 
       // Preparar datos para exportación
       const exportData = cases.map(case_ => ({
-        'Número de Expediente': case_.matter_number || '',
+        'ID': case_.id || '',
         'Título': case_.title || '',
         'Cliente': case_.contact?.name || '',
         'Email Cliente': case_.contact?.email || '',
@@ -30,8 +30,7 @@ export const useExportCases = () => {
       // Convertir a CSV
       const csv = Papa.unparse(exportData, {
         delimiter: ',',
-        header: true,
-        encoding: 'utf-8'
+        header: true
       })
 
       // Crear y descargar archivo
