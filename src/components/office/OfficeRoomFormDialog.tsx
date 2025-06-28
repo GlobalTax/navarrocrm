@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -11,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 import { useCreateOfficeRoom, useUpdateOfficeRoom } from '@/hooks/useOfficeRooms'
 import { OfficeRoom } from '@/types/office'
+import { useApp } from '@/contexts/AppContext'
 
 interface OfficeRoomFormDialogProps {
   open: boolean
@@ -25,6 +25,7 @@ export const OfficeRoomFormDialog = ({
   room, 
   onSuccess 
 }: OfficeRoomFormDialogProps) => {
+  const { user } = useApp()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -75,11 +76,20 @@ export const OfficeRoomFormDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!user?.org_id) {
+      console.error('No org_id found for user')
+      return
+    }
+    
     try {
       if (room) {
         await updateRoom.mutateAsync({ id: room.id, ...formData })
       } else {
-        await createRoom.mutateAsync(formData)
+        await createRoom.mutateAsync({
+          ...formData,
+          org_id: user.org_id,
+          is_active: true
+        })
       }
       onSuccess()
     } catch (error) {

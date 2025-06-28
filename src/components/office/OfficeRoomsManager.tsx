@@ -12,7 +12,8 @@ import {
   Settings,
   Edit,
   Trash2,
-  Calendar
+  Calendar,
+  Building2
 } from 'lucide-react'
 import { useOfficeRooms, useDeleteOfficeRoom } from '@/hooks/useOfficeRooms'
 import { OfficeRoomFormDialog } from './OfficeRoomFormDialog'

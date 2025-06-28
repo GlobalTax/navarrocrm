@@ -4,13 +4,22 @@ import { supabase } from '@/integrations/supabase/client'
 import { RoomReservation } from '@/types/office'
 import { toast } from 'sonner'
 
+type RoomReservationWithRelations = RoomReservation & {
+  office_rooms: { name: string } | null
+  users: { name: string } | null
+}
+
 export const useRoomReservations = (roomId?: string) => {
   return useQuery({
     queryKey: ['room-reservations', roomId],
     queryFn: async () => {
       let query = supabase
         .from('room_reservations')
-        .select('*, office_rooms(name), users(name)')
+        .select(`
+          *,
+          office_rooms!inner(name),
+          users!inner(name)
+        `)
         .order('start_datetime')
 
       if (roomId) {
@@ -20,10 +29,9 @@ export const useRoomReservations = (roomId?: string) => {
       const { data, error } = await query
 
       if (error) throw error
-      return data as (RoomReservation & { 
-        office_rooms: { name: string }
-        users: { name: string }
-      })[]
+      
+      // Type assertion with proper error handling
+      return (data || []) as unknown as RoomReservationWithRelations[]
     }
   })
 }

@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Users,
@@ -161,3 +162,19 @@ export const navigationCategories = {
   admin: 'Administración',
   ai: 'Inteligencia Artificial'
 }
+
+// Export quickActions for QuickActionsSection
+export const quickActions = [
+  {
+    name: 'Nuevo Cliente',
+    href: '/clients'
+  },
+  {
+    name: 'Nuevo Caso',
+    href: '/cases'
+  },
+  {
+    name: 'Nueva Tarea',
+    href: '/tasks'
+  }
+]

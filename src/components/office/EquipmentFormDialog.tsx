@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -8,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCreateEquipment, useUpdateEquipment } from '@/hooks/useEquipment'
 import { Equipment } from '@/types/office'
+import { useApp } from '@/contexts/AppContext'
 
 interface EquipmentFormDialogProps {
   open: boolean
@@ -22,6 +22,7 @@ export const EquipmentFormDialog = ({
   equipment, 
   onSuccess 
 }: EquipmentFormDialogProps) => {
+  const { user } = useApp()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -80,11 +81,19 @@ export const EquipmentFormDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!user?.org_id) {
+      console.error('No org_id found for user')
+      return
+    }
+    
     try {
       if (equipment) {
         await updateEquipment.mutateAsync({ id: equipment.id, ...formData })
       } else {
-        await createEquipment.mutateAsync(formData)
+        await createEquipment.mutateAsync({
+          ...formData,
+          org_id: user.org_id
+        })
       }
       onSuccess()
     } catch (error) {

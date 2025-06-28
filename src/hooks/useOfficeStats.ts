@@ -12,7 +12,9 @@ export const useOfficeStats = () => {
       })
 
       if (error) throw error
-      return data as OfficeStats
+      
+      // Safely convert to OfficeStats with type assertion
+      return data as unknown as OfficeStats
     },
     refetchInterval: 30000 // Actualizar cada 30 segundos
   })
