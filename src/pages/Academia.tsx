@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { AcademiaSearch } from '@/components/academia/AcademiaSearch'
 import { AcademiaCategories } from '@/components/academia/AcademiaCategories'
@@ -8,12 +8,19 @@ import { AcademiaProgress } from '@/components/academia/AcademiaProgress'
 import { AcademiaMobileSidebar } from '@/components/academia/AcademiaMobileSidebar'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { useAcademySetup } from '@/hooks/useAcademySetup'
 
 export default function Academia() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
   const isMobile = useIsMobile()
+  const { setupAcademyData } = useAcademySetup()
+
+  // Inicializar datos de la academia al cargar la página
+  useEffect(() => {
+    setupAcademyData()
+  }, [])
 
   return (
     <StandardPageContainer>
@@ -22,17 +29,17 @@ export default function Academia() {
         description="Centro de aprendizaje completo para dominar todas las funcionalidades del sistema"
         badges={[
           {
-            label: 'Tutoriales: 24',
+            label: 'Cursos disponibles',
             variant: 'outline',
             color: 'text-blue-600 border-blue-200 bg-blue-50'
           },
           {
-            label: 'Certificaciones: 8',
+            label: 'Aprendizaje continuo',
             variant: 'outline',
             color: 'text-green-600 border-green-200 bg-green-50'
           },
           {
-            label: 'Completados: 89%',
+            label: 'Certificaciones',
             variant: 'outline',
             color: 'text-orange-600 border-orange-200 bg-orange-50'
           }
