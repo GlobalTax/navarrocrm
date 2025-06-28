@@ -20,6 +20,8 @@ export const useAcademyCategoriesMutation = () => {
     }) => {
       if (!user?.org_id) throw new Error('No organization found')
 
+      console.log('🏗️ Creating category:', data)
+
       const { data: category, error } = await supabase
         .from('academy_categories')
         .insert({
@@ -29,7 +31,12 @@ export const useAcademyCategoriesMutation = () => {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error creating category:', error)
+        throw error
+      }
+      
+      console.log('✅ Category created successfully:', category)
       return category
     },
     onSuccess: () => {
@@ -38,7 +45,7 @@ export const useAcademyCategoriesMutation = () => {
     },
     onError: (error) => {
       console.error('Error creating category:', error)
-      toast.error('Error al crear la categoría')
+      toast.error('Error al crear la categoría: ' + error.message)
     }
   })
 
@@ -108,7 +115,21 @@ export const useAcademyCoursesMutation = () => {
       estimated_duration?: number
       is_published: boolean
     }) => {
-      if (!user?.org_id) throw new Error('No organization found')
+      if (!user?.org_id) {
+        console.error('❌ No organization found for user:', user)
+        throw new Error('No se encontró la organización del usuario')
+      }
+
+      if (!user?.id) {
+        console.error('❌ No user ID found:', user)
+        throw new Error('No se encontró el ID del usuario')
+      }
+
+      console.log('🏗️ Creating course with data:', {
+        ...data,
+        org_id: user.org_id,
+        created_by: user.id
+      })
 
       const { data: course, error } = await supabase
         .from('academy_courses')
@@ -120,16 +141,22 @@ export const useAcademyCoursesMutation = () => {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error creating course:', error)
+        throw error
+      }
+
+      console.log('✅ Course created successfully:', course)
       return course
     },
-    onSuccess: () => {
+    onSuccess: (course) => {
       queryClient.invalidateQueries({ queryKey: ['academy-courses'] })
-      toast.success('Curso creado exitosamente')
+      toast.success(`Curso "${course.title}" creado exitosamente`)
+      console.log('🎉 Course creation success callback executed')
     },
     onError: (error) => {
-      console.error('Error creating course:', error)
-      toast.error('Error al crear el curso')
+      console.error('❌ Error in createCourse mutation:', error)
+      toast.error('Error al crear el curso: ' + error.message)
     }
   })
 
@@ -143,6 +170,8 @@ export const useAcademyCoursesMutation = () => {
       estimated_duration?: number
       is_published: boolean
     }) => {
+      console.log('📝 Updating course:', id, data)
+
       const { data: course, error } = await supabase
         .from('academy_courses')
         .update(data)
@@ -150,27 +179,39 @@ export const useAcademyCoursesMutation = () => {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error updating course:', error)
+        throw error
+      }
+
+      console.log('✅ Course updated successfully:', course)
       return course
     },
-    onSuccess: () => {
+    onSuccess: (course) => {
       queryClient.invalidateQueries({ queryKey: ['academy-courses'] })
-      toast.success('Curso actualizado exitosamente')
+      toast.success(`Curso "${course.title}" actualizado exitosamente`)
     },
     onError: (error) => {
       console.error('Error updating course:', error)
-      toast.error('Error al actualizar el curso')
+      toast.error('Error al actualizar el curso: ' + error.message)
     }
   })
 
   const deleteCourse = useMutation({
     mutationFn: async (id: string) => {
+      console.log('🗑️ Deleting course:', id)
+
       const { error } = await supabase
         .from('academy_courses')
         .delete()
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error deleting course:', error)
+        throw error
+      }
+
+      console.log('✅ Course deleted successfully')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['academy-courses'] })
@@ -178,7 +219,7 @@ export const useAcademyCoursesMutation = () => {
     },
     onError: (error) => {
       console.error('Error deleting course:', error)
-      toast.error('Error al eliminar el curso')
+      toast.error('Error al eliminar el curso: ' + error.message)
     }
   })
 

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useAcademyCoursesMutation } from '@/hooks/useAcademyAdmin'
+import { Loader2 } from 'lucide-react'
 
 const courseSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio'),
@@ -59,7 +60,10 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
 
   const onSubmit = async (data: CourseFormData) => {
     try {
+      console.log('📤 Submitting course form:', data)
+      
       if (isEditing && course) {
+        console.log('📝 Updating existing course:', course.id)
         await updateCourse.mutateAsync({ 
           id: course.id, 
           title: data.title,
@@ -70,6 +74,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
           is_published: data.is_published
         })
       } else {
+        console.log('🆕 Creating new course')
         await createCourse.mutateAsync({
           title: data.title,
           description: data.description,
@@ -79,12 +84,31 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
           is_published: data.is_published
         })
       }
+      
+      console.log('✅ Course operation completed successfully')
       onClose()
       form.reset()
     } catch (error) {
-      console.error('Error saving course:', error)
+      console.error('❌ Error saving course:', error)
+      // El error ya se maneja en el hook con toast
     }
   }
+
+  const isLoading = createCourse.isPending || updateCourse.isPending
+
+  // Reset form when dialog opens with new course data
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        title: course?.title || '',
+        description: course?.description || '',
+        category_id: course?.category_id || '',
+        level: course?.level || 'beginner',
+        estimated_duration: course?.estimated_duration || undefined,
+        is_published: course?.is_published || false
+      })
+    }
+  }, [open, course, form])
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -102,7 +126,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título del Curso</FormLabel>
+                  <FormLabel>Título del Curso *</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Ej: Gestión de Clientes" />
                   </FormControl>
@@ -130,8 +154,8 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
               name="category_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categoría</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Categoría *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una categoría" />
@@ -156,7 +180,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nivel</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -183,7 +207,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
                     <Input 
                       type="number" 
                       {...field} 
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                       placeholder="120"
                     />
                   </FormControl>
@@ -214,10 +238,11 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createCourse.isPending || updateCourse.isPending}>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isEditing ? 'Actualizar' : 'Crear'} Curso
               </Button>
             </DialogFooter>
