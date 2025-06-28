@@ -30,8 +30,8 @@ export const useTimeTrackingPermissions = (): TimeTrackingAccess => {
       }
     }
 
-    // Super Admin - ve todo
-    if (user.role === 'partner' || user.role === 'super_admin') {
+    // Partner - ve todo (equivalente a super admin)
+    if (user.role === 'partner') {
       return {
         canViewAllUsers: true,
         canViewTeamMembers: true,
@@ -42,29 +42,59 @@ export const useTimeTrackingPermissions = (): TimeTrackingAccess => {
       }
     }
 
-    // Encontrar equipos donde el usuario es líder
-    const userLeaderships = memberships.filter(
-      m => m.user_id === user.id && (m.role === 'lead' || m.role === 'coordinator')
-    )
+    // Area Manager - ve su departamento
+    if (user.role === 'area_manager') {
+      const userLeaderships = memberships.filter(
+        m => m.user_id === user.id && (m.role === 'lead' || m.role === 'coordinator')
+      )
 
-    if (userLeaderships.length > 0) {
-      const leadTeamIds = userLeaderships.map(l => l.team_id)
-      
-      // Obtener todos los miembros de los equipos que lidera
-      const teamMemberIds = memberships
-        .filter(m => leadTeamIds.includes(m.team_id) && m.is_active)
-        .map(m => m.user_id)
-      
-      // Incluir al propio usuario
-      const visibleUserIds = [...new Set([user.id, ...teamMemberIds])]
+      if (userLeaderships.length > 0) {
+        const leadTeamIds = userLeaderships.map(l => l.team_id)
+        
+        // Obtener todos los miembros de los equipos que lidera
+        const teamMemberIds = memberships
+          .filter(m => leadTeamIds.includes(m.team_id) && m.is_active)
+          .map(m => m.user_id)
+        
+        // Incluir al propio usuario
+        const visibleUserIds = [...new Set([user.id, ...teamMemberIds])]
 
-      return {
-        canViewAllUsers: false,
-        canViewTeamMembers: true,
-        canViewDepartmentTeams: userLeaderships.some(l => l.role === 'coordinator'),
-        visibleUserIds,
-        visibleTeamIds: leadTeamIds,
-        accessLevel: userLeaderships.some(l => l.role === 'coordinator') ? 'department' : 'team'
+        return {
+          canViewAllUsers: false,
+          canViewTeamMembers: true,
+          canViewDepartmentTeams: true,
+          visibleUserIds,
+          visibleTeamIds: leadTeamIds,
+          accessLevel: 'department'
+        }
+      }
+    }
+
+    // Senior - puede liderar equipos
+    if (user.role === 'senior') {
+      const userLeaderships = memberships.filter(
+        m => m.user_id === user.id && (m.role === 'lead' || m.role === 'coordinator')
+      )
+
+      if (userLeaderships.length > 0) {
+        const leadTeamIds = userLeaderships.map(l => l.team_id)
+        
+        // Obtener todos los miembros de los equipos que lidera
+        const teamMemberIds = memberships
+          .filter(m => leadTeamIds.includes(m.team_id) && m.is_active)
+          .map(m => m.user_id)
+        
+        // Incluir al propio usuario
+        const visibleUserIds = [...new Set([user.id, ...teamMemberIds])]
+
+        return {
+          canViewAllUsers: false,
+          canViewTeamMembers: true,
+          canViewDepartmentTeams: false,
+          visibleUserIds,
+          visibleTeamIds: leadTeamIds,
+          accessLevel: 'team'
+        }
       }
     }
 

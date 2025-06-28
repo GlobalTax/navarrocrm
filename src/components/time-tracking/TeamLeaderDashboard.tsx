@@ -106,7 +106,6 @@ export const TeamLeaderDashboard = ({ selectedPeriod = 'week' }: TeamLeaderDashb
                       <span className="text-gray-600">{member.hours}h</span>
                       <span className="text-gray-600">({member.billableHours}h fact.)</span>
                       <Badge 
-                        size="sm" 
                         variant={member.utilization >= 80 ? "default" : member.utilization >= 60 ? "secondary" : "destructive"}
                       >
                         {member.utilization}%

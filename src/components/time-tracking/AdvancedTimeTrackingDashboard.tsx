@@ -189,7 +189,7 @@ export const AdvancedTimeTrackingDashboard = () => {
                           <span className="text-sm font-medium">{member.userName}</span>
                           <div className="flex items-center gap-3 text-sm">
                             <span>{member.hours}h</span>
-                            <Badge size="sm" variant={member.utilization >= 80 ? "default" : "secondary"}>
+                            <Badge variant={member.utilization >= 80 ? "default" : "secondary"}>
                               {member.utilization}%
                             </Badge>
                           </div>
