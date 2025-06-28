@@ -932,6 +932,39 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body_template: string
@@ -2866,6 +2899,39 @@ export type Database = {
           },
         ]
       }
+      task_bulk_assignments: {
+        Row: {
+          assigned_by: string
+          assignment_data: Json | null
+          assignment_type: string
+          created_at: string
+          id: string
+          org_id: string
+          target_ids: string[]
+          task_ids: string[]
+        }
+        Insert: {
+          assigned_by: string
+          assignment_data?: Json | null
+          assignment_type: string
+          created_at?: string
+          id?: string
+          org_id: string
+          target_ids: string[]
+          task_ids: string[]
+        }
+        Update: {
+          assigned_by?: string
+          assignment_data?: Json | null
+          assignment_type?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          target_ids?: string[]
+          task_ids?: string[]
+        }
+        Relationships: []
+      }
       task_bulk_operations: {
         Row: {
           completed_at: string | null
@@ -3178,6 +3244,88 @@ export type Database = {
           },
         ]
       }
+      team_memberships: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          joined_at: string
+          role: string | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          role?: string | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          role?: string | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          color: string | null
+          created_at: string
+          department_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          org_id: string
+          team_lead_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          org_id: string
+          team_lead_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          org_id?: string
+          team_lead_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           case_id: string | null
@@ -3440,6 +3588,7 @@ export type Database = {
           created_at: string | null
           deleted_at: string | null
           deleted_by: string | null
+          department_id: string | null
           email: string
           id: string
           is_active: boolean
@@ -3452,6 +3601,7 @@ export type Database = {
           created_at?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
+          department_id?: string | null
           email: string
           id: string
           is_active?: boolean
@@ -3464,6 +3614,7 @@ export type Database = {
           created_at?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
+          department_id?: string | null
           email?: string
           id?: string
           is_active?: boolean
@@ -3473,6 +3624,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "users_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "users_org_id_fkey"
             columns: ["org_id"]

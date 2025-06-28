@@ -1,13 +1,13 @@
-
 import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Edit, Eye, Check, Trash2, MoreHorizontal, Calendar, ChevronUp, ChevronDown } from 'lucide-react'
+import { Edit, Eye, Check, Trash2, MoreHorizontal, Calendar, ChevronUp, ChevronDown, Users } from 'lucide-react'
 import { format, isToday, isTomorrow, isThisWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { BulkTaskAssignmentModal } from './BulkTaskAssignmentModal'
 
 interface TasksListProps {
   tasks: any[]
@@ -17,6 +17,7 @@ interface TasksListProps {
 export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+  const [isBulkAssignmentOpen, setIsBulkAssignmentOpen] = useState(false)
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -84,6 +85,13 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
     )
   }
 
+  const getSelectedTaskTitles = () => {
+    return selectedTasks.map(id => {
+      const task = tasks.find(t => t.id === id)
+      return task?.title || 'Tarea sin título'
+    })
+  }
+
   const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => (
     <TableHead 
       className="cursor-pointer hover:bg-gray-50 select-none"
@@ -101,122 +109,139 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
   )
 
   return (
-    <div className="bg-white rounded-lg border">
-      {selectedTasks.length > 0 && (
-        <div className="border-b p-4 bg-blue-50">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-blue-700">
-              {selectedTasks.length} tarea(s) seleccionada(s)
-            </span>
-            <div className="flex space-x-2">
-              <Button size="sm" variant="outline">
-                <Check className="h-4 w-4 mr-1" />
-                Completar
-              </Button>
-              <Button size="sm" variant="outline">
-                <Trash2 className="h-4 w-4 mr-1" />
-                Eliminar
-              </Button>
+    <>
+      <div className="bg-white rounded-lg border">
+        {selectedTasks.length > 0 && (
+          <div className="border-b p-4 bg-blue-50">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-700">
+                {selectedTasks.length} tarea(s) seleccionada(s)
+              </span>
+              <div className="flex space-x-2">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setIsBulkAssignmentOpen(true)}
+                >
+                  <Users className="h-4 w-4 mr-1" />
+                  Asignar Masivamente
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Check className="h-4 w-4 mr-1" />
+                  Completar
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Eliminar
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">
-              <Checkbox
-                checked={selectedTasks.length === tasks.length && tasks.length > 0}
-                onCheckedChange={handleSelectAll}
-              />
-            </TableHead>
-            <SortableHeader column="title">Tarea</SortableHeader>
-            <SortableHeader column="status">Estado</SortableHeader>
-            <SortableHeader column="priority">Prioridad</SortableHeader>
-            <SortableHeader column="due_date">Vencimiento</SortableHeader>
-            <TableHead className="w-[100px]">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedTasks.map((task) => {
-            const priorityBadge = getPriorityBadge(task.priority)
-            const statusBadge = getStatusBadge(task.status)
-            const smartDate = formatSmartDate(task.due_date)
-            
-            return (
-              <TableRow key={task.id} className="hover:bg-gray-50">
-                <TableCell>
-                  <Checkbox
-                    checked={selectedTasks.includes(task.id)}
-                    onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
-                  />
-                </TableCell>
-                
-                <TableCell>
-                  <div>
-                    <div className="font-medium text-gray-900">{task.title}</div>
-                    {task.description && (
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
-                        {task.description}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  <Badge className={statusBadge.color}>
-                    {statusBadge.label}
-                  </Badge>
-                </TableCell>
-                
-                <TableCell>
-                  <Badge className={priorityBadge.color}>
-                    {priorityBadge.label}
-                  </Badge>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                    <span className={`text-sm ${smartDate.color}`}>
-                      {smartDate.text}
-                    </span>
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver detalles
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEditTask(task)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Check className="h-4 w-4 mr-2" />
-                        Completar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+        )}
+        
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={selectedTasks.length === tasks.length && tasks.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
+              <SortableHeader column="title">Tarea</SortableHeader>
+              <SortableHeader column="status">Estado</SortableHeader>
+              <SortableHeader column="priority">Prioridad</SortableHeader>
+              <SortableHeader column="due_date">Vencimiento</SortableHeader>
+              <TableHead className="w-[100px]">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedTasks.map((task) => {
+              const priorityBadge = getPriorityBadge(task.priority)
+              const statusBadge = getStatusBadge(task.status)
+              const smartDate = formatSmartDate(task.due_date)
+              
+              return (
+                <TableRow key={task.id} className="hover:bg-gray-50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedTasks.includes(task.id)}
+                      onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
+                    />
+                  </TableCell>
+                  
+                  <TableCell>
+                    <div>
+                      <div className="font-medium text-gray-900">{task.title}</div>
+                      {task.description && (
+                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                          {task.description}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <Badge className={statusBadge.color}>
+                      {statusBadge.label}
+                    </Badge>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <Badge className={priorityBadge.color}>
+                      {priorityBadge.label}
+                    </Badge>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                      <span className={`text-sm ${smartDate.color}`}>
+                        {smartDate.text}
+                      </span>
+                    </div>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver detalles
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEditTask(task)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Check className="h-4 w-4 mr-2" />
+                          Completar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      <BulkTaskAssignmentModal
+        isOpen={isBulkAssignmentOpen}
+        onClose={() => setIsBulkAssignmentOpen(false)}
+        selectedTaskIds={selectedTasks}
+        taskTitles={getSelectedTaskTitles()}
+      />
+    </>
   )
 }
