@@ -80,17 +80,26 @@ const ClientDetail = () => {
     queryFn: async () => {
       if (!id || !user?.org_id) return null
 
+      console.log('🔍 Buscando cliente con ID:', id, 'para org:', user.org_id)
+
       const { data, error } = await supabase
         .from('contacts')
         .select('*')
         .eq('id', id)
         .eq('org_id', user.org_id)
-        .eq('relationship_type', 'cliente')
         .single()
 
       if (error) {
-        console.error('Error fetching client:', error)
+        console.error('❌ Error fetching client:', error)
         throw error
+      }
+
+      console.log('✅ Cliente obtenido:', data)
+      
+      // Verificar si es realmente un cliente
+      if (data.relationship_type !== 'cliente') {
+        console.warn('⚠️ El contacto no es un cliente:', data.relationship_type)
+        throw new Error('Este contacto no es un cliente')
       }
 
       return data as Client
@@ -134,7 +143,12 @@ const ClientDetail = () => {
       <StandardPageContainer>
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-slate-900 mb-2">Cliente no encontrado</h3>
-          <p className="text-slate-600 mb-4">El cliente que buscas no existe o no tienes permisos para verlo.</p>
+          <p className="text-slate-600 mb-4">
+            {error?.message === 'Este contacto no es un cliente' 
+              ? 'Este contacto no está marcado como cliente.'
+              : 'El cliente que buscas no existe o no tienes permisos para verlo.'
+            }
+          </p>
           <Button onClick={() => navigate('/contacts')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Contactos
