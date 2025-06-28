@@ -9,6 +9,252 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      academy_categories: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_categories_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_courses: {
+        Row: {
+          category_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_duration: number | null
+          id: string
+          is_published: boolean
+          level: string
+          org_id: string
+          sort_order: number
+          title: string
+          total_lessons: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_duration?: number | null
+          id?: string
+          is_published?: boolean
+          level?: string
+          org_id: string
+          sort_order?: number
+          title: string
+          total_lessons?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_duration?: number | null
+          id?: string
+          is_published?: boolean
+          level?: string
+          org_id?: string
+          sort_order?: number
+          title?: string
+          total_lessons?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_courses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "academy_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_courses_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_lessons: {
+        Row: {
+          content: string
+          course_id: string
+          created_at: string
+          estimated_duration: number | null
+          id: string
+          is_published: boolean
+          learning_objectives: string[] | null
+          lesson_type: string
+          org_id: string
+          practical_exercises: Json | null
+          prerequisites: string[] | null
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          course_id: string
+          created_at?: string
+          estimated_duration?: number | null
+          id?: string
+          is_published?: boolean
+          learning_objectives?: string[] | null
+          lesson_type?: string
+          org_id: string
+          practical_exercises?: Json | null
+          prerequisites?: string[] | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          course_id?: string
+          created_at?: string
+          estimated_duration?: number | null
+          id?: string
+          is_published?: boolean
+          learning_objectives?: string[] | null
+          lesson_type?: string
+          org_id?: string
+          practical_exercises?: Json | null
+          prerequisites?: string[] | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_lessons_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_user_progress: {
+        Row: {
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          last_accessed_at: string
+          lesson_id: string | null
+          notes: string | null
+          org_id: string
+          progress_percentage: number
+          status: string
+          time_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          last_accessed_at?: string
+          lesson_id?: string | null
+          notes?: string | null
+          org_id: string
+          progress_percentage?: number
+          status?: string
+          time_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          last_accessed_at?: string
+          lesson_id?: string | null
+          notes?: string | null
+          org_id?: string
+          progress_percentage?: number
+          status?: string
+          time_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_user_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_user_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "academy_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_user_progress_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_usage_logs: {
         Row: {
           completion_tokens: number | null
