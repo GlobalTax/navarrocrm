@@ -185,6 +185,38 @@ export const useAcademyCoursesMutation = () => {
   return { createCourse, updateCourse, deleteCourse }
 }
 
+// Helper function to update course lesson count
+const updateCourseLessonCount = async (courseId: string, increment: boolean = true) => {
+  // Get current course data
+  const { data: course, error: fetchError } = await supabase
+    .from('academy_courses')
+    .select('total_lessons')
+    .eq('id', courseId)
+    .single()
+
+  if (fetchError) {
+    console.error('Error fetching course:', fetchError)
+    return
+  }
+
+  // Update the count
+  const newCount = increment 
+    ? (course.total_lessons || 0) + 1 
+    : Math.max((course.total_lessons || 0) - 1, 0)
+
+  const { error: updateError } = await supabase
+    .from('academy_courses')
+    .update({ 
+      total_lessons: newCount,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', courseId)
+
+  if (updateError) {
+    console.error('Error updating course lesson count:', updateError)
+  }
+}
+
 // Lessons mutations
 export const useAcademyLessonsMutation = () => {
   const { user } = useApp()
@@ -215,18 +247,8 @@ export const useAcademyLessonsMutation = () => {
 
       if (error) throw error
 
-      // Update total_lessons count in course directly
-      const { error: updateError } = await supabase
-        .from('academy_courses')
-        .update({ 
-          total_lessons: supabase.sql`total_lessons + 1`,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', data.course_id)
-
-      if (updateError) {
-        console.error('Error updating course lesson count:', updateError)
-      }
+      // Update total_lessons count in course
+      await updateCourseLessonCount(data.course_id, true)
 
       return lesson
     },
@@ -283,18 +305,8 @@ export const useAcademyLessonsMutation = () => {
 
       if (error) throw error
 
-      // Update total_lessons count in course directly
-      const { error: updateError } = await supabase
-        .from('academy_courses')
-        .update({ 
-          total_lessons: supabase.sql`total_lessons - 1`,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', course_id)
-
-      if (updateError) {
-        console.error('Error updating course lesson count:', updateError)
-      }
+      // Update total_lessons count in course
+      await updateCourseLessonCount(course_id, false)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['academy-lessons', variables.course_id] })
