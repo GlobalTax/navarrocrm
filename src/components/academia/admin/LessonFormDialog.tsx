@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
 import { LESSON_TYPES } from '@/types/academy'
+import type { LessonFormData } from '@/types/academy'
 
 const lessonSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio'),
@@ -63,16 +64,28 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
 
   const onSubmit = async (data: FormData) => {
     try {
+      // Asegurar que los datos coincidan con LessonFormData
+      const lessonData: LessonFormData = {
+        title: data.title,
+        content: data.content,
+        lesson_type: data.lesson_type,
+        estimated_duration: data.estimated_duration,
+        sort_order: data.sort_order || 0,
+        is_published: data.is_published,
+        learning_objectives: data.learning_objectives || [],
+        prerequisites: data.prerequisites || []
+      }
+
       if (isEditing && lesson) {
         await updateLesson.mutateAsync({ 
           id: lesson.id, 
           course_id: courseId, 
-          ...data
+          ...lessonData
         })
       } else {
         await createLesson.mutateAsync({ 
           course_id: courseId, 
-          ...data
+          ...lessonData
         })
       }
       onClose()
