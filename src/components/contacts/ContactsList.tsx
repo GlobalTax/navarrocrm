@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Plus, Loader2 } from 'lucide-react'
+import { RefreshCw, Plus } from 'lucide-react'
 import { useContacts, Contact } from '@/hooks/useContacts'
 import { ContactFilters } from './ContactFilters'
 import { ContactTable } from './ContactTable'
@@ -18,8 +18,6 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
     filteredContacts,
     isLoading,
     error,
-    hasMore,
-    loadMore,
     refetch,
     searchTerm,
     setSearchTerm,
@@ -33,12 +31,6 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
     refetch()
   }
 
-  const handleLoadMore = () => {
-    if (hasMore && !isLoading) {
-      loadMore()
-    }
-  }
-
   const hasFilters = Boolean(searchTerm || statusFilter !== 'all' || relationshipFilter !== 'all')
 
   return (
@@ -47,7 +39,6 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
         <div className="flex items-center justify-between">
           <CardTitle>
             {filteredContacts.length} {filteredContacts.length === 1 ? 'Contacto' : 'Contactos'}
-            {hasMore && <span className="text-sm text-gray-500 ml-2">(cargando más...)</span>}
           </CardTitle>
           <div className="flex items-center gap-2">
             {error && (
@@ -85,7 +76,7 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
           </div>
         )}
         
-        {!error && isLoading && filteredContacts.length === 0 && (
+        {!error && isLoading && (
           <div className="flex justify-center py-8">
             <div className="text-gray-500">Cargando contactos...</div>
           </div>
@@ -98,34 +89,12 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
           />
         )}
         
-        {!error && filteredContacts.length > 0 && (
-          <div className="space-y-4">
-            <ContactTable
-              contacts={filteredContacts}
-              onViewContact={onViewContact}
-              onEditContact={onEditContact}
-            />
-            
-            {hasMore && (
-              <div className="flex justify-center pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handleLoadMore}
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Cargando...
-                    </>
-                  ) : (
-                    'Cargar más contactos'
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
+        {!error && !isLoading && filteredContacts.length > 0 && (
+          <ContactTable
+            contacts={filteredContacts}
+            onViewContact={onViewContact}
+            onEditContact={onEditContact}
+          />
         )}
       </CardContent>
     </Card>

@@ -1,2 +1,0 @@
-
-export { SecurityMonitoringPanel } from './SecurityMonitoringPanel'

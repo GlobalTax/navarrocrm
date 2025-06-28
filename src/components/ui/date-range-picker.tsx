@@ -1,26 +1,33 @@
 
-import React from 'react'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { CalendarIcon } from 'lucide-react'
-import { DateRange } from 'react-day-picker'
-import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
+import * as React from "react"
+import { addDays, format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { DateRange } from "react-day-picker"
+import { es } from "date-fns/locale"
 
-interface DateRangePickerProps {
-  selected?: DateRange
-  onSelect?: (range: DateRange | undefined) => void
-  numberOfMonths?: number
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+interface DatePickerWithRangeProps {
   className?: string
+  date?: DateRange
+  onDateChange?: (date: DateRange | undefined) => void
 }
 
-export const DateRangePicker: React.FC<DateRangePickerProps> = ({
-  selected,
-  onSelect,
-  numberOfMonths = 2,
-  className
-}) => {
+export function DatePickerWithRange({
+  className,
+  date,
+  onDateChange,
+}: DatePickerWithRangeProps) {
+  const [selectedDate, setSelectedDate] = React.useState<DateRange | undefined>(date)
+
+  const handleDateChange = (newDate: DateRange | undefined) => {
+    setSelectedDate(newDate)
+    onDateChange?.(newDate)
+  }
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -30,21 +37,21 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             variant={"outline"}
             className={cn(
               "w-[300px] justify-start text-left font-normal",
-              !selected && "text-muted-foreground"
+              !selectedDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {selected?.from ? (
-              selected.to ? (
+            {selectedDate?.from ? (
+              selectedDate.to ? (
                 <>
-                  {format(selected.from, "LLL dd, y")} -{" "}
-                  {format(selected.to, "LLL dd, y")}
+                  {format(selectedDate.from, "dd/MM/yyyy", { locale: es })} -{" "}
+                  {format(selectedDate.to, "dd/MM/yyyy", { locale: es })}
                 </>
               ) : (
-                format(selected.from, "LLL dd, y")
+                format(selectedDate.from, "dd/MM/yyyy", { locale: es })
               )
             ) : (
-              <span>Seleccionar fechas</span>
+              <span>Selecciona un rango</span>
             )}
           </Button>
         </PopoverTrigger>
@@ -52,11 +59,11 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={selected?.from}
-            selected={selected}
-            onSelect={onSelect}
-            numberOfMonths={numberOfMonths}
-            className="pointer-events-auto"
+            defaultMonth={selectedDate?.from}
+            selected={selectedDate}
+            onSelect={handleDateChange}
+            numberOfMonths={2}
+            locale={es}
           />
         </PopoverContent>
       </Popover>

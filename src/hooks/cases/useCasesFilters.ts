@@ -1,53 +1,30 @@
 
-import { useCaseSearch } from '../search/useCaseSearch'
+import { useState } from 'react'
 import type { Case } from './types'
 
 export const useCasesFilters = (cases: Case[]) => {
-  const {
-    searchTerm,
-    updateSearchTerm: setSearchTerm,
-    activeFilters,
-    updateFilter,
-    clearFilter,
-    clearAllFilters,
-    searchResults: filteredCases,
-    searchResultsWithScore,
-    isSearching,
-    searchStats
-  } = useCaseSearch(cases)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('active')
+  const [practiceAreaFilter, setPracticeAreaFilter] = useState<string>('all')
+  const [solicitorFilter, setSolicitorFilter] = useState<string>('all')
 
-  // Mantener compatibilidad con la interfaz anterior
-  const statusFilter = activeFilters.status || 'all'
-  const practiceAreaFilter = activeFilters.practice_area || 'all'
-  const solicitorFilter = activeFilters.responsible_solicitor_id || activeFilters.originating_solicitor_id || 'all'
+  const filteredCases = cases.filter(case_ => {
+    const matchesSearch = case_.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      case_.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      case_.contact?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && case_.status !== 'closed') ||
+      (statusFilter === 'closed' && case_.status === 'closed') ||
+      case_.status === statusFilter
+      
+    const matchesPracticeArea = practiceAreaFilter === 'all' || case_.practice_area === practiceAreaFilter
+    const matchesSolicitor = solicitorFilter === 'all' || 
+      case_.responsible_solicitor_id === solicitorFilter ||
+      case_.originating_solicitor_id === solicitorFilter
 
-  const setStatusFilter = (value: string) => {
-    if (value === 'all') {
-      clearFilter('status')
-    } else if (value === 'active') {
-      // Filtro especial para casos activos (no cerrados)
-      updateFilter('status', 'open')
-    } else {
-      updateFilter('status', value)
-    }
-  }
-
-  const setPracticeAreaFilter = (value: string) => {
-    if (value === 'all') {
-      clearFilter('practice_area')
-    } else {
-      updateFilter('practice_area', value)
-    }
-  }
-
-  const setSolicitorFilter = (value: string) => {
-    if (value === 'all') {
-      clearFilter('responsible_solicitor_id')
-      clearFilter('originating_solicitor_id')
-    } else {
-      updateFilter('responsible_solicitor_id', value)
-    }
-  }
+    return matchesSearch && matchesStatus && matchesPracticeArea && matchesSolicitor
+  })
 
   return {
     filteredCases,
@@ -59,10 +36,5 @@ export const useCasesFilters = (cases: Case[]) => {
     setPracticeAreaFilter,
     solicitorFilter,
     setSolicitorFilter,
-    // Nuevas capacidades
-    isSearching,
-    searchStats,
-    searchResultsWithScore,
-    clearAllFilters
   }
 }

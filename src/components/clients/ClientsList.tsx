@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Plus, Loader2 } from 'lucide-react'
+import { RefreshCw, Plus } from 'lucide-react'
 import { useClients, Client } from '@/hooks/useClients'
 import { ClientFilters } from './ClientFilters'
 import { ClientTable } from './ClientTable'
@@ -18,8 +18,6 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
     filteredClients,
     isLoading,
     error,
-    hasMore,
-    loadMore,
     refetch,
     searchTerm,
     setSearchTerm,
@@ -33,12 +31,6 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
     refetch()
   }
 
-  const handleLoadMore = () => {
-    if (hasMore && !isLoading) {
-      loadMore()
-    }
-  }
-
   const hasFilters = Boolean(searchTerm || statusFilter !== 'all' || typeFilter !== 'all')
 
   return (
@@ -47,7 +39,6 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
         <div className="flex items-center justify-between">
           <CardTitle>
             {filteredClients.length} {filteredClients.length === 1 ? 'Cliente' : 'Clientes'}
-            {hasMore && <span className="text-sm text-gray-500 ml-2">(cargando más...)</span>}
           </CardTitle>
           <div className="flex items-center gap-2">
             {error && (
@@ -85,7 +76,7 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
           </div>
         )}
         
-        {!error && isLoading && filteredClients.length === 0 && (
+        {!error && isLoading && (
           <div className="flex justify-center py-8">
             <div className="text-gray-500">Cargando clientes...</div>
           </div>
@@ -98,34 +89,12 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
           />
         )}
         
-        {!error && filteredClients.length > 0 && (
-          <div className="space-y-4">
-            <ClientTable
-              clients={filteredClients}
-              onViewClient={onViewClient}
-              onEditClient={onEditClient}
-            />
-            
-            {hasMore && (
-              <div className="flex justify-center pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handleLoadMore}
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Cargando...
-                    </>
-                  ) : (
-                    'Cargar más clientes'
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
+        {!error && !isLoading && filteredClients.length > 0 && (
+          <ClientTable
+            clients={filteredClients}
+            onViewClient={onViewClient}
+            onEditClient={onEditClient}
+          />
         )}
       </CardContent>
     </Card>

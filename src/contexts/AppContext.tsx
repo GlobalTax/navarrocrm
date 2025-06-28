@@ -1,10 +1,12 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AppState, AuthUser, UserRole } from './types'
 import { useAuthActions } from './hooks/useAuthActions'
-import { useSystemSetup } from '@/hooks/useSystemSetup'
+import { enrichUserProfileAsync } from './utils/profileHandler'
+import { initializeSystemSetup } from './utils/systemSetup'
+import { getInitialSession } from './utils/sessionValidator'
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
@@ -20,164 +22,76 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [isSetup, setIsSetup] = useState<boolean | null>(null)
+  const [setupLoading, setSetupLoading] = useState(true)
   
-  const { isSetup, loading: setupLoading } = useSystemSetup()
+  const initializationStarted = useRef(false)
+  const profileEnrichmentInProgress = useRef(false)
+
+  // Estado combinado de carga inicial - solo para inicialización crítica
+  const isInitializing = authLoading && setupLoading
+
+  // Obtener acciones de autenticación del hook
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
 
   useEffect(() => {
-    console.log('🚀 [AppContext] Inicializando autenticación...')
+    if (initializationStarted.current) return
+    initializationStarted.current = true
+
+    console.log('🚀 [AppContext] Inicialización rápida...')
     
-    // Función para manejar cambios de autenticación
-    const handleAuthChange = async (event: string, session: Session | null) => {
+    // Inicializar setup de forma no bloqueante
+    initializeSystemSetup(setIsSetup, setSetupLoading)
+    
+    // Configurar listener de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
       
       setSession(session)
       
-      if (!session) {
+      if (session?.user) {
+        // Configurar usuario básico inmediatamente
+        const basicUser = session.user as AuthUser
+        setUser(basicUser)
+        
+        // Enriquecer perfil en segundo plano sin bloquear
+        enrichUserProfileAsync(session.user, setUser, profileEnrichmentInProgress)
+      } else {
         setUser(null)
-        setAuthLoading(false)
-        return
       }
-
-      // Usuario básico primero
-      const basicUser = session.user as AuthUser
-      setUser(basicUser)
-      setAuthLoading(false)
       
-      // Intentar enriquecer perfil en segundo plano con reintentos
-      setTimeout(async () => {
-        await enrichUserProfile(session.user)
-      }, 100)
-    }
+      setAuthLoading(false)
+    })
 
-    // Función para enriquecer perfil con reintentos
-    const enrichUserProfile = async (authUser: User, retries = 3) => {
-      for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-          console.log(`🔍 [AppContext] Enriqueciendo perfil (intento ${attempt}/${retries}) para usuario:`, authUser.id)
-          
-          const { data: profile, error } = await supabase
-            .from('users')
-            .select('role, org_id')
-            .eq('id', authUser.id)
-            .maybeSingle()
-
-          if (error) {
-            console.error(`❌ [AppContext] Error en intento ${attempt}:`, {
-              error: error,
-              message: error.message,
-              details: error.details,
-              hint: error.hint,
-              code: error.code
-            })
-            
-            // Si es el último intento, manejar el error
-            if (attempt === retries) {
-              if (error.code === 'PGRST116') {
-                console.warn('⚠️ [AppContext] Usuario no encontrado en tabla users, usando perfil básico')
-              }
-              return
-            }
-            
-            // Esperar antes del siguiente intento
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
-            continue
-          }
-
-          if (profile && profile.org_id) {
-            const enrichedUser: AuthUser = {
-              ...authUser,
-              role: profile.role as UserRole,
-              org_id: profile.org_id
-            }
-            setUser(enrichedUser)
-            console.log('✅ [AppContext] Perfil enriquecido exitosamente:', {
-              role: profile.role,
-              org_id: profile.org_id,
-              user_id: authUser.id
-            })
-            return // Éxito, salir del bucle
-          } else if (profile) {
-            // Usuario encontrado pero sin org_id
-            console.warn('⚠️ [AppContext] Usuario encontrado pero sin org_id:', profile)
-            const basicUserWithRole: AuthUser = {
-              ...authUser,
-              role: (profile.role as UserRole) || 'junior',
-              org_id: undefined
-            }
-            setUser(basicUserWithRole)
-            return
-          } else {
-            // No se encontraron datos
-            console.warn('⚠️ [AppContext] No se encontraron datos del usuario')
-            if (attempt < retries) {
-              await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
-              continue
-            }
-          }
-        } catch (error: any) {
-          console.error(`❌ [AppContext] Error crítico en intento ${attempt}:`, error.message)
-          
-          if (attempt < retries) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
-            continue
-          }
-          
-          // Fallback final: usar usuario básico
-          const fallbackUser: AuthUser = {
-            ...authUser,
-            role: 'junior' as UserRole,
-            org_id: undefined
-          }
-          setUser(fallbackUser)
-        }
+    // Obtener sesión inicial
+    getInitialSession(setSession, setAuthLoading).then((session) => {
+      if (session?.user) {
+        const basicUser = session.user as AuthUser
+        setUser(basicUser)
+        enrichUserProfileAsync(session.user, setUser, profileEnrichmentInProgress)
       }
-    }
-
-    // Configurar listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange)
-
-    // Verificar sesión inicial
-    const initializeAuth = async () => {
-      try {
-        console.log('🔍 [AppContext] Verificando sesión inicial...')
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('❌ [AppContext] Error obteniendo sesión inicial:', error)
-        }
-        
-        await handleAuthChange('initial', session)
-      } catch (error) {
-        console.error('❌ [AppContext] Error inicializando autenticación:', error)
-        setAuthLoading(false)
-      }
-    }
-
-    initializeAuth()
+    })
 
     return () => {
       subscription.unsubscribe()
     }
   }, [])
 
+  // Wrapper para signOut que también limpia el estado local
   const signOut = async () => {
-    try {
-      await baseSignOut()
-      setUser(null)
-      setSession(null)
-    } catch (error) {
-      console.error('❌ Error cerrando sesión:', error)
-    }
+    await baseSignOut()
+    // Limpiar estado local inmediatamente
+    setUser(null)
+    setSession(null)
   }
 
   const value: AppState = {
     user,
     session,
     authLoading,
-    isSetup: isSetup ?? true, // Default to true to prevent setup loop
+    isSetup,
     setupLoading,
-    isInitializing: authLoading || setupLoading,
+    isInitializing,
     signIn,
     signUp,
     signOut,

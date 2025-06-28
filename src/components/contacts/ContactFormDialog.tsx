@@ -7,7 +7,30 @@ import { NifLookup } from './NifLookup'
 import { Building2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useContactForm } from '@/hooks/useContactForm'
-import { Contact } from '@/hooks/useContacts'
+
+interface Contact {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+  dni_nif: string | null
+  address_street: string | null
+  address_city: string | null
+  address_postal_code: string | null
+  address_country: string | null
+  legal_representative: string | null
+  client_type: string | null
+  business_sector: string | null
+  how_found_us: string | null
+  contact_preference: string | null
+  preferred_language: string | null
+  hourly_rate: number | null
+  payment_method: string | null
+  status: string | null
+  relationship_type: string | null
+  tags: string[] | null
+  internal_notes: string | null
+}
 
 interface ContactFormDialogProps {
   contact?: Contact | null

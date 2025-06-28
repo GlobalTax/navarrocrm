@@ -32,30 +32,16 @@ export const ClientsDialogManager = ({
   onExportClose,
   onBulkUploadSuccess
 }: ClientsDialogManagerProps) => {
-  // Convertir Contact a Client para compatibilidad con formularios
-  const clientForForm = selectedClient ? {
-    ...selectedClient,
-    email: selectedClient.email || '',
-    phone: selectedClient.phone || '',
-  } : null
-
-  // Convertir Contact a Client para compatibilidad con ClientDetailDialog
-  const clientForDetail = selectedClient ? {
-    ...selectedClient,
-    email: selectedClient.email || '',
-    phone: selectedClient.phone || '',
-  } : null
-
   return (
     <>
       <ClientFormDialog
-        client={clientForForm as any}
+        client={selectedClient}
         open={isCreateDialogOpen || isEditDialogOpen}
         onClose={onClose}
       />
 
       <ClientDetailDialog
-        client={clientForDetail as any}
+        client={selectedClient}
         open={isDetailDialogOpen}
         onClose={onClose}
       />
@@ -69,7 +55,7 @@ export const ClientsDialogManager = ({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={clients as any}
+        clients={clients}
       />
     </>
   )

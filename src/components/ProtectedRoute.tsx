@@ -1,6 +1,5 @@
 
-import { useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 
 interface ProtectedRouteProps {
@@ -12,23 +11,12 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   allowedRoles,
-  redirectTo = '/'
+  redirectTo = '/login'
 }) => {
-  const { user, authLoading } = useApp()
-  const navigate = useNavigate()
+  const { user, session, isSetup, authLoading } = useApp()
   const location = useLocation()
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      console.log('🔒 [ProtectedRoute] Usuario no autenticado, redirigiendo a:', redirectTo)
-      navigate(redirectTo, { state: { from: location }, replace: true })
-    } else if (!authLoading && user && allowedRoles && user.role && !allowedRoles.includes(user.role)) {
-      console.log('🚫 [ProtectedRoute] Usuario sin permisos para:', location.pathname)
-      navigate('/unauthorized', { replace: true })
-    }
-  }, [user, authLoading, allowedRoles, navigate, location, redirectTo])
-
-  // Mostrar loading mientras se verifica autenticación
+  // Solo mostrar loading durante carga crítica y por tiempo limitado
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -40,30 +28,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     )
   }
 
-  // Si no hay usuario, mostrar loading mientras se redirige
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirigiendo...</p>
-        </div>
-      </div>
-    )
+  // Verificar autenticación
+  if (!user && !session) {
+    return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
-  // Verificar permisos de rol
-  if (allowedRoles && user.role && !allowedRoles.includes(user.role)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando permisos...</p>
-        </div>
-      </div>
-    )
+  // Verificar setup solo si definitivamente no está configurado
+  if (isSetup === false) {
+    return <Navigate to="/setup" replace />
   }
 
-  // Usuario autenticado y autorizado
+  // Verificar roles si se especificaron
+  if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />
+  }
+
   return <>{children}</>
 }

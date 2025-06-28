@@ -21,7 +21,7 @@ export interface ClientCommunication {
 export const useClientCommunications = (clientId: string) => {
   const { user } = useApp()
 
-  const { data: communications = [], isLoading, refetch } = useQuery({
+  const { data: communications = [], isLoading } = useQuery({
     queryKey: ['client-communications', clientId, user?.org_id],
     queryFn: async () => {
       if (!clientId || !user?.org_id) return []
@@ -118,7 +118,6 @@ export const useClientCommunications = (clientId: string) => {
   return {
     communications,
     isLoading,
-    refetch,
     metrics: {
       totalCommunications,
       emailsCount,

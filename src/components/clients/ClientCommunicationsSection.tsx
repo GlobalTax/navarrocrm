@@ -1,8 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useClientCommunications } from '@/hooks/useClientCommunications'
-import { ClientCommunicationActions } from './ClientCommunicationActions'
 import { 
   Mail, 
   Phone, 
@@ -13,13 +13,12 @@ import {
   MapPin,
   Users,
   ArrowUpRight,
-  ArrowDownLeft
+  ArrowDownLeft,
+  Plus
 } from 'lucide-react'
 
 interface ClientCommunicationsSectionProps {
   clientId: string
-  clientName?: string
-  clientEmail?: string
 }
 
 const getCommunicationIcon = (type: string) => {
@@ -73,19 +72,11 @@ const getTypeLabel = (type: string) => {
   }
 }
 
-export const ClientCommunicationsSection = ({ 
-  clientId, 
-  clientName = 'Cliente',
-  clientEmail 
-}: ClientCommunicationsSectionProps) => {
-  const { communications, metrics, isLoading, refetch } = useClientCommunications(clientId)
+export const ClientCommunicationsSection = ({ clientId }: ClientCommunicationsSectionProps) => {
+  const { communications, metrics, isLoading } = useClientCommunications(clientId)
 
   if (isLoading) {
     return <div className="animate-pulse">Cargando comunicaciones...</div>
-  }
-
-  const handleCommunicationCreated = () => {
-    refetch()
   }
 
   return (
@@ -154,12 +145,24 @@ export const ClientCommunicationsSection = ({
       </div>
 
       {/* Acciones Rápidas */}
-      <ClientCommunicationActions
-        clientId={clientId}
-        clientName={clientName}
-        clientEmail={clientEmail}
-        onCommunicationCreated={handleCommunicationCreated}
-      />
+      <div className="flex gap-2 flex-wrap">
+        <Button size="sm" className="gap-2">
+          <Mail className="h-4 w-4" />
+          Enviar Email
+        </Button>
+        <Button size="sm" variant="outline" className="gap-2">
+          <Phone className="h-4 w-4" />
+          Programar Llamada
+        </Button>
+        <Button size="sm" variant="outline" className="gap-2">
+          <Calendar className="h-4 w-4" />
+          Agendar Reunión
+        </Button>
+        <Button size="sm" variant="outline" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Añadir Nota
+        </Button>
+      </div>
 
       {/* Historial de Comunicaciones */}
       <Card>

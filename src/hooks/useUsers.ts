@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -10,7 +9,6 @@ export interface User {
   org_id: string | null
   created_at: string
   updated_at: string
-  is_active?: boolean
 }
 
 export const useUsers = () => {
@@ -21,20 +19,13 @@ export const useUsers = () => {
     queryFn: async () => {
       if (!user?.org_id) return []
       
-      console.log('🔍 [useUsers] Consultando usuarios para org_id:', user.org_id)
-      
       const { data, error } = await supabase
         .from('users')
-        .select('id, email, role, org_id, created_at, updated_at, is_active')
+        .select('*')
         .eq('org_id', user.org_id)
         .order('email', { ascending: true })
 
-      if (error) {
-        console.error('❌ [useUsers] Error en consulta:', error)
-        throw error
-      }
-      
-      console.log('✅ [useUsers] Usuarios obtenidos:', data?.length || 0)
+      if (error) throw error
       return data || []
     },
     enabled: !!user?.org_id,

@@ -1,79 +1,92 @@
 
-import { useState, useMemo } from 'react'
-import { useOptimizedContacts } from './contacts/useOptimizedContacts'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
+import { useApp } from '@/contexts/AppContext'
 
-export interface Contact {
+interface Contact {
   id: string
-  org_id: string
   name: string
-  email?: string
-  phone?: string
-  dni_nif?: string
-  address_street?: string
-  address_city?: string
-  address_postal_code?: string
-  address_country?: string
-  legal_representative?: string
-  client_type?: string
-  business_sector?: string
-  how_found_us?: string
-  contact_preference?: string
-  preferred_language?: string
-  payment_method?: string
-  status?: string
-  tags?: string[]
-  internal_notes?: string
-  preferred_meeting_time?: string
-  timezone?: string
-  relationship_type: string
-  hourly_rate?: number
-  last_contact_date?: string
-  email_preferences?: any
+  email: string | null
+  phone: string | null
   created_at: string
-  updated_at: string
+  dni_nif: string | null
+  address_street: string | null
+  address_city: string | null
+  address_postal_code: string | null
+  address_country: string | null
+  legal_representative: string | null
+  client_type: string | null
+  business_sector: string | null
+  how_found_us: string | null
+  contact_preference: string | null
+  preferred_language: string | null
+  hourly_rate: number | null
+  payment_method: string | null
+  status: string | null
+  relationship_type: string | null
+  tags: string[] | null
+  internal_notes: string | null
+  last_contact_date: string | null
 }
 
 export const useContacts = () => {
+  const { user } = useApp()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [relationshipFilter, setRelationshipFilter] = useState<string>('all')
 
-  // Usar el hook optimizado
-  const optimizedResult = useOptimizedContacts({
-    status: statusFilter,
-    relationship_type: relationshipFilter,
-    searchTerm: searchTerm.trim() || undefined
+  const { data: contacts = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['contacts', user?.org_id],
+    queryFn: async () => {
+      if (!user?.org_id) {
+        console.log('👥 No org_id disponible para obtener contactos')
+        return []
+      }
+      
+      console.log('👥 Obteniendo contactos para org:', user.org_id)
+      
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('❌ Error fetching contacts:', error)
+        throw error
+      }
+      
+      console.log('✅ Contactos obtenidos:', data?.length || 0)
+      return data || []
+    },
+    enabled: !!user?.org_id,
   })
 
-  // Extraer propiedades del resultado optimizado
-  const contacts = optimizedResult.data || []
-  const isLoading = optimizedResult.isLoading || false
-  const error = optimizedResult.error || null
+  const filteredContacts = contacts.filter(contact => {
+    const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.phone?.includes(searchTerm) ||
+      contact.dni_nif?.includes(searchTerm)
+    
+    const matchesStatus = statusFilter === 'all' || contact.status === statusFilter
+    const matchesRelationship = relationshipFilter === 'all' || contact.relationship_type === relationshipFilter
 
-  // Crear funciones mock para propiedades que no existen en QueryResult
-  const hasMore = false // Mock value
-  const loadMore = () => {} // Mock function
-  const refetch = () => Promise.resolve() // Mock function
-
-  // Filtrar en memoria solo si es necesario (para compatibilidad)
-  const filteredContacts = useMemo(() => {
-    return contacts || []
-  }, [contacts])
+    return matchesSearch && matchesStatus && matchesRelationship
+  })
 
   return {
-    contacts: contacts || [],
+    contacts,
     filteredContacts,
     isLoading,
     error,
-    count: contacts?.length || 0,
-    hasMore,
-    loadMore,
     refetch,
     searchTerm,
     setSearchTerm,
     statusFilter,
-    setStatusFilter,
+    setStatusFilter,  
     relationshipFilter,
     setRelationshipFilter
   }
 }
+
+export type { Contact }

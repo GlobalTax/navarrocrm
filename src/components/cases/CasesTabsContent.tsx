@@ -7,29 +7,23 @@ import { Case } from '@/hooks/useCases'
 interface CasesTabsContentProps {
   filteredCases: Case[]
   onViewCase: (case_: Case) => void
-  onOpenWorkspace: (case_: Case) => void
   onEditCase: (case_: Case) => void
   onDeleteCase: (case_: Case) => void
   onArchiveCase: (case_: Case) => void
   selectedCases: string[]
   onSelectCase: (caseId: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
-  searchTerm?: string
-  isSearching?: boolean
 }
 
 export function CasesTabsContent({
   filteredCases,
   onViewCase,
-  onOpenWorkspace,
   onEditCase,
   onDeleteCase,
   onArchiveCase,
   selectedCases,
   onSelectCase,
-  onSelectAll,
-  searchTerm,
-  isSearching
+  onSelectAll
 }: CasesTabsContentProps) {
   return (
     <Card>
@@ -51,7 +45,6 @@ export function CasesTabsContent({
             <CaseTable
               cases={filteredCases}
               onViewCase={onViewCase}
-              onOpenWorkspace={onOpenWorkspace}
               onEditCase={onEditCase}
               onDeleteCase={onDeleteCase}
               onArchiveCase={onArchiveCase}

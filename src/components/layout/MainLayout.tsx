@@ -1,9 +1,7 @@
 
 import { Header } from './Header'
-import { CollapsibleSidebar } from './CollapsibleSidebar'
+import { Sidebar } from './Sidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
-import { CacheStatsPanel } from '@/components/dev/CacheStatsPanel'
-import { PWASimpleManager } from '@/components/pwa/PWASimpleManager'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 interface MainLayoutProps {
@@ -14,8 +12,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
 
   return (
-    <div className="min-h-screen bg-gray-50 flex dark:bg-gray-900">
-      <CollapsibleSidebar />
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
         <main className="flex-1 p-6 overflow-auto">
@@ -30,17 +28,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onToggle={toggle}
         onMinimize={minimize}
       />
-      
-      {/* PWA Simple Manager - Interfaz limpia sin información técnica */}
-      <PWASimpleManager
-        showOfflineIndicator={true}
-        showSyncNotifications={true}
-        showUpdateNotifications={true}
-        statusPosition="top-right"
-      />
-      
-      {/* Cache Stats Panel (Development Only) */}
-      <CacheStatsPanel />
     </div>
   )
 }

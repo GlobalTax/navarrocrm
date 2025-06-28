@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -5,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Search, Filter, X, Calendar, User, DollarSign, Clock } from 'lucide-react'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 
 interface AdvancedTimeTrackingFiltersProps {
   searchTerm: string

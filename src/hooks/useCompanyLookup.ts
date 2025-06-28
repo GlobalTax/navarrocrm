@@ -2,35 +2,36 @@
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
-import type { CompanyData } from './useCompanyLookup/types'
-import { validateNifCif, validateCompanyData } from './useCompanyLookup/validation'
-import { getErrorMessage, showSuccessToast, handleNetworkError } from './useCompanyLookup/errorHandling'
-import { sanitizeCompanyData } from './useCompanyLookup/dataTransform'
 
-export type { CompanyData }
+export interface CompanyData {
+  name: string
+  nif: string
+  address_street?: string
+  address_city?: string
+  address_postal_code?: string
+  business_sector?: string
+  legal_representative?: string
+  status: 'activo' | 'inactivo'
+  client_type: 'empresa'
+}
 
 export const useCompanyLookup = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const lookupCompany = async (nif: string): Promise<CompanyData | null> => {
-    // Paso 1: Validación mejorada de entrada
-    const validation = validateNifCif(nif)
-    
-    if (!validation.isValid) {
-      toast.error('NIF/CIF inválido', {
-        description: validation.error
+    if (!nif || !nif.trim()) {
+      toast.error('NIF/CIF requerido', {
+        description: 'Por favor, introduce un NIF/CIF válido para buscar la empresa'
       })
       return null
     }
 
-    const cleanNif = validation.cleanNif
-
     setIsLoading(true)
-    console.log('🔍 useCompanyLookup - Iniciando búsqueda empresarial:', cleanNif)
+    console.log('🔍 useCompanyLookup - Iniciando búsqueda empresarial:', nif)
 
     try {
       const { data, error } = await supabase.functions.invoke('company-lookup-einforma', {
-        body: { nif: cleanNif }
+        body: { nif: nif.trim() }
       })
 
       console.log('📥 useCompanyLookup - Respuesta completa:', {
@@ -62,7 +63,19 @@ export const useCompanyLookup = () => {
       if (!data.success) {
         console.error('❌ useCompanyLookup - Búsqueda sin éxito:', data)
         
-        const errorMessage = getErrorMessage(data.error, data.message)
+        let errorMessage = 'Error desconocido'
+        
+        if (data.error === 'INVALID_CREDENTIALS') {
+          errorMessage = 'Las credenciales de eInforma no son válidas. Contacta con el administrador del sistema.'
+        } else if (data.error === 'CREDENTIALS_MISSING') {
+          errorMessage = 'Las credenciales de eInforma no están configuradas. Contacta con el administrador del sistema.'
+        } else if (data.error === 'COMPANY_NOT_FOUND') {
+          errorMessage = 'No se encontró ninguna empresa con este NIF/CIF en el Registro Mercantil'
+        } else if (data.error === 'INVALID_FORMAT') {
+          errorMessage = 'El formato del NIF/CIF no es válido'
+        } else {
+          errorMessage = data.message || 'Error al consultar los datos empresariales'
+        }
         
         toast.error('Búsqueda fallida', {
           description: errorMessage
@@ -79,16 +92,6 @@ export const useCompanyLookup = () => {
         return null
       }
 
-      // Paso 3: Validación adicional de datos recibidos
-      const dataValidation = validateCompanyData(data.data)
-      if (!dataValidation.isValid) {
-        console.error('❌ useCompanyLookup - Datos de empresa inválidos:', data.data)
-        toast.error('Datos incompletos', {
-          description: dataValidation.error || 'Los datos de la empresa están incompletos'
-        })
-        return null
-      }
-
       console.log('✅ useCompanyLookup - Empresa encontrada:', {
         name: data.data.name,
         nif: data.data.nif,
@@ -96,12 +99,30 @@ export const useCompanyLookup = () => {
         isSimulated: data.isSimulated
       })
       
-      // Mostrar toast de éxito
-      showSuccessToast(data.data, data.isSimulated, data.warning)
+      // Personalizar mensaje según si son datos reales o simulados
+      let toastMessage = `${data.data.name} - ${data.data.nif}`
+      let toastDescription = ''
       
-      // Sanitizar y retornar datos
-      return sanitizeCompanyData(data.data, data.isSimulated, data.warning)
+      if (data.isSimulated) {
+        if (data.warning) {
+          toastDescription = data.warning
+          toast.warning('Empresa encontrada (datos de prueba)', {
+            description: `${toastMessage} - ${toastDescription}`
+          })
+        } else {
+          toastDescription = 'Datos de prueba para desarrollo'
+          toast.info('Empresa encontrada (datos de prueba)', {
+            description: `${toastMessage} - ${toastDescription}`
+          })
+        }
+      } else {
+        toastDescription = 'Datos oficiales del Registro Mercantil'
+        toast.success('Empresa encontrada', {
+          description: `${toastMessage} - ${toastDescription}`
+        })
+      }
       
+      return { ...data.data, isSimulated: data.isSimulated, warning: data.warning }
     } catch (error) {
       console.error('💥 useCompanyLookup - Error de captura:', {
         error,
@@ -109,12 +130,8 @@ export const useCompanyLookup = () => {
         stack: error instanceof Error ? error.stack : undefined
       })
       
-      // Manejo mejorado de errores de red y sistema
-      let errorMessage = 'Error inesperado al buscar la empresa'
-      
-      if (error instanceof Error) {
-        errorMessage = handleNetworkError(error)
-      }
+      // Manejo simplificado de errores
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado al buscar la empresa'
       
       // Solo mostrar toast si es un error no mostrado anteriormente
       if (!errorMessage.includes('credenciales') && !errorMessage.includes('encontró')) {

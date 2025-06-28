@@ -1,180 +1,131 @@
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog } from 'lucide-react'
 
-import {
-  LayoutDashboard,
-  Users,
-  FolderOpen,
-  Clock,
-  FileText,
-  Calendar,
-  Building2,  // Añado este icono para la gestión de oficina
-  BarChart3,
-  Settings,
-  Zap,
-  Briefcase,
-  Euro,
-  UserPlus,
-  Bot,
-  GraduationCap,
-  Workflow
-} from 'lucide-react'
+export interface NavigationItem {
+  title: string
+  url: string
+  icon: any
+  badge?: string
+  isActive?: boolean
+}
 
-// Navigation items for different user roles
-export const getNavigationItems = (userRole?: string) => {
-  const baseItems = [
-    {
-      title: 'Dashboard',
-      url: '/dashboard',
-      icon: LayoutDashboard,
-      category: 'main'
-    },
-    {
-      title: 'Expedientes',
-      url: '/cases',
-      icon: FolderOpen,
-      category: 'main'
-    },
-    {
-      title: 'Clientes',
-      url: '/clients',
-      icon: Users,
-      category: 'main'
-    },
-    {
-      title: 'Contactos',
-      url: '/contacts',
-      icon: UserPlus,
-      category: 'main'
-    },
-    {
-      title: 'Tiempo',
-      url: '/time-tracking',
-      icon: Clock,
-      category: 'main'
-    },
-    {
-      title: 'Propuestas',
-      url: '/proposals',
-      icon: FileText,
-      category: 'business'
-    },
-    {
-      title: 'Cuotas Recurrentes',
-      url: '/recurrent-fees',
-      icon: Euro,
-      category: 'business'
-    },
-    {
-      title: 'Tareas',
-      url: '/tasks',
-      icon: Briefcase,
-      category: 'productivity'
-    },
-    {
-      title: 'Calendario',
-      url: '/calendar',
-      icon: Calendar,
-      category: 'productivity'
-    },
-    {
-      title: 'Gestión de Oficina',  // Nuevo elemento de navegación
-      url: '/office-management',
-      icon: Building2,
-      category: 'productivity'
-    },
-    {
-      title: 'Documentos',
-      url: '/documents',
-      icon: FileText,
-      category: 'productivity'
-    }
-  ]
+export interface NavigationSection {
+  title: string
+  items: NavigationItem[]
+}
 
-  const adminItems = [
-    {
-      title: 'Usuarios',
-      url: '/users',
-      icon: Users,
-      category: 'admin'
-    },
-    {
-      title: 'Configuración',
-      url: '/integration-settings',
-      icon: Settings,
-      category: 'admin'
-    }
-  ]
+export interface QuickAction {
+  name: string
+  href: string
+}
 
-  const analyticsItems = [
-    {
-      title: 'Analíticas',
-      url: '/analytics',
-      icon: BarChart3,
-      category: 'analytics'
-    },
-    {
-      title: 'Reportes',
-      url: '/reports',
-      icon: FileText,
-      category: 'analytics'
-    },
-    {
-      title: 'Flujos de Trabajo',
-      url: '/workflows',
-      icon: Workflow,
-      category: 'analytics'
-    }
-  ]
-
-  const aiItems = [
-    {
-      title: 'IA Avanzada',
-      url: '/enhanced-advanced-ai',
-      icon: Bot,
-      category: 'ai'
-    },
-    {
-      title: 'Academia',
-      url: '/academia',
-      icon: GraduationCap,
-      category: 'ai'
-    }
-  ]
-
-  let allItems = [...baseItems]
-
-  // Add items based on user role
-  if (userRole === 'admin' || userRole === 'partner') {
-    allItems = [...allItems, ...adminItems, ...analyticsItems, ...aiItems]
-  } else if (userRole === 'manager') {
-    allItems = [...allItems, ...analyticsItems.slice(0, 2), ...aiItems] // Exclude workflows for managers
-  } else {
-    allItems = [...allItems, ...aiItems]
+export const navigationData: NavigationSection[] = [
+  {
+    title: "Principal",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/",
+        icon: BarChart3,
+      },
+      {
+        title: "Contactos",
+        url: "/contacts",
+        icon: Users,
+      },
+      {
+        title: "Casos",
+        url: "/cases",
+        icon: Briefcase,
+      },
+      {
+        title: "Propuestas",
+        url: "/proposals",
+        icon: FileText,
+      },
+    ]
+  },
+  {
+    title: "Productividad",
+    items: [
+      {
+        title: "Tareas",
+        url: "/tasks",
+        icon: FileText,
+      },
+      {
+        title: "Time Tracking",
+        url: "/time-tracking",
+        icon: Clock,
+      },
+      {
+        title: "Calendario",
+        url: "/calendar",
+        icon: Calendar,
+      },
+      {
+        title: "Documentos",
+        url: "/documents",
+        icon: FolderOpen,
+      },
+    ]
+  },
+  {
+    title: "Configuración",
+    items: [
+      {
+        title: "Usuarios",
+        url: "/users",
+        icon: UserCog,
+      },
+      {
+        title: "Integraciones",
+        url: "/integrations",
+        icon: Settings,
+      },
+      {
+        title: "Reportes",
+        url: "/reports",
+        icon: BarChart3,
+      },
+    ]
+  },
+  {
+    title: "IA & Academia",
+    items: [
+      {
+        title: "Academia",
+        url: "/academia",
+        icon: BookOpen,
+      },
+      {
+        title: "Asistente IA",
+        url: "/ai-assistant",
+        icon: Bot,
+      },
+      {
+        title: "Admin IA",
+        url: "/ai-admin",
+        icon: Shield,
+      },
+    ]
   }
+]
 
-  return allItems
-}
-
-export const navigationCategories = {
-  main: 'Principal',
-  business: 'Negocio',
-  productivity: 'Productividad',
-  analytics: 'Analíticas',
-  admin: 'Administración',
-  ai: 'Inteligencia Artificial'
-}
-
-// Export quickActions for QuickActionsSection
-export const quickActions = [
+export const quickActions: QuickAction[] = [
   {
-    name: 'Nuevo Cliente',
-    href: '/clients'
+    name: "Nuevo Cliente",
+    href: "/clients/new"
   },
   {
-    name: 'Nuevo Caso',
-    href: '/cases'
+    name: "Nuevo Caso",
+    href: "/cases/new"
   },
   {
-    name: 'Nueva Tarea',
-    href: '/tasks'
+    name: "Nueva Propuesta",
+    href: "/proposals/new"
+  },
+  {
+    name: "Registrar Tiempo",
+    href: "/time-tracking"
   }
 ]

@@ -6,9 +6,11 @@ import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 
 export type WorkflowRuleDB = Tables<'workflow_rules'>
+export type WorkflowTemplateDB = Tables<'workflow_templates'>
 
 export const useWorkflowRules = () => {
   const [rules, setRules] = useState<WorkflowRuleDB[]>([])
+  const [templates, setTemplates] = useState<WorkflowTemplateDB[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useApp()
 
@@ -21,28 +23,33 @@ export const useWorkflowRules = () => {
         .from('workflow_rules')
         .select('*')
         .eq('org_id', user.org_id)
-        .order('created_at', { ascending: false })
+        .order('priority', { ascending: false })
 
-      if (error) {
-        if (error.code === '400' || error.code === 'PGRST116') {
-          console.log('⚠️ Tabla workflow_rules no accesible, devolviendo datos vacíos')
-          setRules([])
-          return
-        }
-        throw error
-      }
-      
-      console.log('✅ Reglas de workflow obtenidas:', data?.length || 0)
+      if (error) throw error
       setRules(data || [])
     } catch (error) {
-      console.error('❌ Error fetching workflow rules:', error)
-      setRules([])
+      console.error('Error fetching workflow rules:', error)
+      toast.error('No se pudieron cargar las reglas de workflow')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const createRule = async (ruleData: Omit<WorkflowRuleDB, 'id' | 'org_id' | 'created_at' | 'updated_at'>) => {
+  const fetchTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('workflow_templates')
+        .select('*')
+        .order('category')
+
+      if (error) throw error
+      setTemplates(data || [])
+    } catch (error) {
+      console.error('Error fetching workflow templates:', error)
+    }
+  }
+
+  const createRule = async (ruleData: Omit<WorkflowRuleDB, 'id' | 'org_id' | 'created_by' | 'created_at' | 'updated_at'>) => {
     if (!user?.org_id || !user?.id) return
 
     try {
@@ -58,11 +65,11 @@ export const useWorkflowRules = () => {
 
       if (error) throw error
 
-      setRules(prev => [data, ...prev])
+      setRules(prev => [...prev, data])
       toast.success('Regla de workflow creada correctamente')
       return data
     } catch (error) {
-      console.error('❌ Error creating workflow rule:', error)
+      console.error('Error creating workflow rule:', error)
       toast.error('No se pudo crear la regla de workflow')
       throw error
     }
@@ -83,7 +90,7 @@ export const useWorkflowRules = () => {
       toast.success('Regla de workflow actualizada correctamente')
       return data
     } catch (error) {
-      console.error('❌ Error updating workflow rule:', error)
+      console.error('Error updating workflow rule:', error)
       toast.error('No se pudo actualizar la regla de workflow')
       throw error
     }
@@ -101,7 +108,7 @@ export const useWorkflowRules = () => {
       setRules(prev => prev.filter(rule => rule.id !== id))
       toast.success('Regla de workflow eliminada correctamente')
     } catch (error) {
-      console.error('❌ Error deleting workflow rule:', error)
+      console.error('Error deleting workflow rule:', error)
       toast.error('No se pudo eliminar la regla de workflow')
       throw error
     }
@@ -113,10 +120,12 @@ export const useWorkflowRules = () => {
 
   useEffect(() => {
     fetchRules()
+    fetchTemplates()
   }, [user?.org_id])
 
   return {
     rules,
+    templates,
     isLoading,
     createRule,
     updateRule,

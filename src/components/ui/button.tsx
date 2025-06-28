@@ -38,54 +38,15 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
-  loading?: boolean;
-  loadingText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
-    asChild = false, 
-    disabled, 
-    loading = false, 
-    loadingText = "Cargando...",
-    children,
-    ...props 
-  }, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    
-    // Determinar si el botón está realmente deshabilitado
-    const isDisabled = disabled || loading;
-    
-    // Generar ID único para el botón si no existe
-    const buttonId = props.id || `button-${Math.random().toString(36).substr(2, 9)}`;
-    
     return (
-      <Comp 
-        className={cn(buttonVariants({ variant, size, className }))} 
-        ref={ref}
-        disabled={isDisabled}
-        aria-disabled={isDisabled}
-        aria-busy={loading}
-        aria-describedby={loading ? `${buttonId}-loading` : undefined}
-        id={buttonId}
-        {...props}
-      >
-        {loading && (
-          <span 
-            id={`${buttonId}-loading`} 
-            className="sr-only"
-            aria-live="polite"
-          >
-            {loadingText}
-          </span>
-        )}
-        {children}
-      </Comp>
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

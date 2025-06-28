@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -23,7 +23,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
   const [isBillable, setIsBillable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { cases = [] } = useCases()
+  const { cases } = useCases()
   const { createTimeEntry } = useTimeEntries()
 
   const formatTime = (totalSeconds: number) => {
@@ -56,6 +56,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
 
       toast.success(`Tiempo registrado: ${minutes} minutos`)
       
+      // Resetear formulario
       setSelectedCaseId('none')
       setDescription('')
       setIsBillable(true)
@@ -69,21 +70,20 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
     }
   }
 
-  if (!isOpen) {
-    return null
+  const handleClose = () => {
+    // No resetear el formulario al cerrar, por si el usuario quiere intentar de nuevo
+    onClose()
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Registrar Tiempo</DialogTitle>
-          <DialogDescription>
-            Registra el tiempo trabajado en un caso específico o como tiempo general.
-          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Tiempo registrado */}
           <div className="text-center p-4 bg-blue-50 rounded-lg">
             <p className="text-lg font-mono font-bold text-blue-700">
               {formatTime(timerSeconds)}
@@ -93,6 +93,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             </p>
           </div>
 
+          {/* Caso (opcional) */}
           <div className="space-y-2">
             <Label htmlFor="case-select">Caso (Opcional)</Label>
             <Select value={selectedCaseId} onValueChange={setSelectedCaseId}>
@@ -101,21 +102,16 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin caso específico</SelectItem>
-                {cases.length > 0 ? (
-                  cases.map((case_) => (
-                    <SelectItem key={case_.id} value={case_.id}>
-                      {case_.title} ({case_.contact?.name || 'Sin contacto'})
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="no-cases" disabled>
-                    No hay casos disponibles
+                {cases.map((case_) => (
+                  <SelectItem key={case_.id} value={case_.id}>
+                    {case_.title} ({case_.contact?.name})
                   </SelectItem>
-                )}
+                ))}
               </SelectContent>
             </Select>
           </div>
 
+          {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description">Descripción del trabajo *</Label>
             <Textarea
@@ -128,6 +124,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             />
           </div>
 
+          {/* Facturable */}
           <div className="flex items-center justify-between">
             <Label htmlFor="billable">Tiempo facturable</Label>
             <Switch
@@ -137,10 +134,11 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
             />
           </div>
 
+          {/* Botones */}
           <div className="flex gap-2 pt-4">
             <Button
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               className="flex-1"
               disabled={isLoading}
             >

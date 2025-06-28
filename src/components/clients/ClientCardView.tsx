@@ -5,55 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Mail, Phone, Edit, Eye, Building, User, MapPin, Calendar, Euro, Tag } from 'lucide-react'
 import { Client } from '@/hooks/useClients'
-import { useImageOptimization } from '@/hooks/image/useImageOptimization'
-import { Skeleton } from '@/components/ui/skeleton'
 
 interface ClientCardViewProps {
   clients: Client[]
   onViewClient: (client: Client) => void
   onEditClient: (client: Client) => void
-}
-
-const OptimizedAvatar = ({ client }: { client: Client }) => {
-  // Simular URL de avatar - en producción vendría de client.avatar_url
-  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(client.name)}`
-  
-  const { optimizedSrc, isLoaded, isLoading } = useImageOptimization(avatarUrl, {
-    width: 48,
-    height: 48,
-    format: 'webp',
-    lazy: true,
-    placeholder: 'blur'
-  })
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
-  if (isLoading) {
-    return <Skeleton className="h-12 w-12 rounded-full" />
-  }
-
-  return (
-    <Avatar className="h-12 w-12">
-      {isLoaded && optimizedSrc ? (
-        <img
-          src={optimizedSrc}
-          alt={`Avatar de ${client.name}`}
-          className="h-full w-full object-cover rounded-full"
-        />
-      ) : (
-        <AvatarFallback className="bg-blue-100 text-blue-700">
-          {getInitials(client.name)}
-        </AvatarFallback>
-      )}
-    </Avatar>
-  )
 }
 
 export const ClientCardView = ({ clients, onViewClient, onEditClient }: ClientCardViewProps) => {
@@ -84,6 +40,15 @@ export const ClientCardView = ({ clients, onViewClient, onEditClient }: ClientCa
     }
   }
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {clients.map((client) => (
@@ -91,7 +56,11 @@ export const ClientCardView = ({ clients, onViewClient, onEditClient }: ClientCa
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <OptimizedAvatar client={client} />
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback className="bg-blue-100 text-blue-700">
+                    {getInitials(client.name)}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <h3 className="font-semibold text-sm leading-tight">{client.name}</h3>
                   <div className="flex items-center gap-1 mt-1">

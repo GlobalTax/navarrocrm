@@ -1,12 +1,11 @@
 
-import { useApp } from '@/contexts/AppContext'
 import { Navigate } from 'react-router-dom'
-import Welcome from './Welcome'
+import { useApp } from '@/contexts/AppContext'
 
 const Index = () => {
-  const { user, authLoading } = useApp()
-  
-  // Mostrar loading mientras se verifica autenticación
+  const { session, user, isSetup, authLoading } = useApp()
+
+  // Mostrar loading solo brevemente
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -18,13 +17,16 @@ const Index = () => {
     )
   }
 
-  // Si el usuario está autenticado, redirigir al dashboard
-  if (user) {
-    return <Navigate to="/dashboard" replace />
+  // Redirecciones simplificadas y directas
+  if (session || user) {
+    return <Navigate to="/" replace />
   }
 
-  // Si no está autenticado, mostrar la página de bienvenida
-  return <Welcome />
+  if (isSetup === false) {
+    return <Navigate to="/setup" replace />
+  }
+
+  return <Navigate to="/login" replace />
 }
 
 export default Index

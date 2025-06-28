@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,23 +12,21 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn, authLoading } = useApp()
+  const { session, user, signIn, authLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
 
-  const from = location.state?.from?.pathname || '/dashboard'
+  const from = location.state?.from?.pathname || '/'
 
-  // Mostrar loading mientras se verifica autenticación inicial
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando autenticación...</p>
-        </div>
-      </div>
-    )
-  }
+  // Redirección más directa
+  useEffect(() => {
+    if (authLoading) return
+
+    if (session || user) {
+      console.log('🔐 [Login] Usuario autenticado, redirigiendo')
+      navigate(from, { replace: true })
+    }
+  }, [session, user, authLoading, navigate, from])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,8 +40,8 @@ export default function Login() {
 
     try {
       await signIn(email, password)
+      
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
-      navigate(from, { replace: true })
     } catch (error: any) {
       console.error('❌ [Login] Error:', error)
       
@@ -59,6 +57,18 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Loading simplificado
+  if (authLoading || ((session || user) && !loading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Accediendo...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

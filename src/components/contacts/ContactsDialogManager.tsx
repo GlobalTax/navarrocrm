@@ -1,7 +1,6 @@
-
 import { Contact } from '@/hooks/useContacts'
-import { ContactFormDialog } from './ContactFormDialog'
-import { ContactDetailDialog } from './ContactDetailDialog'
+import { ClientFormDialog } from '@/components/clients/ClientFormDialog'
+import { ClientDetailDialog } from '@/components/clients/ClientDetailDialog'
 import { ClientBulkUpload } from '@/components/clients/ClientBulkUpload'
 import { ClientExportDialog } from '@/components/clients/ClientExportDialog'
 
@@ -34,22 +33,22 @@ export function ContactsDialogManager({
 }: ContactsDialogManagerProps) {
   return (
     <>
-      <ContactFormDialog
+      <ClientFormDialog
         open={isCreateDialogOpen}
         onClose={onClose}
-        contact={selectedContact}
+        client={selectedContact}
       />
 
-      <ContactFormDialog
+      <ClientFormDialog
         open={isEditDialogOpen}
         onClose={onClose}
-        contact={selectedContact}
+        client={selectedContact}
       />
 
-      <ContactDetailDialog
+      <ClientDetailDialog
         open={isDetailDialogOpen}
         onClose={onClose}
-        contact={selectedContact}
+        client={selectedContact}
       />
 
       <ClientBulkUpload
@@ -61,7 +60,7 @@ export function ContactsDialogManager({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={contacts as any}
+        clients={contacts}
       />
     </>
   )

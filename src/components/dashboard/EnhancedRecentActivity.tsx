@@ -12,15 +12,14 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useDashboardData } from '@/hooks/useDashboardData'
-import { RecentActivity } from '@/types/dashboardTypes'
+import { useDashboardData, RecentActivity } from '@/hooks/useDashboardData'
 import { useNavigate } from 'react-router-dom'
 
 const getActivityIcon = (type: RecentActivity['type']) => {
   switch (type) {
     case 'client': return Users
     case 'case': return FileText
-    case 'time_entry': return Clock
+    case 'time': return Clock
     case 'task': return CheckCircle
     case 'proposal': return Calendar
   }
@@ -30,7 +29,7 @@ const getActivityColor = (type: RecentActivity['type']) => {
   switch (type) {
     case 'client': return 'bg-blue-100 text-blue-700'
     case 'case': return 'bg-green-100 text-green-700'
-    case 'time_entry': return 'bg-orange-100 text-orange-700'
+    case 'time': return 'bg-orange-100 text-orange-700'
     case 'task': return 'bg-purple-100 text-purple-700'
     case 'proposal': return 'bg-indigo-100 text-indigo-700'
   }
@@ -40,7 +39,7 @@ const getActivityBadgeColor = (type: RecentActivity['type']) => {
   switch (type) {
     case 'client': return 'bg-blue-50 text-blue-700 border-blue-200'
     case 'case': return 'bg-green-50 text-green-700 border-green-200'
-    case 'time_entry': return 'bg-orange-50 text-orange-700 border-orange-200'
+    case 'time': return 'bg-orange-50 text-orange-700 border-orange-200'
     case 'task': return 'bg-purple-50 text-purple-700 border-purple-200'
     case 'proposal': return 'bg-indigo-50 text-indigo-700 border-indigo-200'
   }
@@ -73,7 +72,7 @@ export const EnhancedRecentActivity = () => {
     )
   }
 
-  const activities = dashboardData?.recentActivity || []
+  const activities = dashboardData?.recentActivities || []
 
   const handleActivityClick = (activity: RecentActivity) => {
     switch (activity.type) {
@@ -83,7 +82,7 @@ export const EnhancedRecentActivity = () => {
       case 'case':
         navigate('/cases')
         break
-      case 'time_entry':
+      case 'time':
         navigate('/time-tracking')
         break
       case 'task':

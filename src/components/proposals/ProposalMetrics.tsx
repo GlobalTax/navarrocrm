@@ -1,22 +1,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useProposalMetricsCalculated } from '@/hooks/useProposalMetricsCalculated'
-import { TrendingUp, FileText, CheckCircle, XCircle, Euro, Target, Repeat, Clock } from 'lucide-react'
+import { useRevenueMetrics } from '@/hooks/useRevenueMetrics'
+import { TrendingUp, FileText, CheckCircle, XCircle, Euro, Target } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Proposal } from '@/types/proposals'
 
-interface ProposalMetricsProps {
-  proposals: Proposal[]
-  isLoading?: boolean
-}
-
-export function ProposalMetrics({ proposals, isLoading }: ProposalMetricsProps) {
-  const metrics = useProposalMetricsCalculated(proposals)
+export function ProposalMetrics() {
+  const { summary, isLoading } = useRevenueMetrics()
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-20" />
@@ -32,77 +26,55 @@ export function ProposalMetrics({ proposals, isLoading }: ProposalMetricsProps) 
     )
   }
 
-  const metricsData = [
+  const metrics = [
     {
       title: "Revenue Total",
-      value: metrics.totalRevenue,
+      value: summary.totalRevenue,
       format: "currency",
       icon: Euro,
-      description: "Ingresos generados",
-      color: "text-green-600"
+      description: "Ingresos generados"
     },
     {
       title: "Propuestas Enviadas",
-      value: metrics.totalProposalsSent,
+      value: summary.totalProposalsSent,
       format: "number",
       icon: FileText,
-      description: "Total enviadas",
-      color: "text-blue-600"
+      description: "Total enviadas"
     },
     {
       title: "Propuestas Ganadas",
-      value: metrics.totalProposalsWon,
+      value: summary.totalProposalsWon,
       format: "number",
       icon: CheckCircle,
-      description: "Propuestas aceptadas",
-      color: "text-green-600"
+      description: "Propuestas aceptadas"
     },
     {
       title: "Propuestas Perdidas",
-      value: metrics.totalProposalsLost,
+      value: summary.totalProposalsLost,
       format: "number",
       icon: XCircle,
-      description: "Propuestas rechazadas",
-      color: "text-red-600"
+      description: "Propuestas rechazadas"
     },
     {
       title: "Tasa de Conversión",
-      value: metrics.averageConversionRate,
+      value: summary.averageConversionRate,
       format: "percentage",
       icon: Target,
-      description: "% de éxito promedio",
-      color: "text-purple-600"
+      description: "% de éxito promedio"
     },
     {
       title: "Valor Promedio",
-      value: metrics.averageDealSize,
+      value: summary.averageDealSize,
       format: "currency",
       icon: TrendingUp,
-      description: "Por propuesta ganada",
-      color: "text-orange-600"
-    },
-    {
-      title: "Revenue Recurrente",
-      value: metrics.recurringRevenue,
-      format: "currency",
-      icon: Repeat,
-      description: "De servicios continuos",
-      color: "text-blue-600"
-    },
-    {
-      title: "Propuestas Pendientes",
-      value: metrics.pendingProposals,
-      format: "number",
-      icon: Clock,
-      description: "En negociación",
-      color: "text-yellow-600"
+      description: "Por propuesta ganada"
     }
   ]
 
   const formatValue = (value: number, format: string) => {
     switch (format) {
       case 'currency':
-        return `€${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+        return `€${value.toLocaleString()}`
       case 'percentage':
         return `${value.toFixed(1)}%`
       default:
@@ -111,19 +83,19 @@ export function ProposalMetrics({ proposals, isLoading }: ProposalMetricsProps) 
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-      {metricsData.map((metric) => {
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      {metrics.map((metric) => {
         const Icon = metric.icon
         return (
-          <Card key={metric.title} className="hover:shadow-md transition-shadow">
+          <Card key={metric.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {metric.title}
               </CardTitle>
-              <Icon className={`h-4 w-4 ${metric.color}`} />
+              <Icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${metric.color}`}>
+              <div className="text-2xl font-bold">
                 {formatValue(metric.value, metric.format)}
               </div>
               <p className="text-xs text-muted-foreground">

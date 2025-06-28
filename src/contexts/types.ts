@@ -6,9 +6,6 @@ export type UserRole = 'partner' | 'area_manager' | 'senior' | 'junior' | 'finan
 export interface AuthUser extends User {
   role?: UserRole
   org_id?: string
-  first_name?: string
-  last_name?: string
-  full_name?: string
 }
 
 export interface AppState {
