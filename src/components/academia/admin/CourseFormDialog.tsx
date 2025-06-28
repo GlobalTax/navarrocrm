@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useAcademyCoursesMutation } from '@/hooks/useAcademyAdmin'
+import { useAcademyCoursesMutation } from '@/hooks/useAcademyCourses'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 const courseSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio').max(255, 'El título es muy largo'),
