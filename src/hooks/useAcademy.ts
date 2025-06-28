@@ -78,7 +78,7 @@ export const useAcademyCategories = () => {
         .order('sort_order')
 
       if (error) throw error
-      return data as AcademyCategory[]
+      return (data as unknown) as AcademyCategory[]
     }
   })
 }
@@ -102,7 +102,7 @@ export const useAcademyCourses = (categoryId?: string) => {
 
       const { data, error } = await query
       if (error) throw error
-      return data as AcademyCourse[]
+      return (data as unknown) as AcademyCourse[]
     }
   })
 }
@@ -119,7 +119,7 @@ export const useAcademyLessons = (courseId: string) => {
         .order('sort_order')
 
       if (error) throw error
-      return data as AcademyLesson[]
+      return (data as unknown) as AcademyLesson[]
     },
     enabled: !!courseId
   })
@@ -139,7 +139,7 @@ export const useUserProgress = (courseId?: string) => {
 
       const { data, error } = await query
       if (error) throw error
-      return data as UserProgress[]
+      return (data as unknown) as UserProgress[]
     }
   })
 }
