@@ -1,5 +1,10 @@
 
-import { useContacts } from './useContacts'
+import { useContacts, type Contact } from './useContacts'
+
+// Client type que extiende Contact pero hace email requerido
+export interface Client extends Omit<Contact, 'email'> {
+  email: string
+}
 
 // Backward compatibility hook for existing components
 export const useClients = () => {
@@ -18,8 +23,14 @@ export const useClients = () => {
   } = useContacts()
   
   // Filter contacts to only show those with relationship_type 'cliente'
-  const clients = contacts.filter(contact => contact.relationship_type === 'cliente')
-  const filteredClients = filteredContacts.filter(contact => contact.relationship_type === 'cliente')
+  // and convert to Client type (ensuring email is not null)
+  const clients = contacts
+    .filter(contact => contact.relationship_type === 'cliente' && contact.email)
+    .map(contact => ({ ...contact, email: contact.email! })) as Client[]
+    
+  const filteredClients = filteredContacts
+    .filter(contact => contact.relationship_type === 'cliente' && contact.email)
+    .map(contact => ({ ...contact, email: contact.email! })) as Client[]
 
   return {
     clients,
@@ -36,5 +47,5 @@ export const useClients = () => {
   }
 }
 
-// Export the Contact type as Client for backward compatibility
-export type { Contact as Client } from './useContacts'
+// Export Contact type for general use
+export type { Contact }

@@ -7,29 +7,29 @@ import { useApp } from '@/contexts/AppContext'
 export interface Contact {
   id: string
   name: string
-  email?: string | null
-  phone?: string | null
-  dni_nif?: string | null
-  address_street?: string | null
-  address_city?: string | null
-  address_postal_code?: string | null
-  address_country?: string | null
-  legal_representative?: string | null
-  client_type?: string | null
-  business_sector?: string | null
-  how_found_us?: string | null
-  contact_preference?: string | null
-  preferred_language?: string | null
-  hourly_rate?: number | null
-  payment_method?: string | null
-  status?: string | null
+  email: string | null
+  phone: string | null
+  dni_nif: string | null
+  address_street: string | null
+  address_city: string | null
+  address_postal_code: string | null
+  address_country: string | null
+  legal_representative: string | null
+  client_type: string | null
+  business_sector: string | null
+  how_found_us: string | null
+  contact_preference: string | null
+  preferred_language: string | null
+  hourly_rate: number | null
+  payment_method: string | null
+  status: string | null
   relationship_type: 'prospecto' | 'cliente' | 'ex_cliente'
-  tags?: string[] | null
-  internal_notes?: string | null
+  tags: string[] | null
+  internal_notes: string | null
   org_id: string
   created_at: string
   updated_at: string
-  last_contact_date?: string | null
+  last_contact_date: string | null
 }
 
 export const useContacts = () => {
@@ -60,7 +60,12 @@ export const useContacts = () => {
       }
       
       console.log('✅ Contacts fetched:', data?.length || 0)
-      return data || []
+      
+      // Asegurar que relationship_type tenga el tipo correcto
+      return (data || []).map(contact => ({
+        ...contact,
+        relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto'
+      }))
     },
     enabled: !!user?.org_id,
   })
