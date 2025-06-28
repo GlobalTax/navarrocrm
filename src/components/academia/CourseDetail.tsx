@@ -1,0 +1,115 @@
+
+import React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { BookOpen, Clock, Play } from 'lucide-react'
+
+interface Course {
+  id: string
+  title: string
+  description: string
+  level: string
+  total_lessons: number
+  estimated_duration?: number
+  academy_categories?: {
+    name: string
+  }
+}
+
+interface UserProgress {
+  course_id: string
+  progress_percentage: number
+}
+
+interface CourseDetailProps {
+  course: Course
+  userProgress?: UserProgress
+  onBack: () => void
+}
+
+export function CourseDetail({ course, userProgress, onBack }: CourseDetailProps) {
+  const progressPercentage = userProgress?.progress_percentage || 0
+
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'beginner': return 'bg-green-100 text-green-800 border-green-200'
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'advanced': return 'bg-red-100 text-red-800 border-red-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getLevelText = (level: string) => {
+    switch (level) {
+      case 'beginner': return 'Principiante'
+      case 'intermediate': return 'Intermedio'
+      case 'advanced': return 'Avanzado'
+      default: return 'Sin definir'
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-6">
+        <Button 
+          variant="outline" 
+          onClick={onBack}
+          size="sm"
+        >
+          ← Volver a cursos
+        </Button>
+        <div className="text-sm text-gray-600">
+          {course.academy_categories?.name} / {course.title}
+        </div>
+      </div>
+
+      <Card className="border-0.5 border-black rounded-[10px]">
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">📚</div>
+              <div>
+                <CardTitle className="text-2xl mb-2">{course.title}</CardTitle>
+                <p className="text-gray-600 mb-4">{course.description}</p>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <BookOpen className="h-4 w-4" />
+                    {course.total_lessons} lecciones
+                  </div>
+                  {course.estimated_duration && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {course.estimated_duration} min
+                    </div>
+                  )}
+                  <Badge className={getLevelColor(course.level)}>
+                    {getLevelText(course.level)}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-600 mb-1">Progreso</div>
+              <div className="text-2xl font-bold mb-2">{progressPercentage}%</div>
+              <Progress value={progressPercentage} className="w-32" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mt-8 flex gap-4">
+            <Button size="lg" className="bg-black hover:bg-gray-800">
+              <Play className="h-5 w-5 mr-2" />
+              Comenzar Curso
+            </Button>
+            <Button variant="outline" size="lg">
+              <BookOpen className="h-5 w-5 mr-2" />
+              Ver Lecciones
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
