@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,7 +13,7 @@ import { useAcademyCoursesMutation } from '@/hooks/useAcademyAdmin'
 import { Loader2 } from 'lucide-react'
 
 const courseSchema = z.object({
-  title: z.string().min(1, 'El título es obligatorio'),
+  title: z.string().min(1, 'El título es obligatorio').max(255, 'El título es muy largo'),
   description: z.string().optional(),
   category_id: z.string().min(1, 'La categoría es obligatoria'),
   level: z.enum(['beginner', 'intermediate', 'advanced']),
@@ -60,7 +59,22 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
 
   const onSubmit = async (data: CourseFormData) => {
     try {
-      console.log('📤 Submitting course form:', data)
+      console.log('📤 Submitting course form with data:', data)
+      console.log('📋 Available categories:', categories)
+      
+      // Validación adicional en el frontend
+      if (!data.category_id) {
+        toast.error('Por favor selecciona una categoría')
+        return
+      }
+
+      const selectedCategory = categories.find(cat => cat.id === data.category_id)
+      if (!selectedCategory) {
+        toast.error('La categoría seleccionada no es válida')
+        return
+      }
+
+      console.log('📝 Selected category:', selectedCategory)
       
       if (isEditing && course) {
         console.log('📝 Updating existing course:', course.id)
@@ -75,7 +89,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
         })
       } else {
         console.log('🆕 Creating new course')
-        await createCourse.mutateAsync({
+        const result = await createCourse.mutateAsync({
           title: data.title,
           description: data.description,
           category_id: data.category_id,
@@ -83,15 +97,20 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
           estimated_duration: data.estimated_duration,
           is_published: data.is_published
         })
+        console.log('✅ Course created with result:', result)
       }
       
       console.log('✅ Course operation completed successfully')
-      onClose()
-      form.reset()
+      handleClose()
     } catch (error) {
       console.error('❌ Error saving course:', error)
       // El error ya se maneja en el hook con toast
     }
+  }
+
+  const handleClose = () => {
+    form.reset()
+    onClose()
   }
 
   const isLoading = createCourse.isPending || updateCourse.isPending
@@ -99,19 +118,26 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
   // Reset form when dialog opens with new course data
   React.useEffect(() => {
     if (open) {
-      form.reset({
+      const formData = {
         title: course?.title || '',
         description: course?.description || '',
         category_id: course?.category_id || '',
-        level: course?.level || 'beginner',
+        level: course?.level || 'beginner' as const,
         estimated_duration: course?.estimated_duration || undefined,
         is_published: course?.is_published || false
-      })
+      }
+      console.log('🔄 Resetting form with data:', formData)
+      form.reset(formData)
     }
   }, [open, course, form])
 
+  // Debug: log available categories
+  React.useEffect(() => {
+    console.log('📋 Categories available in form:', categories)
+  }, [categories])
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -162,11 +188,17 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
+                      {categories.length === 0 ? (
+                        <div className="p-2 text-sm text-gray-500">
+                          No hay categorías disponibles. Crea una categoría primero.
+                        </div>
+                      ) : (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -238,10 +270,10 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+              <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading || categories.length === 0}>
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isEditing ? 'Actualizar' : 'Crear'} Curso
               </Button>

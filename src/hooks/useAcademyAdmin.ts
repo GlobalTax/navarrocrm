@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -115,6 +114,8 @@ export const useAcademyCoursesMutation = () => {
       estimated_duration?: number
       is_published: boolean
     }) => {
+      console.log('🚀 Starting course creation with user:', user)
+      
       if (!user?.org_id) {
         console.error('❌ No organization found for user:', user)
         throw new Error('No se encontró la organización del usuario')
@@ -125,38 +126,67 @@ export const useAcademyCoursesMutation = () => {
         throw new Error('No se encontró el ID del usuario')
       }
 
-      console.log('🏗️ Creating course with data:', {
+      // Validar que la categoría existe
+      const { data: categoryExists } = await supabase
+        .from('academy_categories')
+        .select('id')
+        .eq('id', data.category_id)
+        .eq('org_id', user.org_id)
+        .single()
+
+      if (!categoryExists) {
+        throw new Error('La categoría seleccionada no existe o no pertenece a tu organización')
+      }
+
+      const courseData = {
         ...data,
         org_id: user.org_id,
         created_by: user.id
-      })
+      }
+
+      console.log('🏗️ Creating course with data:', courseData)
 
       const { data: course, error } = await supabase
         .from('academy_courses')
-        .insert({
-          ...data,
-          org_id: user.org_id,
-          created_by: user.id
-        })
-        .select()
+        .insert(courseData)
+        .select(`
+          *,
+          academy_categories (
+            name,
+            color
+          )
+        `)
         .single()
 
       if (error) {
-        console.error('❌ Error creating course:', error)
-        throw error
+        console.error('❌ Supabase error creating course:', {
+          error,
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        throw new Error(`Error de base de datos: ${error.message}`)
+      }
+
+      if (!course) {
+        console.error('❌ No course returned from database')
+        throw new Error('No se pudo crear el curso - sin respuesta de la base de datos')
       }
 
       console.log('✅ Course created successfully:', course)
       return course
     },
     onSuccess: (course) => {
+      console.log('🎉 Course creation success callback executed for:', course.title)
       queryClient.invalidateQueries({ queryKey: ['academy-courses'] })
+      queryClient.invalidateQueries({ queryKey: ['academy-categories'] })
       toast.success(`Curso "${course.title}" creado exitosamente`)
-      console.log('🎉 Course creation success callback executed')
     },
     onError: (error) => {
       console.error('❌ Error in createCourse mutation:', error)
-      toast.error('Error al crear el curso: ' + error.message)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error(`Error al crear el curso: ${errorMessage}`)
     }
   })
 
