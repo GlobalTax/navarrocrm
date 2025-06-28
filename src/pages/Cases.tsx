@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
@@ -8,6 +7,7 @@ import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
 import { useMatterTemplates } from '@/hooks/useMatterTemplates'
+import { useExportCases } from '@/hooks/useExportCases'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
@@ -38,11 +38,13 @@ export default function Cases() {
 
   const { practiceAreas = [] } = usePracticeAreas()
   const { users = [] } = useUsers()
-  const { templates = [] } = useMatterTemplates()
+  const { templates = [], createTemplate, isCreating: isCreatingTemplate } = useMatterTemplates()
+  const { exportCasesToCSV } = useExportCases()
 
   const [selectedCase, setSelectedCase] = useState<Case | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isWizardOpen, setIsWizardOpen] = useState(false)
+  const [isNewTemplateOpen, setIsNewTemplateOpen] = useState(false)
   const [selectedCases, setSelectedCases] = useState<string[]>([])
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
@@ -95,6 +97,24 @@ export default function Cases() {
     } else {
       setSelectedCases([])
     }
+  }
+
+  const handleExportCases = () => {
+    exportCasesToCSV(filteredCases, 'expedientes')
+  }
+
+  const handleNewTemplate = () => {
+    setIsNewTemplateOpen(true)
+  }
+
+  const handleNewTemplateSubmit = (data: {
+    name: string
+    description?: string
+    practice_area_id?: string
+    default_billing_method?: string
+  }) => {
+    createTemplate(data)
+    setIsNewTemplateOpen(false)
   }
 
   if (isLoading) {
@@ -158,7 +178,7 @@ export default function Cases() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportCases}>
               Exportar Expedientes
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -171,7 +191,7 @@ export default function Cases() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleNewTemplate}>
               Nueva Plantilla
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -247,6 +267,10 @@ export default function Cases() {
         }}
         onConfirmArchive={handleConfirmArchive}
         isArchiving={isArchiving}
+        isNewTemplateOpen={isNewTemplateOpen}
+        onNewTemplateOpenChange={setIsNewTemplateOpen}
+        onNewTemplateSubmit={handleNewTemplateSubmit}
+        isCreatingTemplate={isCreatingTemplate}
       />
     </StandardPageContainer>
   )

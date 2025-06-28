@@ -3,6 +3,7 @@ import { CaseDetailDialog } from './CaseDetailDialog'
 import { MatterWizard } from './wizard/MatterWizard'
 import { CaseDeleteDialog } from './CaseDeleteDialog'
 import { CaseArchiveDialog } from './CaseArchiveDialog'
+import { NewTemplateDialog } from './NewTemplateDialog'
 import { Case, CreateCaseData } from '@/hooks/useCases'
 
 interface CasesDialogManagerProps {
@@ -32,6 +33,17 @@ interface CasesDialogManagerProps {
   onArchiveDialogClose: () => void
   onConfirmArchive: (caseId: string) => void
   isArchiving: boolean
+
+  // New template dialog
+  isNewTemplateOpen: boolean
+  onNewTemplateOpenChange: (open: boolean) => void
+  onNewTemplateSubmit: (data: {
+    name: string
+    description?: string
+    practice_area_id?: string
+    default_billing_method?: string
+  }) => void
+  isCreatingTemplate: boolean
 }
 
 export function CasesDialogManager({
@@ -53,7 +65,11 @@ export function CasesDialogManager({
   isArchiveDialogOpen,
   onArchiveDialogClose,
   onConfirmArchive,
-  isArchiving
+  isArchiving,
+  isNewTemplateOpen,
+  onNewTemplateOpenChange,
+  onNewTemplateSubmit,
+  isCreatingTemplate
 }: CasesDialogManagerProps) {
   return (
     <>
@@ -86,6 +102,13 @@ export function CasesDialogManager({
         onClose={onArchiveDialogClose}
         onConfirm={onConfirmArchive}
         isArchiving={isArchiving}
+      />
+
+      <NewTemplateDialog
+        open={isNewTemplateOpen}
+        onOpenChange={onNewTemplateOpenChange}
+        onSubmit={onNewTemplateSubmit}
+        isLoading={isCreatingTemplate}
       />
     </>
   )
