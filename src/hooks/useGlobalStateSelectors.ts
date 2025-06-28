@@ -12,7 +12,7 @@ export const useGlobalLoading = () => {
       setLoading
     }), [isLoading, setLoading])
   } catch (error) {
-    console.warn('useGlobalLoading: GlobalStateContext not available, using defaults')
+    console.warn('⚠️ [useGlobalLoading] GlobalStateContext not available, using defaults')
     return {
       isLoading: false,
       setLoading: () => {}
@@ -31,7 +31,7 @@ export const useGlobalError = () => {
       setError
     }), [error, hasError, setError])
   } catch (error) {
-    console.warn('useGlobalError: GlobalStateContext not available, using defaults')
+    console.warn('⚠️ [useGlobalError] GlobalStateContext not available, using defaults')
     return {
       error: null,
       hasError: false,
@@ -74,7 +74,7 @@ export const useGlobalNotifications = () => {
       clearNotifications
     ])
   } catch (error) {
-    console.warn('useGlobalNotifications: GlobalStateContext not available, using defaults')
+    console.warn('⚠️ [useGlobalNotifications] GlobalStateContext not available, using defaults')
     return {
       notifications: [],
       unreadCount: 0,
@@ -88,20 +88,26 @@ export const useGlobalNotifications = () => {
   }
 }
 
-// Hook optimizado para el sidebar
+// Hook optimizado para el sidebar - mejorado con fallbacks más robustos
 export const useGlobalSidebar = () => {
   try {
     const { sidebarCollapsed, toggleSidebar } = useGlobalStateContext()
     
+    console.log('✅ [useGlobalSidebar] Context available, collapsed:', sidebarCollapsed)
+    
     return useMemo(() => ({
-      sidebarCollapsed,
-      toggleSidebar
+      sidebarCollapsed: sidebarCollapsed ?? false, // Fallback explícito
+      toggleSidebar: toggleSidebar || (() => {
+        console.warn('⚠️ [useGlobalSidebar] toggleSidebar no disponible')
+      })
     }), [sidebarCollapsed, toggleSidebar])
   } catch (error) {
-    console.warn('useGlobalSidebar: GlobalStateContext not available, using defaults')
+    console.warn('⚠️ [useGlobalSidebar] GlobalStateContext not available, using defaults:', error)
     return {
       sidebarCollapsed: false,
-      toggleSidebar: () => {}
+      toggleSidebar: () => {
+        console.warn('⚠️ [useGlobalSidebar] Sidebar toggle no disponible - contexto no inicializado')
+      }
     }
   }
 }
@@ -112,13 +118,13 @@ export const useGlobalPreferences = () => {
     const { theme, language, setTheme, setLanguage } = useGlobalStateContext()
     
     return useMemo(() => ({
-      theme,
-      language,
-      setTheme,
-      setLanguage
+      theme: theme || 'system',
+      language: language || 'es',
+      setTheme: setTheme || (() => {}),
+      setLanguage: setLanguage || (() => {})
     }), [theme, language, setTheme, setLanguage])
   } catch (error) {
-    console.warn('useGlobalPreferences: GlobalStateContext not available, using defaults')
+    console.warn('⚠️ [useGlobalPreferences] GlobalStateContext not available, using defaults')
     return {
       theme: 'system' as const,
       language: 'es' as const,
