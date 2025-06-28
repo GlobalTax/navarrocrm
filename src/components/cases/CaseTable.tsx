@@ -1,5 +1,6 @@
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
@@ -49,8 +50,13 @@ export function CaseTable({
   onSelectCase,
   onSelectAll
 }: CaseTableProps) {
+  const navigate = useNavigate()
   const allSelected = cases.length > 0 && selectedCases.length === cases.length
   const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
+
+  const handleRowClick = (case_: Case) => {
+    navigate(`/cases/${case_.id}`)
+  }
 
   return (
     <div className="rounded-md border">
@@ -84,8 +90,12 @@ export function CaseTable({
             </TableRow>
           ) : (
             cases.map((case_) => (
-              <TableRow key={case_.id} className={case_.status === 'closed' ? 'opacity-60' : ''}>
-                <TableCell>
+              <TableRow 
+                key={case_.id} 
+                className={`${case_.status === 'closed' ? 'opacity-60' : ''} cursor-pointer hover:bg-gray-50`}
+                onClick={() => handleRowClick(case_)}
+              >
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={selectedCases.includes(case_.id)}
                     onCheckedChange={(checked) => onSelectCase(case_.id, checked as boolean)}
@@ -127,7 +137,7 @@ export function CaseTable({
                     </span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
@@ -135,7 +145,7 @@ export function CaseTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewCase(case_)}>
+                      <DropdownMenuItem onClick={() => navigate(`/cases/${case_.id}`)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Detalles
                       </DropdownMenuItem>

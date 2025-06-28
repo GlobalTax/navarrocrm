@@ -1,3 +1,4 @@
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -13,6 +14,7 @@ import Dashboard from '@/pages/Dashboard'
 import Contacts from '@/pages/Contacts'
 import ClientDetail from '@/pages/ClientDetail'
 import Cases from '@/pages/Cases'
+import CaseDetail from '@/pages/CaseDetail'
 import Proposals from '@/pages/Proposals'
 import Tasks from '@/pages/Tasks'
 import TimeTracking from '@/pages/TimeTracking'
@@ -78,6 +80,13 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Cases />
+                </MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/cases/:id" element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <CaseDetail />
                 </MainLayout>
               </ProtectedRoute>
             } />
