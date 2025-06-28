@@ -13,12 +13,38 @@ import { ErrorState } from '@/components/academia/ErrorState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+interface Course {
+  id: string
+  title: string
+  description?: string
+  category_id: string
+  level: 'beginner' | 'intermediate' | 'advanced'
+  total_lessons: number
+  estimated_duration?: number
+  is_published: boolean
+  created_at: string
+  academy_categories?: {
+    name: string
+    color: string
+  }
+}
+
+interface Category {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  color: string
+  sort_order?: number
+  is_active: boolean
+}
+
 export default function AcademiaAdmin() {
   const [courseDialogOpen, setCourseDialogOpen] = useState(false)
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [lessonDialogOpen, setLessonDialogOpen] = useState(false)
-  const [selectedCourse, setSelectedCourse] = useState<any>(null)
-  const [selectedCategory, setSelectedCategory] = useState<any>(null)
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [selectedCourseForLesson, setSelectedCourseForLesson] = useState<string>('')
 
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useAcademyCategories()
@@ -38,7 +64,7 @@ export default function AcademiaAdmin() {
     )
   }
 
-  const handleEditCourse = (course: any) => {
+  const handleEditCourse = (course: Course) => {
     setSelectedCourse(course)
     setCourseDialogOpen(true)
   }
@@ -48,7 +74,7 @@ export default function AcademiaAdmin() {
     setCourseDialogOpen(true)
   }
 
-  const handleEditCategory = (category: any) => {
+  const handleEditCategory = (category: Category) => {
     setSelectedCategory(category)
     setCategoryDialogOpen(true)
   }
@@ -75,6 +101,9 @@ export default function AcademiaAdmin() {
     }
   }
 
+  // Type assertion to ensure courses match the expected type
+  const typedCourses = (courses || []) as Course[]
+
   return (
     <StandardPageContainer>
       <AcademiaAdminHeader
@@ -96,9 +125,9 @@ export default function AcademiaAdmin() {
               <CardTitle>Gestión de Cursos</CardTitle>
             </CardHeader>
             <CardContent>
-              {courses && courses.length > 0 ? (
+              {typedCourses && typedCourses.length > 0 ? (
                 <CoursesTable
-                  courses={courses}
+                  courses={typedCourses}
                   onEdit={handleEditCourse}
                   onDelete={handleDeleteCourse}
                   onViewLessons={(courseId) => console.log('View lessons:', courseId)}
@@ -134,7 +163,7 @@ export default function AcademiaAdmin() {
                           />
                           <div className="flex gap-1">
                             <button
-                              onClick={() => handleEditCategory(category)}
+                              onClick={() => handleEditCategory(category as Category)}
                               className="text-blue-600 hover:text-blue-700 text-sm"
                             >
                               Editar

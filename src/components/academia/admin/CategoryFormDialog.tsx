@@ -26,7 +26,15 @@ type CategoryFormData = z.infer<typeof categorySchema>
 interface CategoryFormDialogProps {
   open: boolean
   onClose: () => void
-  category?: any
+  category?: {
+    id: string
+    name: string
+    description?: string
+    icon?: string
+    color: string
+    sort_order?: number
+    is_active: boolean
+  }
 }
 
 const iconOptions = [
@@ -66,10 +74,25 @@ export function CategoryFormDialog({ open, onClose, category }: CategoryFormDial
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
-      if (isEditing) {
-        await updateCategory.mutateAsync({ id: category.id, ...data })
+      if (isEditing && category) {
+        await updateCategory.mutateAsync({ 
+          id: category.id, 
+          name: data.name,
+          description: data.description,
+          icon: data.icon,
+          color: data.color,
+          sort_order: data.sort_order,
+          is_active: data.is_active
+        })
       } else {
-        await createCategory.mutateAsync(data)
+        await createCategory.mutateAsync({
+          name: data.name,
+          description: data.description,
+          icon: data.icon,
+          color: data.color,
+          sort_order: data.sort_order,
+          is_active: data.is_active
+        })
       }
       onClose()
       form.reset()

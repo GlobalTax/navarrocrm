@@ -26,8 +26,19 @@ type CourseFormData = z.infer<typeof courseSchema>
 interface CourseFormDialogProps {
   open: boolean
   onClose: () => void
-  course?: any
-  categories: any[]
+  course?: {
+    id: string
+    title: string
+    description?: string
+    category_id: string
+    level: 'beginner' | 'intermediate' | 'advanced'
+    estimated_duration?: number
+    is_published: boolean
+  }
+  categories: Array<{
+    id: string
+    name: string
+  }>
 }
 
 export function CourseFormDialog({ open, onClose, course, categories }: CourseFormDialogProps) {
@@ -48,10 +59,25 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
 
   const onSubmit = async (data: CourseFormData) => {
     try {
-      if (isEditing) {
-        await updateCourse.mutateAsync({ id: course.id, ...data })
+      if (isEditing && course) {
+        await updateCourse.mutateAsync({ 
+          id: course.id, 
+          title: data.title,
+          description: data.description,
+          category_id: data.category_id,
+          level: data.level,
+          estimated_duration: data.estimated_duration,
+          is_published: data.is_published
+        })
       } else {
-        await createCourse.mutateAsync(data)
+        await createCourse.mutateAsync({
+          title: data.title,
+          description: data.description,
+          category_id: data.category_id,
+          level: data.level,
+          estimated_duration: data.estimated_duration,
+          is_published: data.is_published
+        })
       }
       onClose()
       form.reset()

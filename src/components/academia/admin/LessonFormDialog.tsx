@@ -29,7 +29,17 @@ interface LessonFormDialogProps {
   open: boolean
   onClose: () => void
   courseId: string
-  lesson?: any
+  lesson?: {
+    id: string
+    title: string
+    content: string
+    lesson_type: 'text' | 'interactive' | 'quiz'
+    estimated_duration?: number
+    sort_order?: number
+    is_published: boolean
+    learning_objectives?: string[]
+    prerequisites?: string[]
+  }
 }
 
 export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonFormDialogProps) {
@@ -52,10 +62,31 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
 
   const onSubmit = async (data: LessonFormData) => {
     try {
-      if (isEditing) {
-        await updateLesson.mutateAsync({ id: lesson.id, course_id: courseId, ...data })
+      if (isEditing && lesson) {
+        await updateLesson.mutateAsync({ 
+          id: lesson.id, 
+          course_id: courseId, 
+          title: data.title,
+          content: data.content,
+          lesson_type: data.lesson_type,
+          estimated_duration: data.estimated_duration,
+          sort_order: data.sort_order,
+          is_published: data.is_published,
+          learning_objectives: data.learning_objectives,
+          prerequisites: data.prerequisites
+        })
       } else {
-        await createLesson.mutateAsync({ course_id: courseId, ...data })
+        await createLesson.mutateAsync({ 
+          course_id: courseId, 
+          title: data.title,
+          content: data.content,
+          lesson_type: data.lesson_type,
+          estimated_duration: data.estimated_duration,
+          sort_order: data.sort_order,
+          is_published: data.is_published,
+          learning_objectives: data.learning_objectives,
+          prerequisites: data.prerequisites
+        })
       }
       onClose()
       form.reset()

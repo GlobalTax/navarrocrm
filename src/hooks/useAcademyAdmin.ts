@@ -215,10 +215,18 @@ export const useAcademyLessonsMutation = () => {
 
       if (error) throw error
 
-      // Update total_lessons count in course
-      await supabase.rpc('increment_course_lessons', { 
-        course_id: data.course_id 
-      })
+      // Update total_lessons count in course directly
+      const { error: updateError } = await supabase
+        .from('academy_courses')
+        .update({ 
+          total_lessons: supabase.sql`total_lessons + 1`,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', data.course_id)
+
+      if (updateError) {
+        console.error('Error updating course lesson count:', updateError)
+      }
 
       return lesson
     },
@@ -275,10 +283,18 @@ export const useAcademyLessonsMutation = () => {
 
       if (error) throw error
 
-      // Update total_lessons count in course
-      await supabase.rpc('decrement_course_lessons', { 
-        course_id 
-      })
+      // Update total_lessons count in course directly
+      const { error: updateError } = await supabase
+        .from('academy_courses')
+        .update({ 
+          total_lessons: supabase.sql`total_lessons - 1`,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', course_id)
+
+      if (updateError) {
+        console.error('Error updating course lesson count:', updateError)
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['academy-lessons', variables.course_id] })
