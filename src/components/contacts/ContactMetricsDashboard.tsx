@@ -10,9 +10,9 @@ interface ContactMetricsDashboardProps {
 
 export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardProps) {
   const totalContacts = contacts.length
-  const activeContacts = contacts.filter(c => c.status === 'active').length
-  const companies = contacts.filter(c => c.client_type === 'company').length
-  const individuals = contacts.filter(c => c.client_type === 'individual').length
+  const activeContacts = contacts.filter(c => c.status === 'activo').length
+  const companies = contacts.filter(c => c.client_type === 'empresa').length
+  const individuals = contacts.filter(c => c.client_type === 'particular').length
   
   const relationshipTypes = contacts.reduce((acc, contact) => {
     const type = contact.relationship_type || 'Sin especificar'
@@ -66,7 +66,7 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
           </CardContent>
         </Card>
 
-        <Card>
+        <Card>     
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Este Mes</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />

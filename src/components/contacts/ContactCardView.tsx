@@ -73,7 +73,7 @@ export function ContactCardView({ contacts, onViewContact, onEditContact }: Cont
             )}
             {contact.status && (
               <div className="pt-2">
-                <Badge variant={contact.status === 'active' ? 'default' : 'secondary'}>
+                <Badge variant={contact.status === 'activo' ? 'default' : 'secondary'}>
                   {contact.status}
                 </Badge>
               </div>
