@@ -80,7 +80,7 @@ export default function Clients() {
           }}
         />
 
-        <ClientMetricsDashboard contacts={clients} />
+        <ClientMetricsDashboard clients={clients} />
 
         <div className="premium-spacing-lg">
           <PremiumFilters
@@ -121,7 +121,7 @@ export default function Clients() {
           isDetailDialogOpen={isViewDialogOpen}
           isBulkUploadOpen={false}
           isExportDialogOpen={false}
-          contacts={clients}
+          clients={clients}
           onClose={handleCloseDialog}
           onBulkUploadClose={() => {}}
           onExportClose={() => {}}
