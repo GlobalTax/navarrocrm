@@ -9,13 +9,21 @@ import { AuthenticatedRoutes } from './AuthenticatedRoutes'
 export const AppRouter = () => {
   const { user, authLoading, isSetup, setupLoading } = useApp()
 
+  console.log('🚦 [AppRouter] Estado actual:', {
+    user: user ? { id: user.id, email: user.email, org_id: user.org_id } : null,
+    authLoading,
+    isSetup,
+    setupLoading
+  })
+
   // Show loading while checking auth and setup
   if (authLoading || setupLoading) {
-    return <AuthLoadingScreen message="Cargando aplicación..." />
+    return <AuthLoadingScreen message="Verificando configuración del sistema..." />
   }
 
-  // If system is not set up, redirect to setup
-  if (!isSetup) {
+  // Lógica mejorada para determinar si el sistema necesita configuración
+  if (isSetup === false) {
+    console.log('🔧 [AppRouter] Sistema no configurado - mostrando setup')
     return (
       <BrowserRouter>
         <SetupRoutes />
@@ -23,8 +31,9 @@ export const AppRouter = () => {
     )
   }
 
-  // If no user and system is setup, show login or index
+  // Si no hay usuario autenticado pero el sistema está configurado
   if (!user) {
+    console.log('👤 [AppRouter] Usuario no autenticado - mostrando rutas públicas')
     return (
       <BrowserRouter>
         <UnauthenticatedRoutes />
@@ -32,17 +41,14 @@ export const AppRouter = () => {
     )
   }
 
-  // Debug: log user state
-  console.log('🔍 [App] Usuario actual:', { 
-    id: user.id, 
-    email: user.email, 
-    role: user.role, 
-    org_id: user.org_id 
-  })
+  // Verificación mejorada de usuario con org_id
+  if (user && typeof user.org_id === 'undefined') {
+    console.log('⚠️ [AppRouter] Usuario sin org_id definido - esperando enriquecimiento')
+    return <AuthLoadingScreen message="Cargando perfil de usuario..." />
+  }
 
-  // If user exists but no org_id, redirect to setup ONLY if we're certain the profile enrichment is complete
-  if (user && user.org_id === undefined) {
-    console.log('⚠️ [App] Usuario sin org_id, redirigiendo a setup')
+  if (user && user.org_id === null) {
+    console.log('🚨 [AppRouter] Usuario con org_id null - problema de configuración')
     return (
       <BrowserRouter>
         <SetupRoutes />
@@ -50,8 +56,8 @@ export const AppRouter = () => {
     )
   }
 
-  // Normal app flow for authenticated users with org_id
-  console.log('✅ [App] Usuario autenticado con org_id, mostrando aplicación completa')
+  // Usuario completamente configurado
+  console.log('✅ [AppRouter] Usuario autenticado y configurado - mostrando aplicación')
   return (
     <BrowserRouter>
       <AuthenticatedRoutes />

@@ -881,36 +881,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cuentas: {
-        Row: {
-          balance_actual: number | null
-          credito: number | null
-          datos_completos: Json | null
-          debito: number | null
-          id: string
-          nombre: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          balance_actual?: number | null
-          credito?: number | null
-          datos_completos?: Json | null
-          debito?: number | null
-          id: string
-          nombre?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          balance_actual?: number | null
-          credito?: number | null
-          datos_completos?: Json | null
-          debito?: number | null
-          id?: string
-          nombre?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       custom_reports: {
         Row: {
           created_at: string
@@ -3752,6 +3722,10 @@ export type Database = {
       }
       get_office_stats: {
         Args: { org_uuid: string }
+        Returns: Json
+      }
+      get_setup_status: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       get_task_stats: {
