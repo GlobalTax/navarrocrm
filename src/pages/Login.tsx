@@ -20,10 +20,12 @@ export default function Login() {
 
   // Redirección más directa
   useEffect(() => {
+    console.log('🔐 [Login] Estado auth:', { session: !!session, user: !!user, authLoading })
+    
     if (authLoading) return
 
     if (session || user) {
-      console.log('🔐 [Login] Usuario autenticado, redirigiendo')
+      console.log('🔐 [Login] Usuario autenticado, redirigiendo a:', from)
       navigate(from, { replace: true })
     }
   }, [session, user, authLoading, navigate, from])
@@ -39,6 +41,7 @@ export default function Login() {
     setLoading(true)
 
     try {
+      console.log('🔐 [Login] Intentando login para:', email)
       await signIn(email, password)
       
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")

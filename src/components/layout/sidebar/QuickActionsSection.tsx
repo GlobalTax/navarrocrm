@@ -1,41 +1,48 @@
 
-import { NavLink } from 'react-router-dom'
-import { cn } from "@/lib/utils"
-import { ChevronDown } from 'lucide-react'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { useState } from 'react'
-import { quickActions } from './NavigationData'
+import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 export const QuickActionsSection = () => {
-  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const quickActions = [
+    {
+      name: "Nuevo Cliente",
+      href: "/contacts",
+      action: () => navigate('/contacts')
+    },
+    {
+      name: "Nuevo Caso",
+      href: "/cases",
+      action: () => navigate('/cases')
+    },
+    {
+      name: "Nueva Propuesta",
+      href: "/proposals",
+      action: () => navigate('/proposals')
+    }
+  ]
 
   return (
-    <Collapsible open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
-      <CollapsibleTrigger className="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 mt-4">
+    <div className="mt-6 pt-6 border-t border-gray-200">
+      <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
         Acciones Rápidas
-        <ChevronDown className={cn(
-          "ml-auto h-4 w-4 transition-transform",
-          isQuickActionsOpen && "rotate-180"
-        )} />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-1 pl-6">
+      </h3>
+      <div className="space-y-1">
         {quickActions.map((action) => (
-          <NavLink
+          <Button
             key={action.name}
-            to={action.href}
-            className={({ isActive }) =>
-              cn(
-                isActive
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
-              )
-            }
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-left text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            onClick={action.action}
           >
+            <Plus className="mr-3 h-4 w-4" />
             {action.name}
-          </NavLink>
+          </Button>
         ))}
-      </CollapsibleContent>
-    </Collapsible>
+      </div>
+    </div>
   )
 }

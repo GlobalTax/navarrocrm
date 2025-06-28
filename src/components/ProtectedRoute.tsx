@@ -16,6 +16,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, session, isSetup, authLoading } = useApp()
   const location = useLocation()
 
+  console.log('🔒 [ProtectedRoute] Estado:', { user: !!user, session: !!session, isSetup, authLoading })
+
   // Solo mostrar loading durante carga crítica y por tiempo limitado
   if (authLoading) {
     return (
@@ -30,18 +32,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Verificar autenticación
   if (!user && !session) {
+    console.log('🔒 [ProtectedRoute] Sin autenticación, redirigiendo a login')
     return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
   // Verificar setup solo si definitivamente no está configurado
   if (isSetup === false) {
+    console.log('🔒 [ProtectedRoute] Sistema no configurado, redirigiendo a setup')
     return <Navigate to="/setup" replace />
   }
 
   // Verificar roles si se especificaron
   if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
+    console.log('🔒 [ProtectedRoute] Sin permisos, redirigiendo a unauthorized')
     return <Navigate to="/unauthorized" replace />
   }
 
+  console.log('🔒 [ProtectedRoute] Acceso permitido')
   return <>{children}</>
 }

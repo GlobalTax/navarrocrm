@@ -5,6 +5,8 @@ import { useApp } from '@/contexts/AppContext'
 const Index = () => {
   const { session, user, isSetup, authLoading } = useApp()
 
+  console.log('📍 [Index] Estado:', { session: !!session, user: !!user, isSetup, authLoading })
+
   // Mostrar loading solo brevemente
   if (authLoading) {
     return (
@@ -19,13 +21,16 @@ const Index = () => {
 
   // Redirecciones simplificadas y directas
   if (session || user) {
+    console.log('📍 [Index] Usuario autenticado, redirigiendo al dashboard')
     return <Navigate to="/" replace />
   }
 
   if (isSetup === false) {
+    console.log('📍 [Index] Sistema no configurado, redirigiendo a setup')
     return <Navigate to="/setup" replace />
   }
 
+  console.log('📍 [Index] Sin autenticación, redirigiendo a login')
   return <Navigate to="/login" replace />
 }
 

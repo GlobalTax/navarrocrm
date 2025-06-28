@@ -65,6 +65,264 @@ export type Database = {
           },
         ]
       }
+      analytics_errors: {
+        Row: {
+          context_data: Json | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context_data?: Json | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context_data?: Json | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          org_id?: string
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          event_type: string
+          id: string
+          org_id: string
+          page_title: string | null
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          event_type: string
+          id?: string
+          org_id: string
+          page_title?: string | null
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          org_id?: string
+          page_title?: string | null
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_interactions: {
+        Row: {
+          created_at: string
+          element_path: string | null
+          id: string
+          interaction_data: Json | null
+          interaction_type: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          element_path?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type: string
+          org_id: string
+          page_url: string
+          session_id: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          element_path?: string | null
+          id?: string
+          interaction_data?: Json | null
+          interaction_type?: string
+          org_id?: string
+          page_url?: string
+          session_id?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_data: Json
+          metric_date: string
+          metric_type: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_data?: Json
+          metric_date?: string
+          metric_type: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_data?: Json
+          metric_date?: string
+          metric_type?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      analytics_performance: {
+        Row: {
+          created_at: string
+          cumulative_layout_shift: number | null
+          dom_content_loaded: number | null
+          first_contentful_paint: number | null
+          first_input_delay: number | null
+          id: string
+          largest_contentful_paint: number | null
+          load_time: number | null
+          org_id: string
+          page_url: string
+          session_id: string
+          time_to_interactive: number | null
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          cumulative_layout_shift?: number | null
+          dom_content_loaded?: number | null
+          first_contentful_paint?: number | null
+          first_input_delay?: number | null
+          id?: string
+          largest_contentful_paint?: number | null
+          load_time?: number | null
+          org_id: string
+          page_url: string
+          session_id: string
+          time_to_interactive?: number | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          cumulative_layout_shift?: number | null
+          dom_content_loaded?: number | null
+          first_contentful_paint?: number | null
+          first_input_delay?: number | null
+          id?: string
+          largest_contentful_paint?: number | null
+          load_time?: number | null
+          org_id?: string
+          page_url?: string
+          session_id?: string
+          time_to_interactive?: number | null
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_sessions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          errors_count: number | null
+          events_count: number | null
+          id: string
+          ip_address: unknown | null
+          org_id: string
+          page_views: number | null
+          session_id: string
+          start_time: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          errors_count?: number | null
+          events_count?: number | null
+          id?: string
+          ip_address?: unknown | null
+          org_id: string
+          page_views?: number | null
+          session_id: string
+          start_time: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          errors_count?: number | null
+          events_count?: number | null
+          id?: string
+          ip_address?: unknown | null
+          org_id?: string
+          page_views?: number | null
+          session_id?: string
+          start_time?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           attendees_emails: string[] | null
@@ -566,6 +824,114 @@ export type Database = {
           },
         ]
       }
+      "Contacts hubspot": {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          email: string | null
+          firstname: string | null
+          id: string | null
+          lastname: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          created_at?: string | null
+          email?: string | null
+          firstname?: string | null
+          id?: string | null
+          lastname?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          created_at?: string | null
+          email?: string | null
+          firstname?: string | null
+          id?: string | null
+          lastname?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      "CRM hubspot companies": {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          domain: string | null
+          id: string | null
+          name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          created_at?: string | null
+          domain?: string | null
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          created_at?: string | null
+          domain?: string | null
+          id?: string | null
+          name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      custom_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          filters: Json
+          id: string
+          is_active: boolean
+          last_generated: string | null
+          metrics: string[]
+          name: string
+          next_generation: string | null
+          org_id: string
+          recipients: string[]
+          schedule: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          filters?: Json
+          id?: string
+          is_active?: boolean
+          last_generated?: string | null
+          metrics?: string[]
+          name: string
+          next_generation?: string | null
+          org_id: string
+          recipients?: string[]
+          schedule?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          filters?: Json
+          id?: string
+          is_active?: boolean
+          last_generated?: string | null
+          metrics?: string[]
+          name?: string
+          next_generation?: string | null
+          org_id?: string
+          recipients?: string[]
+          schedule?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body_template: string
@@ -685,6 +1051,366 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      equipment_assignments: {
+        Row: {
+          assigned_by: string
+          assigned_to: string
+          assignment_type: string
+          created_at: string | null
+          end_date: string | null
+          equipment_id: string
+          id: string
+          location: string | null
+          notes: string | null
+          org_id: string
+          purpose: string | null
+          return_condition: string | null
+          return_date: string | null
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by: string
+          assigned_to: string
+          assignment_type?: string
+          created_at?: string | null
+          end_date?: string | null
+          equipment_id: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          org_id: string
+          purpose?: string | null
+          return_condition?: string | null
+          return_date?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string
+          assignment_type?: string
+          created_at?: string | null
+          end_date?: string | null
+          equipment_id?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          org_id?: string
+          purpose?: string | null
+          return_condition?: string | null
+          return_date?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_assignments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_assignments_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_assignments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_inventory: {
+        Row: {
+          assigned_to: string | null
+          brand: string | null
+          category: string
+          condition: string
+          created_at: string | null
+          current_location: string | null
+          description: string | null
+          id: string
+          last_maintenance_date: string | null
+          maintenance_schedule: string | null
+          model: string | null
+          name: string
+          next_maintenance_date: string | null
+          notes: string | null
+          org_id: string
+          purchase_cost: number | null
+          purchase_date: string | null
+          qr_code: string | null
+          room_id: string | null
+          serial_number: string | null
+          status: string
+          updated_at: string | null
+          warranty_expiry: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          brand?: string | null
+          category?: string
+          condition?: string
+          created_at?: string | null
+          current_location?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          maintenance_schedule?: string | null
+          model?: string | null
+          name: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          org_id: string
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          qr_code?: string | null
+          room_id?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string | null
+          warranty_expiry?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          brand?: string | null
+          category?: string
+          condition?: string
+          created_at?: string | null
+          current_location?: string | null
+          description?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          maintenance_schedule?: string | null
+          model?: string | null
+          name?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          org_id?: string
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          qr_code?: string | null
+          room_id?: string | null
+          serial_number?: string | null
+          status?: string
+          updated_at?: string | null
+          warranty_expiry?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_inventory_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_inventory_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_inventory_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "office_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_maintenance: {
+        Row: {
+          actions_taken: string | null
+          completed_date: string | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          equipment_id: string
+          id: string
+          issues_found: string | null
+          maintenance_type: string
+          notes: string | null
+          org_id: string
+          performed_by: string | null
+          priority: string
+          scheduled_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          actions_taken?: string | null
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id: string
+          id?: string
+          issues_found?: string | null
+          maintenance_type?: string
+          notes?: string | null
+          org_id: string
+          performed_by?: string | null
+          priority?: string
+          scheduled_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          actions_taken?: string | null
+          completed_date?: string | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          equipment_id?: string
+          id?: string
+          issues_found?: string | null
+          maintenance_type?: string
+          notes?: string | null
+          org_id?: string
+          performed_by?: string | null
+          priority?: string
+          scheduled_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_maintenance_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_maintenance_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historical_metrics: {
+        Row: {
+          additional_data: Json | null
+          created_at: string
+          id: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          org_id: string
+        }
+        Insert: {
+          additional_data?: Json | null
+          created_at?: string
+          id?: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          org_id: string
+        }
+        Update: {
+          additional_data?: Json | null
+          created_at?: string
+          id?: string
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          org_id?: string
+        }
+        Relationships: []
+      }
+      hubspot_companies: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: number | null
+          properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hubspot_contacts: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: number | null
+          properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hubspot_deals: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          id: number | null
+          properties: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          id?: number | null
+          properties?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       matter_notifications: {
         Row: {
@@ -908,6 +1634,68 @@ export type Database = {
           },
         ]
       }
+      office_rooms: {
+        Row: {
+          amenities: Json | null
+          capacity: number
+          created_at: string | null
+          description: string | null
+          equipment_available: string[] | null
+          floor: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean
+          is_bookable: boolean
+          location: string | null
+          name: string
+          org_id: string
+          room_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amenities?: Json | null
+          capacity?: number
+          created_at?: string | null
+          description?: string | null
+          equipment_available?: string[] | null
+          floor?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          is_bookable?: boolean
+          location?: string | null
+          name: string
+          org_id: string
+          room_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amenities?: Json | null
+          capacity?: number
+          created_at?: string | null
+          description?: string | null
+          equipment_available?: string[] | null
+          floor?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          is_bookable?: boolean
+          location?: string | null
+          name?: string
+          org_id?: string
+          room_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_rooms_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_integrations: {
         Row: {
           auto_email_enabled: boolean
@@ -1022,6 +1810,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      predictive_insights: {
+        Row: {
+          confidence_score: number | null
+          generated_at: string
+          id: string
+          insight_data: Json
+          insight_type: string
+          is_active: boolean
+          org_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          generated_at?: string
+          id?: string
+          insight_data?: Json
+          insight_type: string
+          is_active?: boolean
+          org_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          generated_at?: string
+          id?: string
+          insight_data?: Json
+          insight_type?: string
+          is_active?: boolean
+          org_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       proposal_line_items: {
         Row: {
@@ -1746,6 +2567,107 @@ export type Database = {
           },
         ]
       }
+      room_reservations: {
+        Row: {
+          approved_by: string | null
+          attendees_count: number | null
+          attendees_emails: string[] | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          catering_requested: boolean | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          end_datetime: string
+          id: string
+          org_id: string
+          recurring_pattern: string | null
+          recurring_until: string | null
+          reserved_by: string
+          room_id: string
+          setup_requirements: string | null
+          start_datetime: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          attendees_count?: number | null
+          attendees_emails?: string[] | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          catering_requested?: boolean | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_datetime: string
+          id?: string
+          org_id: string
+          recurring_pattern?: string | null
+          recurring_until?: string | null
+          reserved_by: string
+          room_id: string
+          setup_requirements?: string | null
+          start_datetime: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          attendees_count?: number | null
+          attendees_emails?: string[] | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          catering_requested?: boolean | null
+          cost?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_datetime?: string
+          id?: string
+          org_id?: string
+          recurring_pattern?: string | null
+          recurring_until?: string | null
+          reserved_by?: string
+          room_id?: string
+          setup_requirements?: string | null
+          start_datetime?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_reservations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reservations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reservations_reserved_by_fkey"
+            columns: ["reserved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reservations_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "office_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_catalog: {
         Row: {
           billing_unit: string | null
@@ -1944,6 +2866,62 @@ export type Database = {
           },
         ]
       }
+      task_bulk_operations: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          error_log: Json | null
+          failed_tasks: number
+          id: string
+          operation_data: Json | null
+          operation_type: string
+          org_id: string
+          processed_tasks: number
+          status: string
+          total_tasks: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          error_log?: Json | null
+          failed_tasks?: number
+          id?: string
+          operation_data?: Json | null
+          operation_type: string
+          org_id: string
+          processed_tasks?: number
+          status?: string
+          total_tasks?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          error_log?: Json | null
+          failed_tasks?: number
+          id?: string
+          operation_data?: Json | null
+          operation_type?: string
+          org_id?: string
+          processed_tasks?: number
+          status?: string
+          total_tasks?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_bulk_operations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_comments: {
         Row: {
           content: string
@@ -2029,6 +3007,7 @@ export type Database = {
       }
       task_templates: {
         Row: {
+          category: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -2040,6 +3019,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -2051,6 +3031,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
@@ -2645,14 +3626,54 @@ export type Database = {
           },
         ]
       }
+      wrapper_modules: {
+        Row: {
+          content: string | null
+          name: string
+        }
+        Insert: {
+          content?: string | null
+          name: string
+        }
+        Update: {
+          content?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      copia_contactos_hubspot: {
+        Row: {
+          apellido: string | null
+          attrs: Json | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          nombre: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
+      copia_empresas_hubspot: {
+        Row: {
+          attrs: Json | null
+          created_at: string | null
+          id: string | null
+          nombre_empresa: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_next_billing_date: {
         Args: { input_date: string; frequency: string; billing_day?: number }
         Returns: string
+      }
+      calculate_productivity_metrics: {
+        Args: { org_uuid: string; target_date?: string }
+        Returns: Json
       }
       calculate_recurring_revenue_metrics: {
         Args: { org_uuid: string; target_date?: string }
@@ -2682,6 +3703,31 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_current_user_org_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_dashboard_stats: {
+        Args: { org_id_param: string; current_month?: string }
+        Returns: Json
+      }
+      get_historical_revenue: {
+        Args: { org_uuid: string; months_back?: number }
+        Returns: {
+          month_date: string
+          revenue: number
+          proposal_count: number
+          conversion_rate: number
+        }[]
+      }
+      get_office_stats: {
+        Args: { org_uuid: string }
+        Returns: Json
+      }
+      get_setup_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_task_stats: {
         Args: { org_uuid: string }
         Returns: {
@@ -2697,6 +3743,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      identify_churn_risk_clients: {
+        Args: { org_uuid: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          risk_score: number
+          risk_factors: string[]
+          last_activity_days: number
+        }[]
+      }
       is_super_admin: {
         Args: { user_uuid?: string }
         Returns: boolean
@@ -2704,6 +3760,14 @@ export type Database = {
       is_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      sincronizar_cuentas_quantum: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      sincronizar_cuentas_quantum_final: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {

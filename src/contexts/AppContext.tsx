@@ -79,6 +79,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Wrapper para signOut que también limpia el estado local
   const signOut = async () => {
+    console.log('🚪 [AppContext] Cerrando sesión')
     await baseSignOut()
     // Limpiar estado local inmediatamente
     setUser(null)
@@ -96,6 +97,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     signUp,
     signOut,
   }
+
+  console.log('🏗 [AppContext] Renderizando con estado:', { 
+    user: !!user, 
+    session: !!session, 
+    authLoading, 
+    isSetup,
+    setupLoading,
+    isInitializing 
+  })
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
