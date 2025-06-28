@@ -2,14 +2,15 @@
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import type { Database } from '@/integrations/supabase/types'
 
-type TableName = keyof Database['public']['Tables']
+interface EntityWithId {
+  id: string
+}
 
-interface SharedFormSubmitConfig<T, D> {
-  entity: D | null
+interface SharedFormSubmitConfig<T> {
+  entity: EntityWithId | null
   onClose: () => void
-  tableName: TableName
+  tableName: string
   mapFormDataToEntity: (data: T, orgId: string) => Record<string, any>
   successMessage: {
     create: string
@@ -17,13 +18,13 @@ interface SharedFormSubmitConfig<T, D> {
   }
 }
 
-export const useSharedFormSubmit = <T, D extends { id: string }>({
+export const useSharedFormSubmit = <T>({
   entity,
   onClose,
   tableName,
   mapFormDataToEntity,
   successMessage
-}: SharedFormSubmitConfig<T, D>) => {
+}: SharedFormSubmitConfig<T>) => {
   const { user } = useApp()
   const isEditing = !!entity
 
@@ -38,16 +39,16 @@ export const useSharedFormSubmit = <T, D extends { id: string }>({
 
       if (isEditing && entity) {
         const { error } = await supabase
-          .from(tableName)
-          .update(entityData as any)
+          .from(tableName as any)
+          .update(entityData)
           .eq('id', entity.id)
 
         if (error) throw error
         toast.success(successMessage.update)
       } else {
         const { error } = await supabase
-          .from(tableName)
-          .insert(entityData as any)
+          .from(tableName as any)
+          .insert(entityData)
 
         if (error) throw error
         toast.success(successMessage.create)
@@ -56,7 +57,7 @@ export const useSharedFormSubmit = <T, D extends { id: string }>({
       onClose()
     } catch (error) {
       console.error(`Error saving ${tableName}:`, error)
-      toast.error(`Error al guardar el ${tableName === 'contacts' ? 'contacto' : 'cliente'}`)
+      toast.error(`Error al guardar`)
     }
   }
 

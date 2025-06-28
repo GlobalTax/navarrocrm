@@ -4,6 +4,7 @@ import { useApp } from '@/contexts/AppContext'
 import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
 import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
 import { DashboardError } from '@/components/dashboard/DashboardError'
+import { SystemHealthCheck } from '@/components/SystemHealthCheck'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
@@ -99,6 +100,9 @@ export default function Dashboard() {
           </Button>
         }
       />
+
+      {/* Sistema de monitoreo de salud */}
+      <SystemHealthCheck />
 
       {/* Indicador de última actualización */}
       <div className="text-sm text-gray-500 mb-4">
