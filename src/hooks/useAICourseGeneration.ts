@@ -3,15 +3,8 @@ import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import { useAcademyCoursesMutation, useAcademyLessonsMutation } from '@/hooks/useAcademyAdmin'
-
-export interface CourseGenerationRequest {
-  topic: string
-  level: 'beginner' | 'intermediate' | 'advanced'
-  category_id: string
-  estimated_lessons: number
-  target_audience: string
-}
+import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
+import type { AIGenerationRequest } from '@/types/academy'
 
 export interface GeneratedCourse {
   title: string
@@ -29,10 +22,9 @@ export interface GeneratedCourse {
 export const useAICourseGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false)
   const { user } = useApp()
-  const { createCourse } = useAcademyCoursesMutation()
-  const { createLesson } = useAcademyLessonsMutation()
+  const { createCourse, createLesson } = useAcademyMutations()
 
-  const generateCourse = async (request: CourseGenerationRequest): Promise<string | null> => {
+  const generateCourse = async (request: AIGenerationRequest): Promise<string | null> => {
     if (!user?.org_id) {
       toast.error('No se pudo obtener la organización')
       return null

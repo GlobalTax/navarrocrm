@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,9 +10,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useAcademyCoursesMutation } from '@/hooks/useAcademyCourses'
+import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { AcademyCourse, AcademyCategory, CourseFormData } from '@/types/academy'
+import { COURSE_LEVELS } from '@/types/academy'
 
 const courseSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio').max(255, 'El título es muy largo'),
@@ -22,28 +25,15 @@ const courseSchema = z.object({
   is_published: z.boolean()
 })
 
-type CourseFormData = z.infer<typeof courseSchema>
-
 interface CourseFormDialogProps {
   open: boolean
   onClose: () => void
-  course?: {
-    id: string
-    title: string
-    description?: string
-    category_id: string
-    level: 'beginner' | 'intermediate' | 'advanced'
-    estimated_duration?: number
-    is_published: boolean
-  }
-  categories: Array<{
-    id: string
-    name: string
-  }>
+  course?: AcademyCourse | null
+  categories: AcademyCategory[]
 }
 
 export function CourseFormDialog({ open, onClose, course, categories }: CourseFormDialogProps) {
-  const { createCourse, updateCourse } = useAcademyCoursesMutation()
+  const { createCourse, updateCourse } = useAcademyMutations()
   const isEditing = !!course
 
   const form = useForm<CourseFormData>({
@@ -61,8 +51,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
   const onSubmit = async (data: CourseFormData) => {
     try {
       console.log('📤 Submitting course form with data:', data)
-      console.log('📋 Available categories:', categories)
-      
+
       // Validación adicional en el frontend
       if (!data.category_id) {
         toast.error('Por favor selecciona una categoría')
@@ -75,29 +64,15 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
         return
       }
 
-      console.log('📝 Selected category:', selectedCategory)
-      
       if (isEditing && course) {
         console.log('📝 Updating existing course:', course.id)
         await updateCourse.mutateAsync({ 
           id: course.id, 
-          title: data.title,
-          description: data.description,
-          category_id: data.category_id,
-          level: data.level,
-          estimated_duration: data.estimated_duration,
-          is_published: data.is_published
+          ...data
         })
       } else {
         console.log('🆕 Creating new course')
-        const result = await createCourse.mutateAsync({
-          title: data.title,
-          description: data.description,
-          category_id: data.category_id,
-          level: data.level,
-          estimated_duration: data.estimated_duration,
-          is_published: data.is_published
-        })
+        const result = await createCourse.mutateAsync(data)
         console.log('✅ Course created with result:', result)
       }
       
@@ -131,11 +106,6 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
       form.reset(formData)
     }
   }, [open, course, form])
-
-  // Debug: log available categories
-  React.useEffect(() => {
-    console.log('📋 Categories available in form:', categories)
-  }, [categories])
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -220,9 +190,11 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="beginner">Principiante</SelectItem>
-                      <SelectItem value="intermediate">Intermedio</SelectItem>
-                      <SelectItem value="advanced">Avanzado</SelectItem>
+                      {Object.entries(COURSE_LEVELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

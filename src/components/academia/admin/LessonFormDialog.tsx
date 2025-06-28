@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,7 +9,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useAcademyLessonsMutation } from '@/hooks/useAcademyAdmin'
+import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
+import type { LessonFormData } from '@/types/academy'
+import { LESSON_TYPES } from '@/types/academy'
 
 const lessonSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio'),
@@ -43,7 +44,7 @@ interface LessonFormDialogProps {
 }
 
 export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonFormDialogProps) {
-  const { createLesson, updateLesson } = useAcademyLessonsMutation()
+  const { createLesson, updateLesson } = useAcademyMutations()
   const isEditing = !!lesson
 
   const form = useForm<LessonFormData>({
@@ -66,26 +67,12 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
         await updateLesson.mutateAsync({ 
           id: lesson.id, 
           course_id: courseId, 
-          title: data.title,
-          content: data.content,
-          lesson_type: data.lesson_type,
-          estimated_duration: data.estimated_duration,
-          sort_order: data.sort_order,
-          is_published: data.is_published,
-          learning_objectives: data.learning_objectives,
-          prerequisites: data.prerequisites
+          ...data
         })
       } else {
         await createLesson.mutateAsync({ 
           course_id: courseId, 
-          title: data.title,
-          content: data.content,
-          lesson_type: data.lesson_type,
-          estimated_duration: data.estimated_duration,
-          sort_order: data.sort_order,
-          is_published: data.is_published,
-          learning_objectives: data.learning_objectives,
-          prerequisites: data.prerequisites
+          ...data
         })
       }
       onClose()
@@ -94,6 +81,22 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
       console.error('Error saving lesson:', error)
     }
   }
+
+  // Reset form when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        title: lesson?.title || '',
+        content: lesson?.content || '',
+        lesson_type: lesson?.lesson_type || 'text',
+        estimated_duration: lesson?.estimated_duration || undefined,
+        sort_order: lesson?.sort_order || 0,
+        is_published: lesson?.is_published || false,
+        learning_objectives: lesson?.learning_objectives || [],
+        prerequisites: lesson?.prerequisites || []
+      })
+    }
+  }, [open, lesson, form])
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -126,16 +129,18 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo de Lección</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="text">Texto/Lectura</SelectItem>
-                      <SelectItem value="interactive">Interactiva</SelectItem>
-                      <SelectItem value="quiz">Cuestionario</SelectItem>
+                      {Object.entries(LESSON_TYPES).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -172,7 +177,7 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
                       <Input 
                         type="number" 
                         {...field} 
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => field.onChange(Number(e.target.value) || undefined)}
                         placeholder="15"
                       />
                     </FormControl>
@@ -191,7 +196,7 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
                       <Input 
                         type="number" 
                         {...field} 
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                         placeholder="1"
                       />
                     </FormControl>

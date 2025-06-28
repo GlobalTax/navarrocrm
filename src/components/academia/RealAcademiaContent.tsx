@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react'
-import { useAcademyCategories, useAcademyCourses, useUserProgress } from '@/hooks/useAcademy'
+import { useAcademyQueries } from '@/hooks/academy/useAcademyQueries'
 import { AcademiaHeader } from './AcademiaHeader'
 import { CategoriesFilter } from './CategoriesFilter'
 import { CourseCard } from './CourseCard'
@@ -14,8 +14,10 @@ export function RealAcademiaContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
   
-  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useAcademyCategories()
-  const { data: courses, isLoading: coursesLoading, error: coursesError } = useAcademyCourses(selectedCategory || undefined)
+  const { usePublishedCategories, usePublishedCourses, useUserProgress } = useAcademyQueries()
+  
+  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = usePublishedCategories()
+  const { data: courses, isLoading: coursesLoading, error: coursesError } = usePublishedCourses(selectedCategory || undefined)
   const { data: userProgress, isLoading: progressLoading } = useUserProgress()
 
   console.log('Academia Data:', { categories, courses, userProgress })

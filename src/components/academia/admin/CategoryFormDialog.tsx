@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useAcademyCategoriesMutation } from '@/hooks/useAcademyAdmin'
+import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
+import type { AcademyCategory, CategoryFormData } from '@/types/academy'
 
 const categorySchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio'),
@@ -21,20 +21,10 @@ const categorySchema = z.object({
   is_active: z.boolean()
 })
 
-type CategoryFormData = z.infer<typeof categorySchema>
-
 interface CategoryFormDialogProps {
   open: boolean
   onClose: () => void
-  category?: {
-    id: string
-    name: string
-    description?: string
-    icon?: string
-    color: string
-    sort_order?: number
-    is_active: boolean
-  }
+  category?: AcademyCategory | null
 }
 
 const iconOptions = [
@@ -57,7 +47,7 @@ const colorOptions = [
 ]
 
 export function CategoryFormDialog({ open, onClose, category }: CategoryFormDialogProps) {
-  const { createCategory, updateCategory } = useAcademyCategoriesMutation()
+  const { createCategory, updateCategory } = useAcademyMutations()
   const isEditing = !!category
 
   const form = useForm<CategoryFormData>({
@@ -77,22 +67,10 @@ export function CategoryFormDialog({ open, onClose, category }: CategoryFormDial
       if (isEditing && category) {
         await updateCategory.mutateAsync({ 
           id: category.id, 
-          name: data.name,
-          description: data.description,
-          icon: data.icon,
-          color: data.color,
-          sort_order: data.sort_order,
-          is_active: data.is_active
+          ...data
         })
       } else {
-        await createCategory.mutateAsync({
-          name: data.name,
-          description: data.description,
-          icon: data.icon,
-          color: data.color,
-          sort_order: data.sort_order,
-          is_active: data.is_active
-        })
+        await createCategory.mutateAsync(data)
       }
       onClose()
       form.reset()
@@ -100,6 +78,20 @@ export function CategoryFormDialog({ open, onClose, category }: CategoryFormDial
       console.error('Error saving category:', error)
     }
   }
+
+  // Reset form when dialog opens with new category data
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        name: category?.name || '',
+        description: category?.description || '',
+        icon: category?.icon || 'BookOpen',
+        color: category?.color || '#3B82F6',
+        sort_order: category?.sort_order || 0,
+        is_active: category?.is_active ?? true
+      })
+    }
+  }, [open, category, form])
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -146,7 +138,7 @@ export function CategoryFormDialog({ open, onClose, category }: CategoryFormDial
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Icono</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -171,7 +163,7 @@ export function CategoryFormDialog({ open, onClose, category }: CategoryFormDial
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Color</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
