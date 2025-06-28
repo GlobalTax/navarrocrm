@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, Plus } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { useContacts, Contact } from '@/hooks/useContacts'
 import { ContactFilters } from './ContactFilters'
 import { ContactTable } from './ContactTable'
@@ -34,69 +34,78 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
   const hasFilters = Boolean(searchTerm || statusFilter !== 'all' || relationshipFilter !== 'all')
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>
-            {filteredContacts.length} {filteredContacts.length === 1 ? 'Contacto' : 'Contactos'}
-          </CardTitle>
-          <div className="flex items-center gap-2">
+    <div className="space-y-6">
+      <Card className="border-gray-100">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-gray-900 text-lg font-semibold">
+                Contactos
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                {filteredContacts.length} {filteredContacts.length === 1 ? 'contacto encontrado' : 'contactos encontrados'}
+              </p>
+            </div>
             {error && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:bg-gray-50 border-gray-200 text-gray-700"
               >
                 <RefreshCw className="h-4 w-4" />
                 Reintentar
               </Button>
             )}
           </div>
-        </div>
-        
-        <ContactFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          relationshipFilter={relationshipFilter}
-          setRelationshipFilter={setRelationshipFilter}
-        />
-      </CardHeader>
-      
-      <CardContent>
-        {error && (
-          <div className="text-center py-8 text-red-600">
-            <p className="font-medium">Error al cargar contactos</p>
-            <p className="text-sm">{error.message}</p>
-            <Button variant="outline" onClick={handleRefresh} className="mt-2">
-              Reintentar
-            </Button>
+          
+          <div className="pt-4">
+            <ContactFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              relationshipFilter={relationshipFilter}
+              setRelationshipFilter={setRelationshipFilter}
+            />
           </div>
-        )}
+        </CardHeader>
         
-        {!error && isLoading && (
-          <div className="flex justify-center py-8">
-            <div className="text-gray-500">Cargando contactos...</div>
-          </div>
-        )}
-        
-        {!error && !isLoading && filteredContacts.length === 0 && (
-          <ContactEmptyState
-            hasFilters={hasFilters}
-            onCreateContact={onCreateContact}
-          />
-        )}
-        
-        {!error && !isLoading && filteredContacts.length > 0 && (
-          <ContactTable
-            contacts={filteredContacts}
-            onViewContact={onViewContact}
-            onEditContact={onEditContact}
-          />
-        )}
-      </CardContent>
-    </Card>
+        <CardContent className="pt-0">
+          {error && (
+            <div className="text-center py-12">
+              <div className="text-red-600 space-y-2">
+                <p className="font-medium">Error al cargar contactos</p>
+                <p className="text-sm text-gray-600">{error.message}</p>
+                <Button variant="outline" onClick={handleRefresh} className="mt-4">
+                  Reintentar
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {!error && isLoading && (
+            <div className="flex justify-center py-12">
+              <div className="text-gray-500">Cargando contactos...</div>
+            </div>
+          )}
+          
+          {!error && !isLoading && filteredContacts.length === 0 && (
+            <ContactEmptyState
+              hasFilters={hasFilters}
+              onCreateContact={onCreateContact}
+            />
+          )}
+          
+          {!error && !isLoading && filteredContacts.length > 0 && (
+            <ContactTable
+              contacts={filteredContacts}
+              onViewContact={onViewContact}
+              onEditContact={onEditContact}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }

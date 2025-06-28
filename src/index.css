@@ -103,6 +103,32 @@
   }
 }
 
+/* === PREMIUM MINIMALIST UTILITIES === */
+@layer utilities {
+  /* Ultra-subtle background tones */
+  .bg-gray-25 {
+    background-color: rgb(252, 252, 253);
+  }
+  
+  .border-gray-150 {
+    border-color: rgb(229, 231, 235);
+  }
+  
+  /* Micro-interactions */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-0.5;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-200 hover:shadow-[0_4px_12px_0_rgba(0,0,0,0.04)];
+  }
+  
+  /* Premium focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200;
+  }
+}
+
 /* === CRM TYPOGRAPHY SYSTEM === */
 @layer components {
   /* Page Headers */
