@@ -21,3 +21,6 @@ export const useUserProgress = () => {
   const { useUserProgress } = useAcademyQueries()
   return useUserProgress()
 }
+
+// Import necesario para que funcione
+import { useAcademyQueries } from './academy/useAcademyQueries'

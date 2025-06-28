@@ -5,26 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { BookOpen, Clock, Play } from 'lucide-react'
-
-interface Course {
-  id: string
-  title: string
-  description: string
-  level: string
-  total_lessons: number
-  estimated_duration?: number
-  academy_categories?: {
-    name: string
-  }
-}
-
-interface UserProgress {
-  course_id: string
-  progress_percentage: number
-}
+import type { AcademyCourse, UserProgress } from '@/types/academy'
 
 interface CourseDetailProps {
-  course: Course
+  course: AcademyCourse
   userProgress?: UserProgress
   onBack: () => void
 }
@@ -72,7 +56,7 @@ export function CourseDetail({ course, userProgress, onBack }: CourseDetailProps
               <div className="text-4xl">📚</div>
               <div>
                 <CardTitle className="text-2xl mb-2">{course.title}</CardTitle>
-                <p className="text-gray-600 mb-4">{course.description}</p>
+                <p className="text-gray-600 mb-4">{course.description || 'Sin descripción'}</p>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <BookOpen className="h-4 w-4" />

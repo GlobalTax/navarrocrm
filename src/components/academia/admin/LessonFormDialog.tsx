@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -10,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
-import type { LessonFormData } from '@/types/academy'
 import { LESSON_TYPES } from '@/types/academy'
 
 const lessonSchema = z.object({
@@ -24,7 +24,7 @@ const lessonSchema = z.object({
   prerequisites: z.array(z.string()).optional()
 })
 
-type LessonFormData = z.infer<typeof lessonSchema>
+type FormData = z.infer<typeof lessonSchema>
 
 interface LessonFormDialogProps {
   open: boolean
@@ -47,7 +47,7 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
   const { createLesson, updateLesson } = useAcademyMutations()
   const isEditing = !!lesson
 
-  const form = useForm<LessonFormData>({
+  const form = useForm<FormData>({
     resolver: zodResolver(lessonSchema),
     defaultValues: {
       title: lesson?.title || '',
@@ -61,7 +61,7 @@ export function LessonFormDialog({ open, onClose, courseId, lesson }: LessonForm
     }
   })
 
-  const onSubmit = async (data: LessonFormData) => {
+  const onSubmit = async (data: FormData) => {
     try {
       if (isEditing && lesson) {
         await updateLesson.mutateAsync({ 

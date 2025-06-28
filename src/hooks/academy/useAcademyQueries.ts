@@ -54,7 +54,12 @@ export const useAcademyQueries = () => {
         const { data, error } = await query.order('created_at', { ascending: false })
 
         if (error) throw error
-        return data || []
+        
+        // Transform data to match our types
+        return (data || []).map(course => ({
+          ...course,
+          level: course.level as 'beginner' | 'intermediate' | 'advanced'
+        }))
       },
       enabled: !!user?.org_id
     })
@@ -74,7 +79,12 @@ export const useAcademyQueries = () => {
           .eq('user_id', user.id)
 
         if (error) throw error
-        return data || []
+        
+        // Transform data to match our types
+        return (data || []).map(progress => ({
+          ...progress,
+          status: progress.status as 'not_started' | 'in_progress' | 'completed'
+        }))
       },
       enabled: !!user?.org_id && !!user?.id
     })

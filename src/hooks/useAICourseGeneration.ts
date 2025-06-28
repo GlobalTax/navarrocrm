@@ -19,6 +19,9 @@ export interface GeneratedCourse {
   }>
 }
 
+// Export CourseGenerationRequest for compatibility
+export type CourseGenerationRequest = AIGenerationRequest
+
 export const useAICourseGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false)
   const { user } = useApp()

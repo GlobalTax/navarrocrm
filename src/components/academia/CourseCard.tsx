@@ -4,26 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { BookOpen, Clock, ChevronRight } from 'lucide-react'
-
-interface Course {
-  id: string
-  title: string
-  description: string
-  level: string
-  total_lessons: number
-  estimated_duration?: number
-  academy_categories?: {
-    name: string
-  }
-}
-
-interface UserProgress {
-  course_id: string
-  progress_percentage: number
-}
+import type { AcademyCourse, UserProgress } from '@/types/academy'
 
 interface CourseCardProps {
-  course: Course
+  course: AcademyCourse
   userProgress?: UserProgress
   onCourseSelect: (courseId: string) => void
 }
@@ -62,7 +46,7 @@ export function CourseCard({ course, userProgress, onCourseSelect }: CourseCardP
           </Badge>
         </div>
         <CardTitle className="line-clamp-2">{course.title}</CardTitle>
-        <p className="text-sm text-gray-600 line-clamp-3">{course.description}</p>
+        <p className="text-sm text-gray-600 line-clamp-3">{course.description || 'Sin descripción'}</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

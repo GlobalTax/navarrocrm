@@ -47,7 +47,12 @@ export const useAcademyAdminQueries = () => {
           .order('created_at', { ascending: false })
 
         if (error) throw error
-        return data || []
+        
+        // Transform data to match our types
+        return (data || []).map(course => ({
+          ...course,
+          level: course.level as 'beginner' | 'intermediate' | 'advanced'
+        }))
       },
       enabled: !!user?.org_id
     })
