@@ -1,9 +1,9 @@
 
 import { useContacts, type Contact } from './useContacts'
 
-// Client type que extiende Contact pero hace email requerido
-export interface Client extends Omit<Contact, 'email'> {
-  email: string
+// Client type que extiende Contact pero hace email opcional
+export interface Client extends Contact {
+  // Email ya es opcional en Contact, así que no necesitamos override
 }
 
 // Backward compatibility hook for existing components
@@ -23,14 +23,21 @@ export const useClients = () => {
   } = useContacts()
   
   // Filter contacts to only show those with relationship_type 'cliente'
-  // and convert to Client type (ensuring email is not null)
+  // Email ya no es requerido
   const clients = contacts
-    .filter(contact => contact.relationship_type === 'cliente' && contact.email)
-    .map(contact => ({ ...contact, email: contact.email! })) as Client[]
+    .filter(contact => contact.relationship_type === 'cliente')
+    .map(contact => contact as Client)
     
   const filteredClients = filteredContacts
-    .filter(contact => contact.relationship_type === 'cliente' && contact.email)
-    .map(contact => ({ ...contact, email: contact.email! })) as Client[]
+    .filter(contact => contact.relationship_type === 'cliente')
+    .map(contact => contact as Client)
+
+  console.log('useClients - Total contacts:', contacts.length)
+  console.log('useClients - Filtered clients:', clients.length)
+  console.log('useClients - Contacts by relationship type:', contacts.reduce((acc, c) => {
+    acc[c.relationship_type] = (acc[c.relationship_type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>))
 
   return {
     clients,

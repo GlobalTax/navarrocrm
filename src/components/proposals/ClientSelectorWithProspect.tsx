@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Users, UserPlus, Check } from 'lucide-react'
+import { Users, UserPlus, Check, AlertCircle } from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
 import { ProspectToClientForm } from './ProspectToClientForm'
 import { useProspectToClient } from '@/hooks/proposals/useProspectToClient'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface ClientSelectorWithProspectProps {
   selectedClientId: string
@@ -19,7 +20,7 @@ export const ClientSelectorWithProspect: React.FC<ClientSelectorWithProspectProp
   selectedClientId,
   onClientSelected
 }) => {
-  const { clients } = useClients()
+  const { clients, isLoading, error } = useClients()
   const [mode, setMode] = useState<'existing' | 'new'>('existing')
   
   const {
@@ -42,6 +43,36 @@ export const ClientSelectorWithProspect: React.FC<ClientSelectorWithProspectProp
   }
 
   const selectedClient = clients.find(c => c.id === selectedClientId)
+
+  // Debug info
+  console.log('ClientSelector - clients:', clients.length, 'isLoading:', isLoading, 'error:', error)
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-base font-medium">Cliente / Prospecto</Label>
+          <p className="text-sm text-gray-600">Cargando clientes...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-base font-medium">Cliente / Prospecto</Label>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Error al cargar clientes: {error.message}
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -86,34 +117,51 @@ export const ClientSelectorWithProspect: React.FC<ClientSelectorWithProspectProp
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="client-select">Cliente</Label>
-                <Select value={selectedClientId} onValueChange={onClientSelected}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un cliente..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{client.name}</span>
-                          <Badge variant="outline" className="ml-2">
-                            {client.client_type === 'empresa' ? 'Empresa' : 'Particular'}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {clients.length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    No hay clientes disponibles. Ve a la página de <strong>Contactos</strong> para crear algunos clientes primero, 
+                    o usa la opción "Nuevo Prospecto" para crear uno desde aquí.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <div>
+                    <Label htmlFor="client-select">Cliente ({clients.length} disponibles)</Label>
+                    <Select value={selectedClientId} onValueChange={onClientSelected}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un cliente..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex flex-col">
+                                <span>{client.name}</span>
+                                {client.email && (
+                                  <span className="text-xs text-gray-500">{client.email}</span>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="ml-2">
+                                {client.client_type === 'empresa' ? 'Empresa' : 'Particular'}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {selectedClient && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <Check className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-green-700">
-                    Cliente seleccionado: <strong>{selectedClient.name}</strong>
-                  </span>
-                </div>
+                  {selectedClient && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-sm text-green-700">
+                        Cliente seleccionado: <strong>{selectedClient.name}</strong>
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </CardContent>

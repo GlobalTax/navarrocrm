@@ -12,6 +12,8 @@ import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
+import { TestContactsButton } from '@/components/proposals/TestContactsButton'
+import { useClients } from '@/hooks/useClients'
 
 export default function Proposals() {
   console.log('Proposals page rendering')
@@ -19,6 +21,7 @@ export default function Proposals() {
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
   const { mutate: saveRecurrentProposal, isPending: isSavingRecurrent } = useSaveProposal()
   const { user } = useApp()
+  const { clients } = useClients()
   
   // Estados de la página
   const pageState = useProposalsPageState()
@@ -28,7 +31,8 @@ export default function Proposals() {
     isRecurrentBuilderOpen: pageState.isRecurrentBuilderOpen, 
     isSpecificBuilderOpen: pageState.isSpecificBuilderOpen, 
     isLoading, 
-    user 
+    user,
+    clientsCount: clients.length
   })
 
   // Filtrar y categorizar propuestas
@@ -152,6 +156,21 @@ export default function Proposals() {
           onClick: pageState.openSpecificBuilder
         }}
       />
+
+      {/* Mostrar botón de crear contactos si no hay clientes */}
+      {clients.length === 0 && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-yellow-800">No hay clientes disponibles</h3>
+              <p className="text-sm text-yellow-700">
+                Para crear propuestas necesitas tener al menos un cliente. Puedes crear algunos contactos de prueba o ir a la página de Contactos.
+              </p>
+            </div>
+            <TestContactsButton />
+          </div>
+        </div>
+      )}
 
       <ProposalMetrics />
 
