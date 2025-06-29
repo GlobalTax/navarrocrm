@@ -1,6 +1,8 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
 @tailwind base;
-@tailwind components;
+@tailwind components;  
 @tailwind utilities;
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
@@ -16,7 +18,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -35,23 +37,32 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Advanced Design Tokens */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --gradient-warning: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
 
   .dark {
@@ -64,7 +75,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -90,6 +101,10 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --glass-bg: rgba(0, 0, 0, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -99,190 +114,287 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* === PREMIUM MINIMALIST UTILITIES === */
+/* === PREMIUM VISUAL EFFECTS === */
 @layer utilities {
-  /* Ultra-subtle background tones */
-  .bg-gray-25 {
-    background-color: rgb(252, 252, 253);
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
   }
-  
-  .border-gray-150 {
-    border-color: rgb(229, 231, 235);
+
+  .gradient-primary {
+    background: var(--gradient-primary);
   }
-  
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+
+  /* Enhanced Shadows */
+  .shadow-elegant {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-premium {
+    box-shadow: var(--shadow-xl);
+  }
+
+  .shadow-luxury {
+    box-shadow: var(--shadow-2xl);
+  }
+
   /* Micro-interactions */
   .hover-lift {
-    @apply transition-all duration-200 hover:-translate-y-0.5;
+    @apply transition-all duration-300 ease-out;
   }
   
+  .hover-lift:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 ease-out;
+  }
+
+  .hover-scale:hover {
+    @apply scale-105;
+  }
+
   .hover-glow {
-    @apply transition-all duration-200 hover:shadow-[0_4px_12px_0_rgba(0,0,0,0.04)];
+    @apply transition-all duration-300 ease-out;
   }
-  
-  /* Premium focus states */
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  /* Focus states */
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2;
+  }
+
+  /* Modern scrollbar */
+  .scroll-elegant {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  }
+
+  .scroll-elegant::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scroll-elegant::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-elegant::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+  }
+
+  .scroll-elegant::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.8);
   }
 }
 
-/* === CRM TYPOGRAPHY SYSTEM === */
+/* === ENHANCED TYPOGRAPHY SYSTEM === */
 @layer components {
-  /* Page Headers */
-  .crm-page-title {
-    @apply text-3xl font-bold text-gray-900 tracking-tight;
+  /* Manrope Typography Scale */
+  .text-display {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 3.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
-  
-  .crm-page-subtitle {
-    @apply text-lg text-gray-600 font-medium;
+
+  .text-headline {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .text-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .text-body-lg {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+
+  .text-body {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .text-caption {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .text-micro {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    letter-spacing: 0.025em;
+  }
+
+  /* CRM Specific Typography */
+  .crm-page-title {
+    @apply text-headline text-gray-900 tracking-tight;
   }
   
   .crm-section-title {
-    @apply text-xl font-semibold text-gray-900 mb-4;
+    @apply text-title text-gray-900 mb-4;
   }
   
-  .crm-section-subtitle {
-    @apply text-base text-gray-600 font-medium;
-  }
-
-  /* Card & Widget Typography */
   .crm-card-title {
-    @apply text-lg font-semibold text-gray-900;
+    @apply text-body-lg font-semibold text-gray-900;
   }
   
-  .crm-card-subtitle {
-    @apply text-sm text-gray-600 font-medium;
-  }
-  
-  .crm-widget-value {
-    @apply text-2xl font-bold text-gray-900 tracking-tight;
-  }
-  
-  .crm-widget-label {
-    @apply text-sm font-medium text-gray-600 uppercase tracking-wide;
-  }
-
-  /* Dashboard Metrics */
-  .crm-metric-primary {
-    @apply text-4xl font-extrabold text-gray-900 tracking-tight;
-  }
-  
-  .crm-metric-secondary {
-    @apply text-2xl font-bold text-gray-700;
+  .crm-metric-value {
+    @apply text-display font-extrabold text-gray-900 tracking-tight;
   }
   
   .crm-metric-label {
-    @apply text-sm font-medium text-gray-500 uppercase tracking-wide;
+    @apply text-micro font-medium text-gray-600 uppercase tracking-wide;
   }
 
-  /* Form Typography */
-  .crm-form-title {
-    @apply text-xl font-semibold text-gray-900 mb-1;
-  }
-  
-  .crm-form-description {
-    @apply text-sm text-gray-600 mb-4;
-  }
-  
-  .crm-label {
-    @apply text-sm font-medium text-gray-700 mb-1;
-  }
-  
-  .crm-input-text {
-    @apply text-base text-gray-900;
-  }
-  
-  .crm-help-text {
-    @apply text-xs text-gray-500 mt-1;
+  /* Enhanced Interactive Elements */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 
+           shadow-md hover:shadow-lg transform hover:scale-105 
+           transition-all duration-200 ease-out focus-ring;
   }
 
-  /* Navigation */
-  .crm-nav-title {
-    @apply text-base font-semibold text-gray-900;
-  }
-  
-  .crm-nav-item {
-    @apply text-sm font-medium text-gray-700 hover:text-gray-900;
-  }
-  
-  .crm-nav-item-active {
-    @apply text-sm font-semibold text-primary;
+  .btn-glass {
+    @apply glass-card text-gray-900 hover:bg-white/20 
+           transform hover:scale-105 transition-all duration-200 ease-out;
   }
 
-  /* Table Typography */
-  .crm-table-header {
-    @apply text-sm font-semibold text-gray-900 uppercase tracking-wide;
-  }
-  
-  .crm-table-cell {
-    @apply text-sm text-gray-900;
-  }
-  
-  .crm-table-cell-secondary {
-    @apply text-sm text-gray-600;
+  .card-elevated {
+    @apply bg-white rounded-xl shadow-elegant hover-lift 
+           border border-gray-100 overflow-hidden;
   }
 
-  /* Status & Badges */
-  .crm-badge-text {
-    @apply text-xs font-medium tracking-wide;
-  }
-  
-  .crm-status-text {
-    @apply text-sm font-medium;
+  .card-glass {
+    @apply glass-card rounded-xl overflow-hidden 
+           hover-lift transition-all duration-300;
   }
 
-  /* Micro Typography */
-  .crm-timestamp {
-    @apply text-micro text-gray-500 font-medium tracking-wide;
-  }
-  
-  .crm-caption {
-    @apply text-xs text-gray-500;
+  /* Status Colors */
+  .status-success {
+    @apply bg-green-50 text-green-700 border-green-200;
   }
 
-  /* Interactive Elements */
-  .crm-button-text-lg {
-    @apply text-base font-semibold;
-  }
-  
-  .crm-button-text {
-    @apply text-sm font-semibold;
-  }
-  
-  .crm-button-text-sm {
-    @apply text-xs font-semibold tracking-wide;
+  .status-warning {
+    @apply bg-yellow-50 text-yellow-700 border-yellow-200;
   }
 
-  /* Time Tracking Specific */
-  .crm-timer-display {
-    @apply text-6xl font-extrabold text-gray-900 font-mono tracking-tighter;
+  .status-danger {
+    @apply bg-red-50 text-red-700 border-red-200;
   }
-  
-  .crm-time-entry {
-    @apply text-lg font-bold text-gray-900 font-mono;
-  }
-  
-  .crm-duration-text {
-    @apply text-sm font-medium text-gray-700 font-mono;
+
+  .status-info {
+    @apply bg-blue-50 text-blue-700 border-blue-200;
   }
 }
 
-/* === RESPONSIVE TYPOGRAPHY === */
+/* === RESPONSIVE ENHANCEMENTS === */
 @layer utilities {
-  /* Responsive page titles */
-  .crm-responsive-title {
-    @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight;
+  .responsive-padding {
+    @apply px-4 sm:px-6 lg:px-8;
   }
-  
-  .crm-responsive-subtitle {
-    @apply text-base sm:text-lg text-gray-600 font-medium;
+
+  .responsive-margin {
+    @apply mx-4 sm:mx-6 lg:mx-8;
   }
-  
-  /* Responsive metrics */
-  .crm-responsive-metric {
-    @apply text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight;
+
+  .responsive-text {
+    @apply text-sm sm:text-base lg:text-lg;
   }
+
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+}
+
+/* === ANIMATION KEYFRAMES === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
 }
