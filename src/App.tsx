@@ -1,3 +1,4 @@
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -11,6 +12,7 @@ import Login from '@/pages/Login'
 import Setup from '@/pages/Setup'
 import Dashboard from '@/pages/Dashboard'
 import Contacts from '@/pages/Contacts'
+import ContactDetail from '@/pages/ContactDetail'
 import ClientDetail from '@/pages/ClientDetail'
 import Cases from '@/pages/Cases'
 import CaseDetail from '@/pages/CaseDetail'
@@ -62,6 +64,7 @@ function App() {
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/contacts" element={<Contacts />} />
+                        <Route path="/contacts/:id" element={<ContactDetail />} />
                         <Route path="/clients" element={<Clients />} />
                         <Route path="/client/:id" element={<ClientDetail />} />
                         <Route path="/cases" element={<Cases />} />
