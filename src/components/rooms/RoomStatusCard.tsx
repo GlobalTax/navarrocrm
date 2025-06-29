@@ -4,7 +4,7 @@ import { es } from 'date-fns/locale'
 import { Users, Clock, AlertCircle, CheckCircle, MapPin } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { OfficeRoom } from '@/hooks/useOfficeRooms'
-import type { RoomReservation } from '@/hooks/rooms/useRoomReservations'
+import type { RoomReservation } from '@/hooks/rooms/types'
 
 interface RoomStatusCardProps {
   room: OfficeRoom
@@ -33,11 +33,11 @@ export const RoomStatusCard: React.FC<RoomStatusCardProps> = ({
         }
       case 'soon':
         return {
-          bgColor: 'bg-yellow-50 border-yellow-200',
-          iconColor: 'text-yellow-600',
+          bgColor: 'bg-amber-50 border-amber-200',
+          iconColor: 'text-amber-600',
           icon: Clock,
           statusText: 'PRÓXIMA RESERVA',
-          statusColor: 'bg-yellow-500 text-white'
+          statusColor: 'bg-amber-500 text-white'
         }
       default:
         return {
@@ -80,55 +80,55 @@ export const RoomStatusCard: React.FC<RoomStatusCardProps> = ({
   }
 
   return (
-    <div className={`${config.bgColor} rounded-[10px] border-0.5 border-black p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1`}>
+    <div className={`${config.bgColor} rounded-2xl border-2 shadow-lg p-6 md:p-8 transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm bg-opacity-80`}>
       
       {/* Header de la sala */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-6">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{room.name}</h3>
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{room.name}</h3>
           {room.location && (
-            <div className="flex items-center text-sm text-gray-600 mb-2">
-              <MapPin className="h-4 w-4 mr-1" />
+            <div className="flex items-center text-base md:text-lg text-gray-600 mb-2">
+              <MapPin className="h-5 w-5 md:h-6 md:w-6 mr-2" />
               {room.location}
             </div>
           )}
-          <div className="flex items-center text-sm text-gray-600">
-            <Users className="h-4 w-4 mr-1" />
+          <div className="flex items-center text-base md:text-lg text-gray-600">
+            <Users className="h-5 w-5 md:h-6 md:w-6 mr-2" />
             Capacidad: {room.capacity} personas
           </div>
         </div>
-        <StatusIcon className={`h-8 w-8 ${config.iconColor}`} />
+        <StatusIcon className={`h-12 w-12 md:h-16 md:w-16 ${config.iconColor}`} />
       </div>
 
       {/* Badge de estado */}
-      <div className="mb-4">
-        <Badge className={`${config.statusColor} text-sm font-semibold px-3 py-1 rounded-[10px]`}>
+      <div className="mb-6">
+        <Badge className={`${config.statusColor} text-base md:text-lg font-bold px-4 py-2 rounded-xl`}>
           {config.statusText}
         </Badge>
       </div>
 
       {/* Información de reserva actual */}
       {currentReservation && (
-        <div className="bg-white rounded-[10px] border-0.5 border-black p-4 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-red-600" />
-            <span className="font-semibold text-red-600">Reserva Actual</span>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <Clock className="h-6 w-6 text-red-600" />
+            <span className="font-bold text-red-600 text-lg">Reserva Actual</span>
           </div>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-3 text-base md:text-lg">
             <div>
-              <span className="font-medium">Propósito:</span> {currentReservation.purpose || currentReservation.title}
+              <span className="font-semibold">Propósito:</span> {currentReservation.purpose || currentReservation.title}
             </div>
             <div>
-              <span className="font-medium">Horario:</span>{' '}
+              <span className="font-semibold">Horario:</span>{' '}
               {format(new Date(currentReservation.start_datetime), 'HH:mm')} -{' '}
               {format(new Date(currentReservation.end_datetime), 'HH:mm')}
             </div>
             {currentReservation.user && (
               <div>
-                <span className="font-medium">Reservado por:</span> {currentReservation.user.name}
+                <span className="font-semibold">Reservado por:</span> {currentReservation.user.name}
               </div>
             )}
-            <div className="text-red-600 font-semibold">
+            <div className="text-red-600 font-bold text-lg">
               Termina en: {calculateTimeRemaining(currentReservation.end_datetime)}
             </div>
           </div>
@@ -137,26 +137,26 @@ export const RoomStatusCard: React.FC<RoomStatusCardProps> = ({
 
       {/* Información de próxima reserva */}
       {nextReservation && !currentReservation && (
-        <div className="bg-white rounded-[10px] border-0.5 border-black p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-blue-600" />
-            <span className="font-semibold text-blue-600">Próxima Reserva</span>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <Clock className="h-6 w-6 text-blue-600" />
+            <span className="font-bold text-blue-600 text-lg">Próxima Reserva</span>
           </div>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-3 text-base md:text-lg">
             <div>
-              <span className="font-medium">Propósito:</span> {nextReservation.purpose || nextReservation.title}
+              <span className="font-semibold">Propósito:</span> {nextReservation.purpose || nextReservation.title}
             </div>
             <div>
-              <span className="font-medium">Horario:</span>{' '}
+              <span className="font-semibold">Horario:</span>{' '}
               {format(new Date(nextReservation.start_datetime), 'HH:mm')} -{' '}
               {format(new Date(nextReservation.end_datetime), 'HH:mm')}
             </div>
             {nextReservation.user && (
               <div>
-                <span className="font-medium">Reservado por:</span> {nextReservation.user.name}
+                <span className="font-semibold">Reservado por:</span> {nextReservation.user.name}
               </div>
             )}
-            <div className="text-blue-600 font-semibold">
+            <div className="text-blue-600 font-bold text-lg">
               Comienza en: {calculateTimeUntil(nextReservation.start_datetime)}
             </div>
           </div>
@@ -165,10 +165,10 @@ export const RoomStatusCard: React.FC<RoomStatusCardProps> = ({
 
       {/* Estado disponible */}
       {status === 'available' && !nextReservation && (
-        <div className="bg-white rounded-[10px] border-0.5 border-black p-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-6 shadow-sm">
           <div className="text-center">
-            <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-2" />
-            <p className="text-green-600 font-semibold">Libre todo el día</p>
+            <CheckCircle className="h-16 w-16 md:h-20 md:w-20 text-green-600 mx-auto mb-4" />
+            <p className="text-green-600 font-bold text-xl md:text-2xl">Libre todo el día</p>
           </div>
         </div>
       )}

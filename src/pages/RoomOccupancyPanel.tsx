@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import { useOfficeRooms } from '@/hooks/useOfficeRooms'
-import { useRoomReservations } from '@/hooks/rooms/useRoomReservations'
+import { useRoomReservationsQueries } from '@/hooks/rooms/useRoomReservationsQueries'
 import { OccupancyHeader } from '@/components/rooms/OccupancyHeader'
 import { RoomStatusCard } from '@/components/rooms/RoomStatusCard'
 import { format, isAfter, isBefore, addMinutes } from 'date-fns'
@@ -10,17 +10,16 @@ import { es } from 'date-fns/locale'
 export default function RoomOccupancyPanel() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const { rooms, isLoading } = useOfficeRooms()
-  const { reservations } = useRoomReservations()
+  const { reservations, refetch } = useRoomReservationsQueries()
 
-  // Auto-refresh cada 30 segundos
+  // Auto-refresh datos cada 30 segundos (sin recargar página)
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(new Date())
-      window.location.reload()
+      refetch()
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [refetch])
 
   // Actualizar reloj cada segundo
   useEffect(() => {
@@ -46,17 +45,17 @@ export default function RoomOccupancyPanel() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Cargando panel de ocupación...</p>
+          <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-600 border-t-transparent mx-auto mb-6"></div>
+          <p className="text-2xl text-gray-700 font-medium">Cargando panel de ocupación...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <OccupancyHeader
           currentTime={currentTime}
@@ -65,7 +64,7 @@ export default function RoomOccupancyPanel() {
           availableRooms={availableRooms}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
           {rooms.map(room => {
             const roomReservations = reservations.filter(r => r.room_id === room.id)
             
@@ -104,7 +103,7 @@ export default function RoomOccupancyPanel() {
           })}
         </div>
 
-        <div className="text-center mt-8 text-sm text-gray-500">
+        <div className="text-center mt-8 text-lg text-gray-600 font-medium">
           Actualización automática cada 30 segundos • {format(currentTime, 'HH:mm:ss', { locale: es })}
         </div>
       </div>
