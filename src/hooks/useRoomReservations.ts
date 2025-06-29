@@ -7,10 +7,11 @@ import { toast } from 'sonner'
 export interface RoomReservation {
   id: string
   room_id: string
-  user_id: string
+  reserved_by: string
   start_datetime: string
   end_datetime: string
-  purpose: string
+  title: string
+  purpose?: string
   status: 'pending' | 'confirmed' | 'cancelled'
   attendees_count?: number
   attendees_emails?: string[]
@@ -41,7 +42,8 @@ export interface CreateReservationData {
   room_id: string
   start_datetime: string
   end_datetime: string
-  purpose: string
+  title: string
+  purpose?: string
   attendees_count?: number
   attendees_emails?: string[]
   setup_requirements?: string
@@ -146,7 +148,16 @@ export const useRoomReservations = (roomId?: string) => {
       const { data, error } = await supabase
         .from('room_reservations')
         .insert({
-          ...reservationData,
+          room_id: reservationData.room_id,
+          reserved_by: user.id,
+          start_datetime: reservationData.start_datetime,
+          end_datetime: reservationData.end_datetime,
+          title: reservationData.title,
+          purpose: reservationData.purpose,
+          attendees_count: reservationData.attendees_count,
+          attendees_emails: reservationData.attendees_emails,
+          setup_requirements: reservationData.setup_requirements,
+          catering_requested: reservationData.catering_requested,
           org_id: user.org_id,
           status: 'confirmed'
         })

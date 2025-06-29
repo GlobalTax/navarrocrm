@@ -28,6 +28,7 @@ export const RoomReservationDialog: React.FC<RoomReservationDialogProps> = ({
     date: string
     start_time: string
     end_time: string
+    title: string
     purpose: string
     setup_requirements: string
     attendees_count: number
@@ -36,6 +37,7 @@ export const RoomReservationDialog: React.FC<RoomReservationDialogProps> = ({
       date: format(new Date(), 'yyyy-MM-dd'),
       start_time: '',
       end_time: '',
+      title: '',
       purpose: '',
       setup_requirements: '',
       attendees_count: 1
@@ -50,6 +52,7 @@ export const RoomReservationDialog: React.FC<RoomReservationDialogProps> = ({
       room_id: room?.id || '',
       start_datetime: startDateTime,
       end_datetime: endDateTime,
+      title: data.title,
       purpose: data.purpose,
       setup_requirements: data.setup_requirements || undefined,
       attendees_count: data.attendees_count
@@ -120,15 +123,24 @@ export const RoomReservationDialog: React.FC<RoomReservationDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="purpose">Propósito de la reunión *</Label>
+            <Label htmlFor="title">Título de la reunión *</Label>
+            <Input
+              id="title"
+              {...register('title', { required: 'El título es requerido' })}
+              placeholder="Ej: Reunión de equipo semanal"
+            />
+            {errors.title && (
+              <p className="text-sm text-red-600">{errors.title.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="purpose">Propósito de la reunión</Label>
             <Input
               id="purpose"
-              {...register('purpose', { required: 'El propósito es requerido' })}
-              placeholder="Ej: Reunión de equipo, Presentación cliente..."
+              {...register('purpose')}
+              placeholder="Ej: Revisión de proyecto, Presentación cliente..."
             />
-            {errors.purpose && (
-              <p className="text-sm text-red-600">{errors.purpose.message}</p>
-            )}
           </div>
 
           <div className="space-y-2">
