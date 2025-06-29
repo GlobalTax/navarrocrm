@@ -36,7 +36,8 @@ export const useLegalProposalState = () => {
   const navigation = useProposalNavigation({ proposalData })
   
   const serviceManagement = useServiceManagement({
-    selectedServices: proposalData.selectedServices,
+    initialServices: proposalData.selectedServices,
+    onServicesChange: (services) => updateProposalData('selectedServices', services),
     selectedArea: proposalData.selectedArea,
     updateProposalData
   })

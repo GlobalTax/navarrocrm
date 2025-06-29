@@ -1,4 +1,3 @@
-
 import { Calculator, Scale, Building, Users, FileText, Shield } from 'lucide-react'
 
 export interface ServiceData {
@@ -19,6 +18,10 @@ export interface PracticeAreaData {
   color: string
   services: ServiceData[]
 }
+
+// Legacy types for backward compatibility
+export type LegalPracticeArea = PracticeAreaData
+export type LegalService = ServiceData
 
 // Datos estáticos para áreas de práctica con servicios reales
 export const practiceAreasData: Record<string, PracticeAreaData> = {
