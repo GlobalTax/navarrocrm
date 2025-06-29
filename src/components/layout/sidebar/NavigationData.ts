@@ -1,5 +1,5 @@
 
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench } from 'lucide-react'
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor } from 'lucide-react'
 
 export interface NavigationItem {
   title: string
@@ -62,6 +62,11 @@ export const navigationData: NavigationSection[] = [
         title: "Calendario",
         url: "/calendar",
         icon: Calendar,
+      },
+      {
+        title: "Salas",
+        url: "/rooms",
+        icon: Monitor,
       },
       {
         title: "Documentos",
@@ -129,6 +134,10 @@ export const quickActions: QuickAction[] = [
   {
     name: "Nueva Propuesta",
     href: "/proposals/new"
+  },
+  {
+    name: "Reservar Sala",
+    href: "/rooms"
   },
   {
     name: "Registrar Tiempo",

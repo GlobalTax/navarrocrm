@@ -35,6 +35,8 @@ import Reports from '@/pages/Reports'
 import SecurityAudit from '@/pages/SecurityAudit'
 import Clients from '@/pages/Clients'
 import AcademiaAdmin from '@/pages/AcademiaAdmin'
+import Rooms from '@/pages/Rooms'
+import RoomDisplay from '@/pages/RoomDisplay'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +58,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/setup" element={<Setup />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/room-display/:roomId" element={<RoomDisplay />} />
               <Route
                 path="/*"
                 element={
@@ -74,6 +77,7 @@ function App() {
                         <Route path="/time-tracking" element={<TimeTracking />} />
                         <Route path="/calendar" element={<Calendar />} />
                         <Route path="/documents" element={<Documents />} />
+                        <Route path="/rooms" element={<Rooms />} />
                         <Route path="/users" element={<Users />} />
                         <Route path="/integrations" element={<IntegrationSettings />} />
                         <Route path="/reports" element={<Reports />} />
