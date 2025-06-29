@@ -1,5 +1,4 @@
-
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   Table,
   TableBody,
@@ -53,6 +52,17 @@ export const CaseTable: React.FC<CaseTableProps> = ({
   onSelectCase,
   onSelectAll
 }) => {
+  const selectAllRef = useRef<HTMLButtonElement>(null)
+  
+  const allSelected = cases.length > 0 && selectedCases.length === cases.length
+  const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someSelected
+    }
+  }, [someSelected])
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open':
@@ -83,9 +93,6 @@ export const CaseTable: React.FC<CaseTableProps> = ({
     return new Date(dateString).toLocaleDateString('es-ES')
   }
 
-  const allSelected = cases.length > 0 && selectedCases.length === cases.length
-  const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
-
   return (
     <div className="rounded-md border">
       <Table>
@@ -93,8 +100,8 @@ export const CaseTable: React.FC<CaseTableProps> = ({
           <TableRow>
             <TableHead className="w-[50px]">
               <Checkbox
+                ref={selectAllRef}
                 checked={allSelected}
-                indeterminate={someSelected}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </TableHead>
