@@ -10,10 +10,10 @@ export const LegalProposalHeader: React.FC<LegalProposalHeaderProps> = ({
   currentStep
 }) => {
   return <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="bg-slate-50">
+        <div className="flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-3">
-            <Scale className="h-8 w-8" />
+            
             <div>
               <CardTitle className="text-2xl font-bold">Nueva Propuesta de Servicios Recurrentes</CardTitle>
               <p className="text-blue-100">
