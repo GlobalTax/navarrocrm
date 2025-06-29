@@ -14,6 +14,7 @@ import { LegalProposalData, SelectedService } from '../types/legalProposal.types
 interface LegalProposalStepContentProps {
   currentStep: number
   proposalData: LegalProposalData
+  updateProposalData: (field: keyof LegalProposalData, value: any) => void
   selectedServiceIds: string[]
   onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
   onServiceToggle: (serviceId: string, serviceData: any) => void
@@ -26,6 +27,7 @@ interface LegalProposalStepContentProps {
 export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> = ({
   currentStep,
   proposalData,
+  updateProposalData,
   selectedServiceIds,
   onAreaAndServicesChange,
   onServiceToggle,
@@ -43,8 +45,7 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <ClientSelectorWithProspect
               selectedClientId={proposalData.clientId}
               onClientSelected={(clientId) => {
-                // Handle client selection
-                console.log('Client selected:', clientId)
+                updateProposalData('clientId', clientId)
               }}
             />
           </div>
@@ -80,7 +81,7 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <LegalRetainerConfigurator
               config={proposalData.retainerConfig}
               onConfigChange={(config) => {
-                console.log('Retainer config changed:', config)
+                updateProposalData('retainerConfig', config)
               }}
               estimatedMonthlyHours={10}
             />
@@ -93,11 +94,11 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <LegalProposalTexts
               introduction={proposalData.introduction}
               onIntroductionChange={(value) => {
-                console.log('Introduction changed:', value)
+                updateProposalData('introduction', value)
               }}
               terms={proposalData.terms}
               onTermsChange={(value) => {
-                console.log('Terms changed:', value)
+                updateProposalData('terms', value)
               }}
               practiceArea={proposalData.selectedArea}
             />
@@ -108,7 +109,7 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
                 id="title"
                 value={proposalData.title}
                 onChange={(e) => {
-                  console.log('Title changed:', e.target.value)
+                  updateProposalData('title', e.target.value)
                 }}
                 placeholder="Ej: Servicios Jurídicos Integrales - Área Fiscal"
               />

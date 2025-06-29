@@ -25,36 +25,6 @@ export const useServiceManagement = ({
     onServicesChange?.(newServices)
   }, [onServicesChange])
 
-  const addService = useCallback((service: SelectedService) => {
-    const updatedServices = [...selectedServices, updateServiceTotal(service)]
-    updateServices(updatedServices)
-  }, [selectedServices, updateServices])
-
-  const removeService = useCallback((serviceId: string) => {
-    const updatedServices = selectedServices.filter(s => s.id !== serviceId)
-    updateServices(updatedServices)
-  }, [selectedServices, updateServices])
-
-  const updateService = useCallback((serviceId: string, field: keyof SelectedService, value: any) => {
-    const updatedServices = selectedServices.map(service => {
-      if (service.id === serviceId) {
-        const updated = { ...service, [field]: value }
-        return updateServiceTotal(updated)
-      }
-      return service
-    })
-    updateServices(updatedServices)
-  }, [selectedServices, updateServices])
-
-  const getTotalAmount = useCallback(() => {
-    return selectedServices.reduce((sum, service) => sum + (service.total || 0), 0)
-  }, [selectedServices])
-
-  const clearServices = useCallback(() => {
-    updateServices([])
-  }, [updateServices])
-
-  // Separar la lógica de cambio de área del toggle de servicios
   const handleAreaChange = useCallback((areaId: string) => {
     console.log('useServiceManagement - Area changed to:', areaId)
     updateProposalData?.('selectedArea', areaId)
@@ -62,7 +32,6 @@ export const useServiceManagement = ({
     updateServices([])
   }, [updateProposalData, updateServices])
 
-  // Handler específico para toggle de servicios
   const handleServiceToggle = useCallback((serviceId: string, serviceData: any) => {
     console.log('useServiceManagement - Service toggle:', serviceId, serviceData)
     
@@ -80,28 +49,33 @@ export const useServiceManagement = ({
     }
   }, [selectedServices, updateServices])
 
-  // Handler para service updates
   const handleServiceUpdate = useCallback((serviceId: string, field: keyof SelectedService, value: any) => {
-    updateService(serviceId, field, value)
-  }, [updateService])
+    const updatedServices = selectedServices.map(service => {
+      if (service.id === serviceId) {
+        const updated = { ...service, [field]: value }
+        return updateServiceTotal(updated)
+      }
+      return service
+    })
+    updateServices(updatedServices)
+  }, [selectedServices, updateServices])
 
-  // Handler para service removal
   const handleServiceRemove = useCallback((serviceId: string) => {
-    removeService(serviceId)
-  }, [removeService])
+    const updatedServices = selectedServices.filter(s => s.id !== serviceId)
+    updateServices(updatedServices)
+  }, [selectedServices, updateServices])
 
-  // Handler para service addition
   const handleServiceAdd = useCallback(() => {
-    console.log('Add service functionality')
+    console.log('Add service functionality - to be implemented')
   }, [])
+
+  const getTotalAmount = useCallback(() => {
+    return selectedServices.reduce((sum, service) => sum + (service.total || 0), 0)
+  }, [selectedServices])
 
   return {
     selectedServices,
-    addService,
-    removeService,
-    updateService,
     getTotalAmount,
-    clearServices,
     hasServices: selectedServices.length > 0,
     handleAreaChange,
     handleServiceToggle,

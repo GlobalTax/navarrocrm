@@ -48,7 +48,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
   const selectedServiceIds = proposalData.selectedServices?.map(s => s.id) || []
 
   // Evaluar canProceed como boolean
-  const canProceedValue = typeof canProceed === 'function' ? canProceed() : canProceed
+  const canProceedValue = typeof canProceed === 'function' ? canProceed() : Boolean(canProceed)
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -63,13 +63,13 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
             <div className="p-6">
               <LegalProposalProgressBar 
                 currentStep={currentStep}
-                totalSteps={5}
               />
               
               <div className="mt-8">
                 <LegalProposalStepContent
                   currentStep={currentStep}
                   proposalData={proposalData}
+                  updateProposalData={updateProposalData}
                   selectedServiceIds={selectedServiceIds}
                   onAreaAndServicesChange={handleAreaAndServicesChange}
                   onServiceToggle={handleServiceToggle}

@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -91,8 +90,10 @@ export const ServicesList: React.FC<ServicesListProps> = ({
     onServiceToggle(service.id, service)
   }
 
-  const handleCheckboxChange = (service: any, checked: boolean) => {
+  const handleCheckboxChange = (service: any, checked: boolean | string) => {
     console.log('ServicesList - Checkbox changed:', service.id, checked)
+    // Convertir a boolean si es string
+    const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
     onServiceToggle(service.id, service)
   }
 
@@ -161,7 +162,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={(checked) => handleCheckboxChange(service, Boolean(checked))}
+                      onCheckedChange={(checked) => handleCheckboxChange(service, checked)}
                       className="mt-1"
                       onClick={(e) => e.stopPropagation()}
                     />
@@ -173,7 +174,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
                         </h4>
                         {isSelected && (
                           <div className="flex items-center gap-1 text-blue-600">
-                            <Check className="w-4 h-4" />
+                            <Check className="w-4 w-4" />
                             <span className="text-xs font-medium">Seleccionado</span>
                           </div>
                         )}

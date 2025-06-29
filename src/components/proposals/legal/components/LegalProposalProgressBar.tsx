@@ -8,13 +8,13 @@ import { PROPOSAL_STEPS } from '../types/legalProposal.types'
 
 interface LegalProposalProgressBarProps {
   currentStep: number
-  totalSteps: number
 }
 
 export const LegalProposalProgressBar: React.FC<LegalProposalProgressBarProps> = ({
-  currentStep,
-  totalSteps
+  currentStep
 }) => {
+  const totalSteps = PROPOSAL_STEPS.length
+  
   const getStepProgress = () => {
     return ((currentStep - 1) / (totalSteps - 1)) * 100
   }
