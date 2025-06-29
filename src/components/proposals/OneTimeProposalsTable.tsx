@@ -1,7 +1,6 @@
 
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -12,62 +11,25 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { 
-  Eye, 
-  Edit, 
-  Send, 
-  Copy,
-  Archive,
-  FileText,
+  Briefcase,
   DollarSign,
-  User,
-  Calendar,
-  Briefcase
+  Calendar
 } from 'lucide-react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { OneTimeProposalInfo } from './components/OneTimeProposalInfo'
+import { OneTimeProposalClientInfo } from './components/OneTimeProposalClientInfo'
+import { OneTimeProposalActions } from './components/OneTimeProposalActions'
+import { OneTimeProposalTypeInfo } from './components/OneTimeProposalTypeInfo'
+import { 
+  getStatusColor, 
+  getStatusLabel, 
+  formatCurrency, 
+  formatDate 
+} from './utils/proposalFormatters'
 
 interface OneTimeProposalsTableProps {
   proposals: any[]
   onStatusChange: (id: string, status: any) => void
   onViewProposal: (proposal: any) => void
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'draft': return 'bg-gray-100 text-gray-800'
-    case 'sent': return 'bg-blue-100 text-blue-800'
-    case 'negotiating': return 'bg-yellow-100 text-yellow-800'
-    case 'won': return 'bg-green-100 text-green-800'
-    case 'lost': return 'bg-red-100 text-red-800'
-    case 'expired': return 'bg-gray-100 text-gray-600'
-    default: return 'bg-gray-100 text-gray-800'
-  }
-}
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'draft': return 'Borrador'
-    case 'sent': return 'Enviada'
-    case 'negotiating': return 'Negociando'
-    case 'won': return 'Ganada'
-    case 'lost': return 'Perdida'
-    case 'expired': return 'Expirada'
-    default: return status
-  }
-}
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount || 0)
-}
-
-const formatDate = (date: string | null) => {
-  if (!date) return 'No definida'
-  return format(new Date(date), 'dd/MM/yyyy', { locale: es })
 }
 
 export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
@@ -95,7 +57,7 @@ export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+          <Briefcase className="h-5 w-5" />
           Propuestas Puntuales ({proposals.length})
         </CardTitle>
       </CardHeader>
@@ -118,43 +80,19 @@ export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
               {proposals.map((proposal) => (
                 <TableRow key={proposal.id} className="hover:bg-gray-50">
                   <TableCell>
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {proposal.title}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {proposal.proposal_number}
-                      </div>
-                      {proposal.description && (
-                        <div className="text-xs text-gray-400 mt-1 max-w-xs truncate">
-                          {proposal.description}
-                        </div>
-                      )}
-                    </div>
+                    <OneTimeProposalInfo 
+                      title={proposal.title}
+                      proposalNumber={proposal.proposal_number}
+                      description={proposal.description}
+                    />
                   </TableCell>
                   
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <div className="font-medium">
-                          {proposal.client?.name || 'Sin cliente'}
-                        </div>
-                        {proposal.client?.email && (
-                          <div className="text-sm text-gray-500">
-                            {proposal.client.email}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <OneTimeProposalClientInfo client={proposal.client} />
                   </TableCell>
                   
                   <TableCell>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      {proposal.proposal_type === 'project' ? 'Proyecto' : 
-                       proposal.proposal_type === 'service' ? 'Servicio' : 
-                       'Consultoría'}
-                    </Badge>
+                    <OneTimeProposalTypeInfo proposalType={proposal.proposal_type} />
                   </TableCell>
                   
                   <TableCell>
@@ -188,47 +126,11 @@ export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
                   </TableCell>
                   
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewProposal(proposal)}
-                        className="h-8 w-8 p-0"
-                        title="Ver propuesta"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        title="Editar propuesta"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      
-                      {proposal.status === 'draft' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onStatusChange(proposal.id, 'sent')}
-                          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-                          title="Enviar propuesta"
-                        >
-                          <Send className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-gray-600 hover:text-gray-700"
-                        title="Duplicar propuesta"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <OneTimeProposalActions
+                      proposal={proposal}
+                      onViewProposal={onViewProposal}
+                      onStatusChange={onStatusChange}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
