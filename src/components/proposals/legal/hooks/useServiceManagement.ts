@@ -20,6 +20,7 @@ export const useServiceManagement = ({
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>(initialServices)
 
   const updateServices = useCallback((newServices: SelectedService[]) => {
+    console.log('useServiceManagement - Updating services:', newServices)
     setSelectedServices(newServices)
     onServicesChange?.(newServices)
   }, [onServicesChange])
@@ -53,37 +54,44 @@ export const useServiceManagement = ({
     updateServices([])
   }, [updateServices])
 
-  // Handler for area and services change
-  const handleAreaAndServicesChange = useCallback((areaId: string, serviceIds?: string[]) => {
+  // Separar la lógica de cambio de área del toggle de servicios
+  const handleAreaChange = useCallback((areaId: string) => {
+    console.log('useServiceManagement - Area changed to:', areaId)
     updateProposalData?.('selectedArea', areaId)
-    
-    if (serviceIds) {
-      const areaData = practiceAreasData[areaId]
-      if (areaData) {
-        const newSelectedServices = serviceIds.map(serviceId => {
-          const service = areaData.services.find(s => s.id === serviceId)
-          return service ? convertServiceToSelected(service) : null
-        }).filter(Boolean) as SelectedService[]
-        
-        updateServices(newSelectedServices)
-        updateProposalData?.('selectedServices', newSelectedServices)
-      }
-    }
+    // Limpiar servicios al cambiar de área
+    updateServices([])
   }, [updateProposalData, updateServices])
 
-  // Handler for service updates
+  // Handler específico para toggle de servicios
+  const handleServiceToggle = useCallback((serviceId: string, serviceData: any) => {
+    console.log('useServiceManagement - Service toggle:', serviceId, serviceData)
+    
+    const isCurrentlySelected = selectedServices.some(s => s.id === serviceId)
+    
+    if (isCurrentlySelected) {
+      // Remover servicio
+      const updatedServices = selectedServices.filter(s => s.id !== serviceId)
+      updateServices(updatedServices)
+    } else {
+      // Agregar servicio
+      const selectedService = convertServiceToSelected(serviceData)
+      const updatedServices = [...selectedServices, selectedService]
+      updateServices(updatedServices)
+    }
+  }, [selectedServices, updateServices])
+
+  // Handler para service updates
   const handleServiceUpdate = useCallback((serviceId: string, field: keyof SelectedService, value: any) => {
     updateService(serviceId, field, value)
   }, [updateService])
 
-  // Handler for service removal
+  // Handler para service removal
   const handleServiceRemove = useCallback((serviceId: string) => {
     removeService(serviceId)
   }, [removeService])
 
-  // Handler for service addition
+  // Handler para service addition
   const handleServiceAdd = useCallback(() => {
-    // This would typically open a service selection dialog
     console.log('Add service functionality')
   }, [])
 
@@ -95,7 +103,8 @@ export const useServiceManagement = ({
     getTotalAmount,
     clearServices,
     hasServices: selectedServices.length > 0,
-    handleAreaAndServicesChange,
+    handleAreaChange,
+    handleServiceToggle,
     handleServiceUpdate,
     handleServiceRemove,
     handleServiceAdd

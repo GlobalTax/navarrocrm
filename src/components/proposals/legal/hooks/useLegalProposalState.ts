@@ -42,6 +42,19 @@ export const useLegalProposalState = () => {
     updateProposalData
   })
 
+  // Handler combinado para área y servicios - usado por el selector
+  const handleAreaAndServicesChange = (areaId: string, serviceIds?: string[]) => {
+    console.log('useLegalProposalState - handleAreaAndServicesChange:', areaId, serviceIds)
+    
+    if (areaId !== proposalData.selectedArea) {
+      // Cambio de área - usar el handler específico
+      serviceManagement.handleAreaChange(areaId)
+    }
+    
+    // Si se proporcionan serviceIds, esto es un toggle de servicio individual
+    // No hacer nada aquí, dejar que el componente maneje el toggle individualmente
+  }
+
   return {
     // State
     proposalData,
@@ -56,7 +69,8 @@ export const useLegalProposalState = () => {
     canProceed: navigation.canProceed,
     
     // Service Management
-    handleAreaAndServicesChange: serviceManagement.handleAreaAndServicesChange,
+    handleAreaAndServicesChange,
+    handleServiceToggle: serviceManagement.handleServiceToggle,
     handleServiceUpdate: serviceManagement.handleServiceUpdate,
     handleServiceRemove: serviceManagement.handleServiceRemove,
     handleServiceAdd: serviceManagement.handleServiceAdd,

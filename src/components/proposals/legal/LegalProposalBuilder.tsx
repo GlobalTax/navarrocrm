@@ -1,138 +1,93 @@
 
 import React from 'react'
-import { useLegalProposalState } from './hooks/useLegalProposalState'
+import { Card, CardContent } from '@/components/ui/card'
 import { LegalProposalHeader } from './components/LegalProposalHeader'
-import { LegalProposalProgressBar } from './components/LegalProposalProgressBar'
-import { LegalProposalStepContent } from './components/LegalProposalStepContent'
 import { LegalProposalNavigation } from './components/LegalProposalNavigation'
-import { ProposalConversionFeedback } from '@/components/proposals/ProposalConversionFeedback'
-import { Button } from '@/components/ui/button'
+import { LegalProposalStepContent } from './components/LegalProposalStepContent'
+import { LegalProposalProgressBar } from './components/LegalProposalProgressBar'
+import { useLegalProposalState } from './hooks/useLegalProposalState'
 
 interface LegalProposalBuilderProps {
+  onClose: () => void
   onSave: (data: any) => void
-  isSaving: boolean
-  onBack: () => void
+  isSaving?: boolean
 }
 
 export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
+  onClose,
   onSave,
-  isSaving,
-  onBack
+  isSaving = false
 }) => {
   const {
+    proposalData,
+    updateProposalData,
     currentStep,
     setCurrentStep,
     showSuccess,
-    setShowSuccess,
-    proposalData,
     canProceed,
     handleAreaAndServicesChange,
+    handleServiceToggle,
     handleServiceUpdate,
     handleServiceRemove,
     handleServiceAdd,
-    updateProposalData
+    practiceAreasData
   } = useLegalProposalState()
 
-  console.log('LegalProposalBuilder - Current proposal data:', proposalData)
-
-  const handleGeneratePDF = () => {
-    console.log('Generate PDF')
-    // TODO: Implement PDF generation
-  }
-
-  const handleSendProposal = () => {
-    handleSave()
-  }
+  console.log('LegalProposalBuilder render:', {
+    currentStep,
+    selectedArea: proposalData.selectedArea,
+    selectedServices: proposalData.selectedServices?.length || 0
+  })
 
   const handleSave = () => {
-    // Transform to the expected format
-    const formattedData = {
-      title: proposalData.title,
-      clientId: proposalData.clientId,
-      introduction: proposalData.introduction,
-      scopeOfWork: `Servicios de ${proposalData.selectedArea}`,
-      timeline: `Duración del contrato: ${proposalData.retainerConfig.contractDuration} meses`,
-      pricingTiers: [{
-        id: crypto.randomUUID(),
-        name: `Plan ${proposalData.selectedArea}`,
-        description: proposalData.introduction,
-        services: [{
-          id: crypto.randomUUID(),
-          name: `Servicios ${proposalData.selectedArea}`,
-          description: `Servicios recurrentes de ${proposalData.selectedArea}`,
-          quantity: 1,
-          unitPrice: proposalData.retainerConfig.retainerAmount,
-          billingCycle: proposalData.retainerConfig.billingFrequency,
-          taxable: true
-        }],
-        totalPrice: proposalData.retainerConfig.retainerAmount
-      }],
-      currency: 'EUR',
-      validUntil: new Date(Date.now() + proposalData.validityDays * 24 * 60 * 60 * 1000),
-      is_recurring: true,
-      recurring_frequency: proposalData.retainerConfig.billingFrequency,
-      contract_start_date: new Date(),
-      auto_renewal: proposalData.retainerConfig.autoRenewal,
-      retainer_amount: proposalData.retainerConfig.retainerAmount,
-      included_hours: proposalData.retainerConfig.includedHours,
-      hourly_rate_extra: proposalData.retainerConfig.extraHourlyRate,
-      billing_day: proposalData.retainerConfig.billingDay
-    }
-    
-    console.log('Saving proposal with data:', formattedData)
-    onSave(formattedData)
-    setShowSuccess(true)
+    console.log('Saving proposal data:', proposalData)
+    onSave(proposalData)
   }
 
-  if (showSuccess) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <ProposalConversionFeedback
-          proposalTitle={proposalData.title}
-          clientName="Cliente seleccionado"
-          recurringAmount={proposalData.retainerConfig.retainerAmount}
-          frequency={proposalData.retainerConfig.billingFrequency}
-          onViewRecurringFee={() => {
-            console.log('Navigate to recurring fees')
-          }}
-        />
-        <div className="mt-6 text-center">
-          <Button onClick={onBack}>
-            Volver a Propuestas
-          </Button>
-        </div>
-      </div>
-    )
-  }
+  // Convertir selectedServices a array de IDs para el selector
+  const selectedServiceIds = proposalData.selectedServices?.map(s => s.id) || []
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <LegalProposalHeader currentStep={currentStep} />
-      
-      <LegalProposalProgressBar currentStep={currentStep} />
-
-      <LegalProposalStepContent
-        currentStep={currentStep}
-        proposalData={proposalData}
-        onClientSelected={(clientId) => updateProposalData('clientId', clientId)}
-        onAreaAndServicesChange={handleAreaAndServicesChange}
-        onServiceUpdate={handleServiceUpdate}
-        onServiceRemove={handleServiceRemove}
-        onServiceAdd={handleServiceAdd}
-        onRetainerConfigChange={(config) => updateProposalData('retainerConfig', config)}
-        onProposalDataChange={updateProposalData}
-        onGeneratePDF={handleGeneratePDF}
-        onSendProposal={handleSendProposal}
-      />
-
-      <LegalProposalNavigation
-        currentStep={currentStep}
-        canProceed={canProceed()}
-        isSaving={isSaving}
-        onPrevious={currentStep === 1 ? onBack : () => setCurrentStep(prev => prev - 1)}
-        onNext={() => setCurrentStep(prev => prev + 1)}
-        onSave={handleSave}
-      />
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-lg">
+          <CardContent className="p-0">
+            <LegalProposalHeader onClose={onClose} />
+            
+            <div className="p-6">
+              <LegalProposalProgressBar 
+                currentStep={currentStep}
+                totalSteps={4}
+              />
+              
+              <div className="mt-8">
+                <LegalProposalStepContent
+                  currentStep={currentStep}
+                  proposalData={proposalData}
+                  updateProposalData={updateProposalData}
+                  selectedServiceIds={selectedServiceIds}
+                  onAreaAndServicesChange={handleAreaAndServicesChange}
+                  onServiceToggle={handleServiceToggle}
+                  onServiceUpdate={handleServiceUpdate}
+                  onServiceRemove={handleServiceRemove}
+                  onServiceAdd={handleServiceAdd}
+                  practiceAreasData={practiceAreasData}
+                />
+              </div>
+              
+              <LegalProposalNavigation
+                currentStep={currentStep}
+                onStepChange={setCurrentStep}
+                onSave={handleSave}
+                onClose={onClose}
+                canProceed={canProceed}
+                isSaving={isSaving}
+                showSuccess={showSuccess}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

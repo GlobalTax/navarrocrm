@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { PracticeAreaSelector } from './components/PracticeAreaSelector'
 import { ServicesList } from './components/ServicesList'
@@ -9,12 +8,14 @@ interface LegalServiceSelectorProps {
   selectedServices: string[]
   selectedArea: string
   onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
+  onServiceToggle?: (serviceId: string, serviceData: any) => void
 }
 
 export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
   selectedServices = [],
   selectedArea,
-  onAreaAndServicesChange
+  onAreaAndServicesChange,
+  onServiceToggle
 }) => {
   const { services, isLoading } = useServiceCatalog()
 
@@ -26,33 +27,23 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
   })
 
   const handleAreaSelect = (areaId: string) => {
-    console.log('Area selected:', areaId)
+    console.log('LegalServiceSelector - Area selected:', areaId)
     if (areaId !== selectedArea) {
-      // Limpiar servicios al cambiar de área
-      onAreaAndServicesChange(areaId, [])
+      // Solo cambiar área, no resetear servicios aquí
+      onAreaAndServicesChange(areaId)
     }
   }
 
-  const handleServiceToggle = (serviceId: string) => {
-    console.log('Service toggled:', serviceId)
+  const handleServiceToggle = (serviceId: string, serviceData: any) => {
+    console.log('LegalServiceSelector - Service toggled:', serviceId, serviceData)
     
-    if (!selectedServices || !Array.isArray(selectedServices)) {
-      console.warn('Invalid selectedServices:', selectedServices)
-      onAreaAndServicesChange(selectedArea, [serviceId])
-      return
-    }
-    
-    const isCurrentlySelected = selectedServices.includes(serviceId)
-    
-    let newServices: string[]
-    if (isCurrentlySelected) {
-      newServices = selectedServices.filter(id => id !== serviceId)
+    if (onServiceToggle) {
+      // Usar el handler específico para toggle
+      onServiceToggle(serviceId, serviceData)
     } else {
-      newServices = [...selectedServices, serviceId]
+      // Fallback al handler original (pero no debería usarse)
+      console.warn('No onServiceToggle handler provided')
     }
-    
-    console.log('New services for area:', selectedArea, newServices)
-    onAreaAndServicesChange(selectedArea, newServices)
   }
 
   const selectedAreaData = selectedArea ? practiceAreasData[selectedArea] : null
@@ -119,6 +110,8 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
         selectedAreaData={selectedAreaData}
         selectedServices={selectedServices}
         onServiceToggle={handleServiceToggle}
+        dbServices={services}
+        isLoading={isLoading}
       />
       
       {/* Información adicional del área seleccionada */}

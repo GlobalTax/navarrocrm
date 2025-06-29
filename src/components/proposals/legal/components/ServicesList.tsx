@@ -6,28 +6,35 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Clock, Euro, Plus, Check } from 'lucide-react'
 import { PracticeAreaData } from '../data/practiceAreasData'
-import { useServiceCatalog } from '@/hooks/useServiceCatalog'
 
 interface ServicesListProps {
   selectedAreaData: PracticeAreaData
   selectedServices: string[]
-  onServiceToggle: (serviceId: string) => void
+  onServiceToggle: (serviceId: string, serviceData: any) => void
+  dbServices?: any[]
+  isLoading?: boolean
 }
 
 export const ServicesList: React.FC<ServicesListProps> = ({
   selectedAreaData,
   selectedServices,
-  onServiceToggle
+  onServiceToggle,
+  dbServices = [],
+  isLoading = false
 }) => {
-  const { services: dbServices, isLoading } = useServiceCatalog()
-
   // Combinar servicios estáticos con servicios de la base de datos
   const availableServices = React.useMemo(() => {
+    console.log('ServicesList - Processing services for area:', selectedAreaData.name)
+    console.log('ServicesList - DB services:', dbServices.length)
+    console.log('ServicesList - Static services:', selectedAreaData.services.length)
+    
     // Filtrar servicios de DB que pertenezcan al área seleccionada
     const areaDbServices = dbServices.filter(service => 
       service.practice_area?.name.toLowerCase().includes(selectedAreaData.name.toLowerCase().split(' ')[0]) ||
       selectedAreaData.name.toLowerCase().includes(service.practice_area?.name.toLowerCase().split(' ')[0] || '')
     )
+
+    console.log('ServicesList - Filtered DB services:', areaDbServices.length)
 
     // Si hay servicios en la DB, usar esos; si no, usar los estáticos
     if (areaDbServices.length > 0) {
@@ -37,7 +44,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
         description: dbService.description || '',
         basePrice: dbService.default_price || 0,
         billingUnit: dbService.billing_unit,
-        estimatedHours: Math.ceil((dbService.default_price || 0) / 50), // Estimación basada en precio
+        estimatedHours: Math.ceil((dbService.default_price || 0) / 50),
         category: 'database',
         isFromDb: true
       }))
@@ -77,6 +84,16 @@ export const ServicesList: React.FC<ServicesListProps> = ({
       database: 'Personalizado'
     }
     return labels[category] || 'Servicio'
+  }
+
+  const handleServiceClick = (service: any) => {
+    console.log('ServicesList - Service clicked:', service.id, service.name)
+    onServiceToggle(service.id, service)
+  }
+
+  const handleCheckboxChange = (service: any, checked: boolean) => {
+    console.log('ServicesList - Checkbox changed:', service.id, checked)
+    onServiceToggle(service.id, service)
   }
 
   if (isLoading) {
@@ -129,21 +146,24 @@ export const ServicesList: React.FC<ServicesListProps> = ({
             {availableServices.map((service) => {
               const isSelected = selectedServices.includes(service.id)
               
+              console.log('ServicesList - Rendering service:', service.id, 'isSelected:', isSelected)
+              
               return (
                 <div
                   key={service.id}
-                  className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer ${
+                  className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-sm ${
                     isSelected 
                       ? 'border-blue-500 bg-blue-50' 
-                      : 'hover:border-gray-300 hover:shadow-sm'
+                      : 'hover:border-gray-300'
                   }`}
-                  onClick={() => onServiceToggle(service.id)}
+                  onClick={() => handleServiceClick(service)}
                 >
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={isSelected}
-                      onChange={() => onServiceToggle(service.id)}
+                      onCheckedChange={(checked) => handleCheckboxChange(service, checked)}
                       className="mt-1"
+                      onClick={(e) => e.stopPropagation()}
                     />
                     
                     <div className="flex-1">
