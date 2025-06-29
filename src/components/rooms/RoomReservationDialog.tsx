@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { useForm } from 'react-hook-form'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import type { CreateReservationData } from '@/hooks/useRoomReservations'
+import type { CreateReservationData } from '@/hooks/rooms/useRoomReservations'
 import type { OfficeRoom } from '@/hooks/useOfficeRooms'
 
 interface RoomReservationDialogProps {

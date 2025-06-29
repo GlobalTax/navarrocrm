@@ -6,7 +6,7 @@ import { RoomsList } from '@/components/rooms/RoomsList'
 import { RoomFormDialog } from '@/components/rooms/RoomFormDialog'
 import { RoomReservationDialog } from '@/components/rooms/RoomReservationDialog'
 import { useOfficeRooms } from '@/hooks/useOfficeRooms'
-import { useRoomReservations } from '@/hooks/useRoomReservations'
+import { useRoomReservations } from '@/hooks/rooms/useRoomReservations'
 import type { OfficeRoom } from '@/hooks/useOfficeRooms'
 
 export default function Rooms() {

@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useRoomReservations } from '@/hooks/useRoomReservations'
+import { useRoomReservations } from '@/hooks/rooms/useRoomReservations'
 import { useOfficeRooms } from '@/hooks/useOfficeRooms'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'

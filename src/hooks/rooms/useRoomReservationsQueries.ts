@@ -18,7 +18,7 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         .select(`
           *,
           room:office_rooms(id, name, capacity, location),
-          user:users(id, name, email)
+          user:users!room_reservations_reserved_by_fkey(id, name, email)
         `)
         .eq('org_id', user.org_id)
         .order('start_datetime', { ascending: true })
@@ -54,7 +54,7 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         .select(`
           *,
           room:office_rooms(id, name, capacity, location),
-          user:users(id, name, email)
+          user:users!room_reservations_reserved_by_fkey(id, name, email)
         `)
         .eq('org_id', user.org_id)
         .eq('room_id', roomId)
