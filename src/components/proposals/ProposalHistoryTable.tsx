@@ -159,11 +159,11 @@ export const ProposalHistoryTable: React.FC<ProposalHistoryTableProps> = ({
                       <div className="text-sm">
                         {statusChange && (
                           <div className="flex items-center gap-2">
-                            <Badge className={getStatusColor(statusChange.from)} size="sm">
+                            <Badge className={getStatusColor(statusChange.from)}>
                               {getStatusLabel(statusChange.from)}
                             </Badge>
                             <span>→</span>
-                            <Badge className={getStatusColor(statusChange.to)} size="sm">
+                            <Badge className={getStatusColor(statusChange.to)}>
                               {getStatusLabel(statusChange.to)}
                             </Badge>
                           </div>
