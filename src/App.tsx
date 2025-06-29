@@ -1,4 +1,3 @@
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -37,6 +36,7 @@ import Clients from '@/pages/Clients'
 import AcademiaAdmin from '@/pages/AcademiaAdmin'
 import Rooms from '@/pages/Rooms'
 import RoomDisplay from '@/pages/RoomDisplay'
+import RoomOccupancyPanel from '@/pages/RoomOccupancyPanel'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,46 +55,44 @@ function App() {
         <Router>
           <div className="min-h-screen bg-gray-50">
             <Routes>
+              {/* Ruta pública para el panel de ocupación */}
+              <Route path="/panel-ocupacion" element={<RoomOccupancyPanel />} />
+              
               <Route path="/login" element={<Login />} />
               <Route path="/setup" element={<Setup />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
-              <Route path="/room-display/:roomId" element={<RoomDisplay />} />
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <MainLayout>
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/contacts" element={<Contacts />} />
-                        <Route path="/contacts/:id" element={<ContactDetail />} />
-                        <Route path="/clients" element={<Clients />} />
-                        <Route path="/client/:id" element={<ClientDetail />} />
-                        <Route path="/cases" element={<Cases />} />
-                        <Route path="/case/:id" element={<CaseDetail />} />
-                        <Route path="/proposals" element={<Proposals />} />
-                        <Route path="/tasks" element={<Tasks />} />
-                        <Route path="/time-tracking" element={<TimeTracking />} />
-                        <Route path="/calendar" element={<Calendar />} />
-                        <Route path="/documents" element={<Documents />} />
-                        <Route path="/rooms" element={<Rooms />} />
-                        <Route path="/users" element={<Users />} />
-                        <Route path="/integrations" element={<IntegrationSettings />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/academia" element={<Academia />} />
-                        <Route path="/academia/admin" element={<AcademiaAdmin />} />
-                        <Route path="/ai-assistant" element={<AdvancedAI />} />
-                        <Route path="/ai-admin" element={<AIAdmin />} />
-                        <Route path="/intelligent-dashboard" element={<IntelligentDashboard />} />
-                        <Route path="/workflows" element={<Workflows />} />
-                        <Route path="/security-audit" element={<SecurityAudit />} />
-                        <Route path="/recurrent-fees" element={<RecurrentFees />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </MainLayout>
-                  </ProtectedRoute>
-                }
-              />
+              
+              <Route element={<ProtectedRoute />}>
+                <Route element={<MainLayout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/contacts" element={<Contacts />} />
+                  <Route path="/contacts/:id" element={<ContactDetail />} />
+                  <Route path="/clients" element={<Clients />} />
+                  <Route path="/client/:id" element={<ClientDetail />} />
+                  <Route path="/cases" element={<Cases />} />
+                  <Route path="/cases/:id" element={<CaseDetail />} />
+                  <Route path="/proposals" element={<Proposals />} />
+                  <Route path="/tasks" element={<Tasks />} />
+                  <Route path="/time-tracking" element={<TimeTracking />} />
+                  <Route path="/calendar" element={<Calendar />} />
+                  <Route path="/rooms" element={<Rooms />} />
+                  <Route path="/rooms/:roomId/display" element={<RoomDisplay />} />
+                  <Route path="/documents" element={<Documents />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="/integrations" element={<IntegrationSettings />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/workflows" element={<Workflows />} />
+                  <Route path="/academia" element={<Academia />} />
+                  <Route path="/academia/admin" element={<AcademiaAdmin />} />
+                  <Route path="/ai-assistant" element={<AdvancedAI />} />
+                  <Route path="/ai-admin" element={<AIAdmin />} />
+                  <Route path="/dashboard-intelligent" element={<IntelligentDashboard />} />
+                  <Route path="/security-audit" element={<SecurityAudit />} />
+                  <Route path="/recurring-fees" element={<RecurrentFees />} />
+                </Route>
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
         </Router>
