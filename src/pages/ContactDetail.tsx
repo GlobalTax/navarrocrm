@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Edit, Mail, Phone, Building, User, MapPin, Calendar, Tag } from 'lucide-react'
