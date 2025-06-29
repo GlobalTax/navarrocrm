@@ -1,110 +1,60 @@
 
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { SelectedService } from '../types/legalProposal.types'
-import { convertServiceIdsToSelectedServices, validateSelectedService, recalculateServiceTotal } from '../utils/serviceConversion'
+import { updateServiceTotal } from '../utils/serviceConversion'
 
 interface UseServiceManagementProps {
-  selectedServices: SelectedService[]
-  selectedArea: string
-  updateProposalData: (field: string, value: any) => void
+  initialServices?: SelectedService[]
+  onServicesChange?: (services: SelectedService[]) => void
 }
 
 export const useServiceManagement = ({
-  selectedServices,
-  selectedArea,
-  updateProposalData
+  initialServices = [],
+  onServicesChange
 }: UseServiceManagementProps) => {
+  const [selectedServices, setSelectedServices] = useState<SelectedService[]>(initialServices)
 
-  const handleAreaAndServicesChange = useCallback((areaId: string, serviceIds: string[] = []) => {
-    console.log('Handling area and services change:', { areaId, serviceIds })
-    
-    try {
-      const convertedServices = serviceIds.length > 0 
-        ? convertServiceIdsToSelectedServices(serviceIds, areaId)
-        : []
+  const updateServices = useCallback((newServices: SelectedService[]) => {
+    setSelectedServices(newServices)
+    onServicesChange?.(newServices)
+  }, [onServicesChange])
 
-      // Validar servicios convertidos
-      const validServices = convertedServices.filter(service => {
-        const isValid = validateSelectedService(service)
-        if (!isValid) {
-          console.warn('Invalid service detected:', service)
-        }
-        return isValid
-      })
+  const addService = useCallback((service: SelectedService) => {
+    const updatedServices = [...selectedServices, updateServiceTotal(service)]
+    updateServices(updatedServices)
+  }, [selectedServices, updateServices])
 
-      console.log('Updating proposal data with:', { areaId, validServices })
-      updateProposalData('selectedArea', areaId)
-      updateProposalData('selectedServices', validServices)
-    } catch (error) {
-      console.error('Error in handleAreaAndServicesChange:', error)
-      // En caso de error, al menos actualizar el área
-      updateProposalData('selectedArea', areaId)
-      updateProposalData('selectedServices', [])
-    }
-  }, [updateProposalData])
+  const removeService = useCallback((serviceId: string) => {
+    const updatedServices = selectedServices.filter(s => s.id !== serviceId)
+    updateServices(updatedServices)
+  }, [selectedServices, updateServices])
 
-  const handleServiceUpdate = useCallback((serviceId: string, field: keyof SelectedService, value: number) => {
-    console.log('Updating service:', { serviceId, field, value })
-    
-    if (!selectedServices || !Array.isArray(selectedServices)) {
-      console.warn('Invalid selectedServices:', selectedServices)
-      return
-    }
-
-    try {
-      const updatedServices = selectedServices.map(service => {
-        if (!service || service.id !== serviceId) {
-          return service
-        }
-
+  const updateService = useCallback((serviceId: string, field: keyof SelectedService, value: any) => {
+    const updatedServices = selectedServices.map(service => {
+      if (service.id === serviceId) {
         const updated = { ...service, [field]: value }
-        
-        // Recalcular total si se cambia cantidad o precio
-        if (field === 'quantity' || field === 'customPrice') {
-          const recalculated = recalculateServiceTotal(updated)
-          console.log('Recalculated service:', recalculated)
-          return recalculated
-        }
-        
-        console.log('Updated service:', updated)
-        return updated
-      })
+        return updateServiceTotal(updated)
+      }
+      return service
+    })
+    updateServices(updatedServices)
+  }, [selectedServices, updateServices])
 
-      // Validar todos los servicios actualizados
-      const validServices = updatedServices.filter(validateSelectedService)
-      updateProposalData('selectedServices', validServices)
-    } catch (error) {
-      console.error('Error updating service:', error)
-    }
-  }, [selectedServices, updateProposalData])
+  const getTotalAmount = useCallback(() => {
+    return selectedServices.reduce((sum, service) => sum + (service.total || 0), 0)
+  }, [selectedServices])
 
-  const handleServiceRemove = useCallback((serviceId: string) => {
-    console.log('Removing service:', serviceId)
-    
-    if (!selectedServices || !Array.isArray(selectedServices)) {
-      console.warn('Invalid selectedServices for removal:', selectedServices)
-      return
-    }
-
-    try {
-      const filteredServices = selectedServices.filter(service => 
-        service && service.id !== serviceId
-      )
-      updateProposalData('selectedServices', filteredServices)
-    } catch (error) {
-      console.error('Error removing service:', error)
-    }
-  }, [selectedServices, updateProposalData])
-
-  const handleServiceAdd = useCallback(() => {
-    console.log('Add new service - redirecting to step 2')
-    return 2
-  }, [])
+  const clearServices = useCallback(() => {
+    updateServices([])
+  }, [updateServices])
 
   return {
-    handleAreaAndServicesChange,
-    handleServiceUpdate,
-    handleServiceRemove,
-    handleServiceAdd
+    selectedServices,
+    addService,
+    removeService,
+    updateService,
+    getTotalAmount,
+    clearServices,
+    hasServices: selectedServices.length > 0
   }
 }

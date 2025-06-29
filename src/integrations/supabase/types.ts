@@ -2057,24 +2057,30 @@ export type Database = {
       }
       practice_areas: {
         Row: {
+          color: string | null
           created_at: string | null
           description: string | null
+          icon: string | null
           id: string
           name: string
           org_id: string
           updated_at: string | null
         }
         Insert: {
+          color?: string | null
           created_at?: string | null
           description?: string | null
+          icon?: string | null
           id?: string
           name: string
           org_id: string
           updated_at?: string | null
         }
         Update: {
+          color?: string | null
           created_at?: string | null
           description?: string | null
+          icon?: string | null
           id?: string
           name?: string
           org_id?: string
