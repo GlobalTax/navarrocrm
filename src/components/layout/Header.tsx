@@ -1,12 +1,18 @@
 
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useApp } from '@/contexts/AppContext'
 import { LogOut, User, Search, Bell } from 'lucide-react'
 import { HeaderClock } from './HeaderClock'
+import { NotificationsPanel } from '@/components/notifications/NotificationsPanel'
+import { useNotifications } from '@/hooks/useNotifications'
 
 export const Header = () => {
   const { user, signOut } = useApp()
+  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications()
+  const [showNotifications, setShowNotifications] = useState(false)
+  const notificationRef = useRef<HTMLDivElement>(null)
 
   const handleSignOut = async () => {
     try {
@@ -15,6 +21,23 @@ export const Header = () => {
       console.error('Error signing out:', error)
     }
   }
+
+  // Cerrar panel de notificaciones al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false)
+      }
+    }
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showNotifications])
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -31,12 +54,35 @@ export const Header = () => {
           
           <div className="flex items-center gap-3">
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                3
-              </span>
-            </Button>
+            <div className="relative" ref={notificationRef}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+              
+              {/* Notifications Panel */}
+              {showNotifications && (
+                <div className="absolute right-0 top-full mt-2 z-50 animate-fade-in">
+                  <NotificationsPanel
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAsRead={markAsRead}
+                    onMarkAllAsRead={markAllAsRead}
+                    onRemove={removeNotification}
+                    onClose={() => setShowNotifications(false)}
+                  />
+                </div>
+              )}
+            </div>
             
             {/* Header Clock */}
             <HeaderClock />
