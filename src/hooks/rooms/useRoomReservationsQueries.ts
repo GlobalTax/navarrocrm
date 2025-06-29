@@ -18,7 +18,7 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         .select(`
           *,
           room:office_rooms(id, name, capacity, location),
-          user:users!reserved_by(id, name, email)
+          user:users!reserved_by(id, email)
         `)
         .eq('org_id', user.org_id)
         .order('start_datetime', { ascending: true })
@@ -37,7 +37,11 @@ export const useRoomReservationsQueries = (roomId?: string) => {
       // Transform the data to ensure proper typing
       return (data || []).map(reservation => ({
         ...reservation,
-        user: reservation.user || null
+        user: reservation.user ? {
+          id: reservation.user.id,
+          name: reservation.user.email || 'Usuario', // Usar email como nombre si no hay nombre disponible
+          email: reservation.user.email
+        } : null
       })) as RoomReservation[]
     },
     enabled: !!user?.org_id,
@@ -58,7 +62,7 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         .select(`
           *,
           room:office_rooms(id, name, capacity, location),
-          user:users!reserved_by(id, name, email)
+          user:users!reserved_by(id, email)
         `)
         .eq('org_id', user.org_id)
         .eq('room_id', roomId)
@@ -75,7 +79,11 @@ export const useRoomReservationsQueries = (roomId?: string) => {
       // Transform the data to ensure proper typing
       return (data || []).map(reservation => ({
         ...reservation,
-        user: reservation.user || null
+        user: reservation.user ? {
+          id: reservation.user.id,
+          name: reservation.user.email || 'Usuario', // Usar email como nombre si no hay nombre disponible
+          email: reservation.user.email
+        } : null
       })) as RoomReservation[]
     },
     enabled: !!user?.org_id && !!roomId,
