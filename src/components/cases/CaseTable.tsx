@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react'
 import {
   Table,
@@ -52,7 +53,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
   onSelectCase,
   onSelectAll
 }) => {
-  const selectAllRef = useRef<HTMLButtonElement>(null)
+  const selectAllRef = useRef<HTMLInputElement>(null)
   
   const allSelected = cases.length > 0 && selectedCases.length === cases.length
   const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
