@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +17,7 @@ export const ModernTimer = () => {
   const [selectedCaseId, setSelectedCaseId] = useState<string>('no-case')
   const [description, setDescription] = useState('')
   const [isBillable, setIsBillable] = useState(true)
+  const [entryType, setEntryType] = useState<'billable' | 'office_admin' | 'business_development' | 'internal'>('billable')
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const { cases } = useCases()
@@ -84,7 +84,8 @@ export const ModernTimer = () => {
         case_id: selectedCaseId === 'no-case' ? null : selectedCaseId,
         description: description.trim(),
         duration_minutes: minutes,
-        is_billable: isBillable
+        is_billable: isBillable,
+        entry_type: entryType
       })
 
       // Reset timer
@@ -120,6 +121,16 @@ export const ModernTimer = () => {
     if (!isRunning) return 'bg-gray-50'
     if (isPaused) return 'bg-yellow-50'
     return 'bg-green-50'
+  }
+
+  const getEntryTypeLabel = (type: string) => {
+    switch (type) {
+      case 'billable': return 'Facturable'
+      case 'office_admin': return 'Admin. Oficina'
+      case 'business_development': return 'Desarrollo Negocio'
+      case 'internal': return 'Interno'
+      default: return type
+    }
   }
 
   return (
@@ -262,14 +273,29 @@ export const ModernTimer = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between pt-6">
-              <Label htmlFor="billable" className="text-sm font-medium">Facturable</Label>
-              <Switch
-                id="billable"
-                checked={isBillable}
-                onCheckedChange={setIsBillable}
-              />
+            <div className="space-y-2">
+              <Label htmlFor="entry-type" className="text-sm font-medium">Tipo de Actividad</Label>
+              <Select value={entryType} onValueChange={(value: any) => setEntryType(value)}>
+                <SelectTrigger id="entry-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="billable">Facturable</SelectItem>
+                  <SelectItem value="office_admin">Admin. Oficina</SelectItem>
+                  <SelectItem value="business_development">Desarrollo Negocio</SelectItem>
+                  <SelectItem value="internal">Interno</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <Label htmlFor="billable" className="text-sm font-medium">Facturable</Label>
+            <Switch
+              id="billable"
+              checked={isBillable}
+              onCheckedChange={setIsBillable}
+            />
           </div>
         </div>
       </CardContent>

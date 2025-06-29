@@ -8,13 +8,14 @@ import { FloatingTimer } from '@/components/time-tracking/FloatingTimer'
 import { TimeTemplateManager } from '@/components/time-tracking/TimeTemplateManager'
 import { OptimizedTimeEntriesTable } from '@/components/time-tracking/OptimizedTimeEntriesTable'
 import { AdvancedTimeTrackingFilters } from '@/components/time-tracking/AdvancedTimeTrackingFilters'
+import { MonthlyTimeSummary } from '@/components/time-tracking/MonthlyTimeSummary'
 import { HeaderTimerDialog } from '@/components/layout/HeaderTimerDialog'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Clock, BarChart3, Timer, FileText } from 'lucide-react'
+import { Clock, BarChart3, Timer, FileText, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function TimeTracking() {
@@ -76,7 +77,7 @@ export default function TimeTracking() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Dashboard
@@ -84,6 +85,10 @@ export default function TimeTracking() {
           <TabsTrigger value="timer" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Timer
+          </TabsTrigger>
+          <TabsTrigger value="monthly" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Resumen Mensual
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -109,6 +114,10 @@ export default function TimeTracking() {
               <ModernTimeTrackingDashboard />
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="monthly" className="space-y-6">
+          <MonthlyTimeSummary />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">

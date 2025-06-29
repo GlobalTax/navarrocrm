@@ -13,6 +13,7 @@ export interface TimeEntry {
   description: string | null
   duration_minutes: number
   is_billable: boolean
+  entry_type: 'billable' | 'office_admin' | 'business_development' | 'internal'
   created_at: string
   updated_at: string
   case?: {
@@ -30,6 +31,7 @@ export interface CreateTimeEntryData {
   description?: string
   duration_minutes: number
   is_billable?: boolean
+  entry_type?: 'billable' | 'office_admin' | 'business_development' | 'internal'
 }
 
 export const useTimeEntries = () => {
@@ -101,6 +103,7 @@ export const useTimeEntries = () => {
           description: data.description || null,
           duration_minutes: data.duration_minutes,
           is_billable: data.is_billable !== false,
+          entry_type: data.entry_type || 'billable',
         })
         .select()
         .single()

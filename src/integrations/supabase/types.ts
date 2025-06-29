@@ -3629,6 +3629,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           duration_minutes: number
+          entry_type: string | null
           id: string
           is_billable: boolean
           org_id: string
@@ -3640,6 +3641,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           duration_minutes?: number
+          entry_type?: string | null
           id?: string
           is_billable?: boolean
           org_id: string
@@ -3651,6 +3653,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           duration_minutes?: number
+          entry_type?: string | null
           id?: string
           is_billable?: boolean
           org_id?: string
@@ -4187,6 +4190,18 @@ export type Database = {
           revenue: number
           proposal_count: number
           conversion_rate: number
+        }[]
+      }
+      get_monthly_time_stats: {
+        Args: { org_uuid: string; target_month?: number; target_year?: number }
+        Returns: {
+          day_date: string
+          billable_hours: number
+          office_admin_hours: number
+          business_dev_hours: number
+          internal_hours: number
+          total_hours: number
+          entry_count: number
         }[]
       }
       get_office_stats: {
