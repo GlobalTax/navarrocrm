@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
 import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
 import { DashboardError } from '@/components/dashboard/DashboardError'
-import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
+import { CompactTimer } from '@/components/dashboard/CompactTimer'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
@@ -101,18 +100,24 @@ export default function Dashboard() {
         }
       />
 
-      {/* Timer de trabajo activo */}
-      <div className="mb-6">
-        <EnhancedActiveTimer />
-      </div>
-
       {/* Indicador de última actualización */}
       <div className="text-sm text-gray-500 mb-4">
         Última actualización: {formatTime(lastRefresh)}
       </div>
       
-      {/* Métricas principales con diseño compacto */}
-      <EnhancedDashboardMetrics stats={enhancedStats} />
+      {/* Grid con Timer compacto y métricas principales */}
+      <div className="space-y-6 mb-6">
+        {/* Primera fila - Timer compacto + métricas principales */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <CompactTimer />
+          
+          <div className="md:col-span-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <EnhancedDashboardMetrics stats={enhancedStats} />
+            </div>
+          </div>
+        </div>
+      </div>
       
       {/* Layout principal */}
       {!isLoading && <EnhancedDashboardLayout />}
