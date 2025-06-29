@@ -33,7 +33,7 @@ export const StandardPageHeader = ({
   return <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 ${className}`}>
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="crm-responsive-title">{title}</h1>
+          <h1 className="crm-responsive-title font-normal">{title}</h1>
           {badges.map((badge, index) => <Badge key={index} variant={badge.variant || 'default'} className={`crm-badge-text ${badge.color}`}>
               {badge.label}
             </Badge>)}
