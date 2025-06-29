@@ -19,7 +19,7 @@ export interface RoomReservation {
   created_at: string
   updated_at: string
   org_id: string
-  // Relaciones
+  // Relaciones - making user optional to handle cases where join fails
   room?: {
     id: string
     name: string
@@ -30,7 +30,7 @@ export interface RoomReservation {
     id: string
     name: string
     email: string
-  }
+  } | null
 }
 
 export interface CreateReservationData {

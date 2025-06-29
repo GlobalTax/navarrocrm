@@ -18,7 +18,7 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         .select(`
           *,
           room:office_rooms(id, name, capacity, location),
-          user:users!room_reservations_reserved_by_fkey(id, name, email)
+          user:users(id, name, email)
         `)
         .eq('org_id', user.org_id)
         .order('start_datetime', { ascending: true })
@@ -34,7 +34,11 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         throw error
       }
 
-      return (data || []) as RoomReservation[]
+      // Transform the data to ensure proper typing
+      return (data || []).map(reservation => ({
+        ...reservation,
+        user: reservation.user || null
+      })) as RoomReservation[]
     },
     enabled: !!user?.org_id,
   })
@@ -54,7 +58,7 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         .select(`
           *,
           room:office_rooms(id, name, capacity, location),
-          user:users!room_reservations_reserved_by_fkey(id, name, email)
+          user:users(id, name, email)
         `)
         .eq('org_id', user.org_id)
         .eq('room_id', roomId)
@@ -68,7 +72,11 @@ export const useRoomReservationsQueries = (roomId?: string) => {
         throw error
       }
 
-      return (data || []) as RoomReservation[]
+      // Transform the data to ensure proper typing
+      return (data || []).map(reservation => ({
+        ...reservation,
+        user: reservation.user || null
+      })) as RoomReservation[]
     },
     enabled: !!user?.org_id && !!roomId,
     refetchInterval: 30000, // Actualizar cada 30 segundos
