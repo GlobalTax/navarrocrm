@@ -12,8 +12,14 @@ export interface RoomReservation {
   end_datetime: string
   purpose: string
   status: 'pending' | 'confirmed' | 'cancelled'
-  attendees?: string[]
+  attendees_count?: number
+  attendees_emails?: string[]
   setup_requirements?: string
+  cost?: number
+  catering_requested?: boolean
+  approved_by?: string
+  cancelled_at?: string
+  cancellation_reason?: string
   created_at: string
   updated_at: string
   org_id: string
@@ -36,8 +42,10 @@ export interface CreateReservationData {
   start_datetime: string
   end_datetime: string
   purpose: string
-  attendees?: string[]
+  attendees_count?: number
+  attendees_emails?: string[]
   setup_requirements?: string
+  catering_requested?: boolean
 }
 
 export interface UpdateReservationData extends Partial<CreateReservationData> {
@@ -76,7 +84,7 @@ export const useRoomReservations = (roomId?: string) => {
         throw error
       }
 
-      return (data || []) as RoomReservation[]
+      return (data || []) as any[]
     },
     enabled: !!user?.org_id,
   })
@@ -110,13 +118,13 @@ export const useRoomReservations = (roomId?: string) => {
         throw error
       }
 
-      return (data || []) as RoomReservation[]
+      return (data || []) as any[]
     },
     enabled: !!user?.org_id && !!roomId,
     refetchInterval: 30000, // Actualizar cada 30 segundos
   })
 
-  // Crear reserva
+  // Crear reserva  
   const createReservationMutation = useMutation({
     mutationFn: async (reservationData: CreateReservationData) => {
       if (!user?.org_id || !user?.id) throw new Error('Usuario no autenticado')
@@ -139,7 +147,6 @@ export const useRoomReservations = (roomId?: string) => {
         .from('room_reservations')
         .insert({
           ...reservationData,
-          user_id: user.id,
           org_id: user.org_id,
           status: 'confirmed'
         })

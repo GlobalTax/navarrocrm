@@ -52,7 +52,7 @@ export const RoomReservationDialog: React.FC<RoomReservationDialogProps> = ({
       end_datetime: endDateTime,
       purpose: data.purpose,
       setup_requirements: data.setup_requirements || undefined,
-      attendees: [] // Simplificado por ahora
+      attendees_count: data.attendees_count
     }
 
     onSubmit(reservationData)

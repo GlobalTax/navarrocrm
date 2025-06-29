@@ -63,12 +63,10 @@ export default function Rooms() {
           label: 'Nueva Sala',
           onClick: handleCreateRoom
         }}
-        secondaryActions={[
-          {
-            label: 'Ver Calendario',
-            onClick: () => window.open('/calendar', '_blank')
-          }
-        ]}
+        secondaryAction={{
+          label: 'Ver Calendario',
+          onClick: () => window.open('/calendar', '_blank')
+        }}
       />
 
       <RoomsList
