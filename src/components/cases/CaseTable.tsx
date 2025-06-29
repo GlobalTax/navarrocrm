@@ -94,9 +94,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
             <TableHead className="w-[50px]">
               <Checkbox
                 checked={allSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = someSelected
-                }}
+                indeterminate={someSelected}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </TableHead>
