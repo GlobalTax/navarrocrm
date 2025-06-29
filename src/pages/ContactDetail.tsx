@@ -50,6 +50,7 @@ export default function ContactDetail() {
         .from('cases')
         .select(`
           *,
+          created_by,
           contact:contacts(name, email)
         `)
         .eq('contact_id', id)
