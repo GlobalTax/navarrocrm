@@ -1,7 +1,4 @@
 
-import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
-import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
-import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useProposalsPageLogic } from '@/components/proposals/ProposalsPageLogic'
@@ -9,6 +6,11 @@ import { useProposalsPageHandlers } from '@/components/proposals/ProposalsPageHa
 import { ProposalsEmptyClientsBanner } from '@/components/proposals/ProposalsEmptyClientsBanner'
 import { ProposalsLoadingState } from '@/components/proposals/ProposalsLoadingState'
 import { ProposalsFiltersSection } from '@/components/proposals/ProposalsFiltersSection'
+import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
+import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
+import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
+import { ProposalDetailDialog } from '@/components/proposals/ProposalDetailDialog'
+import { ProposalConfirmationDialog } from '@/components/proposals/ProposalConfirmationDialog'
 
 export default function Proposals() {
   console.log('Proposals page rendering')
@@ -29,7 +31,15 @@ export default function Proposals() {
   const { 
     handleStatusChange, 
     handleViewProposal, 
-    handleSaveRecurrentProposal 
+    handleEditProposal,
+    handleDuplicateProposal,
+    handleDetailStatusChange,
+    handleSaveRecurrentProposal,
+    selectedProposal,
+    isDetailDialogOpen,
+    confirmDialog,
+    closeDetailDialog,
+    closeConfirmDialog
   } = useProposalsPageHandlers({
     updateProposalStatus,
     saveRecurrentProposal,
@@ -123,8 +133,30 @@ export default function Proposals() {
         proposals={categorizedProposals}
         onStatusChange={handleStatusChange}
         onViewProposal={handleViewProposal}
+        onEditProposal={handleEditProposal}
+        onDuplicateProposal={handleDuplicateProposal}
         onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
         onOpenSpecificBuilder={pageState.openSpecificBuilder}
+      />
+
+      {/* Diálogo de detalles */}
+      <ProposalDetailDialog
+        proposal={selectedProposal}
+        isOpen={isDetailDialogOpen}
+        onClose={closeDetailDialog}
+        onEdit={handleEditProposal}
+        onDuplicate={handleDuplicateProposal}
+        onStatusChange={handleDetailStatusChange}
+      />
+
+      {/* Diálogo de confirmación */}
+      <ProposalConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={closeConfirmDialog}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
       />
     </StandardPageContainer>
   )

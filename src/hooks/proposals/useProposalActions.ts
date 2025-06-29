@@ -1,0 +1,144 @@
+
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
+import { useApp } from '@/contexts/AppContext'
+import { useQueryClient } from '@tanstack/react-query'
+
+export const useProposalActions = () => {
+  const { user } = useApp()
+  const queryClient = useQueryClient()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const duplicateProposal = async (originalProposal: any) => {
+    if (!user?.org_id) {
+      toast.error('Usuario no autenticado')
+      return
+    }
+
+    setIsLoading(true)
+    
+    try {
+      // Generar nuevo número de propuesta
+      const newProposalNumber = `${originalProposal.proposal_number || 'PROP'}-COPY-${Date.now()}`
+      
+      // Crear datos para la nueva propuesta
+      const duplicateData = {
+        ...originalProposal,
+        id: undefined, // Remover ID para crear nueva
+        title: `${originalProposal.title} (Copia)`,
+        proposal_number: newProposalNumber,
+        status: 'draft',
+        sent_at: null,
+        accepted_at: null,
+        valid_until: null, // Limpiar fecha de validez
+        created_at: undefined,
+        updated_at: undefined,
+        // Limpiar fechas específicas para recurrentes
+        contract_start_date: null,
+        contract_end_date: null,
+        next_billing_date: null,
+      }
+
+      const { data, error } = await supabase
+        .from('proposals')
+        .insert(duplicateData)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Si la propuesta original tenía line items, duplicarlos también
+      if (originalProposal.line_items && originalProposal.line_items.length > 0) {
+        const lineItemsToInsert = originalProposal.line_items.map((item: any) => ({
+          ...item,
+          id: undefined,
+          proposal_id: data.id
+        }))
+
+        const { error: lineItemsError } = await supabase
+          .from('proposal_line_items')
+          .insert(lineItemsToInsert)
+
+        if (lineItemsError) {
+          console.error('Error duplicating line items:', lineItemsError)
+          // No lanzar error, solo advertir
+          toast.error('Propuesta duplicada, pero hubo un problema con los elementos de línea')
+        }
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      toast.success(`Propuesta "${data.title}" duplicada exitosamente`)
+      
+      return data
+    } catch (error: any) {
+      console.error('Error duplicating proposal:', error)
+      toast.error(`Error al duplicar propuesta: ${error.message}`)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const validateStatusTransition = (currentStatus: string, newStatus: string): boolean => {
+    const validTransitions: Record<string, string[]> = {
+      'draft': ['sent', 'lost'],
+      'sent': ['negotiating', 'won', 'lost', 'expired'],
+      'negotiating': ['won', 'lost', 'sent'],
+      'won': ['lost'], // Solo en casos excepcionales
+      'lost': ['draft'], // Para reactivar
+      'expired': ['draft', 'sent']
+    }
+
+    return validTransitions[currentStatus]?.includes(newStatus) || false
+  }
+
+  const updateProposalStatus = async (proposalId: string, currentStatus: string, newStatus: string) => {
+    if (!validateStatusTransition(currentStatus, newStatus)) {
+      toast.error(`No se puede cambiar de ${currentStatus} a ${newStatus}`)
+      return false
+    }
+
+    setIsLoading(true)
+    
+    try {
+      const updateData: any = { 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      }
+
+      // Agregar timestamps según el estado
+      if (newStatus === 'sent' && !currentStatus.includes('sent')) {
+        updateData.sent_at = new Date().toISOString()
+      }
+      if (newStatus === 'won') {
+        updateData.accepted_at = new Date().toISOString()
+      }
+
+      const { error } = await supabase
+        .from('proposals')
+        .update(updateData)
+        .eq('id', proposalId)
+
+      if (error) throw error
+
+      await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      toast.success('Estado actualizado correctamente')
+      
+      return true
+    } catch (error: any) {
+      console.error('Error updating proposal status:', error)
+      toast.error(`Error al actualizar estado: ${error.message}`)
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return {
+    duplicateProposal,
+    updateProposalStatus,
+    validateStatusTransition,
+    isLoading
+  }
+}

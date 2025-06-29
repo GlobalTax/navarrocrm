@@ -18,6 +18,8 @@ interface ProposalsTabsViewProps {
   proposals: CategorizedProposals
   onStatusChange: (id: string, status: any) => void
   onViewProposal: (proposal: any) => void
+  onEditProposal: (proposal: any) => void
+  onDuplicateProposal: (proposal: any) => void
   onOpenRecurrentBuilder: () => void
   onOpenSpecificBuilder: () => void
 }
@@ -26,6 +28,8 @@ export const ProposalsTabsView = ({
   proposals,
   onStatusChange,
   onViewProposal,
+  onEditProposal,
+  onDuplicateProposal,
   onOpenRecurrentBuilder,
   onOpenSpecificBuilder
 }: ProposalsTabsViewProps) => {
@@ -115,6 +119,8 @@ export const ProposalsTabsView = ({
               proposals={proposals.all}
               onStatusChange={onStatusChange}
               onViewProposal={onViewProposal}
+              onEditProposal={onEditProposal}
+              onDuplicateProposal={onDuplicateProposal}
             />
           </>
         )}
@@ -139,6 +145,8 @@ export const ProposalsTabsView = ({
               proposals={proposals.recurring}
               onStatusChange={onStatusChange}
               onViewProposal={onViewProposal}
+              onEditProposal={onEditProposal}
+              onDuplicateProposal={onDuplicateProposal}
             />
           </>
         )}
@@ -177,6 +185,8 @@ export const ProposalsTabsView = ({
               proposals={proposals.oneTime}
               onStatusChange={onStatusChange}
               onViewProposal={onViewProposal}
+              onEditProposal={onEditProposal}
+              onDuplicateProposal={onDuplicateProposal}
             />
           </>
         )}
