@@ -1,7 +1,6 @@
 
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -12,70 +11,25 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { 
-  Eye, 
-  Edit, 
-  Pause, 
-  Play, 
-  X, 
   Calendar,
   Clock,
-  DollarSign,
-  User
+  DollarSign
 } from 'lucide-react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { RecurringProposalActions } from './components/RecurringProposalActions'
+import { RecurringProposalClientInfo } from './components/RecurringProposalClientInfo'
+import { RecurringProposalInfo } from './components/RecurringProposalInfo'
+import { 
+  getStatusColor, 
+  getStatusLabel, 
+  getFrequencyLabel, 
+  formatCurrency, 
+  formatDate 
+} from './utils/proposalFormatters'
 
 interface RecurringProposalsTableProps {
   proposals: any[]
   onStatusChange: (id: string, status: any) => void
   onViewProposal: (proposal: any) => void
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'draft': return 'bg-gray-100 text-gray-800'
-    case 'sent': return 'bg-blue-100 text-blue-800'
-    case 'negotiating': return 'bg-yellow-100 text-yellow-800'
-    case 'won': return 'bg-green-100 text-green-800'
-    case 'lost': return 'bg-red-100 text-red-800'
-    case 'expired': return 'bg-gray-100 text-gray-600'
-    default: return 'bg-gray-100 text-gray-800'
-  }
-}
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'draft': return 'Borrador'
-    case 'sent': return 'Enviada'
-    case 'negotiating': return 'Negociando'
-    case 'won': return 'Ganada'
-    case 'lost': return 'Perdida'
-    case 'expired': return 'Expirada'
-    default: return status
-  }
-}
-
-const getFrequencyLabel = (frequency: string) => {
-  switch (frequency) {
-    case 'monthly': return 'Mensual'
-    case 'quarterly': return 'Trimestral'
-    case 'yearly': return 'Anual'
-    default: return frequency || 'No definida'
-  }
-}
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount || 0)
-}
-
-const formatDate = (date: string | null) => {
-  if (!date) return 'No definida'
-  return format(new Date(date), 'dd/MM/yyyy', { locale: es })
 }
 
 export const RecurringProposalsTable: React.FC<RecurringProposalsTableProps> = ({
@@ -128,30 +82,14 @@ export const RecurringProposalsTable: React.FC<RecurringProposalsTableProps> = (
               {proposals.map((proposal) => (
                 <TableRow key={proposal.id} className="hover:bg-gray-50">
                   <TableCell>
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        {proposal.title}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {proposal.proposal_number}
-                      </div>
-                    </div>
+                    <RecurringProposalInfo 
+                      title={proposal.title}
+                      proposalNumber={proposal.proposal_number}
+                    />
                   </TableCell>
                   
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
-                      <div>
-                        <div className="font-medium">
-                          {proposal.client?.name || 'Sin cliente'}
-                        </div>
-                        {proposal.client?.email && (
-                          <div className="text-sm text-gray-500">
-                            {proposal.client.email}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <RecurringProposalClientInfo client={proposal.client} />
                   </TableCell>
                   
                   <TableCell>
@@ -202,55 +140,11 @@ export const RecurringProposalsTable: React.FC<RecurringProposalsTableProps> = (
                   </TableCell>
                   
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewProposal(proposal)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      
-                      {proposal.status === 'won' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onStatusChange(proposal.id, 'paused')}
-                          className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700"
-                        >
-                          <Pause className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      {proposal.status === 'paused' && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onStatusChange(proposal.id, 'won')}
-                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onStatusChange(proposal.id, 'cancelled')}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <RecurringProposalActions
+                      proposal={proposal}
+                      onViewProposal={onViewProposal}
+                      onStatusChange={onStatusChange}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
