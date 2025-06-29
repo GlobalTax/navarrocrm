@@ -86,9 +86,9 @@ export default function TimeTracking() {
             <Clock className="h-4 w-4" />
             Timer
           </TabsTrigger>
-          <TabsTrigger value="monthly" className="flex items-center gap-2">
+          <TabsTrigger value="summary" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Resumen Mensual
+            Resumen
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -116,8 +116,8 @@ export default function TimeTracking() {
           </div>
         </TabsContent>
 
-        <TabsContent value="monthly" className="space-y-6">
-          <MonthlyTimeSummary />
+        <TabsContent value="summary" className="space-y-6">
+          <TimeTrackingSummary />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
