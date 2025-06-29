@@ -25,30 +25,21 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
     setCurrentStep,
     showSuccess,
     canProceed,
-    handleAreaAndServicesChange,
+    handleAreaChange,
     handleServiceToggle,
     handleServiceUpdate,
     handleServiceRemove,
-    handleServiceAdd,
+    selectedServiceIds,
     practiceAreasData
   } = useLegalProposalState()
 
-  console.log('LegalProposalBuilder render:', {
-    currentStep,
-    selectedArea: proposalData.selectedArea,
-    selectedServices: proposalData.selectedServices?.length || 0
-  })
-
   const handleSave = () => {
-    console.log('Saving proposal data:', proposalData)
     onSave(proposalData)
   }
 
-  // Convertir selectedServices a array de IDs para el selector
-  const selectedServiceIds = proposalData.selectedServices?.map(s => s.id) || []
-
-  // Evaluar canProceed como boolean
-  const canProceedValue = typeof canProceed === 'function' ? canProceed() : Boolean(canProceed)
+  const handleServiceAdd = () => {
+    // Implementation for adding custom services
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -71,7 +62,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
                   proposalData={proposalData}
                   updateProposalData={updateProposalData}
                   selectedServiceIds={selectedServiceIds}
-                  onAreaAndServicesChange={handleAreaAndServicesChange}
+                  onAreaChange={handleAreaChange}
                   onServiceToggle={handleServiceToggle}
                   onServiceUpdate={handleServiceUpdate}
                   onServiceRemove={handleServiceRemove}
@@ -85,7 +76,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
                 onStepChange={setCurrentStep}
                 onSave={handleSave}
                 onClose={onClose}
-                canProceed={canProceedValue}
+                canProceed={canProceed()}
                 isSaving={isSaving}
                 showSuccess={showSuccess}
               />

@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { PracticeAreaSelector } from './components/PracticeAreaSelector'
 import { ServicesList } from './components/ServicesList'
@@ -7,44 +8,17 @@ import { useServiceCatalog } from '@/hooks/useServiceCatalog'
 interface LegalServiceSelectorProps {
   selectedServices: string[]
   selectedArea: string
-  onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
-  onServiceToggle?: (serviceId: string, serviceData: any) => void
+  onAreaChange: (areaId: string) => void
+  onServiceToggle: (serviceId: string, serviceData: any) => void
 }
 
 export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
   selectedServices = [],
   selectedArea,
-  onAreaAndServicesChange,
+  onAreaChange,
   onServiceToggle
 }) => {
   const { services, isLoading } = useServiceCatalog()
-
-  console.log('LegalServiceSelector render:', { 
-    selectedServices, 
-    selectedArea, 
-    servicesFromDb: services.length,
-    isLoading
-  })
-
-  const handleAreaSelect = (areaId: string) => {
-    console.log('LegalServiceSelector - Area selected:', areaId)
-    if (areaId !== selectedArea) {
-      // Solo cambiar área, no resetear servicios aquí
-      onAreaAndServicesChange(areaId)
-    }
-  }
-
-  const handleServiceToggle = (serviceId: string, serviceData: any) => {
-    console.log('LegalServiceSelector - Service toggled:', serviceId, serviceData)
-    
-    if (onServiceToggle) {
-      // Usar el handler específico para toggle
-      onServiceToggle(serviceId, serviceData)
-    } else {
-      // Fallback al handler original (pero no debería usarse)
-      console.warn('No onServiceToggle handler provided')
-    }
-  }
 
   const selectedAreaData = selectedArea ? practiceAreasData[selectedArea] : null
 
@@ -53,7 +27,7 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
       <div className="space-y-6">
         <PracticeAreaSelector
           selectedArea=""
-          onAreaSelect={handleAreaSelect}
+          onAreaSelect={onAreaChange}
         />
         <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed">
           <div className="max-w-md mx-auto">
@@ -71,12 +45,11 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
   }
 
   if (!selectedAreaData) {
-    console.error('Area data not found for:', selectedArea)
     return (
       <div className="space-y-6">
         <PracticeAreaSelector
           selectedArea={selectedArea}
-          onAreaSelect={handleAreaSelect}
+          onAreaSelect={onAreaChange}
         />
         <div className="text-center py-8 text-red-50 bg-red-50 rounded-lg border border-red-200">
           <div className="max-w-md mx-auto">
@@ -88,7 +61,7 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
               No se pudieron cargar los datos del área seleccionada: <strong>{selectedArea}</strong>
             </p>
             <button 
-              onClick={() => handleAreaSelect('')}
+              onClick={() => onAreaChange('')}
               className="text-red-600 hover:text-red-800 underline text-sm"
             >
               Volver a seleccionar área
@@ -103,18 +76,17 @@ export const LegalServiceSelector: React.FC<LegalServiceSelectorProps> = ({
     <div className="space-y-6">
       <PracticeAreaSelector
         selectedArea={selectedArea}
-        onAreaSelect={handleAreaSelect}
+        onAreaSelect={onAreaChange}
       />
 
       <ServicesList
         selectedAreaData={selectedAreaData}
         selectedServices={selectedServices}
-        onServiceToggle={handleServiceToggle}
+        onServiceToggle={onServiceToggle}
         dbServices={services}
         isLoading={isLoading}
       />
       
-      {/* Información adicional del área seleccionada */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
           <selectedAreaData.icon className="w-5 h-5 mt-0.5" style={{ color: selectedAreaData.color }} />

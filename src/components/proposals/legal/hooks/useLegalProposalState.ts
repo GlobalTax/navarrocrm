@@ -1,8 +1,7 @@
 
-import { useState } from 'react'
-import { LegalProposalData } from '../types/legalProposal.types'
-import { useServiceManagement } from './useServiceManagement'
-import { useProposalNavigation } from './useProposalNavigation'
+import { useState, useCallback } from 'react'
+import { LegalProposalData, SelectedService } from '../types/legalProposal.types'
+import { convertServiceToSelected, updateServiceTotal } from '../utils/serviceConversion'
 import { practiceAreasData } from '../data/practiceAreasData'
 
 const initialProposalData: LegalProposalData = {
@@ -27,48 +26,95 @@ const initialProposalData: LegalProposalData = {
 
 export const useLegalProposalState = () => {
   const [proposalData, setProposalData] = useState<LegalProposalData>(initialProposalData)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [showSuccess, setShowSuccess] = useState(false)
 
-  const updateProposalData = (field: keyof LegalProposalData, value: any) => {
-    console.log('Updating proposal data:', field, value)
+  const updateProposalData = useCallback((field: keyof LegalProposalData, value: any) => {
     setProposalData(prev => ({ ...prev, [field]: value }))
-  }
+  }, [])
 
-  const navigation = useProposalNavigation({ proposalData })
-  
-  const serviceManagement = useServiceManagement({
-    initialServices: proposalData.selectedServices,
-    onServicesChange: (services) => updateProposalData('selectedServices', services),
-    selectedArea: proposalData.selectedArea,
-    updateProposalData
-  })
+  const handleAreaChange = useCallback((areaId: string) => {
+    setProposalData(prev => ({
+      ...prev,
+      selectedArea: areaId,
+      selectedServices: [] // Clear services when area changes
+    }))
+  }, [])
 
-  // Handler combinado para área y servicios - usado por el selector
-  const handleAreaAndServicesChange = (areaId: string, serviceIds?: string[]) => {
-    console.log('useLegalProposalState - handleAreaAndServicesChange:', areaId, serviceIds)
-    
-    if (areaId !== proposalData.selectedArea) {
-      // Cambio de área
-      serviceManagement.handleAreaChange(areaId)
+  const handleServiceToggle = useCallback((serviceId: string, serviceData: any) => {
+    setProposalData(prev => {
+      const isCurrentlySelected = prev.selectedServices.some(s => s.id === serviceId)
+      
+      if (isCurrentlySelected) {
+        return {
+          ...prev,
+          selectedServices: prev.selectedServices.filter(s => s.id !== serviceId)
+        }
+      } else {
+        const selectedService = convertServiceToSelected(serviceData)
+        return {
+          ...prev,
+          selectedServices: [...prev.selectedServices, selectedService]
+        }
+      }
+    })
+  }, [])
+
+  const handleServiceUpdate = useCallback((serviceId: string, field: keyof SelectedService, value: any) => {
+    setProposalData(prev => ({
+      ...prev,
+      selectedServices: prev.selectedServices.map(service => {
+        if (service.id === serviceId) {
+          const updated = { ...service, [field]: value }
+          return updateServiceTotal(updated)
+        }
+        return service
+      })
+    }))
+  }, [])
+
+  const handleServiceRemove = useCallback((serviceId: string) => {
+    setProposalData(prev => ({
+      ...prev,
+      selectedServices: prev.selectedServices.filter(s => s.id !== serviceId)
+    }))
+  }, [])
+
+  const canProceed = useCallback(() => {
+    switch (currentStep) {
+      case 1:
+        return Boolean(proposalData.clientId)
+      case 2:
+        return Boolean(proposalData.selectedArea && proposalData.selectedServices.length > 0)
+      case 3:
+        return Boolean(proposalData.retainerConfig.retainerAmount > 0)
+      case 4:
+        return Boolean(proposalData.title && proposalData.introduction)
+      case 5:
+        return true
+      default:
+        return false
     }
-  }
+  }, [currentStep, proposalData])
 
   return {
-    // State básico
+    // State
     proposalData,
+    currentStep,
+    showSuccess,
+    
+    // Actions
     updateProposalData,
+    setCurrentStep,
+    setShowSuccess,
+    handleAreaChange,
+    handleServiceToggle,
+    handleServiceUpdate,
+    handleServiceRemove,
     
-    // Navigation
-    currentStep: navigation.currentStep,
-    setCurrentStep: navigation.setCurrentStep,
-    showSuccess: navigation.showSuccess,
-    canProceed: navigation.canProceed,
-    
-    // Service Management
-    handleAreaAndServicesChange,
-    handleServiceToggle: serviceManagement.handleServiceToggle,
-    handleServiceUpdate: serviceManagement.handleServiceUpdate,
-    handleServiceRemove: serviceManagement.handleServiceRemove,
-    handleServiceAdd: serviceManagement.handleServiceAdd,
+    // Computed
+    canProceed,
+    selectedServiceIds: proposalData.selectedServices.map(s => s.id),
     
     // Data
     practiceAreasData

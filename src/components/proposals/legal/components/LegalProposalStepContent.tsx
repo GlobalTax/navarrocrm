@@ -16,7 +16,7 @@ interface LegalProposalStepContentProps {
   proposalData: LegalProposalData
   updateProposalData: (field: keyof LegalProposalData, value: any) => void
   selectedServiceIds: string[]
-  onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
+  onAreaChange: (areaId: string) => void
   onServiceToggle: (serviceId: string, serviceData: any) => void
   onServiceUpdate: (serviceId: string, field: keyof SelectedService, value: any) => void
   onServiceRemove: (serviceId: string) => void
@@ -29,7 +29,7 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
   proposalData,
   updateProposalData,
   selectedServiceIds,
-  onAreaAndServicesChange,
+  onAreaChange,
   onServiceToggle,
   onServiceUpdate,
   onServiceRemove,
@@ -59,7 +59,7 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <LegalServiceSelector
               selectedServices={selectedServiceIds}
               selectedArea={proposalData.selectedArea}
-              onAreaAndServicesChange={onAreaAndServicesChange}
+              onAreaChange={onAreaChange}
               onServiceToggle={onServiceToggle}
             />
 

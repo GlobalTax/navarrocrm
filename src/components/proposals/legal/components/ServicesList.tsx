@@ -1,9 +1,10 @@
+
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Clock, Euro, Plus, Check } from 'lucide-react'
+import { Clock, Euro, Plus, Check, Loader2 } from 'lucide-react'
 import { PracticeAreaData } from '../data/practiceAreasData'
 
 interface ServicesListProps {
@@ -21,21 +22,12 @@ export const ServicesList: React.FC<ServicesListProps> = ({
   dbServices = [],
   isLoading = false
 }) => {
-  // Combinar servicios estáticos con servicios de la base de datos
   const availableServices = React.useMemo(() => {
-    console.log('ServicesList - Processing services for area:', selectedAreaData.name)
-    console.log('ServicesList - DB services:', dbServices.length)
-    console.log('ServicesList - Static services:', selectedAreaData.services.length)
-    
-    // Filtrar servicios de DB que pertenezcan al área seleccionada
     const areaDbServices = dbServices.filter(service => 
       service.practice_area?.name.toLowerCase().includes(selectedAreaData.name.toLowerCase().split(' ')[0]) ||
       selectedAreaData.name.toLowerCase().includes(service.practice_area?.name.toLowerCase().split(' ')[0] || '')
     )
 
-    console.log('ServicesList - Filtered DB services:', areaDbServices.length)
-
-    // Si hay servicios en la DB, usar esos; si no, usar los estáticos
     if (areaDbServices.length > 0) {
       return areaDbServices.map(dbService => ({
         id: dbService.id,
@@ -86,14 +78,10 @@ export const ServicesList: React.FC<ServicesListProps> = ({
   }
 
   const handleServiceClick = (service: any) => {
-    console.log('ServicesList - Service clicked:', service.id, service.name)
     onServiceToggle(service.id, service)
   }
 
   const handleCheckboxChange = (service: any, checked: boolean | string) => {
-    console.log('ServicesList - Checkbox changed:', service.id, checked)
-    // Convertir a boolean si es string
-    const isChecked = typeof checked === 'string' ? checked === 'true' : Boolean(checked)
     onServiceToggle(service.id, service)
   }
 
@@ -102,8 +90,8 @@ export const ServicesList: React.FC<ServicesListProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-5 bg-gray-200 rounded w-32 animate-pulse"></div>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Cargando servicios...
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -147,8 +135,6 @@ export const ServicesList: React.FC<ServicesListProps> = ({
             {availableServices.map((service) => {
               const isSelected = selectedServices.includes(service.id)
               
-              console.log('ServicesList - Rendering service:', service.id, 'isSelected:', isSelected)
-              
               return (
                 <div
                   key={service.id}
@@ -174,7 +160,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
                         </h4>
                         {isSelected && (
                           <div className="flex items-center gap-1 text-blue-600">
-                            <Check className="w-4 w-4" />
+                            <Check className="w-4 h-4" />
                             <span className="text-xs font-medium">Seleccionado</span>
                           </div>
                         )}
