@@ -16,9 +16,7 @@ export const LegalProposalHeader: React.FC<LegalProposalHeaderProps> = ({
             
             <div>
               <CardTitle className="text-2xl font-bold">Nueva Propuesta de Servicios Recurrentes</CardTitle>
-              <p className="text-blue-100">
-                Creación de propuesta profesional para servicios legales continuos
-              </p>
+              
             </div>
           </div>
           <Badge variant="secondary" className="bg-white/20 text-white">
