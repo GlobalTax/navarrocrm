@@ -10,6 +10,22 @@ export const useProposalActions = () => {
   const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
 
+  const logProposalAction = async (proposalId: string, actionType: string, details?: string) => {
+    try {
+      const { error } = await supabase.rpc('log_proposal_action', {
+        proposal_id_param: proposalId,
+        action_type_param: actionType,
+        details_param: details
+      })
+      
+      if (error) {
+        console.error('Error logging proposal action:', error)
+      }
+    } catch (error) {
+      console.error('Error calling log_proposal_action:', error)
+    }
+  }
+
   const duplicateProposal = async (originalProposal: any) => {
     if (!user?.org_id) {
       toast.error('Usuario no autenticado')
@@ -67,7 +83,15 @@ export const useProposalActions = () => {
         }
       }
 
+      // Registrar la acción de duplicado
+      await logProposalAction(
+        data.id, 
+        'duplicated', 
+        `Duplicada desde "${originalProposal.title}" (${originalProposal.proposal_number})`
+      )
+
       await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      await queryClient.invalidateQueries({ queryKey: ['proposal-history'] })
       toast.success(`Propuesta "${data.title}" duplicada exitosamente`)
       
       return data
@@ -122,7 +146,15 @@ export const useProposalActions = () => {
 
       if (error) throw error
 
+      // Registrar la acción manualmente para acciones específicas
+      if (newStatus === 'sent') {
+        await logProposalAction(proposalId, 'sent', 'Propuesta enviada al cliente')
+      } else if (newStatus === 'won') {
+        await logProposalAction(proposalId, 'accepted', 'Propuesta aceptada por el cliente')
+      }
+
       await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      await queryClient.invalidateQueries({ queryKey: ['proposal-history'] })
       toast.success('Estado actualizado correctamente')
       
       return true
@@ -139,6 +171,7 @@ export const useProposalActions = () => {
     duplicateProposal,
     updateProposalStatus,
     validateStatusTransition,
+    logProposalAction,
     isLoading
   }
 }

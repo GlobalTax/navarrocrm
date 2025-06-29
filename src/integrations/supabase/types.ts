@@ -2123,6 +2123,57 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          details: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          org_id: string
+          proposal_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          org_id: string
+          proposal_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          org_id?: string
+          proposal_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_audit_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_audit_log_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposal_line_items: {
         Row: {
           billing_unit: string | null
@@ -4178,6 +4229,14 @@ export type Database = {
       is_system_setup: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_proposal_action: {
+        Args: {
+          proposal_id_param: string
+          action_type_param: string
+          details_param?: string
+        }
+        Returns: undefined
       }
       sincronizar_cuentas_quantum: {
         Args: Record<PropertyKey, never>
