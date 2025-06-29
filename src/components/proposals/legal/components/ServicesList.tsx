@@ -161,7 +161,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={(checked) => handleCheckboxChange(service, checked)}
+                      onCheckedChange={(checked) => handleCheckboxChange(service, Boolean(checked))}
                       className="mt-1"
                       onClick={(e) => e.stopPropagation()}
                     />

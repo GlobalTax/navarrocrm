@@ -29,7 +29,7 @@ export const ProposalsBuilderManager = ({
       <LegalProposalBuilder
         onSave={onSaveRecurrentProposal}
         isSaving={isSavingRecurrent}
-        onBack={onCloseRecurrentBuilder}
+        onClose={onCloseRecurrentBuilder}
       />
     )
   }

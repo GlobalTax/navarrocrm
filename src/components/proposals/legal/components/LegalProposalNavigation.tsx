@@ -6,26 +6,42 @@ import { PROPOSAL_STEPS } from '../types/legalProposal.types'
 
 interface LegalProposalNavigationProps {
   currentStep: number
+  onStepChange: (step: number) => void
+  onSave: () => void
+  onClose: () => void
   canProceed: boolean
   isSaving: boolean
-  onPrevious: () => void
-  onNext: () => void
-  onSave: () => void
+  showSuccess: boolean
 }
 
 export const LegalProposalNavigation: React.FC<LegalProposalNavigationProps> = ({
   currentStep,
+  onStepChange,
+  onSave,
+  onClose,
   canProceed,
   isSaving,
-  onPrevious,
-  onNext,
-  onSave
+  showSuccess
 }) => {
+  const handlePrevious = () => {
+    if (currentStep === 1) {
+      onClose()
+    } else {
+      onStepChange(currentStep - 1)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentStep < PROPOSAL_STEPS.length) {
+      onStepChange(currentStep + 1)
+    }
+  }
+
   return (
     <div className="flex justify-between">
       <Button
         variant="outline"
-        onClick={onPrevious}
+        onClick={handlePrevious}
         className="flex items-center gap-2"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -34,7 +50,7 @@ export const LegalProposalNavigation: React.FC<LegalProposalNavigationProps> = (
 
       {currentStep < PROPOSAL_STEPS.length ? (
         <Button
-          onClick={onNext}
+          onClick={handleNext}
           disabled={!canProceed}
           className="flex items-center gap-2"
         >

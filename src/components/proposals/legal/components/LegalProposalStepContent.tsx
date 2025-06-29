@@ -14,29 +14,25 @@ import { LegalProposalData, SelectedService } from '../types/legalProposal.types
 interface LegalProposalStepContentProps {
   currentStep: number
   proposalData: LegalProposalData
-  onClientSelected: (clientId: string) => void
+  selectedServiceIds: string[]
   onAreaAndServicesChange: (areaId: string, serviceIds?: string[]) => void
-  onServiceUpdate: (serviceId: string, field: keyof SelectedService, value: number) => void
+  onServiceToggle: (serviceId: string, serviceData: any) => void
+  onServiceUpdate: (serviceId: string, field: keyof SelectedService, value: any) => void
   onServiceRemove: (serviceId: string) => void
   onServiceAdd: () => void
-  onRetainerConfigChange: (config: any) => void
-  onProposalDataChange: (field: keyof LegalProposalData, value: any) => void
-  onGeneratePDF: () => void
-  onSendProposal: () => void
+  practiceAreasData: Record<string, any>
 }
 
 export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> = ({
   currentStep,
   proposalData,
-  onClientSelected,
+  selectedServiceIds,
   onAreaAndServicesChange,
+  onServiceToggle,
   onServiceUpdate,
   onServiceRemove,
   onServiceAdd,
-  onRetainerConfigChange,
-  onProposalDataChange,
-  onGeneratePDF,
-  onSendProposal
+  practiceAreasData
 }) => {
   const renderStepContent = () => {
     switch (currentStep) {
@@ -46,7 +42,10 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <h3 className="text-xl font-semibold mb-6">Selección de Cliente</h3>
             <ClientSelectorWithProspect
               selectedClientId={proposalData.clientId}
-              onClientSelected={onClientSelected}
+              onClientSelected={(clientId) => {
+                // Handle client selection
+                console.log('Client selected:', clientId)
+              }}
             />
           </div>
         )
@@ -57,9 +56,10 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <h3 className="text-xl font-semibold mb-6">Selección y Configuración de Servicios</h3>
             
             <LegalServiceSelector
-              selectedServices={proposalData.selectedServices.map(s => s.id)}
+              selectedServices={selectedServiceIds}
               selectedArea={proposalData.selectedArea}
               onAreaAndServicesChange={onAreaAndServicesChange}
+              onServiceToggle={onServiceToggle}
             />
 
             {proposalData.selectedServices.length > 0 && (
@@ -79,7 +79,9 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             <h3 className="text-xl font-semibold mb-6">Configuración de Honorarios</h3>
             <LegalRetainerConfigurator
               config={proposalData.retainerConfig}
-              onConfigChange={onRetainerConfigChange}
+              onConfigChange={(config) => {
+                console.log('Retainer config changed:', config)
+              }}
               estimatedMonthlyHours={10}
             />
           </div>
@@ -90,9 +92,13 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
           <div>
             <LegalProposalTexts
               introduction={proposalData.introduction}
-              onIntroductionChange={(value) => onProposalDataChange('introduction', value)}
+              onIntroductionChange={(value) => {
+                console.log('Introduction changed:', value)
+              }}
               terms={proposalData.terms}
-              onTermsChange={(value) => onProposalDataChange('terms', value)}
+              onTermsChange={(value) => {
+                console.log('Terms changed:', value)
+              }}
               practiceArea={proposalData.selectedArea}
             />
             
@@ -101,7 +107,9 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
               <Input
                 id="title"
                 value={proposalData.title}
-                onChange={(e) => onProposalDataChange('title', e.target.value)}
+                onChange={(e) => {
+                  console.log('Title changed:', e.target.value)
+                }}
                 placeholder="Ej: Servicios Jurídicos Integrales - Área Fiscal"
               />
             </div>
@@ -119,8 +127,12 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             selectedServices={proposalData.selectedServices}
             retainerConfig={proposalData.retainerConfig}
             validityDays={proposalData.validityDays}
-            onGeneratePDF={onGeneratePDF}
-            onSendProposal={onSendProposal}
+            onGeneratePDF={() => {
+              console.log('Generate PDF')
+            }}
+            onSendProposal={() => {
+              console.log('Send proposal')
+            }}
           />
         )
 
