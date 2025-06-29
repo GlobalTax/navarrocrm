@@ -73,10 +73,10 @@ export function CasesFilters({
 
             <Select value={solicitorFilter} onValueChange={setSolicitorFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Abogado" />
+                <SelectValue placeholder="Asesor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los abogados</SelectItem>
+                <SelectItem value="all">Todos los asesores</SelectItem>
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id}>{user.email}</SelectItem>
                 ))}

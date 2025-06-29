@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -74,7 +73,7 @@ export function CaseTable({
             <TableHead>Título</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Área de Práctica</TableHead>
-            <TableHead>Abogado Responsable</TableHead>
+            <TableHead>Asesor Responsable</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead>Fecha Apertura</TableHead>
             <TableHead>Presupuesto</TableHead>

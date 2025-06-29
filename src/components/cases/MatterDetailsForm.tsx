@@ -95,10 +95,10 @@ export function MatterDetailsForm({
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label>Abogado Responsable</Label>
+            <Label>Asesor Responsable</Label>
             <Select value={responsibleSolicitorId || 'none'} onValueChange={onResponsibleSolicitorChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Seleccionar abogado..." />
+                <SelectValue placeholder="Seleccionar asesor..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin asignar</SelectItem>

@@ -18,7 +18,7 @@ export function CasesBulkActions({ selectedCases }: CasesBulkActionsProps) {
           </span>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">Cambiar estado</Button>
-            <Button variant="outline" size="sm">Asignar abogado</Button>
+            <Button variant="outline" size="sm">Asignar asesor</Button>
             <Button variant="outline" size="sm">Exportar seleccionados</Button>
           </div>
         </div>

@@ -123,7 +123,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Abogado Responsable</Label>
+              <Label>Asesor Responsable</Label>
               <p className="font-medium">
                 {responsibleSolicitor?.email || 'Sin asignar'}
               </p>
@@ -134,7 +134,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
               )}
             </div>
             <div>
-              <Label>Abogado Originador</Label>
+              <Label>Asesor Originador</Label>
               <p className="font-medium">
                 {originatingSolicitor?.email || 'Sin asignar'}
               </p>
@@ -199,7 +199,7 @@ export function WizardStep3({ formData }: WizardStep3Props) {
             {formData.responsible_solicitor_id && (
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                Se enviará invitación de colaboración al abogado responsable
+                Se enviará invitación de colaboración al asesor responsable
               </li>
             )}
           </ul>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
@@ -144,7 +143,7 @@ export default function Cases() {
   ]
 
   const solicitorOptions = [
-    { label: 'Todos los abogados', value: 'all' },
+    { label: 'Todos los asesores', value: 'all' },
     ...users.map(user => ({ label: user.email, value: user.id }))
   ]
 
@@ -219,7 +218,7 @@ export default function Cases() {
             options: practiceAreaOptions
           },
           {
-            placeholder: 'Abogado',
+            placeholder: 'Asesor',
             value: solicitorFilter,
             onChange: setSolicitorFilter,
             options: solicitorOptions

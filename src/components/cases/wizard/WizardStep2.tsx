@@ -30,13 +30,13 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Abogado Responsable</Label>
+              <Label>Asesor Responsable</Label>
               <Select 
                 value={formData.responsible_solicitor_id || 'none'} 
                 onValueChange={(value) => updateFormData({ responsible_solicitor_id: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar abogado..." />
+                  <SelectValue placeholder="Seleccionar asesor..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin asignar</SelectItem>
@@ -55,13 +55,13 @@ export function WizardStep2({ formData, updateFormData, errors }: WizardStep2Pro
             </div>
 
             <div className="space-y-2">
-              <Label>Abogado Originador</Label>
+              <Label>Asesor Originador</Label>
               <Select 
                 value={formData.originating_solicitor_id || 'none'} 
                 onValueChange={(value) => updateFormData({ originating_solicitor_id: value === 'none' ? '' : value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar abogado..." />
+                  <SelectValue placeholder="Seleccionar asesor..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sin asignar</SelectItem>
