@@ -1,18 +1,6 @@
 
-import { 
-  Clock, 
-  Users, 
-  FolderOpen, 
-  AlertTriangle,
-  TrendingUp,
-  DollarSign,
-  Target,
-  CheckCircle,
-  Calendar
-} from 'lucide-react'
-import { MetricWidget } from './MetricWidget'
-import { EnhancedActiveTimer } from './EnhancedActiveTimer'
-import { useDashboardData } from '@/hooks/useDashboardData'
+import { CompactMetricWidget } from './CompactMetricWidget'
+import { Clock, Users, FileText, Target, TrendingUp, Euro, AlertTriangle, CheckCircle } from 'lucide-react'
 
 interface DashboardStats {
   totalTimeEntries: number
@@ -37,110 +25,100 @@ interface EnhancedDashboardMetricsProps {
 }
 
 export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProps) => {
-  const { data: dashboardData } = useDashboardData()
-  
-  // Calcular cambios y tendencias
-  const getChangeType = (value: number, threshold: number) => {
-    if (value >= threshold) return 'positive'
-    if (value >= threshold * 0.8) return 'neutral'
-    return 'negative'
+  if (stats.loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+        ))}
+      </div>
+    )
   }
 
-  const quickStats = dashboardData?.quickStats
+  if (stats.error) {
+    return (
+      <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+        <p className="text-red-700 text-sm">Error cargando métricas: {stats.error}</p>
+      </div>
+    )
+  }
+
+  const formatCurrency = (amount: number) => 
+    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
+
+  const formatHours = (hours: number) => 
+    `${hours.toFixed(1)}h`
 
   return (
-    <>
-      {/* Timer activo mejorado */}
-      <EnhancedActiveTimer />
-
-      {/* Métricas principales - Row 1 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricWidget
-          title="Clientes Activos"
-          value={stats.loading ? '...' : (stats.totalClients || 0).toString()}
-          change={stats.totalClients > 0 ? `${stats.totalActiveCases} casos activos` : 'Sin casos activos'}
-          changeType={stats.totalClients > 0 ? 'positive' : 'neutral'}
-          icon={Users}
-          description="Total de clientes registrados"
-        />
-        
-        <MetricWidget
-          title="Casos en Curso"
-          value={stats.loading ? '...' : `${stats.totalActiveCases || 0}/${stats.totalCases || 0}`}
-          change={stats.totalCases > stats.totalActiveCases ? 
-            `${stats.totalCases - stats.totalActiveCases} archivados` : 
-            'Todos activos'
-          }
-          changeType={stats.totalActiveCases > 0 ? 'positive' : 'neutral'}
-          icon={FolderOpen}
-          description="Expedientes activos vs total"
-        />
-        
-        <MetricWidget
+    <div className="space-y-6 mb-6">
+      {/* Métricas principales - Grid compacto */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CompactMetricWidget
           title="Horas Facturables"
-          value={stats.loading ? '...' : `${stats.totalBillableHours || 0}h`}
-          change={`${stats.hoursThisMonth || 0}h este mes`}
-          changeType={getChangeType(stats.hoursThisMonth || 0, 160)} // ~20 días * 8h
+          value={formatHours(stats.totalBillableHours)}
+          change={`${stats.totalTimeEntries} registros`}
+          changeType="neutral"
           icon={Clock}
-          progress={Math.min(stats.utilizationRate || 0, 100)}
-          description={`Utilización: ${stats.utilizationRate || 0}%`}
         />
         
-        <MetricWidget
-          title="Tareas Pendientes"
-          value={stats.loading ? '...' : (stats.pendingTasks || 0).toString()}
-          change={stats.overdueTasks > 0 ? 
-            `${stats.overdueTasks} vencidas` : 
-            'Todas al día'
-          }
-          changeType={stats.overdueTasks > 0 ? 'negative' : 'positive'}
-          icon={stats.overdueTasks > 0 ? AlertTriangle : CheckCircle}
-          description="Tareas activas"
-          className={stats.overdueTasks > 0 ? "border-orange-200" : "border-green-200"}
-        />
-      </div>
-
-      {/* Métricas adicionales - Row 2 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <MetricWidget
-          title="Hoy"
-          value={stats.loading ? '...' : `${quickStats?.todayHours || 0}h`}
-          change="Tiempo registrado hoy"
-          changeType={quickStats?.todayHours && quickStats.todayHours >= 6 ? 'positive' : 'neutral'}
-          icon={Calendar}
-          description="Horas trabajadas hoy"
+        <CompactMetricWidget
+          title="Clientes Activos"
+          value={stats.totalClients}
+          icon={Users}
         />
         
-        <MetricWidget
-          title="Esta Semana"
-          value={stats.loading ? '...' : `${quickStats?.weekHours || 0}h`}
-          change={quickStats?.weekHours && quickStats.weekHours > 30 ? 'Excelente' : 'Continúa así'}
-          changeType={quickStats?.weekHours && quickStats.weekHours > 30 ? 'positive' : 'neutral'}
+        <CompactMetricWidget
+          title="Expedientes"
+          value={`${stats.totalActiveCases}/${stats.totalCases}`}
+          change="Activos/Total"
+          changeType="neutral"
+          icon={FileText}
+        />
+        
+        <CompactMetricWidget
+          title="Utilización"
+          value={`${stats.utilizationRate}%`}
+          changeType={stats.utilizationRate >= 75 ? 'positive' : stats.utilizationRate >= 50 ? 'neutral' : 'negative'}
           icon={Target}
-          progress={quickStats?.weekHours ? (quickStats.weekHours / 40) * 100 : 0}
-          description="Progreso semanal"
-        />
-        
-        <MetricWidget
-          title="Ingresos Estimados"
-          value={stats.loading ? '...' : `€${(stats.totalRevenue || 0).toLocaleString()}`}
-          change={`${stats.hoursThisWeek || 0}h esta semana`}
-          changeType={(stats.hoursThisWeek || 0) > 30 ? 'positive' : 'neutral'}
-          icon={DollarSign}
-          description="Basado en horas facturables"
-        />
-
-        <MetricWidget
-          title="Eficiencia"
-          value={stats.loading ? '...' : `${stats.utilizationRate || 0}%`}
-          change={(stats.utilizationRate || 0) >= 80 ? 'Óptima' : 
-                   (stats.utilizationRate || 0) >= 60 ? 'Buena' : 'Mejorable'}
-          changeType={getChangeType(stats.utilizationRate || 0, 80)}
-          icon={TrendingUp}
-          progress={stats.utilizationRate || 0}
-          description="Tasa de utilización mensual"
         />
       </div>
-    </>
+
+      {/* Métricas secundarias - Grid más compacto */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CompactMetricWidget
+          title="Este Mes"
+          value={formatHours(stats.hoursThisMonth)}
+          change="Horas registradas"
+          changeType="neutral"
+          icon={TrendingUp}
+          size="sm"
+        />
+        
+        <CompactMetricWidget
+          title="Ingresos Est."
+          value={formatCurrency(stats.totalRevenue)}
+          change="Basado en horas"
+          changeType="positive"
+          icon={Euro}
+          size="sm"
+        />
+        
+        <CompactMetricWidget
+          title="Tareas Pendientes"
+          value={stats.pendingTasks}
+          changeType={stats.pendingTasks > 10 ? 'negative' : 'neutral'}
+          icon={AlertTriangle}
+          size="sm"
+        />
+        
+        <CompactMetricWidget
+          title="Facturas Pend."
+          value={stats.pendingInvoices}
+          changeType={stats.pendingInvoices > 5 ? 'negative' : 'positive'}
+          icon={CheckCircle}
+          size="sm"
+        />
+      </div>
+    </div>
   )
 }

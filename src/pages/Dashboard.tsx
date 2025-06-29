@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
@@ -109,15 +108,11 @@ export default function Dashboard() {
         Última actualización: {formatTime(lastRefresh)}
       </div>
       
-      {/* Contenido principal */}
-      {isLoading ? (
-        <DashboardLoadingSkeleton />
-      ) : (
-        <>
-          <EnhancedDashboardMetrics stats={enhancedStats} />
-          <EnhancedDashboardLayout />
-        </>
-      )}
+      {/* Métricas principales con diseño compacto */}
+      <EnhancedDashboardMetrics stats={enhancedStats} />
+      
+      {/* Layout principal */}
+      {!isLoading && <EnhancedDashboardLayout />}
       
       {error && (
         <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
