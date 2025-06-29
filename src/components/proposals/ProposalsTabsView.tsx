@@ -2,7 +2,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Repeat, FileText, BarChart3 } from 'lucide-react'
-import { ProposalCard } from '@/components/proposals/ProposalCard'
+import { AllProposalsTable } from '@/components/proposals/AllProposalsTable'
+import { OneTimeProposalsTable } from '@/components/proposals/OneTimeProposalsTable'
 import { RecurringProposalsTable } from '@/components/proposals/RecurringProposalsTable'
 import { RecurringProposalsMetrics } from '@/components/proposals/RecurringProposalsMetrics'
 import { Badge } from '@/components/ui/badge'
@@ -48,19 +49,6 @@ export const ProposalsTabsView = ({
           </div>
         </Button>
       )}
-    </div>
-  )
-
-  const ProposalGrid = ({ proposalList }: { proposalList: any[] }) => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {proposalList.map(proposal => (
-        <ProposalCard
-          key={proposal.id}
-          proposal={proposal}
-          onStatusChange={onStatusChange}
-          onView={onViewProposal}
-        />
-      ))}
     </div>
   )
 
@@ -123,7 +111,11 @@ export const ProposalsTabsView = ({
               count={proposals.all.length} 
               revenue={recurrentRevenue + specificRevenue} 
             />
-            <ProposalGrid proposalList={proposals.all} />
+            <AllProposalsTable
+              proposals={proposals.all}
+              onStatusChange={onStatusChange}
+              onViewProposal={onViewProposal}
+            />
           </>
         )}
       </TabsContent>
@@ -181,7 +173,11 @@ export const ProposalsTabsView = ({
                 Ideales para proyectos específicos, consultoría y servicios únicos.
               </p>
             </div>
-            <ProposalGrid proposalList={proposals.oneTime} />
+            <OneTimeProposalsTable
+              proposals={proposals.oneTime}
+              onStatusChange={onStatusChange}
+              onViewProposal={onViewProposal}
+            />
           </>
         )}
       </TabsContent>

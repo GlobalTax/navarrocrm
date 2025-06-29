@@ -15,6 +15,16 @@ interface ProposalInsertData {
   valid_until?: string
   pricing_tiers_data: any
   total_amount: number
+  // Campos para propuestas recurrentes
+  is_recurring?: boolean
+  recurring_frequency?: string
+  contract_start_date?: string
+  contract_end_date?: string
+  auto_renewal?: boolean
+  retainer_amount?: number
+  included_hours?: number
+  hourly_rate_extra?: number
+  billing_day?: number
 }
 
 export const saveProposal = async (
@@ -27,6 +37,11 @@ export const saveProposal = async (
       return tierTotal + (service.quantity * service.unitPrice)
     }, 0)
   }, 0)
+
+  console.log('Preparando datos para guardar:', {
+    is_recurring: formData.is_recurring,
+    recurring_frequency: formData.recurring_frequency
+  });
 
   const proposalInsertData: ProposalInsertData = {
     title: formData.title,
@@ -41,7 +56,19 @@ export const saveProposal = async (
     valid_until: formData.validUntil.toISOString(),
     pricing_tiers_data: formData.pricingTiers,
     total_amount: grandTotal,
+    // Campos recurrentes - CORREGIDO
+    is_recurring: Boolean(formData.is_recurring),
+    recurring_frequency: formData.is_recurring ? formData.recurring_frequency : null,
+    contract_start_date: formData.contract_start_date?.toISOString().split('T')[0],
+    contract_end_date: formData.contract_end_date?.toISOString().split('T')[0],
+    auto_renewal: formData.auto_renewal || false,
+    retainer_amount: formData.retainer_amount || 0,
+    included_hours: formData.included_hours || 0,
+    hourly_rate_extra: formData.hourly_rate_extra || 0,
+    billing_day: formData.billing_day || 1,
   }
+
+  console.log('Datos finales a insertar:', proposalInsertData);
 
   const { data, error } = await supabase
     .from('proposals')
@@ -49,6 +76,11 @@ export const saveProposal = async (
     .select()
     .single()
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('Error en la base de datos:', error);
+    throw new Error(error.message);
+  }
+  
+  console.log('Propuesta guardada en BD:', data);
   return data
 }
