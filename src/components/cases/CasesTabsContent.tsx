@@ -2,7 +2,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardHeader } from '@/components/ui/card'
 import { CaseTable } from './CaseTable'
+import { CaseStagesView } from './stages/CaseStagesView'
 import { Case } from '@/hooks/useCases'
+import { useState } from 'react'
 
 interface CasesTabsContentProps {
   filteredCases: Case[]
@@ -25,6 +27,12 @@ export function CasesTabsContent({
   onSelectCase,
   onSelectAll
 }: CasesTabsContentProps) {
+  const [selectedCaseForStages, setSelectedCaseForStages] = useState<Case | null>(null)
+
+  const handleStagesView = (case_: Case) => {
+    setSelectedCaseForStages(case_)
+  }
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -37,7 +45,7 @@ export function CasesTabsContent({
               </span>
             </TabsTrigger>
             <TabsTrigger value="stages">
-              Etapas
+              {selectedCaseForStages ? `Etapas - ${selectedCaseForStages.title}` : 'Etapas'}
             </TabsTrigger>
           </TabsList>
           
@@ -48,6 +56,7 @@ export function CasesTabsContent({
               onEditCase={onEditCase}
               onDeleteCase={onDeleteCase}
               onArchiveCase={onArchiveCase}
+              onStagesView={handleStagesView}
               selectedCases={selectedCases}
               onSelectCase={onSelectCase}
               onSelectAll={onSelectAll}
@@ -55,10 +64,17 @@ export function CasesTabsContent({
           </TabsContent>
           
           <TabsContent value="stages" className="mt-4">
-            <div className="text-center py-12 text-muted-foreground">
-              <div className="text-lg font-medium mb-2">Gestión de Etapas</div>
-              <p className="text-sm">Esta funcionalidad estará disponible próximamente</p>
-            </div>
+            {selectedCaseForStages ? (
+              <CaseStagesView
+                caseId={selectedCaseForStages.id}
+                caseTitle={selectedCaseForStages.title}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <div className="text-lg font-medium mb-2">Gestión de Etapas</div>
+                <p className="text-sm">Selecciona un expediente desde la tabla para ver y gestionar sus etapas</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardHeader>

@@ -1,182 +1,204 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Checkbox } from '@/components/ui/checkbox'
+
+import React from 'react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Eye, Edit, Trash2, FileText, Archive, ArchiveRestore } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { 
+  Eye, 
+  Edit, 
+  Archive, 
+  Trash2, 
+  MoreHorizontal,
+  ListChecks,
+  Calendar,
+  User
+} from 'lucide-react'
 import { Case } from '@/hooks/useCases'
 
 interface CaseTableProps {
   cases: Case[]
   onViewCase: (case_: Case) => void
   onEditCase: (case_: Case) => void
-  onDeleteCase?: (case_: Case) => void
-  onArchiveCase?: (case_: Case) => void
+  onDeleteCase: (case_: Case) => void
+  onArchiveCase: (case_: Case) => void
+  onStagesView?: (case_: Case) => void
   selectedCases: string[]
   onSelectCase: (caseId: string, selected: boolean) => void
   onSelectAll: (selected: boolean) => void
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'open': return 'bg-green-100 text-green-800'
-    case 'closed': return 'bg-gray-100 text-gray-800'
-    case 'on_hold': return 'bg-yellow-100 text-yellow-800'
-    default: return 'bg-blue-100 text-blue-800'
-  }
-}
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'open': return 'Abierto'
-    case 'closed': return 'Cerrado'
-    case 'on_hold': return 'En espera'
-    default: return status
-  }
-}
-
-export function CaseTable({ 
-  cases, 
-  onViewCase, 
-  onEditCase, 
+export const CaseTable: React.FC<CaseTableProps> = ({
+  cases,
+  onViewCase,
+  onEditCase,
   onDeleteCase,
   onArchiveCase,
+  onStagesView,
   selectedCases,
   onSelectCase,
   onSelectAll
-}: CaseTableProps) {
-  const navigate = useNavigate()
+}) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open':
+        return 'bg-blue-100 text-blue-800'
+      case 'on_hold':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'closed':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'open':
+        return 'Abierto'
+      case 'on_hold':
+        return 'En Espera'
+      case 'closed':
+        return 'Cerrado'
+      default:
+        return status
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-ES')
+  }
+
   const allSelected = cases.length > 0 && selectedCases.length === cases.length
   const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
-
-  const handleRowClick = (case_: Case) => {
-    navigate(`/cases/${case_.id}`)
-  }
 
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-12">
+            <TableHead className="w-[50px]">
               <Checkbox
                 checked={allSelected}
-                onCheckedChange={onSelectAll}
-                className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                ref={(el) => {
+                  if (el) el.indeterminate = someSelected
+                }}
+                onCheckedChange={(checked) => onSelectAll(!!checked)}
               />
             </TableHead>
-            <TableHead>Nº Expediente</TableHead>
-            <TableHead>Título</TableHead>
+            <TableHead>Expediente</TableHead>
             <TableHead>Cliente</TableHead>
-            <TableHead>Área de Práctica</TableHead>
-            <TableHead>Asesor Responsable</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead>Fecha Apertura</TableHead>
-            <TableHead>Presupuesto</TableHead>
-            <TableHead className="w-12"></TableHead>
+            <TableHead>Área</TableHead>
+            <TableHead>Fecha</TableHead>
+            <TableHead className="w-[100px]">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {cases.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={7} className="text-center py-12 text-gray-500">
                 No se encontraron expedientes
               </TableCell>
             </TableRow>
           ) : (
             cases.map((case_) => (
-              <TableRow 
-                key={case_.id} 
-                className={`${case_.status === 'closed' ? 'opacity-60' : ''} cursor-pointer hover:bg-gray-50`}
-                onClick={() => handleRowClick(case_)}
-              >
-                <TableCell onClick={(e) => e.stopPropagation()}>
+              <TableRow key={case_.id} className="hover:bg-gray-50">
+                <TableCell>
                   <Checkbox
                     checked={selectedCases.includes(case_.id)}
-                    onCheckedChange={(checked) => onSelectCase(case_.id, checked as boolean)}
+                    onCheckedChange={(checked) => onSelectCase(case_.id, !!checked)}
                   />
                 </TableCell>
-                <TableCell className="font-medium">
-                  Sin número
-                </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{case_.title}</span>
-                    {case_.status === 'closed' && (
-                      <Archive className="h-4 w-4 text-purple-500" />
+                  <div>
+                    <div className="font-medium">{case_.title}</div>
+                    {case_.description && (
+                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                        {case_.description}
+                      </div>
                     )}
                   </div>
                 </TableCell>
-                <TableCell>Sin cliente asignado</TableCell>
                 <TableCell>
-                  {case_.practice_area && (
-                    <Badge variant="outline">{case_.practice_area}</Badge>
+                  {case_.contact ? (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-gray-400" />
+                      <div>
+                        <div className="font-medium text-sm">{case_.contact.name}</div>
+                        {case_.contact.email && (
+                          <div className="text-xs text-gray-500">{case_.contact.email}</div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">Sin cliente</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  Sin asignar
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(case_.status)}>
+                  <Badge variant="outline" className={getStatusColor(case_.status)}>
                     {getStatusLabel(case_.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {case_.created_at && format(new Date(case_.created_at), 'dd/MM/yyyy', { locale: es })}
+                  <span className="text-sm">
+                    {case_.practice_area || 'No especificada'}
+                  </span>
                 </TableCell>
                 <TableCell>
-                  {case_.estimated_budget && (
-                    <span className="font-medium">
-                      €{case_.estimated_budget.toLocaleString()}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(case_.created_at)}
+                  </div>
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" className="h-8 w-8 p-0">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/cases/${case_.id}`)}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Detalles
+                      <DropdownMenuItem onClick={() => onViewCase(case_)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver detalles
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onEditCase(case_)}>
-                        <Edit className="h-4 w-4 mr-2" />
+                        <Edit className="mr-2 h-4 w-4" />
                         Editar
                       </DropdownMenuItem>
+                      {onStagesView && (
+                        <DropdownMenuItem onClick={() => onStagesView(case_)}>
+                          <ListChecks className="mr-2 h-4 w-4" />
+                          Ver etapas
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
-                      {onArchiveCase && (
-                        <DropdownMenuItem onClick={() => onArchiveCase(case_)}>
-                          {case_.status === 'closed' ? (
-                            <>
-                              <ArchiveRestore className="h-4 w-4 mr-2" />
-                              Reabrir
-                            </>
-                          ) : (
-                            <>
-                              <Archive className="h-4 w-4 mr-2" />
-                              Cerrar
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                      )}
-                      {onDeleteCase && (
-                        <DropdownMenuItem 
-                          onClick={() => onDeleteCase(case_)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Eliminar
-                        </DropdownMenuItem>
-                      )}
+                      <DropdownMenuItem onClick={() => onArchiveCase(case_)}>
+                        <Archive className="mr-2 h-4 w-4" />
+                        {case_.status === 'closed' ? 'Reabrir' : 'Archivar'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onDeleteCase(case_)}
+                        className="text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Eliminar
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
