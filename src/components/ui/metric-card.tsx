@@ -1,81 +1,90 @@
 
 import * as React from "react"
+import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { EnhancedCard } from "./enhanced-card"
+import { EnhancedCard, EnhancedCardContent } from "./enhanced-card"
 
-interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface MetricCardProps {
   title: string
   value: string | number
-  subtitle?: string
-  trend?: "up" | "down" | "neutral"
-  trendValue?: string
-  icon?: React.ReactNode
-  variant?: "default" | "gradient" | "glass"
+  change?: {
+    value: number
+    period: string
+  }
+  icon?: LucideIcon
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger'
+  className?: string
 }
 
-const MetricCard = React.forwardRef<HTMLDivElement, MetricCardProps>(
-  ({ 
-    className, 
-    title, 
-    value, 
-    subtitle, 
-    trend = "neutral", 
-    trendValue, 
-    icon, 
-    variant = "default",
-    ...props 
-  }, ref) => {
-    const trendColors = {
-      up: "text-green-600 bg-green-50",
-      down: "text-red-600 bg-red-50",
-      neutral: "text-gray-600 bg-gray-50"
-    }
+const MetricCard: React.FC<MetricCardProps> = ({
+  title,
+  value,
+  change,
+  icon: Icon,
+  variant = 'default',
+  className
+}) => {
+  const variants = {
+    default: "border-border",
+    primary: "border-primary/20 bg-primary/5",
+    success: "border-green-200 bg-green-50",
+    warning: "border-yellow-200 bg-yellow-50",
+    danger: "border-red-200 bg-red-50"
+  }
 
-    const trendIcons = {
-      up: "↗",
-      down: "↘",
-      neutral: "→"
-    }
+  const isPositiveChange = change && change.value > 0
+  const isNegativeChange = change && change.value < 0
 
-    return (
-      <EnhancedCard
-        ref={ref}
-        variant={variant}
-        className={cn("hover-lift p-6", className)}
-        {...props}
-      >
-        <div className="flex items-start justify-between">
+  return (
+    <EnhancedCard 
+      className={cn(variants[variant], "hover-glow", className)}
+      hover
+    >
+      <EnhancedCardContent className="p-6">
+        <div className="flex items-center justify-between">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              {icon && <div className="text-gray-500">{icon}</div>}
-              <h3 className="crm-metric-label">{title}</h3>
+            <p className="text-sm font-medium text-muted-foreground mb-2">
+              {title}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="crm-metric-primary text-3xl">
+                {value}
+              </span>
             </div>
             
-            <div className="crm-metric-value mb-1">
-              {value}
-            </div>
-            
-            {subtitle && (
-              <p className="text-caption text-gray-600 mb-2">
-                {subtitle}
-              </p>
-            )}
-            
-            {trendValue && (
-              <div className={cn(
-                "inline-flex items-center gap-1 px-2 py-1 rounded-full text-micro font-medium",
-                trendColors[trend]
-              )}>
-                <span>{trendIcons[trend]}</span>
-                <span>{trendValue}</span>
+            {change && (
+              <div className="flex items-center gap-1 mt-2">
+                {isPositiveChange && (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="crm-metric-change-positive text-sm">
+                      +{change.value}% {change.period}
+                    </span>
+                  </>
+                )}
+                {isNegativeChange && (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                    <span className="crm-metric-change-negative text-sm">
+                      {change.value}% {change.period}
+                    </span>
+                  </>
+                )}
               </div>
             )}
           </div>
+          
+          {Icon && (
+            <div className="flex-shrink-0">
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <Icon className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          )}
         </div>
-      </EnhancedCard>
-    )
-  }
-)
-MetricCard.displayName = "MetricCard"
+      </EnhancedCardContent>
+    </EnhancedCard>
+  )
+}
 
 export { MetricCard }

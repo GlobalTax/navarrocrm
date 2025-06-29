@@ -5,22 +5,23 @@ import { cn } from "@/lib/utils"
 const EnhancedCard = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    variant?: "default" | "glass" | "elevated" | "gradient"
+    variant?: 'default' | 'interactive' | 'glass' | 'gradient'
+    hover?: boolean
   }
->(({ className, variant = "default", ...props }, ref) => {
+>(({ className, variant = 'default', hover = false, ...props }, ref) => {
   const variants = {
-    default: "bg-white rounded-xl border border-gray-200 shadow-sm",
-    glass: "glass-card rounded-xl",
-    elevated: "card-elevated",
-    gradient: "bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 shadow-elegant"
+    default: "crm-card",
+    interactive: "crm-card-interactive",
+    glass: "glass rounded-xl border shadow-elegant",
+    gradient: "gradient-secondary rounded-xl border shadow-elegant"
   }
 
   return (
     <div
       ref={ref}
       className={cn(
-        "transition-all duration-300",
         variants[variant],
+        hover && "hover-lift",
         className
       )}
       {...props}
@@ -35,7 +36,7 @@ const EnhancedCardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn("flex flex-col space-y-2 p-6 pb-4", className)}
     {...props}
   />
 ))
@@ -59,7 +60,7 @@ const EnhancedCardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-body text-gray-600", className)}
+    className={cn("crm-card-content", className)}
     {...props}
   />
 ))
@@ -69,7 +70,7 @@ const EnhancedCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("px-6 pb-6", className)} {...props} />
 ))
 EnhancedCardContent.displayName = "EnhancedCardContent"
 
@@ -79,17 +80,17 @@ const EnhancedCardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cn("flex items-center px-6 pb-6 pt-2 border-t border-border/50", className)}
     {...props}
   />
 ))
 EnhancedCardFooter.displayName = "EnhancedCardFooter"
 
-export {
-  EnhancedCard,
-  EnhancedCardHeader,
-  EnhancedCardFooter,
-  EnhancedCardTitle,
-  EnhancedCardDescription,
-  EnhancedCardContent,
+export { 
+  EnhancedCard, 
+  EnhancedCardHeader, 
+  EnhancedCardFooter, 
+  EnhancedCardTitle, 
+  EnhancedCardDescription, 
+  EnhancedCardContent 
 }
