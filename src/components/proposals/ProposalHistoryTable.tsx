@@ -3,17 +3,13 @@ import React, { useState } from 'react'
 import {
   Table,
   TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useProposalHistory } from '@/hooks/proposals/useProposalHistory'
-import { formatDate } from './utils/proposalFormatters'
-import { getStatusColor, getStatusLabel } from './utils/proposalFormatters'
 import { ProposalHistoryFilters } from './ProposalHistoryFilters'
+import { ProposalHistoryCard } from './history/ProposalHistoryCard'
+import { ProposalHistoryTableHeader } from './history/ProposalHistoryTableHeader'
+import { ProposalHistoryTableRow } from './history/ProposalHistoryTableRow'
+import { ProposalHistoryEmptyState } from './history/ProposalHistoryEmptyState'
 
 interface ProposalHistoryTableProps {
   proposalId?: string
@@ -62,140 +58,53 @@ export const ProposalHistoryTable: React.FC<ProposalHistoryTableProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Historial de Propuestas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            Cargando historial...
-          </div>
-        </CardContent>
-      </Card>
+      <ProposalHistoryCard title="Historial de Propuestas" entryCount={0}>
+        <ProposalHistoryEmptyState message="Cargando historial..." />
+      </ProposalHistoryCard>
     )
   }
 
   if (filteredEntries.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Historial de Propuestas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {showFilters && (
-            <ProposalHistoryFilters 
-              filters={filters} 
-              onFiltersChange={setFilters}
-            />
-          )}
-          <div className="text-center py-8 text-gray-500">
-            No hay entradas en el historial
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          📊 Historial de Propuestas
-          <Badge variant="outline" className="ml-auto">
-            {filteredEntries.length} entradas
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <ProposalHistoryCard title="Historial de Propuestas" entryCount={0}>
         {showFilters && (
           <ProposalHistoryFilters 
             filters={filters} 
             onFiltersChange={setFilters}
           />
         )}
-        
-        <div className="border rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                {!proposalId && <TableHead>Propuesta</TableHead>}
-                <TableHead>Acción</TableHead>
-                <TableHead>Detalles</TableHead>
-                <TableHead>Usuario</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEntries.map((entry) => {
-                const statusChange = getStatusChange(entry)
-                const amountChange = getAmountChange(entry)
-                
-                return (
-                  <TableRow key={entry.id}>
-                    <TableCell className="text-sm text-gray-500">
-                      {formatDate(entry.created_at)}
-                    </TableCell>
-                    {!proposalId && (
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-sm">
-                            {entry.proposals?.title || 'Sin título'}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {entry.proposals?.proposal_number || 'Sin número'}
-                          </div>
-                        </div>
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{getActionIcon(entry.action_type)}</span>
-                        <span className="text-sm font-medium">
-                          {getActionLabel(entry.action_type)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {statusChange && (
-                          <div className="flex items-center gap-2">
-                            <Badge className={getStatusColor(statusChange.from)}>
-                              {getStatusLabel(statusChange.from)}
-                            </Badge>
-                            <span>→</span>
-                            <Badge className={getStatusColor(statusChange.to)}>
-                              {getStatusLabel(statusChange.to)}
-                            </Badge>
-                          </div>
-                        )}
-                        {amountChange && (
-                          <div className="text-xs text-gray-600 mt-1">
-                            Importe: {new Intl.NumberFormat('es-ES', {
-                              style: 'currency',
-                              currency: 'EUR'
-                            }).format(amountChange.from)} → {new Intl.NumberFormat('es-ES', {
-                              style: 'currency',
-                              currency: 'EUR'
-                            }).format(amountChange.to)}
-                          </div>
-                        )}
-                        {entry.details && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {entry.details}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {entry.user_id ? 'Usuario' : 'Sistema'}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+        <ProposalHistoryEmptyState message="No hay entradas en el historial" />
+      </ProposalHistoryCard>
+    )
+  }
+
+  return (
+    <ProposalHistoryCard title="Historial de Propuestas" entryCount={filteredEntries.length}>
+      {showFilters && (
+        <ProposalHistoryFilters 
+          filters={filters} 
+          onFiltersChange={setFilters}
+        />
+      )}
+      
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <ProposalHistoryTableHeader showProposalColumn={!proposalId} />
+          <TableBody>
+            {filteredEntries.map((entry) => (
+              <ProposalHistoryTableRow
+                key={entry.id}
+                entry={entry}
+                showProposalColumn={!proposalId}
+                getActionLabel={getActionLabel}
+                getActionIcon={getActionIcon}
+                getStatusChange={getStatusChange}
+                getAmountChange={getAmountChange}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </ProposalHistoryCard>
   )
 }
