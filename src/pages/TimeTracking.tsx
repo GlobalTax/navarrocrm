@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { TimeTrackingHeader } from '@/components/time-tracking/TimeTrackingHeader'
 import { ModernTimeTrackingDashboard } from '@/components/time-tracking/ModernTimeTrackingDashboard'
@@ -8,7 +7,7 @@ import { FloatingTimer } from '@/components/time-tracking/FloatingTimer'
 import { TimeTemplateManager } from '@/components/time-tracking/TimeTemplateManager'
 import { OptimizedTimeEntriesTable } from '@/components/time-tracking/OptimizedTimeEntriesTable'
 import { AdvancedTimeTrackingFilters } from '@/components/time-tracking/AdvancedTimeTrackingFilters'
-import { MonthlyTimeSummary } from '@/components/time-tracking/MonthlyTimeSummary'
+import { TimeTrackingSummary } from '@/components/time-tracking/TimeTrackingSummary'
 import { HeaderTimerDialog } from '@/components/layout/HeaderTimerDialog'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
