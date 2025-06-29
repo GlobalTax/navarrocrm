@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { ContactFormDialog } from '@/components/contacts/ContactFormDialog'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { Contact } from '@/hooks/useContacts'
@@ -37,7 +38,7 @@ export default function ContactDetail() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   // Fetch contact data
-  const { data: contact, isLoading: contactLoading, error: contactError } = useQuery({
+  const { data: contact, isLoading: contactLoading, error: contactError, refetch } = useQuery({
     queryKey: ['contact', id],
     queryFn: async (): Promise<Contact> => {
       if (!id || !user?.org_id) throw new Error('Missing ID or org_id')
@@ -127,6 +128,16 @@ export default function ContactDetail() {
     })
   }
 
+  const handleEditContact = () => {
+    setIsEditDialogOpen(true)
+  }
+
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false)
+    // Recargar los datos del contacto después de editar
+    refetch()
+  }
+
   if (contactLoading) {
     return (
       <StandardPageContainer>
@@ -177,7 +188,7 @@ export default function ContactDetail() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
             </Button>
-            <Button onClick={() => setIsEditDialogOpen(true)}>
+            <Button onClick={handleEditContact}>
               <Edit className="h-4 w-4 mr-2" />
               Editar
             </Button>
@@ -439,6 +450,13 @@ export default function ContactDetail() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Diálogo de edición */}
+      <ContactFormDialog
+        contact={contact}
+        open={isEditDialogOpen}
+        onClose={handleCloseEditDialog}
+      />
     </StandardPageContainer>
   )
 }
