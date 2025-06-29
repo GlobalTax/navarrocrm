@@ -3,108 +3,93 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts - Manrope mejorada */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
-
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
   :root {
-    /* Actualizado: Sistema de colores más profesional */
-    --background: 250 250 252;
-    --foreground: 15 23 42;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 255 255 255;
-    --card-foreground: 15 23 42;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary: Azul profesional más vibrante */
-    --primary: 219 78% 56%;
-    --primary-foreground: 255 255 255;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    /* Secondary: Gris más elegante */
-    --secondary: 248 250 252;
-    --secondary-foreground: 51 65 85;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 248 250 252;
-    --muted-foreground: 100 116 139;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 239 246 255;
-    --accent-foreground: 30 64 175;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Borders más sutiles */
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 219 78% 56%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Sidebar mejorada */
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 51 65 85;
-    --sidebar-primary: 219 78% 56%;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 248 250 252;
-    --sidebar-accent-foreground: 30 41 59;
-    --sidebar-border: 226 232 240;
-    --sidebar-ring: 219 78% 56%;
+    --sidebar-background: 0 0% 98%;
 
-    /* Nuevos tokens para glassmorphism y gradientes */
-    --glass-bg: 255 255 255 / 0.8;
-    --glass-border: 255 255 255 / 0.2;
-    --gradient-primary: linear-gradient(135deg, hsl(219 78% 56%) 0%, hsl(239 84% 67%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(248 250 252) 0%, hsl(239 246 255) 100%);
-    
-    /* Sombras mejoradas */
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 15 23 42;
-    --foreground: 248 250 252;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 30 41 59;
-    --card-foreground: 248 250 252;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 30 41 59;
-    --popover-foreground: 248 250 252;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 219 78% 56%;
-    --primary-foreground: 15 23 42;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 51 65 85;
-    --secondary-foreground: 248 250 252;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 51 65 85;
-    --muted-foreground: 148 163 184;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 51 65 85;
-    --accent-foreground: 219 78% 56%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 248 250 252;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 51 65 85;
-    --input: 51 65 85;
-    --ring: 219 78% 56%;
-
-    --sidebar-background: 30 41 59;
-    --sidebar-foreground: 203 213 225;
-    --sidebar-primary: 219 78% 56%;
-    --sidebar-primary-foreground: 15 23 42;
-    --sidebar-accent: 51 65 85;
-    --sidebar-accent-foreground: 248 250 252;
-    --sidebar-border: 51 65 85;
-    --sidebar-ring: 219 78% 56%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -114,252 +99,190 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "cv03", "cv04", "cv11";
-  }
-
-  /* Scroll mejorado */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
+    @apply bg-background text-foreground font-sans;
   }
 }
 
-/* === ADVANCED UI UTILITIES === */
+/* === PREMIUM MINIMALIST UTILITIES === */
 @layer utilities {
-  /* Glassmorphism */
-  .glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+  /* Ultra-subtle background tones */
+  .bg-gray-25 {
+    background-color: rgb(252, 252, 253);
   }
   
-  .glass-dark {
-    background: rgba(30, 41, 59, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* Gradientes modernos */
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(219 78% 56%) 0%, hsl(239 84% 67%) 100%);
+  .border-gray-150 {
+    border-color: rgb(229, 231, 235);
   }
   
-  .gradient-secondary {
-    background: linear-gradient(135deg, hsl(248 250 252) 0%, hsl(239 246 255) 100%);
-  }
-  
-  .gradient-text {
-    background: linear-gradient(135deg, hsl(219 78% 56%) 0%, hsl(239 84% 67%) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Sombras modernas */
-  .shadow-elegant {
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 8px -2px rgba(0, 0, 0, 0.04);
-  }
-  
-  .shadow-floating {
-    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
-  }
-
-  /* Micro-interacciones avanzadas */
+  /* Micro-interactions */
   .hover-lift {
-    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-floating;
-  }
-  
-  .hover-scale {
-    @apply transition-transform duration-200 ease-out hover:scale-105;
+    @apply transition-all duration-200 hover:-translate-y-0.5;
   }
   
   .hover-glow {
-    @apply transition-all duration-300 ease-out hover:shadow-elegant hover:shadow-primary/10;
+    @apply transition-all duration-200 hover:shadow-[0_4px_12px_0_rgba(0,0,0,0.04)];
   }
   
-  .focus-ring-modern {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background transition-all duration-200;
-  }
-
-  /* Animaciones fluidas */
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.4s ease-out forwards;
-  }
-  
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-  }
-
-  /* Estados de carga modernos */
-  .skeleton {
-    @apply bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 bg-[length:200%_100%] animate-pulse;
-  }
-  
-  .skeleton-dark {
-    @apply bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 bg-[length:200%_100%] animate-pulse;
+  /* Premium focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200;
   }
 }
 
-/* === ENHANCED CRM TYPOGRAPHY SYSTEM === */
+/* === CRM TYPOGRAPHY SYSTEM === */
 @layer components {
-  /* Headers modernos */
+  /* Page Headers */
   .crm-page-title {
-    @apply text-4xl font-bold text-foreground tracking-tight leading-tight;
-    font-feature-settings: "cv03", "cv04", "cv11";
+    @apply text-3xl font-bold text-gray-900 tracking-tight;
   }
   
   .crm-page-subtitle {
-    @apply text-xl text-muted-foreground font-medium leading-relaxed;
+    @apply text-lg text-gray-600 font-medium;
   }
   
   .crm-section-title {
-    @apply text-2xl font-semibold text-foreground mb-6 tracking-tight;
+    @apply text-xl font-semibold text-gray-900 mb-4;
   }
   
   .crm-section-subtitle {
-    @apply text-lg text-muted-foreground font-medium mb-4;
+    @apply text-base text-gray-600 font-medium;
   }
 
-  /* Cards mejoradas */
-  .crm-card {
-    @apply bg-card border border-border rounded-xl shadow-elegant hover:shadow-floating transition-all duration-300;
-  }
-  
-  .crm-card-interactive {
-    @apply crm-card hover-lift cursor-pointer;
-  }
-  
+  /* Card & Widget Typography */
   .crm-card-title {
-    @apply text-xl font-semibold text-card-foreground mb-2;
+    @apply text-lg font-semibold text-gray-900;
   }
   
-  .crm-card-content {
-    @apply text-base text-muted-foreground leading-relaxed;
+  .crm-card-subtitle {
+    @apply text-sm text-gray-600 font-medium;
+  }
+  
+  .crm-widget-value {
+    @apply text-2xl font-bold text-gray-900 tracking-tight;
+  }
+  
+  .crm-widget-label {
+    @apply text-sm font-medium text-gray-600 uppercase tracking-wide;
   }
 
-  /* Métricas mejoradas */
+  /* Dashboard Metrics */
   .crm-metric-primary {
-    @apply text-5xl font-extrabold text-foreground tracking-tight font-mono;
+    @apply text-4xl font-extrabold text-gray-900 tracking-tight;
   }
   
   .crm-metric-secondary {
-    @apply text-3xl font-bold text-muted-foreground font-mono;
+    @apply text-2xl font-bold text-gray-700;
   }
   
-  .crm-metric-change-positive {
-    @apply text-green-600 font-semibold flex items-center gap-1;
-  }
-  
-  .crm-metric-change-negative {
-    @apply text-red-600 font-semibold flex items-center gap-1;
+  .crm-metric-label {
+    @apply text-sm font-medium text-gray-500 uppercase tracking-wide;
   }
 
-  /* Formularios modernos */
-  .crm-form-container {
-    @apply space-y-6 p-6 crm-card;
+  /* Form Typography */
+  .crm-form-title {
+    @apply text-xl font-semibold text-gray-900 mb-1;
   }
   
-  .crm-input-modern {
-    @apply bg-background border-2 border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  .crm-form-description {
+    @apply text-sm text-gray-600 mb-4;
   }
   
-  .crm-button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 font-semibold rounded-lg px-6 py-3;
+  .crm-label {
+    @apply text-sm font-medium text-gray-700 mb-1;
   }
   
-  .crm-button-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 font-medium rounded-lg px-6 py-3;
+  .crm-input-text {
+    @apply text-base text-gray-900;
+  }
+  
+  .crm-help-text {
+    @apply text-xs text-gray-500 mt-1;
   }
 
-  /* Estados especiales */
-  .crm-status-badge {
-    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200;
+  /* Navigation */
+  .crm-nav-title {
+    @apply text-base font-semibold text-gray-900;
   }
   
-  .crm-status-active {
-    @apply crm-status-badge bg-green-100 text-green-800 border border-green-200;
-  }
-  
-  .crm-status-pending {
-    @apply crm-status-badge bg-yellow-100 text-yellow-800 border border-yellow-200;
-  }
-  
-  .crm-status-inactive {
-    @apply crm-status-badge bg-gray-100 text-gray-800 border border-gray-200;
-  }
-
-  /* Navegación mejorada */
   .crm-nav-item {
-    @apply flex items-center gap-3 px-4 py-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-all duration-200 font-medium;
+    @apply text-sm font-medium text-gray-700 hover:text-gray-900;
   }
   
   .crm-nav-item-active {
-    @apply crm-nav-item bg-sidebar-primary text-sidebar-primary-foreground shadow-sm;
+    @apply text-sm font-semibold text-primary;
+  }
+
+  /* Table Typography */
+  .crm-table-header {
+    @apply text-sm font-semibold text-gray-900 uppercase tracking-wide;
+  }
+  
+  .crm-table-cell {
+    @apply text-sm text-gray-900;
+  }
+  
+  .crm-table-cell-secondary {
+    @apply text-sm text-gray-600;
+  }
+
+  /* Status & Badges */
+  .crm-badge-text {
+    @apply text-xs font-medium tracking-wide;
+  }
+  
+  .crm-status-text {
+    @apply text-sm font-medium;
+  }
+
+  /* Micro Typography */
+  .crm-timestamp {
+    @apply text-micro text-gray-500 font-medium tracking-wide;
+  }
+  
+  .crm-caption {
+    @apply text-xs text-gray-500;
+  }
+
+  /* Interactive Elements */
+  .crm-button-text-lg {
+    @apply text-base font-semibold;
+  }
+  
+  .crm-button-text {
+    @apply text-sm font-semibold;
+  }
+  
+  .crm-button-text-sm {
+    @apply text-xs font-semibold tracking-wide;
+  }
+
+  /* Time Tracking Specific */
+  .crm-timer-display {
+    @apply text-6xl font-extrabold text-gray-900 font-mono tracking-tighter;
+  }
+  
+  .crm-time-entry {
+    @apply text-lg font-bold text-gray-900 font-mono;
+  }
+  
+  .crm-duration-text {
+    @apply text-sm font-medium text-gray-700 font-mono;
   }
 }
 
-/* === KEYFRAMES === */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* === RESPONSIVE UTILITIES === */
+/* === RESPONSIVE TYPOGRAPHY === */
 @layer utilities {
+  /* Responsive page titles */
   .crm-responsive-title {
-    @apply text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight;
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight;
   }
   
-  .crm-responsive-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  .crm-responsive-subtitle {
+    @apply text-base sm:text-lg text-gray-600 font-medium;
   }
   
-  .crm-responsive-padding {
-    @apply px-4 sm:px-6 lg:px-8;
+  /* Responsive metrics */
+  .crm-responsive-metric {
+    @apply text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight;
   }
 }
