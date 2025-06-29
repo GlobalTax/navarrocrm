@@ -15,6 +15,21 @@ import { Case } from '@/hooks/useCases'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
 
+// Definir el tipo de caso simplificado para esta página
+interface CaseForContact {
+  id: string
+  title: string
+  description: string | null
+  status: 'open' | 'on_hold' | 'closed'
+  practice_area: string | null
+  created_at: string
+  contact?: {
+    id: string
+    name: string
+    email: string | null
+  }
+}
+
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -43,22 +58,26 @@ export default function ContactDetail() {
   // Fetch related cases
   const { data: relatedCases = [], isLoading: casesLoading } = useQuery({
     queryKey: ['contact-cases', id],
-    queryFn: async (): Promise<Case[]> => {
+    queryFn: async (): Promise<CaseForContact[]> => {
       if (!id || !user?.org_id) return []
       
       const { data, error } = await supabase
         .from('cases')
         .select(`
-          *,
-          created_by,
-          contact:contacts(name, email)
+          id,
+          title,
+          description,
+          status,
+          practice_area,
+          created_at,
+          contact:contacts(id, name, email)
         `)
         .eq('contact_id', id)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data as Case[]
+      return data as CaseForContact[]
     },
     enabled: !!id && !!user?.org_id,
   })
