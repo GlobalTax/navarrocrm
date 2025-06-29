@@ -3,6 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Repeat, FileText, BarChart3 } from 'lucide-react'
 import { ProposalCard } from '@/components/proposals/ProposalCard'
+import { RecurringProposalsTable } from '@/components/proposals/RecurringProposalsTable'
+import { RecurringProposalsMetrics } from '@/components/proposals/RecurringProposalsMetrics'
 import { Badge } from '@/components/ui/badge'
 
 interface CategorizedProposals {
@@ -140,22 +142,12 @@ export const ProposalsTabsView = ({
           </div>
         ) : (
           <>
-            <MetricsBanner 
-              type="Recurrente" 
-              count={proposals.recurring.length} 
-              revenue={recurrentRevenue} 
+            <RecurringProposalsMetrics proposals={proposals.recurring} />
+            <RecurringProposalsTable
+              proposals={proposals.recurring}
+              onStatusChange={onStatusChange}
+              onViewProposal={onViewProposal}
             />
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Repeat className="h-4 w-4 text-blue-600" />
-                <span className="font-semibold text-blue-900">Propuestas Recurrentes</span>
-              </div>
-              <p className="text-sm text-blue-700">
-                Estas propuestas generan <strong>Cuotas Recurrentes</strong> automáticamente cuando son aceptadas.
-                Perfectas para servicios de fiscal, contabilidad y laboral.
-              </p>
-            </div>
-            <ProposalGrid proposalList={proposals.recurring} />
           </>
         )}
       </TabsContent>
