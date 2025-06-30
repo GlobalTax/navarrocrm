@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { TaskCardHeader } from './card/TaskCardHeader'
 import { TaskCardBadges } from './card/TaskCardBadges'
 import { TaskCardMetadata } from './card/TaskCardMetadata'
-import { TaskWithRelations } from '@/hooks/tasks/types'
+import { TaskWithRelations, TaskStatus, TaskPriority } from '@/hooks/tasks/types'
 
 interface TaskCardProps {
   task: TaskWithRelations
@@ -28,13 +28,25 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
   const subtasks = Array.isArray(task.subtasks) ? task.subtasks : []
   const comments = Array.isArray(task.comments) ? task.comments : []
 
-  // Validación de campos críticos
+  // Función para validar y limpiar prioridad
+  const validatePriority = (priority: string): TaskPriority => {
+    const validPriorities: TaskPriority[] = ['low', 'medium', 'high', 'urgent']
+    return validPriorities.includes(priority as TaskPriority) ? priority as TaskPriority : 'medium'
+  }
+
+  // Función para validar y limpiar estado
+  const validateStatus = (status: string): TaskStatus => {
+    const validStatuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'cancelled']
+    return validStatuses.includes(status as TaskStatus) ? status as TaskStatus : 'pending'
+  }
+
+  // Validación de campos críticos con limpieza de datos
   const safeTask = {
     ...task,
     title: task.title || 'Sin título',
     description: task.description || '',
-    priority: task.priority || 'medium',
-    status: task.status || 'pending',
+    priority: validatePriority(task.priority || 'medium'),
+    status: validateStatus(task.status || 'pending'),
     due_date: task.due_date || null,
     case: task.case || null,
     contact: task.contact || null

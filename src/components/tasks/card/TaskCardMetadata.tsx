@@ -7,7 +7,9 @@ import { TaskAssignment, TaskSubtask, TaskComment } from '@/hooks/tasks/types'
 interface TaskCardMetadataProps {
   dueDate?: string | null
   taskStatus: string
-  assignedUsers: TaskAssignment[]
+  assignedUsers: (TaskAssignment & {
+    user?: { email: string; role: string }
+  })[]
   subtasks: TaskSubtask[]
   comments: TaskComment[]
   caseName?: string | null
@@ -59,7 +61,7 @@ export const TaskCardMetadata = ({
         </div>
       )}
 
-      {/* Usuarios asignados */}
+      {/* Usuarios asignados - corregido para usar la estructura correcta */}
       {assignedUsers.length > 0 && (
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <User className="h-3 w-3" />

@@ -12,7 +12,7 @@ export type TaskSubtask = Database['public']['Tables']['task_subtasks']['Row']
 export type TaskSubtaskInsert = Database['public']['Tables']['task_subtasks']['Insert']
 export type TaskSubtaskUpdate = Database['public']['Tables']['task_subtasks']['Update']
 
-// Tipo extendido de tarea con relaciones
+// Tipo extendido de tarea con relaciones - corregido para coincidir con la consulta SQL
 export type TaskWithRelations = Task & {
   task_assignments?: (TaskAssignment & {
     user?: { email: string; role: string }
@@ -33,7 +33,7 @@ export interface TaskStats {
   high_priority_tasks: number
 }
 
-// Estados válidos exactamente como están en la DB
+// Estados válidos - ampliados para incluir todos los valores posibles de la DB
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 
