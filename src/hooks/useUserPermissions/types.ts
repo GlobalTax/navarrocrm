@@ -13,11 +13,13 @@ export interface UserPermission {
 export interface PermissionModule {
   key: string
   label: string
+  description?: string
 }
 
 export interface PermissionLevel {
   key: string
   label: string
+  description?: string
 }
 
 export interface GrantPermissionParams {

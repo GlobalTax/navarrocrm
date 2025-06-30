@@ -124,6 +124,31 @@ export const useCancelInvitation = () => {
   })
 }
 
+export const useDeleteInvitation = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      console.log('🗑️ Eliminando invitación:', invitationId)
+      
+      const { error } = await supabase
+        .from('user_invitations')
+        .delete()
+        .eq('id', invitationId)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
+      toast.success('Invitación eliminada permanentemente')
+    },
+    onError: (error: any) => {
+      console.error('Error eliminando invitación:', error)
+      toast.error('Error eliminando la invitación')
+    },
+  })
+}
+
 export const useResendInvitation = () => {
   const queryClient = useQueryClient()
 
@@ -169,6 +194,33 @@ export const useResendInvitation = () => {
     onError: (error: any) => {
       console.error('Error reenviando invitación:', error)
       toast.error(`Error reenviando la invitación: ${error.message}`)
+    },
+  })
+}
+
+export const useBulkCleanupInvitations = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      console.log('🧹 Iniciando limpieza masiva de invitaciones...')
+      
+      // Llamar a la función de limpieza
+      const { data: cleanupResult, error } = await supabase
+        .rpc('cleanup_expired_invitations')
+
+      if (error) throw error
+
+      console.log('✅ Limpieza completada, invitaciones procesadas:', cleanupResult)
+      return cleanupResult
+    },
+    onSuccess: (cleanedCount) => {
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
+      toast.success(`Limpieza completada: ${cleanedCount} invitaciones expiradas procesadas`)
+    },
+    onError: (error: any) => {
+      console.error('Error en limpieza masiva:', error)
+      toast.error('Error en la limpieza masiva de invitaciones')
     },
   })
 }

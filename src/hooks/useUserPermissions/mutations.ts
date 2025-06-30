@@ -13,7 +13,7 @@ export const useGrantPermissionMutation = () => {
     mutationFn: async ({ userId, module, permission }: GrantPermissionParams) => {
       if (!user?.org_id) throw new Error('No hay organización disponible')
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_permissions')
         .insert({
           user_id: userId,
@@ -22,115 +22,69 @@ export const useGrantPermissionMutation = () => {
           permission,
           granted_by: user.id
         })
+        .select()
+        .single()
 
       if (error) throw error
-
-      // Registrar en auditoría
-      await supabase
-        .from('user_audit_log')
-        .insert({
-          org_id: user.org_id,
-          target_user_id: userId,
-          action_by: user.id,
-          action_type: 'permission_grant',
-          new_value: { module, permission },
-          details: `Permiso otorgado: ${permission} en ${module}`
-        })
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
-      toast.success('Permiso otorgado correctamente')
+      toast.success('Permiso otorgado exitosamente')
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Error otorgando el permiso')
+      console.error('Error otorgando permiso:', error)
+      toast.error('Error otorgando el permiso')
     },
   })
 }
 
 export const useRevokePermissionMutation = () => {
-  const { user } = useApp()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (permissionId: string) => {
-      const { data: permissions } = await queryClient.getQueryData(['user-permissions', user?.org_id]) as { data: any[] } || { data: [] }
-      const permission = permissions.find((p: any) => p.id === permissionId)
-      if (!permission) throw new Error('Permiso no encontrado')
-
       const { error } = await supabase
         .from('user_permissions')
         .delete()
         .eq('id', permissionId)
 
       if (error) throw error
-
-      // Registrar en auditoría
-      await supabase
-        .from('user_audit_log')
-        .insert({
-          org_id: user!.org_id,
-          target_user_id: permission.user_id,
-          action_by: user!.id,
-          action_type: 'permission_revoke',
-          old_value: { module: permission.module, permission: permission.permission },
-          details: `Permiso revocado: ${permission.permission} en ${permission.module}`
-        })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
-      toast.success('Permiso revocado correctamente')
+      toast.success('Permiso revocado exitosamente')
     },
     onError: (error: any) => {
+      console.error('Error revocando permiso:', error)
       toast.error('Error revocando el permiso')
     },
   })
 }
 
 export const useUpdateUserRoleMutation = () => {
-  const { user } = useApp()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ userId, newRole }: UpdateUserRoleParams) => {
-      if (!user?.org_id) throw new Error('No hay organización disponible')
-
-      // Obtener rol anterior
-      const { data: currentUser } = await supabase
+      const { data, error } = await supabase
         .from('users')
-        .select('role')
+        .update({ role: newRole, updated_at: new Date().toISOString() })
         .eq('id', userId)
+        .select()
         .single()
 
-      const oldRole = currentUser?.role
-
-      // Actualizar rol
-      const { error } = await supabase
-        .from('users')
-        .update({ role: newRole })
-        .eq('id', userId)
-
       if (error) throw error
-
-      // Registrar en auditoría
-      await supabase
-        .from('user_audit_log')
-        .insert({
-          org_id: user.org_id,
-          target_user_id: userId,
-          action_by: user.id,
-          action_type: 'role_change',
-          old_value: { role: oldRole },
-          new_value: { role: newRole },
-          details: `Rol cambiado de ${oldRole} a ${newRole}`
-        })
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
-      toast.success('Rol actualizado correctamente')
+      toast.success('Rol actualizado exitosamente')
     },
     onError: (error: any) => {
-      toast.error('Error actualizando el rol')
+      console.error('Error actualizando rol:', error)
+      toast.error('Error actualizando el rol del usuario')
     },
   })
 }

@@ -4161,6 +4161,10 @@ export type Database = {
         Args: { org_uuid: string; target_date?: string }
         Returns: undefined
       }
+      cleanup_expired_invitations: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       cleanup_expired_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
