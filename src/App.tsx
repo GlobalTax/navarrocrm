@@ -65,7 +65,8 @@ function App() {
               
               <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                 <Route element={<MainLayout><Outlet /></MainLayout>}>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/contacts" element={<Contacts />} />
                   <Route path="/contacts/:id" element={<ContactDetail />} />
                   <Route path="/clients" element={<Clients />} />

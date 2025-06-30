@@ -31,13 +31,10 @@ const Index = () => {
     return <Navigate to="/login" replace />
   }
 
-  // Si hay usuario autenticado, mostrar el dashboard directamente
-  // En lugar de redirigir, importamos y renderizamos Dashboard
-  console.log('📍 [Index] Usuario autenticado, mostrando dashboard')
-  
-  // Importar Dashboard dinámicamente para evitar dependencias circulares
-  const Dashboard = require('./Dashboard').default
-  return <Dashboard />
+  // Si hay usuario autenticado, redirigir al dashboard
+  // Esto permite que MainLayout se aplique correctamente
+  console.log('📍 [Index] Usuario autenticado, redirigiendo a dashboard')
+  return <Navigate to="/dashboard" replace />
 }
 
 export default Index
