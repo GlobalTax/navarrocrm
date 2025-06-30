@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
@@ -18,7 +17,8 @@ import {
   XCircle,
   UserCog,
   FileText,
-  RefreshCw
+  RefreshCw,
+  Upload
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
@@ -31,6 +31,7 @@ import { UserFormDialog } from '@/components/users/UserFormDialog'
 import { UserPermissionsDialog } from '@/components/users/UserPermissionsDialog'
 import { UserDeleteDialog } from '@/components/users/UserDeleteDialog'
 import { UserAuditLogDialog } from '@/components/users/UserAuditLogDialog'
+import { UserBulkUpload } from '@/components/users/UserBulkUpload'
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -43,6 +44,7 @@ const Users = () => {
   
   const [showUserForm, setShowUserForm] = useState(false)
   const [showInviteDialog, setShowInviteDialog] = useState(false)
+  const [showBulkUpload, setShowBulkUpload] = useState(false)
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showAuditDialog, setShowAuditDialog] = useState(false)
@@ -100,6 +102,15 @@ const Users = () => {
     setShowInviteDialog(true)
   }
 
+  const handleBulkUpload = () => {
+    setShowBulkUpload(true)
+  }
+
+  const handleBulkUploadSuccess = () => {
+    // Refrescar datos si es necesario
+    window.location.reload()
+  }
+
   if (isLoading) {
     return (
       <StandardPageContainer>
@@ -119,7 +130,16 @@ const Users = () => {
           label: 'Invitar Usuario',
           onClick: handleInviteUser
         }}
-      />
+      >
+        <Button 
+          variant="outline" 
+          onClick={handleBulkUpload}
+          className="border-0.5 border-black rounded-[10px] hover-lift"
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Importación Masiva
+        </Button>
+      </StandardPageHeader>
 
       {/* Métricas principales */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
@@ -296,7 +316,7 @@ const Users = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Diálogos */}
+      {/* Diálogos existentes */}
       <UserFormDialog
         open={showUserForm}
         onOpenChange={setShowUserForm}
@@ -311,6 +331,13 @@ const Users = () => {
         open={showInviteDialog}
         onOpenChange={setShowInviteDialog}
         onClose={() => setShowInviteDialog(false)}
+      />
+
+      {/* Nuevo diálogo de importación masiva */}
+      <UserBulkUpload
+        open={showBulkUpload}
+        onClose={() => setShowBulkUpload(false)}
+        onSuccess={handleBulkUploadSuccess}
       />
 
       <UserPermissionsDialog
