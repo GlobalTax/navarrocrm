@@ -53,6 +53,7 @@ export const usePersons = () => {
       return (data || []).map(person => ({
         ...person,
         client_type: person.client_type as 'particular' | 'autonomo',
+        relationship_type: (person.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
         company: person.company || undefined
       }))
     },

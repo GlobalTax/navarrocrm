@@ -68,6 +68,7 @@ export const useCompanies = () => {
           return {
             ...company,
             client_type: 'empresa' as const,
+            relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
             primary_contact: contactsData?.[0] || undefined,
             total_contacts: totalContacts || 0
           }
