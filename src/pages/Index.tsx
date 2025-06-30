@@ -19,19 +19,25 @@ const Index = () => {
     )
   }
 
-  // Redirecciones simplificadas y directas
-  if (session || user) {
-    console.log('📍 [Index] Usuario autenticado, redirigiendo al dashboard')
-    return <Navigate to="/" replace />
-  }
-
+  // Si el sistema no está configurado, ir a setup
   if (isSetup === false) {
     console.log('📍 [Index] Sistema no configurado, redirigiendo a setup')
     return <Navigate to="/setup" replace />
   }
 
-  console.log('📍 [Index] Sin autenticación, redirigiendo a login')
-  return <Navigate to="/login" replace />
+  // Si no hay sesión, ir a login
+  if (!session && !user) {
+    console.log('📍 [Index] Sin autenticación, redirigiendo a login')
+    return <Navigate to="/login" replace />
+  }
+
+  // Si hay usuario autenticado, mostrar el dashboard directamente
+  // En lugar de redirigir, importamos y renderizamos Dashboard
+  console.log('📍 [Index] Usuario autenticado, mostrando dashboard')
+  
+  // Importar Dashboard dinámicamente para evitar dependencias circulares
+  const Dashboard = require('./Dashboard').default
+  return <Dashboard />
 }
 
 export default Index
