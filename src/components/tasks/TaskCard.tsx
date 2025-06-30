@@ -23,30 +23,36 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
     )
   }
 
-  // Manejo seguro de datos relacionados
+  // Manejo seguro de datos relacionados con valores por defecto
   const assignedUsers = Array.isArray(task.task_assignments) ? task.task_assignments : []
   const subtasks = Array.isArray(task.subtasks) ? task.subtasks : []
   const comments = Array.isArray(task.comments) ? task.comments : []
 
   // Función para validar y limpiar prioridad
-  const validatePriority = (priority: string): TaskPriority => {
+  const validatePriority = (priority: any): TaskPriority => {
     const validPriorities: TaskPriority[] = ['low', 'medium', 'high', 'urgent']
-    return validPriorities.includes(priority as TaskPriority) ? priority as TaskPriority : 'medium'
+    if (typeof priority === 'string' && validPriorities.includes(priority as TaskPriority)) {
+      return priority as TaskPriority
+    }
+    return 'medium'
   }
 
   // Función para validar y limpiar estado
-  const validateStatus = (status: string): TaskStatus => {
+  const validateStatus = (status: any): TaskStatus => {
     const validStatuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'cancelled']
-    return validStatuses.includes(status as TaskStatus) ? status as TaskStatus : 'pending'
+    if (typeof status === 'string' && validStatuses.includes(status as TaskStatus)) {
+      return status as TaskStatus
+    }
+    return 'pending'
   }
 
   // Validación de campos críticos con limpieza de datos
   const safeTask = {
     ...task,
-    title: task.title || 'Sin título',
-    description: task.description || '',
-    priority: validatePriority(task.priority || 'medium'),
-    status: validateStatus(task.status || 'pending'),
+    title: typeof task.title === 'string' ? task.title : 'Sin título',
+    description: typeof task.description === 'string' ? task.description : '',
+    priority: validatePriority(task.priority),
+    status: validateStatus(task.status),
     due_date: task.due_date || null,
     case: task.case || null,
     contact: task.contact || null

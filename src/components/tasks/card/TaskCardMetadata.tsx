@@ -27,8 +27,8 @@ export const TaskCardMetadata = ({
 }: TaskCardMetadataProps) => {
   
   // Calcular estadísticas de subtareas de forma segura
-  const completedSubtasks = subtasks.filter(st => st.completed).length
-  const totalSubtasks = subtasks.length
+  const completedSubtasks = Array.isArray(subtasks) ? subtasks.filter(st => st.completed).length : 0
+  const totalSubtasks = Array.isArray(subtasks) ? subtasks.length : 0
   
   // Verificar si la tarea está vencida
   const isOverdue = dueDate && new Date(dueDate) < new Date() && taskStatus !== 'completed'
@@ -61,13 +61,13 @@ export const TaskCardMetadata = ({
         </div>
       )}
 
-      {/* Usuarios asignados - corregido para usar la estructura correcta */}
-      {assignedUsers.length > 0 && (
+      {/* Usuarios asignados - simplificado sin relaciones complejas */}
+      {Array.isArray(assignedUsers) && assignedUsers.length > 0 && (
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <User className="h-3 w-3" />
           <span>
             {assignedUsers.length === 1 
-              ? assignedUsers[0].user?.email || 'Usuario'
+              ? (assignedUsers[0].user?.email || 'Usuario asignado')
               : `${assignedUsers.length} asignados`
             }
           </span>
@@ -85,7 +85,7 @@ export const TaskCardMetadata = ({
       )}
 
       {/* Número de comentarios */}
-      {comments.length > 0 && (
+      {Array.isArray(comments) && comments.length > 0 && (
         <div className="flex items-center gap-1 text-xs text-gray-500">
           <MessageSquare className="h-3 w-3" />
           <span>{comments.length} comentarios</span>

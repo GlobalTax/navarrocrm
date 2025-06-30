@@ -30,11 +30,22 @@ const Tasks = () => {
 
   if (error) {
     console.error('❌ Tasks page error:', error)
-    return <TasksErrorState error={error} />
+    return (
+      <StandardPageContainer>
+        <TasksErrorState 
+          error={error} 
+          onRetry={() => window.location.reload()} 
+        />
+      </StandardPageContainer>
+    )
   }
 
   if (isLoading) {
-    return <TasksLoadingState />
+    return (
+      <StandardPageContainer>
+        <TasksLoadingState />
+      </StandardPageContainer>
+    )
   }
 
   const safeTasks = Array.isArray(tasks) ? tasks : []

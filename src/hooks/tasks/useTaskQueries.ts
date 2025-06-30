@@ -18,24 +18,10 @@ export const useTaskQueries = () => {
       }
 
       try {
-        // Consulta optimizada con tipado correcto
+        // Consulta simplificada sin joins complejos para evitar errores 400
         const { data: tasksData, error: tasksError } = await supabase
           .from('tasks')
-          .select(`
-            *,
-            task_assignments!task_assignments_task_id_fkey(
-              *,
-              user:users!task_assignments_user_id_fkey(email, role)
-            ),
-            case:cases!tasks_case_id_fkey(title),
-            contact:contacts!tasks_contact_id_fkey(name),
-            created_by_user:users!tasks_created_by_fkey(email),
-            subtasks:task_subtasks!task_subtasks_task_id_fkey(*),
-            comments:task_comments!task_comments_task_id_fkey(
-              *,
-              user:users!task_comments_user_id_fkey(email)
-            )
-          `)
+          .select('*')
           .eq('org_id', user.org_id)
           .order('created_at', { ascending: false })
 
@@ -46,16 +32,16 @@ export const useTaskQueries = () => {
 
         console.log('✅ Tasks fetched:', tasksData?.length || 0)
         
-        // Transformar los datos para que coincidan con TaskWithRelations
+        // Transformar los datos básicos sin relaciones complejas por ahora
         const transformedTasks: TaskWithRelations[] = (tasksData || []).map(task => ({
           ...task,
-          // Asegurar que las propiedades opcionales sean del tipo correcto
-          task_assignments: Array.isArray(task.task_assignments) ? task.task_assignments : [],
-          case: task.case && !Array.isArray(task.case) ? task.case : null,
-          contact: task.contact && !Array.isArray(task.contact) ? task.contact : null,
-          created_by_user: task.created_by_user && !Array.isArray(task.created_by_user) ? task.created_by_user : null,
-          subtasks: Array.isArray(task.subtasks) ? task.subtasks : [],
-          comments: Array.isArray(task.comments) ? task.comments : []
+          // Propiedades opcionales con valores por defecto seguros
+          task_assignments: [],
+          case: null,
+          contact: null,
+          created_by_user: null,
+          subtasks: [],
+          comments: []
         }))
 
         return transformedTasks
@@ -66,9 +52,9 @@ export const useTaskQueries = () => {
       }
     },
     enabled: !!user?.org_id,
-    retry: 2,
+    retry: 1,
     retryDelay: 1000,
-    staleTime: 30000, // 30 segundos de cache
+    staleTime: 30000,
   })
 
   const { data: taskStats } = useQuery({
@@ -89,13 +75,13 @@ export const useTaskQueries = () => {
       }
 
       try {
-        // Usar función de base de datos optimizada
+        // Usar función de base de datos si existe, sino calcular manualmente
         const { data: statsResult, error: statsError } = await supabase
           .rpc('get_task_stats', { org_uuid: user.org_id })
 
         if (statsError) {
           console.error('❌ Error fetching task stats:', statsError)
-          // Fallback: calcular estadísticas manualmente
+          // Fallback: calcular estadísticas manualmente desde las tareas básicas
           return calculateStatsFromTasks(tasks)
         }
 
@@ -118,7 +104,7 @@ export const useTaskQueries = () => {
     enabled: !!user?.org_id,
     retry: 1,
     retryDelay: 500,
-    staleTime: 60000, // 1 minuto de cache para stats
+    staleTime: 60000,
   })
 
   return {
