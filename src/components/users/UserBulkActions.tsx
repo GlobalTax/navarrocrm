@@ -8,7 +8,7 @@ import {
   Trash2, 
   RefreshCw,
   AlertTriangle,
-  Broom,
+  Eraser,
   CheckCircle
 } from 'lucide-react'
 import { useUserInvitations } from '@/hooks/useUserInvitations'
@@ -46,7 +46,7 @@ export function UserBulkActions() {
     <Card className="border-0.5 border-black rounded-[10px]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Broom className="h-5 w-5" />
+          <Eraser className="h-5 w-5" />
           Acciones Masivas
         </CardTitle>
       </CardHeader>
@@ -100,7 +100,7 @@ export function UserBulkActions() {
               </>
             ) : (
               <>
-                <Broom className="h-4 w-4 mr-2" />
+                <Eraser className="h-4 w-4 mr-2" />
                 Limpiar Invitaciones Expiradas ({expiredCount})
               </>
             )}
