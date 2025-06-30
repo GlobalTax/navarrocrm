@@ -73,16 +73,17 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('📧 [Send Email] Modo test - verificando configuración...');
       
       try {
-        // Enviar email de prueba
+        // Enviar email de prueba con tu dominio personalizado
         const testResponse = await resend.emails.send({
-          from: 'CRM Sistema <onboarding@resend.dev>',
+          from: 'CRM Sistema <no-reply@send.nrro.es>',
           to: [to],
           subject: 'Test de configuración - CRM Sistema',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Test de configuración exitoso</h2>
-              <p>Este es un email de prueba para verificar que la configuración de Resend funciona correctamente.</p>
+              <p>Este es un email de prueba para verificar que la configuración de Resend funciona correctamente con tu dominio personalizado.</p>
               <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+              <p>Si recibes este email, la configuración está funcionando perfectamente.</p>
             </div>
           `,
         });
@@ -91,9 +92,10 @@ const handler = async (req: Request): Promise<Response> => {
         
         return new Response(JSON.stringify({ 
           success: true,
-          message: 'Test de configuración exitoso',
+          message: 'Test de configuración exitoso con dominio personalizado',
           messageId: testResponse.data?.id,
-          testMode: true
+          testMode: true,
+          domain: 'send.nrro.es'
         }), {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -112,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Enviar email real
+    // Enviar email real con dominio personalizado
     console.log('📧 [Send Email] Enviando email real...');
     
     let emailResponse;
@@ -122,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
     while (retryCount < maxRetries) {
       try {
         emailResponse = await resend.emails.send({
-          from: 'CRM Sistema <onboarding@resend.dev>',
+          from: 'CRM Sistema <no-reply@send.nrro.es>',
           to: [to],
           subject: subject,
           html: html,
@@ -166,8 +168,8 @@ const handler = async (req: Request): Promise<Response> => {
               target_user_id: invitation.invited_by,
               action_by: invitation.invited_by,
               action_type: 'invitation_sent',
-              new_value: { email: to, role: invitation.role },
-              details: `Invitación enviada a ${to} para rol ${invitation.role}`
+              new_value: { email: to, role: invitation.role, domain: 'send.nrro.es' },
+              details: `Invitación enviada a ${to} para rol ${invitation.role} desde dominio personalizado`
             });
           
           console.log('📧 [Send Email] Auditoría registrada exitosamente');
@@ -179,9 +181,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Email enviado exitosamente',
+      message: 'Email enviado exitosamente desde dominio personalizado',
       messageId: emailResponse?.data?.id || emailResponse?.id,
-      retryCount: retryCount
+      retryCount: retryCount,
+      domain: 'send.nrro.es'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
