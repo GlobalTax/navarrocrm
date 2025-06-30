@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -44,125 +45,127 @@ export const useUserInvitations = () => {
 
       console.log('🔄 Enviando invitación a:', email, 'con rol:', role)
 
-      // Verificar si ya existe una invitación pendiente
-      const { data: existingInvitation } = await supabase
-        .from('user_invitations')
-        .select('id')
-        .eq('email', email)
-        .eq('org_id', user.org_id)
-        .eq('status', 'pending')
-        .single()
-
-      if (existingInvitation) {
-        throw new Error('Ya existe una invitación pendiente para este email')
-      }
-
-      // Verificar si el usuario ya existe
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .eq('org_id', user.org_id)
-        .single()
-
-      if (existingUser) {
-        throw new Error('Este usuario ya existe en tu organización')
-      }
-
-      // Generar token y crear invitación
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 7) // 7 días de expiración
-
-      const { data: tokenResult } = await supabase
-        .rpc('generate_invitation_token')
-
-      if (!tokenResult) throw new Error('Error generando token de invitación')
-
-      const { data: invitation, error } = await supabase
-        .from('user_invitations')
-        .insert({
-          org_id: user.org_id,
-          email,
-          role,
-          token: tokenResult,
-          expires_at: expiresAt.toISOString(),
-          invited_by: user.id,
-          status: 'pending'
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      // Enviar email de invitación con mejor manejo de errores
       try {
-        const invitationUrl = `${window.location.origin}/signup?token=${tokenResult}`
-        const emailHtml = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Has sido invitado a unirte a nuestra asesoría</h2>
-            <p>Hola,</p>
-            <p>Has sido invitado por <strong>${user.email}</strong> para unirte a nuestra asesoría con el rol de <strong>${getRoleLabel(role)}</strong>.</p>
-            ${message ? `<p><em>"${message}"</em></p>` : ''}
-            <div style="margin: 30px 0;">
-              <a href="${invitationUrl}" 
-                 style="background-color: #0061FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Aceptar Invitación
-              </a>
-            </div>
-            <p>Este enlace expira el ${new Date(expiresAt).toLocaleDateString('es-ES')}.</p>
-            <p>Si no esperabas esta invitación, puedes ignorar este email.</p>
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">
-              Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
-              <a href="${invitationUrl}">${invitationUrl}</a>
-            </p>
-          </div>
-        `
+        // Verificar si ya existe una invitación pendiente - usando maybeSingle para evitar 406
+        const { data: existingInvitation, error: invitationCheckError } = await supabase
+          .from('user_invitations')
+          .select('id, status')
+          .eq('email', email)
+          .eq('org_id', user.org_id)
+          .eq('status', 'pending')
+          .maybeSingle()
 
-        console.log('📧 Intentando enviar email de invitación...')
-
-        const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-email', {
-          body: {
-            to: email,
-            subject: 'Invitación para unirte a nuestra asesoría',
-            html: emailHtml,
-            invitationToken: tokenResult
-          }
-        })
-
-        console.log('📧 Respuesta de envío de email:', { emailResponse, emailError })
-
-        if (emailError) {
-          console.error('❌ Error enviando email:', emailError)
-          
-          // Marcar la invitación como creada pero con problemas de envío
-          await supabase
-            .from('user_invitations')
-            .update({ 
-              status: 'pending',
-              // Podríamos agregar un campo para tracking de problemas de envío
-            })
-            .eq('id', invitation.id)
-
-          // No fallar completamente, pero notificar el problema
-          toast.warning(
-            'Invitación creada, pero hubo un problema enviando el email. ' +
-            'Puedes reenviar la invitación o copiar el enlace manualmente.'
-          )
-        } else {
-          console.log('✅ Email enviado exitosamente')
+        if (invitationCheckError) {
+          console.error('❌ Error verificando invitación existente:', invitationCheckError)
+          // No lanzar error, continuar con el proceso
         }
-      } catch (emailError: any) {
-        console.error('❌ Error crítico enviando email:', emailError)
-        
-        // Incluso si el email falla, la invitación se creó correctamente
-        toast.warning(
-          'Invitación creada, pero no se pudo enviar el email automáticamente. ' +
-          'Puedes copiar el enlace de invitación y enviarlo manualmente.'
-        )
-      }
 
-      return invitation
+        if (existingInvitation) {
+          throw new Error(`Ya existe una invitación pendiente para ${email}. Puedes cancelarla primero si deseas enviar una nueva.`)
+        }
+
+        // Verificar si el usuario ya existe - usando maybeSingle para evitar 406
+        const { data: existingUser, error: userCheckError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('email', email)
+          .eq('org_id', user.org_id)
+          .maybeSingle()
+
+        if (userCheckError) {
+          console.error('❌ Error verificando usuario existente:', userCheckError)
+          // No lanzar error, continuar con el proceso
+        }
+
+        if (existingUser) {
+          throw new Error('Este usuario ya existe en tu organización')
+        }
+
+        // Generar token y crear invitación
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + 7) // 7 días de expiración
+
+        const { data: tokenResult } = await supabase
+          .rpc('generate_invitation_token')
+
+        if (!tokenResult) throw new Error('Error generando token de invitación')
+
+        const { data: invitation, error } = await supabase
+          .from('user_invitations')
+          .insert({
+            org_id: user.org_id,
+            email,
+            role,
+            token: tokenResult,
+            expires_at: expiresAt.toISOString(),
+            invited_by: user.id,
+            status: 'pending'
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+
+        // Enviar email de invitación con mejor manejo de errores
+        try {
+          const invitationUrl = `${window.location.origin}/signup?token=${tokenResult}`
+          const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Has sido invitado a unirte a nuestra asesoría</h2>
+              <p>Hola,</p>
+              <p>Has sido invitado por <strong>${user.email}</strong> para unirte a nuestra asesoría con el rol de <strong>${getRoleLabel(role)}</strong>.</p>
+              ${message ? `<p><em>"${message}"</em></p>` : ''}
+              <div style="margin: 30px 0;">
+                <a href="${invitationUrl}" 
+                   style="background-color: #0061FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                  Aceptar Invitación
+                </a>
+              </div>
+              <p>Este enlace expira el ${new Date(expiresAt).toLocaleDateString('es-ES')}.</p>
+              <p>Si no esperabas esta invitación, puedes ignorar este email.</p>
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+              <p style="color: #666; font-size: 12px;">
+                Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                <a href="${invitationUrl}">${invitationUrl}</a>
+              </p>
+            </div>
+          `
+
+          console.log('📧 Intentando enviar email de invitación...')
+
+          const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-email', {
+            body: {
+              to: email,
+              subject: 'Invitación para unirte a nuestra asesoría',
+              html: emailHtml,
+              invitationToken: tokenResult
+            }
+          })
+
+          console.log('📧 Respuesta de envío de email:', { emailResponse, emailError })
+
+          if (emailError) {
+            console.error('❌ Error enviando email:', emailError)
+            toast.warning(
+              'Invitación creada, pero hubo un problema enviando el email. ' +
+              'Puedes reenviar la invitación o copiar el enlace manualmente.'
+            )
+          } else {
+            console.log('✅ Email enviado exitosamente')
+          }
+        } catch (emailError: any) {
+          console.error('❌ Error crítico enviando email:', emailError)
+          toast.warning(
+            'Invitación creada, pero no se pudo enviar el email automáticamente. ' +
+            'Puedes copiar el enlace de invitación y enviarlo manualmente.'
+          )
+        }
+
+        return invitation
+      } catch (error: any) {
+        console.error('❌ Error en sendInvitation:', error)
+        throw error
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-invitations'] })

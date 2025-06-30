@@ -27,44 +27,56 @@ export const useEnhancedUsers = (filters: UserFilters) => {
     queryFn: async () => {
       if (!user?.org_id) return []
       
-      let query = supabase
-        .from('users')
-        .select('*')
-        .eq('org_id', user.org_id)
+      console.log('🔍 [EnhancedUsers] Consultando usuarios para org:', user.org_id)
+      
+      try {
+        let query = supabase
+          .from('users')
+          .select('*')
+          .eq('org_id', user.org_id)
 
-      // Aplicar filtros
-      if (filters.search) {
-        query = query.ilike('email', `%${filters.search}%`)
+        // Aplicar filtros
+        if (filters.search) {
+          query = query.ilike('email', `%${filters.search}%`)
+        }
+
+        if (filters.role && filters.role !== 'all') {
+          query = query.eq('role', filters.role)
+        }
+
+        if (filters.status === 'active') {
+          query = query.eq('is_active', true)
+        } else if (filters.status === 'inactive') {
+          query = query.eq('is_active', false)
+        }
+
+        if (filters.createdAfter) {
+          query = query.gte('created_at', filters.createdAfter)
+        }
+
+        if (filters.createdBefore) {
+          query = query.lte('created_at', filters.createdBefore)
+        }
+
+        if (filters.lastLoginDays) {
+          const date = new Date()
+          date.setDate(date.getDate() - filters.lastLoginDays)
+          query = query.gte('last_login_at', date.toISOString())
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('❌ [EnhancedUsers] Error en consulta:', error)
+          throw error
+        }
+
+        console.log('✅ [EnhancedUsers] Usuarios obtenidos:', data?.length || 0)
+        return data || []
+      } catch (error) {
+        console.error('❌ [EnhancedUsers] Error crítico:', error)
+        throw error
       }
-
-      if (filters.role && filters.role !== 'all') {
-        query = query.eq('role', filters.role)
-      }
-
-      if (filters.status === 'active') {
-        query = query.eq('is_active', true)
-      } else if (filters.status === 'inactive') {
-        query = query.eq('is_active', false)
-      }
-
-      if (filters.createdAfter) {
-        query = query.gte('created_at', filters.createdAfter)
-      }
-
-      if (filters.createdBefore) {
-        query = query.lte('created_at', filters.createdBefore)
-      }
-
-      if (filters.lastLoginDays) {
-        const date = new Date()
-        date.setDate(date.getDate() - filters.lastLoginDays)
-        query = query.gte('last_login_at', date.toISOString())
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false })
-
-      if (error) throw error
-      return data || []
     },
     enabled: !!user?.org_id,
   })
