@@ -10,7 +10,6 @@ import { TasksEmptyState } from '@/components/tasks/TasksEmptyState'
 import { TasksErrorState } from '@/components/tasks/TasksErrorState'
 import { TasksLoadingState } from '@/components/tasks/TasksLoadingState'
 import { TasksViewSelector } from '@/components/tasks/TasksViewSelector'
-import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
 
@@ -31,27 +30,21 @@ const Tasks = () => {
   if (error) {
     console.error('❌ Tasks page error:', error)
     return (
-      <StandardPageContainer>
-        <TasksErrorState 
-          error={error} 
-          onRetry={() => window.location.reload()} 
-        />
-      </StandardPageContainer>
+      <TasksErrorState 
+        error={error} 
+        onRetry={() => window.location.reload()} 
+      />
     )
   }
 
   if (isLoading) {
-    return (
-      <StandardPageContainer>
-        <TasksLoadingState />
-      </StandardPageContainer>
-    )
+    return <TasksLoadingState />
   }
 
   const safeTasks = Array.isArray(tasks) ? tasks : []
 
   return (
-    <StandardPageContainer>
+    <div className="space-y-6">
       <StandardPageHeader
         title="Tareas"
         description="Organiza y gestiona todas las tareas del despacho"
@@ -114,7 +107,7 @@ const Tasks = () => {
         onClose={pageState.closeTaskDialog}
         task={pageState.selectedTask}
       />
-    </StandardPageContainer>
+    </div>
   )
 }
 
