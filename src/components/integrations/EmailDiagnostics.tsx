@@ -13,7 +13,9 @@ import {
   XCircle, 
   Send,
   RefreshCw,
-  Eye
+  Eye,
+  Settings,
+  Bug
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
@@ -21,9 +23,148 @@ import { toast } from 'sonner'
 export function EmailDiagnostics() {
   const [testEmail, setTestEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isDiagnosing, setIsDiagnosing] = useState(false)
   const [lastTestResult, setLastTestResult] = useState<any>(null)
+  const [diagnosticResults, setDiagnosticResults] = useState<any>(null)
   const [invitationLogs, setInvitationLogs] = useState<any[]>([])
   const [showLogs, setShowLogs] = useState(false)
+
+  const runCompleteDiagnostic = async () => {
+    setIsDiagnosing(true)
+    setDiagnosticResults(null)
+    
+    try {
+      console.log('🔍 Iniciando diagnóstico completo de email...')
+      
+      const results = {
+        configTest: null,
+        basicTest: null,
+        invitationTest: null,
+        timestamp: new Date()
+      }
+
+      // Test 1: Verificar configuración básica
+      console.log('🧪 Test 1: Verificación de configuración')
+      try {
+        const { data: configData, error: configError } = await supabase.functions.invoke('send-email', {
+          body: {
+            to: 'test@example.com',
+            subject: 'Config Test',
+            html: '<p>Config test</p>',
+            testMode: true
+          }
+        })
+
+        results.configTest = {
+          success: !configError,
+          data: configData,
+          error: configError
+        }
+        console.log('🧪 Test 1 resultado:', results.configTest)
+      } catch (error) {
+        results.configTest = {
+          success: false,
+          error: error
+        }
+      }
+
+      // Test 2: Envío básico (si se proporciona email)
+      if (testEmail) {
+        console.log('🧪 Test 2: Envío básico')
+        try {
+          const { data: basicData, error: basicError } = await supabase.functions.invoke('send-email', {
+            body: {
+              to: testEmail,
+              subject: 'Test Diagnóstico - CRM Sistema',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <h2>Diagnóstico de Email</h2>
+                  <p>Este es un email de prueba del sistema de diagnóstico.</p>
+                  <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
+                  <p>Si recibes este email, la configuración está funcionando correctamente.</p>
+                </div>
+              `,
+              testMode: false
+            }
+          })
+
+          results.basicTest = {
+            success: !basicError,
+            data: basicData,
+            error: basicError
+          }
+          console.log('🧪 Test 2 resultado:', results.basicTest)
+        } catch (error) {
+          results.basicTest = {
+            success: false,
+            error: error
+          }
+        }
+      }
+
+      // Test 3: Simular envío de invitación
+      if (testEmail) {
+        console.log('🧪 Test 3: Simulación de invitación')
+        try {
+          const invitationUrl = `${window.location.origin}/signup?token=test-token`
+          const invitationHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Invitación de Prueba</h2>
+              <p>Esta es una invitación de prueba del sistema.</p>
+              <div style="margin: 30px 0;">
+                <a href="${invitationUrl}" 
+                   style="background-color: #0061FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                  Enlace de Prueba
+                </a>
+              </div>
+              <p>Fecha de prueba: ${new Date().toLocaleString('es-ES')}</p>
+            </div>
+          `
+
+          const { data: invitationData, error: invitationError } = await supabase.functions.invoke('send-email', {
+            body: {
+              to: testEmail,
+              subject: 'Prueba de Invitación - CRM Sistema',
+              html: invitationHtml,
+              invitationToken: 'test-token'
+            }
+          })
+
+          results.invitationTest = {
+            success: !invitationError,
+            data: invitationData,
+            error: invitationError
+          }
+          console.log('🧪 Test 3 resultado:', results.invitationTest)
+        } catch (error) {
+          results.invitationTest = {
+            success: false,
+            error: error
+          }
+        }
+      }
+
+      setDiagnosticResults(results)
+      console.log('🔍 Diagnóstico completo:', results)
+      
+      // Mostrar resultado general
+      const allPassed = results.configTest?.success && 
+                       (!testEmail || results.basicTest?.success) &&
+                       (!testEmail || results.invitationTest?.success)
+      
+      if (allPassed) {
+        toast.success('Diagnóstico completado - Todo funciona correctamente')
+      } else {
+        toast.warning('Diagnóstico completado - Se encontraron problemas')
+      }
+
+    } catch (error: any) {
+      console.error('❌ Error en diagnóstico:', error)
+      toast.error(`Error en diagnóstico: ${error.message}`)
+    } finally {
+      setIsDiagnosing(false)
+    }
+  }
 
   const runEmailTest = async () => {
     if (!testEmail.trim()) {
@@ -33,24 +174,24 @@ export function EmailDiagnostics() {
 
     setIsLoading(true)
     try {
-      console.log('🔍 Iniciando test de email...')
+      console.log('🔍 Iniciando test de email simple...')
       
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           to: testEmail,
-          subject: 'Test de configuración - CRM Sistema',
+          subject: 'Test Simple - CRM Sistema',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>Test de configuración exitoso</h2>
-              <p>Este es un email de prueba para verificar que la configuración de Resend funciona correctamente.</p>
+              <h2>Test de Email Simple</h2>
+              <p>Este es un test simple del sistema de email.</p>
               <p>Fecha: ${new Date().toLocaleString('es-ES')}</p>
             </div>
           `,
-          testMode: true
+          testMode: false
         }
       })
 
-      console.log('📧 Respuesta del test:', { data, error })
+      console.log('📧 Respuesta del test simple:', { data, error })
 
       if (error) {
         throw error
@@ -58,14 +199,14 @@ export function EmailDiagnostics() {
 
       setLastTestResult({
         success: true,
-        message: 'Test de email exitoso',
+        message: 'Test de email simple exitoso',
         timestamp: new Date(),
         details: data
       })
 
-      toast.success('Test de email exitoso - Revisa tu bandeja de entrada')
+      toast.success('Test de email simple exitoso - Revisa tu bandeja de entrada')
     } catch (error: any) {
-      console.error('❌ Error en test:', error)
+      console.error('❌ Error en test simple:', error)
       
       setLastTestResult({
         success: false,
@@ -74,7 +215,7 @@ export function EmailDiagnostics() {
         details: error
       })
 
-      toast.error(`Error en test: ${error.message}`)
+      toast.error(`Error en test simple: ${error.message}`)
     } finally {
       setIsLoading(false)
     }
@@ -130,10 +271,10 @@ export function EmailDiagnostics() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Diagnóstico de Email
+            Diagnóstico Avanzado de Email
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="test-email">Email de prueba</Label>
             <Input
@@ -146,7 +287,7 @@ export function EmailDiagnostics() {
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Button 
               onClick={runEmailTest}
               disabled={isLoading || !testEmail.trim()}
@@ -160,7 +301,26 @@ export function EmailDiagnostics() {
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
-                  Enviar Test
+                  Test Simple
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={runCompleteDiagnostic}
+              disabled={isDiagnosing}
+              variant="outline"
+              className="border-0.5 border-black rounded-[10px]"
+            >
+              {isDiagnosing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Diagnosticando...
+                </>
+              ) : (
+                <>
+                  <Bug className="h-4 w-4 mr-2" />
+                  Diagnóstico Completo
                 </>
               )}
             </Button>
@@ -175,6 +335,7 @@ export function EmailDiagnostics() {
             </Button>
           </div>
 
+          {/* Resultado de test simple */}
           {lastTestResult && (
             <Alert className={`border-0.5 rounded-[10px] ${
               lastTestResult.success ? 'border-green-300' : 'border-red-300'
@@ -207,9 +368,73 @@ export function EmailDiagnostics() {
               </div>
             </Alert>
           )}
+
+          {/* Resultados de diagnóstico completo */}
+          {diagnosticResults && (
+            <Card className="border-0.5 border-gray-300 rounded-[10px]">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Settings className="h-4 w-4" />
+                  Resultados del Diagnóstico Completo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Test de configuración */}
+                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(diagnosticResults.configTest?.success)}
+                    <div>
+                      <p className="font-medium">Configuración del Servicio</p>
+                      <p className="text-sm text-gray-600">Verificación de API Key y conectividad</p>
+                    </div>
+                  </div>
+                  <Badge className={`${getStatusColor(diagnosticResults.configTest?.success)} text-xs`}>
+                    {diagnosticResults.configTest?.success ? 'OK' : 'Error'}
+                  </Badge>
+                </div>
+
+                {/* Test básico */}
+                {diagnosticResults.basicTest && (
+                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(diagnosticResults.basicTest?.success)}
+                      <div>
+                        <p className="font-medium">Envío Básico</p>
+                        <p className="text-sm text-gray-600">Test de envío real a {testEmail}</p>
+                      </div>
+                    </div>
+                    <Badge className={`${getStatusColor(diagnosticResults.basicTest?.success)} text-xs`}>
+                      {diagnosticResults.basicTest?.success ? 'Enviado' : 'Error'}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Test de invitación */}
+                {diagnosticResults.invitationTest && (
+                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(diagnosticResults.invitationTest?.success)}
+                      <div>
+                        <p className="font-medium">Invitación Simulada</p>
+                        <p className="text-sm text-gray-600">Test de email de invitación completo</p>
+                      </div>
+                    </div>
+                    <Badge className={`${getStatusColor(diagnosticResults.invitationTest?.success)} text-xs`}>
+                      {diagnosticResults.invitationTest?.success ? 'Enviado' : 'Error'}
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="text-xs text-gray-500 pt-2 border-t">
+                  Diagnóstico realizado: {diagnosticResults.timestamp.toLocaleString('es-ES')}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
 
+      {/* Logs de invitaciones */}
       {showLogs && (
         <Card className="border-0.5 border-black rounded-[10px]">
           <CardHeader>
