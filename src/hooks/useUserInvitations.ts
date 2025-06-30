@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -95,54 +94,83 @@ export const useUserInvitations = () => {
 
       if (error) throw error
 
-      // Enviar email de invitación
-      const invitationUrl = `${window.location.origin}/signup?token=${tokenResult}`
-      const emailHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Has sido invitado a unirte a nuestra asesoría</h2>
-          <p>Hola,</p>
-          <p>Has sido invitado por <strong>${user.email}</strong> para unirte a nuestra asesoría con el rol de <strong>${getRoleLabel(role)}</strong>.</p>
-          ${message ? `<p><em>"${message}"</em></p>` : ''}
-          <div style="margin: 30px 0;">
-            <a href="${invitationUrl}" 
-               style="background-color: #0061FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Aceptar Invitación
-            </a>
+      // Enviar email de invitación con mejor manejo de errores
+      try {
+        const invitationUrl = `${window.location.origin}/signup?token=${tokenResult}`
+        const emailHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">Has sido invitado a unirte a nuestra asesoría</h2>
+            <p>Hola,</p>
+            <p>Has sido invitado por <strong>${user.email}</strong> para unirte a nuestra asesoría con el rol de <strong>${getRoleLabel(role)}</strong>.</p>
+            ${message ? `<p><em>"${message}"</em></p>` : ''}
+            <div style="margin: 30px 0;">
+              <a href="${invitationUrl}" 
+                 style="background-color: #0061FF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Aceptar Invitación
+              </a>
+            </div>
+            <p>Este enlace expira el ${new Date(expiresAt).toLocaleDateString('es-ES')}.</p>
+            <p>Si no esperabas esta invitación, puedes ignorar este email.</p>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 12px;">
+              Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+              <a href="${invitationUrl}">${invitationUrl}</a>
+            </p>
           </div>
-          <p>Este enlace expira el ${new Date(expiresAt).toLocaleDateString('es-ES')}.</p>
-          <p>Si no esperabas esta invitación, puedes ignorar este email.</p>
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-          <p style="color: #666; font-size: 12px;">
-            Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
-            <a href="${invitationUrl}">${invitationUrl}</a>
-          </p>
-        </div>
-      `
+        `
 
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-        body: {
-          to: email,
-          subject: 'Invitación para unirte a nuestra asesoría',
-          html: emailHtml,
-          invitationToken: tokenResult
+        console.log('📧 Intentando enviar email de invitación...')
+
+        const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-email', {
+          body: {
+            to: email,
+            subject: 'Invitación para unirte a nuestra asesoría',
+            html: emailHtml,
+            invitationToken: tokenResult
+          }
+        })
+
+        console.log('📧 Respuesta de envío de email:', { emailResponse, emailError })
+
+        if (emailError) {
+          console.error('❌ Error enviando email:', emailError)
+          
+          // Marcar la invitación como creada pero con problemas de envío
+          await supabase
+            .from('user_invitations')
+            .update({ 
+              status: 'pending',
+              // Podríamos agregar un campo para tracking de problemas de envío
+            })
+            .eq('id', invitation.id)
+
+          // No fallar completamente, pero notificar el problema
+          toast.warning(
+            'Invitación creada, pero hubo un problema enviando el email. ' +
+            'Puedes reenviar la invitación o copiar el enlace manualmente.'
+          )
+        } else {
+          console.log('✅ Email enviado exitosamente')
         }
-      })
-
-      if (emailError) {
-        console.error('Error enviando email:', emailError)
-        // No fallar la invitación si el email falla
-        toast.warning('Invitación creada, pero hubo un problema enviando el email')
+      } catch (emailError: any) {
+        console.error('❌ Error crítico enviando email:', emailError)
+        
+        // Incluso si el email falla, la invitación se creó correctamente
+        toast.warning(
+          'Invitación creada, pero no se pudo enviar el email automáticamente. ' +
+          'Puedes copiar el enlace de invitación y enviarlo manualmente.'
+        )
       }
 
       return invitation
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
-      toast.success('Invitación enviada correctamente')
+      toast.success('Invitación procesada correctamente')
     },
     onError: (error: any) => {
-      console.error('Error enviando invitación:', error)
-      toast.error(error.message || 'Error enviando la invitación')
+      console.error('Error procesando invitación:', error)
+      toast.error(error.message || 'Error procesando la invitación')
     },
   })
 
@@ -187,7 +215,7 @@ export const useUserInvitations = () => {
         })
         .eq('id', invitationId)
 
-      // Reenviar email
+      // Reenviar email con mejor manejo de errores
       const invitationUrl = `${window.location.origin}/signup?token=${invitation.token}`
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -204,7 +232,7 @@ export const useUserInvitations = () => {
         </div>
       `
 
-      await supabase.functions.invoke('send-email', {
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
         body: {
           to: invitation.email,
           subject: 'Recordatorio: Invitación pendiente',
@@ -212,12 +240,18 @@ export const useUserInvitations = () => {
           invitationToken: invitation.token
         }
       })
+
+      if (emailError) {
+        console.error('Error reenviando email:', emailError)
+        throw new Error('Error reenviando el email de invitación')
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
       toast.success('Invitación reenviada')
     },
     onError: (error: any) => {
+      console.error('Error reenviando invitación:', error)
       toast.error('Error reenviando la invitación')
     },
   })
