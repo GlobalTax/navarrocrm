@@ -1,19 +1,21 @@
 
-import { SecurityAuditPanel } from '@/components/security/SecurityAuditPanel'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { SecurityAuditPanel } from '@/components/security/SecurityAuditPanel'
+import { Shield } from 'lucide-react'
 
-export default function SecurityAudit() {
+const SecurityAudit = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <StandardPageContainer>
       <StandardPageHeader
         title="Auditoría de Seguridad"
-        description="Monitoreo y gestión de la seguridad del sistema"
+        description="Monitoreo y verificación del estado de seguridad del sistema"
+        icon={Shield}
       />
       
-      <StandardPageContainer>
-        <SecurityAuditPanel />
-      </StandardPageContainer>
-    </div>
+      <SecurityAuditPanel />
+    </StandardPageContainer>
   )
 }
+
+export default SecurityAudit
