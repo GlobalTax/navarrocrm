@@ -19,7 +19,12 @@ export const useUserInvitationsQuery = () => {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data || []
+      
+      // Asegurar que el status coincida con nuestro tipo definido
+      return (data || []).map(invitation => ({
+        ...invitation,
+        status: invitation.status as UserInvitation['status']
+      }))
     },
     enabled: !!user?.org_id,
   })
