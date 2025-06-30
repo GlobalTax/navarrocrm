@@ -1,15 +1,15 @@
 
-import { Badge } from '@/components/ui/badge'
-import { Calendar, Users, CheckSquare, MessageSquare, FileText, User } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { Clock, User, MessageSquare, CheckSquare, Briefcase, UserCheck } from 'lucide-react'
+import { TaskAssignment, TaskSubtask, TaskComment } from '@/hooks/tasks/types'
 
 interface TaskCardMetadataProps {
   dueDate?: string | null
   taskStatus: string
-  assignedUsers?: any[]
-  subtasks?: any[]
-  comments?: any[]
+  assignedUsers: TaskAssignment[]
+  subtasks: TaskSubtask[]
+  comments: TaskComment[]
   caseName?: string | null
   contactName?: string | null
 }
@@ -17,72 +17,78 @@ interface TaskCardMetadataProps {
 export const TaskCardMetadata = ({ 
   dueDate, 
   taskStatus, 
-  assignedUsers = [], 
-  subtasks = [], 
-  comments = [],
-  caseName,
-  contactName
+  assignedUsers, 
+  subtasks, 
+  comments, 
+  caseName, 
+  contactName 
 }: TaskCardMetadataProps) => {
-  const completedSubtasks = subtasks.filter(s => s.completed).length
+  
+  // Calcular estadísticas de subtareas de forma segura
+  const completedSubtasks = subtasks.filter(st => st.completed).length
+  const totalSubtasks = subtasks.length
+  
+  // Verificar si la tarea está vencida
   const isOverdue = dueDate && new Date(dueDate) < new Date() && taskStatus !== 'completed'
 
   return (
-    <div className="mt-3 space-y-2">
+    <div className="space-y-2">
       {/* Fecha de vencimiento */}
       {dueDate && (
-        <div className="flex items-center gap-1 text-xs">
-          <Calendar className="h-3 w-3" />
-          <span className={isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'}>
+        <div className={`flex items-center gap-1 text-xs ${isOverdue ? 'text-red-600' : 'text-gray-500'}`}>
+          <Clock className="h-3 w-3" />
+          <span>
             {format(new Date(dueDate), 'dd MMM yyyy', { locale: es })}
+            {isOverdue && ' (Vencida)'}
           </span>
-          {isOverdue && <Badge variant="destructive" className="text-xs px-1 py-0">Vencida</Badge>}
         </div>
       )}
 
-      {/* Caso y contacto relacionados */}
-      <div className="flex flex-wrap gap-1 text-xs text-gray-500">
-        {caseName && (
-          <div className="flex items-center gap-1">
-            <FileText className="h-3 w-3" />
-            <span className="truncate max-w-[100px]" title={caseName}>{caseName}</span>
-          </div>
-        )}
-        {contactName && (
-          <div className="flex items-center gap-1">
-            <User className="h-3 w-3" />
-            <span className="truncate max-w-[100px]" title={contactName}>{contactName}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Metadatos inferiores */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-gray-500">
-          {/* Usuarios asignados */}
-          {assignedUsers.length > 0 && (
-            <div className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              <span>{assignedUsers.length}</span>
-            </div>
-          )}
-
-          {/* Subtareas */}
-          {subtasks.length > 0 && (
-            <div className="flex items-center gap-1">
-              <CheckSquare className="h-3 w-3" />
-              <span>{completedSubtasks}/{subtasks.length}</span>
-            </div>
-          )}
-
-          {/* Comentarios */}
-          {comments.length > 0 && (
-            <div className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
-              <span>{comments.length}</span>
-            </div>
-          )}
+      {/* Información del caso o contacto */}
+      {caseName && (
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <Briefcase className="h-3 w-3" />
+          <span className="truncate">{caseName}</span>
         </div>
-      </div>
+      )}
+
+      {contactName && (
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <UserCheck className="h-3 w-3" />
+          <span className="truncate">{contactName}</span>
+        </div>
+      )}
+
+      {/* Usuarios asignados */}
+      {assignedUsers.length > 0 && (
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <User className="h-3 w-3" />
+          <span>
+            {assignedUsers.length === 1 
+              ? assignedUsers[0].user?.email || 'Usuario'
+              : `${assignedUsers.length} asignados`
+            }
+          </span>
+        </div>
+      )}
+
+      {/* Progreso de subtareas */}
+      {totalSubtasks > 0 && (
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <CheckSquare className="h-3 w-3" />
+          <span>
+            {completedSubtasks}/{totalSubtasks} subtareas
+          </span>
+        </div>
+      )}
+
+      {/* Número de comentarios */}
+      {comments.length > 0 && (
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <MessageSquare className="h-3 w-3" />
+          <span>{comments.length} comentarios</span>
+        </div>
+      )}
     </div>
   )
 }

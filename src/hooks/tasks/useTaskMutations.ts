@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
-import { TaskInsert, TaskUpdate, TaskSubtaskInsert, TaskSubtaskUpdate } from './types'
+import { TaskInsert, TaskUpdate, TaskSubtaskInsert, TaskSubtaskUpdate, TaskStatus, TaskPriority } from './types'
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient()
@@ -11,12 +11,33 @@ export const useTaskMutations = () => {
     mutationFn: async (taskData: TaskInsert) => {
       console.log('🔄 Creando tarea:', taskData)
       
+      // Validar datos críticos
+      if (!taskData.title?.trim()) {
+        throw new Error('El título de la tarea es obligatorio')
+      }
+      
+      if (!taskData.org_id) {
+        throw new Error('ID de organización requerido')
+      }
+
+      // Asegurar que los enums sean válidos
+      const validStatuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'cancelled']
+      const validPriorities: TaskPriority[] = ['low', 'medium', 'high', 'urgent']
+      
+      if (taskData.status && !validStatuses.includes(taskData.status as TaskStatus)) {
+        taskData.status = 'pending'
+      }
+      
+      if (taskData.priority && !validPriorities.includes(taskData.priority as TaskPriority)) {
+        taskData.priority = 'medium'
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .insert(taskData)
         .select(`
           *,
-          task_assignments:task_assignments!task_assignments_task_id_fkey(
+          task_assignments!task_assignments_task_id_fkey(
             *,
             user:users!task_assignments_user_id_fkey(email, role)
           ),
@@ -28,7 +49,7 @@ export const useTaskMutations = () => {
 
       if (error) {
         console.error('❌ Error creando tarea:', error)
-        throw error
+        throw new Error(`Error al crear la tarea: ${error.message}`)
       }
       
       console.log('✅ Tarea creada:', data)
@@ -38,13 +59,11 @@ export const useTaskMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
       queryClient.invalidateQueries({ queryKey: ['task-stats'] })
       toast.success('Tarea creada exitosamente')
-      
-      // Devolver la tarea creada para poder usarla en asignaciones
       return createdTask
     },
     onError: (error) => {
       console.error('❌ Error creating task:', error)
-      toast.error('Error al crear la tarea')
+      toast.error(error instanceof Error ? error.message : 'Error al crear la tarea')
     },
   })
 
@@ -52,13 +71,29 @@ export const useTaskMutations = () => {
     mutationFn: async ({ id, ...updates }: TaskUpdate & { id: string }) => {
       console.log('🔄 Actualizando tarea:', id, updates)
       
+      if (!id) {
+        throw new Error('ID de tarea requerido para actualización')
+      }
+
+      // Validar enums si están presentes
+      const validStatuses: TaskStatus[] = ['pending', 'in_progress', 'completed', 'cancelled']
+      const validPriorities: TaskPriority[] = ['low', 'medium', 'high', 'urgent']
+      
+      if (updates.status && !validStatuses.includes(updates.status as TaskStatus)) {
+        throw new Error(`Estado inválido: ${updates.status}`)
+      }
+      
+      if (updates.priority && !validPriorities.includes(updates.priority as TaskPriority)) {
+        throw new Error(`Prioridad inválida: ${updates.priority}`)
+      }
+
       const { data, error } = await supabase
         .from('tasks')
         .update(updates)
         .eq('id', id)
         .select(`
           *,
-          task_assignments:task_assignments!task_assignments_task_id_fkey(
+          task_assignments!task_assignments_task_id_fkey(
             *,
             user:users!task_assignments_user_id_fkey(email, role)
           ),
@@ -70,7 +105,7 @@ export const useTaskMutations = () => {
 
       if (error) {
         console.error('❌ Error actualizando tarea:', error)
-        throw error
+        throw new Error(`Error al actualizar la tarea: ${error.message}`)
       }
       
       console.log('✅ Tarea actualizada:', data)
@@ -83,13 +118,17 @@ export const useTaskMutations = () => {
     },
     onError: (error) => {
       console.error('❌ Error updating task:', error)
-      toast.error('Error al actualizar la tarea')
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar la tarea')
     },
   })
 
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: string) => {
       console.log('🔄 Eliminando tarea:', id)
+      
+      if (!id) {
+        throw new Error('ID de tarea requerido para eliminación')
+      }
       
       const { error } = await supabase
         .from('tasks')
@@ -98,7 +137,7 @@ export const useTaskMutations = () => {
 
       if (error) {
         console.error('❌ Error eliminando tarea:', error)
-        throw error
+        throw new Error(`Error al eliminar la tarea: ${error.message}`)
       }
       
       console.log('✅ Tarea eliminada:', id)
@@ -110,13 +149,17 @@ export const useTaskMutations = () => {
     },
     onError: (error) => {
       console.error('❌ Error deleting task:', error)
-      toast.error('Error al eliminar la tarea')
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar la tarea')
     },
   })
 
   const assignTaskMutation = useMutation({
     mutationFn: async ({ taskId, userId, assignedBy }: { taskId: string, userId: string, assignedBy: string }) => {
       console.log('🔄 Asignando tarea:', { taskId, userId, assignedBy })
+      
+      if (!taskId || !userId || !assignedBy) {
+        throw new Error('IDs de tarea, usuario y asignador son requeridos')
+      }
       
       const { data, error } = await supabase
         .from('task_assignments')
@@ -129,7 +172,7 @@ export const useTaskMutations = () => {
 
       if (error) {
         console.error('❌ Error asignando tarea:', error)
-        throw error
+        throw new Error(`Error al asignar la tarea: ${error.message}`)
       }
       
       console.log('✅ Tarea asignada:', data)
@@ -141,20 +184,31 @@ export const useTaskMutations = () => {
     },
     onError: (error) => {
       console.error('❌ Error assigning task:', error)
-      toast.error('Error al asignar la tarea')
+      toast.error(error instanceof Error ? error.message : 'Error al asignar la tarea')
     },
   })
 
-  // Nuevas mutaciones para subtareas
+  // Mutaciones para subtareas con validación mejorada
   const createSubtaskMutation = useMutation({
     mutationFn: async (subtaskData: TaskSubtaskInsert) => {
+      if (!subtaskData.title?.trim()) {
+        throw new Error('El título de la subtarea es obligatorio')
+      }
+      
+      if (!subtaskData.task_id) {
+        throw new Error('ID de tarea padre requerido')
+      }
+
       const { data, error } = await supabase
         .from('task_subtasks')
         .insert(subtaskData)
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        throw new Error(`Error al crear subtarea: ${error.message}`)
+      }
+      
       return data
     },
     onSuccess: () => {
@@ -163,12 +217,16 @@ export const useTaskMutations = () => {
     },
     onError: (error) => {
       console.error('Error creating subtask:', error)
-      toast.error('Error al crear la subtarea')
+      toast.error(error instanceof Error ? error.message : 'Error al crear la subtarea')
     },
   })
 
   const updateSubtaskMutation = useMutation({
     mutationFn: async ({ id, ...updates }: TaskSubtaskUpdate & { id: string }) => {
+      if (!id) {
+        throw new Error('ID de subtarea requerido')
+      }
+
       const { data, error } = await supabase
         .from('task_subtasks')
         .update(updates)
@@ -176,7 +234,10 @@ export const useTaskMutations = () => {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        throw new Error(`Error al actualizar subtarea: ${error.message}`)
+      }
+      
       return data
     },
     onSuccess: () => {
@@ -185,18 +246,24 @@ export const useTaskMutations = () => {
     },
     onError: (error) => {
       console.error('Error updating subtask:', error)
-      toast.error('Error al actualizar la subtarea')
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar la subtarea')
     },
   })
 
   const deleteSubtaskMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (!id) {
+        throw new Error('ID de subtarea requerido')
+      }
+
       const { error } = await supabase
         .from('task_subtasks')
         .delete()
         .eq('id', id)
 
-      if (error) throw error
+      if (error) {
+        throw new Error(`Error al eliminar subtarea: ${error.message}`)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
@@ -204,7 +271,7 @@ export const useTaskMutations = () => {
     },
     onError: (error) => {
       console.error('Error deleting subtask:', error)
-      toast.error('Error al eliminar la subtarea')
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar la subtarea')
     },
   })
 

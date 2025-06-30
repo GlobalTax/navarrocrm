@@ -1,62 +1,29 @@
 
 import { Badge } from '@/components/ui/badge'
+import { STATUS_COLORS, STATUS_LABELS, PRIORITY_COLORS, PRIORITY_LABELS, TaskStatus, TaskPriority } from '@/hooks/tasks/types'
 
 interface TaskCardBadgesProps {
-  priority: string
-  status: string
+  priority: TaskPriority
+  status: TaskStatus
 }
 
 export const TaskCardBadges = ({ priority, status }: TaskCardBadgesProps) => {
-  const getPriorityConfig = (priority: string) => {
-    switch (priority) {
-      case 'high': return { color: 'bg-red-100 text-red-800 border-red-200', label: '🔴 Alta' }
-      case 'medium': return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: '🟡 Media' }
-      case 'low': return { color: 'bg-green-100 text-green-800 border-green-200', label: '🟢 Baja' }
-      default: return { color: 'bg-gray-100 text-gray-800 border-gray-200', label: priority || 'Sin prioridad' }
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    const statusMapping: { [key: string]: string } = {
-      'pending': 'bg-yellow-100 text-yellow-800',
-      'in_progress': 'bg-blue-100 text-blue-800',
-      'completed': 'bg-green-100 text-green-800',
-      'investigation': 'bg-blue-100 text-blue-800',
-      'drafting': 'bg-blue-100 text-blue-800',
-      'review': 'bg-blue-100 text-blue-800',
-      'filing': 'bg-blue-100 text-blue-800',
-      'hearing': 'bg-blue-100 text-blue-800',
-      'cancelled': 'bg-gray-100 text-gray-800'
-    }
-    return statusMapping[status] || 'bg-gray-100 text-gray-800'
-  }
-
-  const getStatusLabel = (status: string) => {
-    const statusLabels: { [key: string]: string } = {
-      'pending': 'Por Hacer',
-      'in_progress': 'En Curso',
-      'completed': 'Completada',
-      'investigation': 'En Curso',
-      'drafting': 'En Curso',
-      'review': 'En Curso',
-      'filing': 'En Curso',
-      'hearing': 'En Curso',
-      'cancelled': 'Cancelada'
-    }
-    return statusLabels[status] || status
-  }
-
-  const priorityConfig = getPriorityConfig(priority)
+  // Validación de datos con fallbacks seguros
+  const safePriority = (priority in PRIORITY_LABELS) ? priority : 'medium'
+  const safeStatus = (status in STATUS_LABELS) ? status : 'pending'
 
   return (
-    <div className="space-y-2 mb-3">
-      <Badge className={`${priorityConfig.color} text-xs`}>
-        {priorityConfig.label}
+    <div className="flex items-center gap-2 mb-3">
+      <Badge 
+        variant="outline" 
+        className={`${STATUS_COLORS[safeStatus]} border-0.5 border-black rounded-[10px]`}
+      >
+        {STATUS_LABELS[safeStatus]}
       </Badge>
       
-      <Badge className={`${getStatusColor(status)} text-xs`}>
-        {getStatusLabel(status)}
-      </Badge>
+      <div className={`text-xs font-medium ${PRIORITY_COLORS[safePriority]}`}>
+        ● {PRIORITY_LABELS[safePriority]}
+      </div>
     </div>
   )
 }

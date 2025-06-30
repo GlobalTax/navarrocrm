@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button'
-import { Edit } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 
 interface TaskCardHeaderProps {
   title: string
@@ -9,9 +9,9 @@ interface TaskCardHeaderProps {
 
 export const TaskCardHeader = ({ title, onEdit }: TaskCardHeaderProps) => {
   return (
-    <div className="flex items-start justify-between mb-3">
-      <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">
-        {title || 'Sin título'}
+    <div className="flex items-start justify-between mb-2">
+      <h4 className="font-medium text-gray-900 flex-1 pr-2 line-clamp-2">
+        {title}
       </h4>
       <Button
         variant="ghost"
@@ -20,9 +20,9 @@ export const TaskCardHeader = ({ title, onEdit }: TaskCardHeaderProps) => {
           e.stopPropagation()
           onEdit()
         }}
-        className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover-lift"
       >
-        <Edit className="h-4 w-4" />
+        <MoreHorizontal className="h-3 w-3" />
       </Button>
     </div>
   )

@@ -7,29 +7,10 @@ export type TaskUpdate = Database['public']['Tables']['tasks']['Update']
 export type TaskAssignment = Database['public']['Tables']['task_assignments']['Row']
 export type TaskComment = Database['public']['Tables']['task_comments']['Row']
 
-// Nuevos tipos para subtareas
-export type TaskSubtask = {
-  id: string
-  task_id: string
-  title: string
-  completed: boolean
-  sort_order: number
-  created_at: string
-  updated_at: string
-}
-
-export type TaskSubtaskInsert = {
-  task_id: string
-  title: string
-  completed?: boolean
-  sort_order?: number
-}
-
-export type TaskSubtaskUpdate = {
-  title?: string
-  completed?: boolean
-  sort_order?: number
-}
+// Tipos para subtareas
+export type TaskSubtask = Database['public']['Tables']['task_subtasks']['Row']
+export type TaskSubtaskInsert = Database['public']['Tables']['task_subtasks']['Insert']
+export type TaskSubtaskUpdate = Database['public']['Tables']['task_subtasks']['Update']
 
 // Tipo extendido de tarea con relaciones
 export type TaskWithRelations = Task & {
@@ -52,31 +33,44 @@ export interface TaskStats {
   high_priority_tasks: number
 }
 
-// Mapeo de estados para compatibilidad
-export const STATUS_MAPPING = {
-  'pendiente': 'pending',
-  'en_progreso': 'in_progress',
-  'completada': 'completed',
-  'cancelada': 'cancelled',
-  'investigacion': 'investigation',
-  'redaccion': 'drafting',
-  'revision': 'review',
-  'presentacion': 'filing',
-  'audiencia': 'hearing'
-} as const
+// Estados válidos exactamente como están en la DB
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
 
-export const PRIORITY_MAPPING = {
-  'critica': 'critical',
-  'urgente': 'urgent',
-  'alta': 'high',
-  'media': 'medium',
-  'baja': 'low'
-} as const
+// Mapeo para UI - solo para mostrar, no para datos
+export const STATUS_LABELS: Record<TaskStatus, string> = {
+  'pending': 'Pendiente',
+  'in_progress': 'En Progreso',
+  'completed': 'Completada',
+  'cancelled': 'Cancelada'
+}
 
-// Tipos para el sistema de drag & drop
+export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  'low': 'Baja',
+  'medium': 'Media',
+  'high': 'Alta',
+  'urgent': 'Urgente'
+}
+
+// Colores consistentes para UI
+export const STATUS_COLORS: Record<TaskStatus, string> = {
+  'pending': 'bg-yellow-100 text-yellow-800',
+  'in_progress': 'bg-blue-100 text-blue-800',
+  'completed': 'bg-green-100 text-green-800',
+  'cancelled': 'bg-gray-100 text-gray-800'
+}
+
+export const PRIORITY_COLORS: Record<TaskPriority, string> = {
+  'low': 'text-green-600',
+  'medium': 'text-yellow-600',
+  'high': 'text-orange-600',
+  'urgent': 'text-red-600'
+}
+
+// Tipos para drag & drop
 export interface DraggedTask {
   id: string
-  status: string
+  status: TaskStatus
   index: number
 }
 
