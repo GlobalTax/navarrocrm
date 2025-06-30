@@ -977,6 +977,7 @@ export type Database = {
           address_street: string | null
           business_sector: string | null
           client_type: string | null
+          company_id: string | null
           contact_preference: string | null
           created_at: string | null
           dni_nif: string | null
@@ -1007,6 +1008,7 @@ export type Database = {
           address_street?: string | null
           business_sector?: string | null
           client_type?: string | null
+          company_id?: string | null
           contact_preference?: string | null
           created_at?: string | null
           dni_nif?: string | null
@@ -1037,6 +1039,7 @@ export type Database = {
           address_street?: string | null
           business_sector?: string | null
           client_type?: string | null
+          company_id?: string | null
           contact_preference?: string | null
           created_at?: string | null
           dni_nif?: string | null
@@ -1066,6 +1069,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]

@@ -2,43 +2,69 @@
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Contact, useContacts } from '@/hooks/useContacts'
+import { Person } from '@/hooks/usePersons'
+import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
 import { ContactsDialogManager } from '@/components/contacts/ContactsDialogManager'
+import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 const Contacts = () => {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isCreatePersonDialogOpen, setIsCreatePersonDialogOpen] = useState(false)
+  const [isEditPersonDialogOpen, setIsEditPersonDialogOpen] = useState(false)
+  const [isCreateCompanyDialogOpen, setIsCreateCompanyDialogOpen] = useState(false)
+  const [isEditCompanyDialogOpen, setIsEditCompanyDialogOpen] = useState(false)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
-  const [activeTab, setActiveTab] = useState('list')
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
+  const [activeTab, setActiveTab] = useState('persons')
 
   const { contacts, refetch } = useContacts()
 
-  const handleCreateContact = () => {
-    setSelectedContact(null)
-    setIsCreateDialogOpen(true)
+  const handleCreatePerson = () => {
+    setSelectedPerson(null)
+    setIsCreatePersonDialogOpen(true)
   }
 
-  const handleEditContact = (contact: Contact) => {
-    setSelectedContact(contact)
-    setIsEditDialogOpen(true)
+  const handleCreateCompany = () => {
+    setSelectedCompany(null)
+    setIsCreateCompanyDialogOpen(true)
   }
 
-  const handleViewContact = (contact: Contact) => {
-    setSelectedContact(contact)
+  const handleEditPerson = (person: Person) => {
+    setSelectedPerson(person)
+    setIsEditPersonDialogOpen(true)
+  }
+
+  const handleEditCompany = (company: Company) => {
+    setSelectedCompany(company)
+    setIsEditCompanyDialogOpen(true)
+  }
+
+  const handleViewPerson = (person: Person) => {
+    setSelectedContact(person as Contact)
+    setIsDetailDialogOpen(true)
+  }
+
+  const handleViewCompany = (company: Company) => {
+    setSelectedContact(company as Contact)
     setIsDetailDialogOpen(true)
   }
 
   const handleDialogClose = () => {
-    setIsCreateDialogOpen(false)
-    setIsEditDialogOpen(false)
+    setIsCreatePersonDialogOpen(false)
+    setIsEditPersonDialogOpen(false)
+    setIsCreateCompanyDialogOpen(false)
+    setIsEditCompanyDialogOpen(false)
     setIsDetailDialogOpen(false)
     setSelectedContact(null)
+    setSelectedPerson(null)
+    setSelectedCompany(null)
+    refetch()
   }
 
   const handleBulkUploadSuccess = () => {
@@ -49,17 +75,16 @@ const Contacts = () => {
     <StandardPageContainer>
       <StandardPageHeader
         title="Contactos"
-        description="Gestiona tu cartera de contactos, prospectos y clientes"
-        primaryAction={{
-          label: 'Nuevo Contacto',
-          onClick: handleCreateContact
-        }}
+        description="Gestiona personas físicas y empresas de tu cartera"
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="list">
-            Gestión de Contactos
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="persons">
+            Personas Físicas
+          </TabsTrigger>
+          <TabsTrigger value="companies">
+            Empresas
           </TabsTrigger>
           <TabsTrigger value="analytics">
             Análisis y Métricas
@@ -68,20 +93,29 @@ const Contacts = () => {
 
         <ContactsTabsContent
           contacts={contacts}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          onCreateContact={handleCreateContact}
-          onViewContact={handleViewContact}
-          onEditContact={handleEditContact}
           onBulkUpload={() => setIsBulkUploadOpen(true)}
           onExport={() => setIsExportDialogOpen(true)}
+          onCreatePerson={handleCreatePerson}
+          onCreateCompany={handleCreateCompany}
+          onViewPerson={handleViewPerson}
+          onEditPerson={handleEditPerson}
+          onViewCompany={handleViewCompany}
+          onEditCompany={handleEditCompany}
         />
       </Tabs>
 
+      {/* Diálogos para Personas Físicas */}
+      <PersonFormDialog
+        person={selectedPerson}
+        open={isCreatePersonDialogOpen || isEditPersonDialogOpen}
+        onClose={handleDialogClose}
+      />
+
+      {/* Diálogos para Empresas - Reutilizamos los existentes */}
       <ContactsDialogManager
         selectedContact={selectedContact}
-        isCreateDialogOpen={isCreateDialogOpen}
-        isEditDialogOpen={isEditDialogOpen}
+        isCreateDialogOpen={isCreateCompanyDialogOpen}
+        isEditDialogOpen={isEditCompanyDialogOpen}
         isDetailDialogOpen={isDetailDialogOpen}
         isBulkUploadOpen={isBulkUploadOpen}
         isExportDialogOpen={isExportDialogOpen}
