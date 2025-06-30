@@ -106,7 +106,7 @@ export const useUserInvitations = () => {
 
         console.log('✅ Invitación creada exitosamente:', invitation)
 
-        // Enviar email de invitación con diagnóstico mejorado
+        // Enviar email de invitación real (SIN testMode)
         try {
           const invitationUrl = `${window.location.origin}/signup?token=${tokenResult}`
           const emailHtml = `
@@ -131,59 +131,32 @@ export const useUserInvitations = () => {
             </div>
           `
 
-          console.log('📧 Preparando envío de email...')
+          console.log('📧 Enviando email de invitación real a:', email)
           console.log('📧 URL de invitación:', invitationUrl)
-          console.log('📧 Destinatario:', email)
 
-          // Probar primero con un test
-          console.log('🧪 Ejecutando test de email...')
-          const { data: testResponse, error: testError } = await supabase.functions.invoke('send-email', {
-            body: {
-              to: email,
-              subject: 'Test de configuración - CRM Sistema',
-              html: '<p>Test de configuración de email</p>',
-              testMode: true
-            }
-          })
-
-          console.log('🧪 Resultado del test:', { testResponse, testError })
-
-          if (testError) {
-            console.error('❌ Test de email falló:', testError)
-            throw new Error(`Test de email falló: ${testError.message}`)
-          }
-
-          // Si el test pasa, enviar el email real
-          console.log('📧 Enviando email de invitación real...')
           const { data: emailResponse, error: emailError } = await supabase.functions.invoke('send-email', {
             body: {
               to: email,
               subject: 'Invitación para unirte a nuestra asesoría',
               html: emailHtml,
-              invitationToken: tokenResult
+              invitationToken: tokenResult,
+              testMode: false // IMPORTANTE: No es modo test
             }
           })
 
-          console.log('📧 Respuesta de email real:', { emailResponse, emailError })
+          console.log('📧 Respuesta del email de invitación:', { emailResponse, emailError })
 
           if (emailError) {
-            console.error('❌ Error enviando email:', emailError)
-            // No fallar completamente, pero informar al usuario
-            toast.warning(
-              'Invitación creada exitosamente, pero hubo un problema enviando el email automáticamente. ' +
-              'Puedes usar el enlace manual desde la tabla de invitaciones.'
-            )
-          } else {
-            console.log('✅ Email enviado correctamente')
-            toast.success('Invitación enviada exitosamente')
+            console.error('❌ Error enviando email de invitación:', emailError)
+            throw new Error(`Error enviando email: ${emailError.message}`)
           }
+
+          console.log('✅ Email de invitación enviado correctamente')
+          toast.success('Invitación enviada exitosamente')
 
         } catch (emailError: any) {
           console.error('❌ Error crítico en envío de email:', emailError)
-          toast.warning(
-            'Invitación creada exitosamente, pero no se pudo enviar el email automáticamente. ' +
-            'El enlace de invitación está disponible en la tabla de invitaciones.'
-          )
+          throw new Error(`Error enviando el email de invitación: ${emailError.message}`)
         }
 
         return invitation
@@ -246,7 +219,7 @@ export const useUserInvitations = () => {
         })
         .eq('id', invitationId)
 
-      // Intentar reenviar email con diagnóstico
+      // Reenviar email con diagnóstico
       try {
         const invitationUrl = `${window.location.origin}/signup?token=${invitation.token}`
         const emailHtml = `
@@ -271,7 +244,8 @@ export const useUserInvitations = () => {
             to: invitation.email,
             subject: 'Recordatorio: Invitación pendiente',
             html: emailHtml,
-            invitationToken: invitation.token
+            invitationToken: invitation.token,
+            testMode: false // IMPORTANTE: No es modo test
           }
         })
 
