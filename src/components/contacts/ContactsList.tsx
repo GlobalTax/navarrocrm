@@ -2,9 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
-import { useContacts, Contact } from '@/hooks/useContacts'
+import { useInfiniteContacts } from '@/hooks/useInfiniteContacts'
+import { Contact } from '@/hooks/useContacts'
 import { ContactFilters } from './ContactFilters'
-import { ContactTable } from './ContactTable'
+import { VirtualizedContactTable } from './VirtualizedContactTable'
 import { ContactEmptyState } from './ContactEmptyState'
 
 interface ContactsListProps {
@@ -14,7 +15,10 @@ interface ContactsListProps {
 
 export const ContactsList = ({ onCreateContact, onEditContact }: ContactsListProps) => {
   const {
-    filteredContacts,
+    contacts,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     error,
     refetch,
@@ -24,7 +28,7 @@ export const ContactsList = ({ onCreateContact, onEditContact }: ContactsListPro
     setStatusFilter,
     relationshipFilter,
     setRelationshipFilter
-  } = useContacts()
+  } = useInfiniteContacts()
 
   const handleRefresh = () => {
     refetch()
@@ -42,7 +46,8 @@ export const ContactsList = ({ onCreateContact, onEditContact }: ContactsListPro
                 Contactos
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                {filteredContacts.length} {filteredContacts.length === 1 ? 'contacto encontrado' : 'contactos encontrados'}
+                {contacts.length} {contacts.length === 1 ? 'contacto cargado' : 'contactos cargados'}
+                {hasNextPage && ' (cargando más según haces scroll)'}
               </p>
             </div>
             {error && (
@@ -89,17 +94,20 @@ export const ContactsList = ({ onCreateContact, onEditContact }: ContactsListPro
             </div>
           )}
           
-          {!error && !isLoading && filteredContacts.length === 0 && (
+          {!error && !isLoading && contacts.length === 0 && (
             <ContactEmptyState
               hasFilters={hasFilters}
               onCreateContact={onCreateContact}
             />
           )}
           
-          {!error && !isLoading && filteredContacts.length > 0 && (
-            <ContactTable
-              contacts={filteredContacts}
+          {!error && !isLoading && contacts.length > 0 && (
+            <VirtualizedContactTable
+              contacts={contacts}
               onEditContact={onEditContact}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
             />
           )}
         </CardContent>

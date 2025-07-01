@@ -2,9 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
-import { usePersons, Person } from '@/hooks/usePersons'
+import { useInfinitePersons } from '@/hooks/useInfinitePersons'
+import { Person } from '@/hooks/usePersons'
 import { PersonsFilters } from './PersonsFilters'
-import { PersonsTable } from './PersonsTable'
+import { VirtualizedPersonsTable } from './VirtualizedPersonsTable'
 import { PersonsEmptyState } from './PersonsEmptyState'
 
 interface PersonsListProps {
@@ -14,7 +15,10 @@ interface PersonsListProps {
 
 export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) => {
   const {
-    filteredPersons,
+    persons,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     error,
     refetch,
@@ -24,7 +28,7 @@ export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) 
     setStatusFilter,
     typeFilter,
     setTypeFilter
-  } = usePersons()
+  } = useInfinitePersons()
 
   const handleRefresh = () => {
     refetch()
@@ -42,7 +46,8 @@ export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) 
                 Personas Físicas
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                {filteredPersons.length} {filteredPersons.length === 1 ? 'persona encontrada' : 'personas encontradas'}
+                {persons.length} {persons.length === 1 ? 'persona cargada' : 'personas cargadas'}
+                {hasNextPage && ' (cargando más según haces scroll)'}
               </p>
             </div>
             {error && (
@@ -89,17 +94,20 @@ export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) 
             </div>
           )}
           
-          {!error && !isLoading && filteredPersons.length === 0 && (
+          {!error && !isLoading && persons.length === 0 && (
             <PersonsEmptyState
               hasFilters={hasFilters}
               onCreatePerson={onCreatePerson}
             />
           )}
           
-          {!error && !isLoading && filteredPersons.length > 0 && (
-            <PersonsTable
-              persons={filteredPersons}
+          {!error && !isLoading && persons.length > 0 && (
+            <VirtualizedPersonsTable
+              persons={persons}
               onEditPerson={onEditPerson}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
             />
           )}
         </CardContent>

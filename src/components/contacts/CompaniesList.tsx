@@ -2,9 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
-import { useCompanies, Company } from '@/hooks/useCompanies'
+import { useInfiniteCompanies } from '@/hooks/useInfiniteCompanies'
+import { Company } from '@/hooks/useCompanies'
 import { CompaniesFilters } from './CompaniesFilters'
-import { CompaniesTable } from './CompaniesTable'
+import { VirtualizedCompaniesTable } from './VirtualizedCompaniesTable'
 import { CompaniesEmptyState } from './CompaniesEmptyState'
 
 interface CompaniesListProps {
@@ -14,7 +15,10 @@ interface CompaniesListProps {
 
 export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListProps) => {
   const {
-    filteredCompanies,
+    companies,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     error,
     refetch,
@@ -24,7 +28,7 @@ export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListP
     setStatusFilter,
     sectorFilter,
     setSectorFilter
-  } = useCompanies()
+  } = useInfiniteCompanies()
 
   const handleRefresh = () => {
     refetch()
@@ -42,7 +46,8 @@ export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListP
                 Empresas
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                {filteredCompanies.length} {filteredCompanies.length === 1 ? 'empresa encontrada' : 'empresas encontradas'}
+                {companies.length} {companies.length === 1 ? 'empresa cargada' : 'empresas cargadas'}
+                {hasNextPage && ' (cargando más según haces scroll)'}
               </p>
             </div>
             {error && (
@@ -89,17 +94,20 @@ export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListP
             </div>
           )}
           
-          {!error && !isLoading && filteredCompanies.length === 0 && (
+          {!error && !isLoading && companies.length === 0 && (
             <CompaniesEmptyState
               hasFilters={hasFilters}
               onCreateCompany={onCreateCompany}
             />
           )}
           
-          {!error && !isLoading && filteredCompanies.length > 0 && (
-            <CompaniesTable
-              companies={filteredCompanies}
+          {!error && !isLoading && companies.length > 0 && (
+            <VirtualizedCompaniesTable
+              companies={companies}
               onEditCompany={onEditCompany}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
             />
           )}
         </CardContent>
