@@ -42,7 +42,7 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
 
     console.log('💰 Total calculado:', totalAmount, 'de', services.length, 'servicios')
 
-    // Preparar datos para la propuesta con campos requeridos
+    // Preparar datos para la propuesta con solo campos que existen en la tabla
     const proposalInsert = {
       org_id: userData.org_id,
       created_by: user.id,
@@ -53,8 +53,6 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
       status: 'draft' as const,
       is_recurring: proposalData.is_recurring || false,
       recurring_frequency: proposalData.recurring_frequency || null,
-      contract_duration_months: proposalData.retainerConfig?.contractDuration || null,
-      payment_terms_days: proposalData.retainerConfig?.paymentTerms || 30,
       auto_renewal: proposalData.retainerConfig?.autoRenewal || false,
       billing_day: proposalData.retainerConfig?.billingDay || 1,
       terms_and_conditions: proposalData.terms || '',
