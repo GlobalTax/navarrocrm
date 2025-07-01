@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAINotifications, useCreateAINotificationConfig, useUpdateAINotificationConfig } from '@/hooks/useAINotifications'
 import { useApp } from '@/contexts/AppContext'
 import { Bell, Mail, Monitor } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function AINotificationSettings() {
   const { user } = useApp()
@@ -27,7 +27,7 @@ export function AINotificationSettings() {
   useEffect(() => {
     if (config) {
       setSettings({
-        notification_type: config.notification_type || 'email',
+        notification_type: (config.notification_type || 'email') as 'email' | 'dashboard' | 'both',
         threshold_cost: config.threshold_cost || 50,
         threshold_failures: config.threshold_failures || 20,
         is_enabled: config.is_enabled ?? true,
