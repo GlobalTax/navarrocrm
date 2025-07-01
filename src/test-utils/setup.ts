@@ -4,7 +4,7 @@ import { beforeAll, afterEach, afterAll, vi } from 'vitest'
 import { server } from './mocks/server'
 
 // Establecer handlers de MSW antes de todas las pruebas
-beforeAll(() => server.listen())
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
 // Resetear handlers después de cada prueba
 afterEach(() => server.resetHandlers())
@@ -33,3 +33,14 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }))
+
+// Mock para IntersectionObserver
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}))
+
+// Mock para URL.createObjectURL
+global.URL.createObjectURL = vi.fn()
+global.URL.revokeObjectURL = vi.fn()

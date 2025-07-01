@@ -60,4 +60,23 @@ describe('useInfiniteContacts', () => {
     expect(result.current.statusFilter).toBe('activo')
     expect(result.current.relationshipFilter).toBe('cliente')
   })
+
+  it('should handle loading states', () => {
+    const { result } = renderHook(() => useInfiniteContacts(), {
+      wrapper: createWrapper()
+    })
+
+    expect(result.current.isLoading).toBe(true)
+    expect(result.current.isFetchingNextPage).toBe(false)
+  })
+
+  it('should provide pagination methods', () => {
+    const { result } = renderHook(() => useInfiniteContacts(), {
+      wrapper: createWrapper()
+    })
+
+    expect(typeof result.current.fetchNextPage).toBe('function')
+    expect(typeof result.current.refetch).toBe('function')
+    expect(result.current.hasNextPage).toBe(false)
+  })
 })

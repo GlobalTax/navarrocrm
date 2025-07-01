@@ -1,19 +1,25 @@
 
-import { render, screen, waitFor } from '@/test-utils/test-helpers'
+import { render, screen, fireEvent, waitFor } from '@/test-utils/test-helpers'
 import { describe, it, expect, vi } from 'vitest'
 import { AIAssistant } from '@/components/ai/AIAssistant'
 
 // Mock para el hook useAIAssistant
 vi.mock('@/hooks/useAIAssistant', () => ({
-  useAIAssistant: () => ({
+  useAIAssistant: vi.fn(() => ({
     messages: [],
     isLoading: false,
     sendMessage: vi.fn(),
     clearMessages: vi.fn()
-  })
+  }))
 }))
 
+const mockUseAIAssistant = vi.mocked(useAIAssistant)
+
 describe('AIAssistant', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('should render chat interface', () => {
     render(<AIAssistant />)
     
@@ -24,26 +30,28 @@ describe('AIAssistant', () => {
   it('should send message when form is submitted', async () => {
     const mockSendMessage = vi.fn()
     
-    vi.mocked(useAIAssistant).mockReturnValue({
+    mockUseAIAssistant.mockReturnValue({
       messages: [],
       isLoading: false,
       sendMessage: mockSendMessage,
       clearMessages: vi.fn()
     })
 
-    const { user } = render(<AIAssistant />)
+    render(<AIAssistant />)
     
     const input = screen.getByPlaceholderText('Escribe tu pregunta aquí...')
     const submitButton = screen.getByText('Enviar')
     
-    await user.type(input, 'Test message')
-    await user.click(submitButton)
+    fireEvent.change(input, { target: { value: 'Test message' } })
+    fireEvent.click(submitButton)
     
-    expect(mockSendMessage).toHaveBeenCalledWith('Test message')
+    await waitFor(() => {
+      expect(mockSendMessage).toHaveBeenCalledWith('Test message')
+    })
   })
 
   it('should display messages', () => {
-    vi.mocked(useAIAssistant).mockReturnValue({
+    mockUseAIAssistant.mockReturnValue({
       messages: [
         { id: '1', content: 'Hello', role: 'user', timestamp: new Date() },
         { id: '2', content: 'Hi there!', role: 'assistant', timestamp: new Date() }
@@ -60,7 +68,7 @@ describe('AIAssistant', () => {
   })
 
   it('should show loading state', () => {
-    vi.mocked(useAIAssistant).mockReturnValue({
+    mockUseAIAssistant.mockReturnValue({
       messages: [],
       isLoading: true,
       sendMessage: vi.fn(),
