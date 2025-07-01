@@ -9,7 +9,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Repeat, FileText } from 'lucide-react'
+import { Repeat, FileText, User } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { OneTimeProposalActions } from './components/OneTimeProposalActions'
 import { RecurringProposalActions } from './components/RecurringProposalActions'
 import { getStatusColor, getStatusLabel, formatCurrency, formatDate } from './utils/proposalFormatters'
@@ -29,6 +30,15 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
   onEditProposal = () => {},
   onDuplicateProposal = () => {}
 }) => {
+  const navigate = useNavigate()
+
+  const handleClientClick = (e: React.MouseEvent, clientId: string) => {
+    e.stopPropagation()
+    if (clientId) {
+      navigate(`/client/${clientId}`)
+    }
+  }
+
   if (proposals.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -70,15 +80,21 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
                 </div>
               </TableCell>
               <TableCell>
-                <div>
-                  <div className="font-medium">
-                    {proposal.client?.name || 'Sin cliente'}
-                  </div>
-                  {proposal.client?.email && (
-                    <div className="text-sm text-gray-500">
-                      {proposal.client.email}
+                <div 
+                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
+                  onClick={(e) => handleClientClick(e, proposal.client?.id)}
+                >
+                  <User className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <div className="font-medium text-blue-600 hover:text-blue-800">
+                      {proposal.client?.name || 'Sin cliente'}
                     </div>
-                  )}
+                    {proposal.client?.email && (
+                      <div className="text-sm text-gray-500">
+                        {proposal.client.email}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
