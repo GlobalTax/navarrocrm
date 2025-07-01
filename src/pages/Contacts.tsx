@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Contact, useContacts } from '@/hooks/useContacts'
@@ -7,6 +6,7 @@ import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
 import { ContactsDialogManager } from '@/components/contacts/ContactsDialogManager'
 import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
+import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
@@ -25,58 +25,15 @@ const Contacts = () => {
 
   const { contacts, refetch } = useContacts()
 
-  const handleCreatePerson = () => {
-    setSelectedPerson(null)
-    setIsCreatePersonDialogOpen(true)
-  }
-
-  const handleCreateCompany = () => {
-    setSelectedCompany(null)
-    setIsCreateCompanyDialogOpen(true)
-  }
-
-  const handleEditPerson = (person: Person) => {
-    setSelectedPerson(person)
-    setIsEditPersonDialogOpen(true)
-  }
-
-  const handleEditCompany = (company: Company) => {
-    setSelectedCompany(company)
-    setIsEditCompanyDialogOpen(true)
-  }
-
-  const handleViewPerson = (person: Person) => {
-    setSelectedContact(person as Contact)
-    setIsDetailDialogOpen(true)
-  }
-
-  const handleViewCompany = (company: Company) => {
-    setSelectedContact(company as Contact)
-    setIsDetailDialogOpen(true)
-  }
-
-  const handleDialogClose = () => {
-    setIsCreatePersonDialogOpen(false)
-    setIsEditPersonDialogOpen(false)
-    setIsCreateCompanyDialogOpen(false)
-    setIsEditCompanyDialogOpen(false)
-    setIsDetailDialogOpen(false)
-    setSelectedContact(null)
-    setSelectedPerson(null)
-    setSelectedCompany(null)
-    refetch()
-  }
-
-  const handleBulkUploadSuccess = () => {
-    refetch()
-  }
-
   return (
     <StandardPageContainer>
       <StandardPageHeader
         title="Contactos"
         description="Gestiona personas físicas y empresas de tu cartera"
       />
+
+      {/* Métricas rápidas */}
+      <ContactQuickMetrics contacts={contacts} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -127,6 +84,52 @@ const Contacts = () => {
       />
     </StandardPageContainer>
   )
+
+  function handleCreatePerson() {
+    setSelectedPerson(null)
+    setIsCreatePersonDialogOpen(true)
+  }
+
+  function handleCreateCompany() {
+    setSelectedCompany(null)
+    setIsCreateCompanyDialogOpen(true)
+  }
+
+  function handleEditPerson(person: Person) {
+    setSelectedPerson(person)
+    setIsEditPersonDialogOpen(true)
+  }
+
+  function handleEditCompany(company: Company) {
+    setSelectedCompany(company)
+    setIsEditCompanyDialogOpen(true)
+  }
+
+  function handleViewPerson(person: Person) {
+    setSelectedContact(person as Contact)
+    setIsDetailDialogOpen(true)
+  }
+
+  function handleViewCompany(company: Company) {
+    setSelectedContact(company as Contact)
+    setIsDetailDialogOpen(true)
+  }
+
+  function handleDialogClose() {
+    setIsCreatePersonDialogOpen(false)
+    setIsEditPersonDialogOpen(false)
+    setIsCreateCompanyDialogOpen(false)
+    setIsEditCompanyDialogOpen(false)
+    setIsDetailDialogOpen(false)
+    setSelectedContact(null)
+    setSelectedPerson(null)
+    setSelectedCompany(null)
+    refetch()
+  }
+
+  function handleBulkUploadSuccess() {
+    refetch()
+  }
 }
 
 export default Contacts

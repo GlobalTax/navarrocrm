@@ -1,6 +1,7 @@
 
 import { ContactMainInfo } from './ContactMainInfo'
 import { ContactAdditionalInfo } from './ContactAdditionalInfo'
+import { ContactAssociationsCard } from './ContactAssociationsCard'
 import { Contact } from '@/hooks/useContacts'
 
 interface ContactOverviewTabProps {
@@ -15,9 +16,10 @@ export const ContactOverviewTab = ({ contact }: ContactOverviewTabProps) => {
         <ContactMainInfo contact={contact} />
       </div>
 
-      {/* Información adicional */}
+      {/* Información adicional y asociaciones */}
       <div className="space-y-6">
         <ContactAdditionalInfo contact={contact} />
+        <ContactAssociationsCard contact={contact} />
       </div>
     </div>
   )

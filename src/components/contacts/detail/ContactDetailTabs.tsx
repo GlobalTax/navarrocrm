@@ -1,8 +1,10 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ContactOverviewTab } from './ContactOverviewTab'
 import { ContactCasesTab } from './ContactCasesTab'
+import { ContactCommunicationsTab } from './ContactCommunicationsTab'
+import { ContactDocumentsTab } from './ContactDocumentsTab'
+import { ContactTimelineTab } from './ContactTimelineTab'
 import { Contact } from '@/hooks/useContacts'
 
 interface CaseForContact {
@@ -49,52 +51,16 @@ export const ContactDetailTabs = ({
         />
       </TabsContent>
 
-      <TabsContent value="communications">
-        <Card>
-          <CardHeader>
-            <CardTitle>Comunicaciones</CardTitle>
-            <CardDescription>
-              Historial de comunicaciones con este contacto
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-gray-500">
-              <p>Funcionalidad de comunicaciones en desarrollo</p>
-            </div>
-          </CardContent>
-        </Card>
+      <TabsContent value="communications" className="space-y-6">
+        <ContactCommunicationsTab contactId={contact.id} />
       </TabsContent>
 
-      <TabsContent value="documents">
-        <Card>
-          <CardHeader>
-            <CardTitle>Documentos</CardTitle>
-            <CardDescription>
-              Documentos asociados a este contacto
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-gray-500">
-              <p>Gestión de documentos en desarrollo</p>
-            </div>
-          </CardContent>
-        </Card>
+      <TabsContent value="documents" className="space-y-6">
+        <ContactDocumentsTab contactId={contact.id} />
       </TabsContent>
 
-      <TabsContent value="timeline">
-        <Card>
-          <CardHeader>
-            <CardTitle>Timeline</CardTitle>
-            <CardDescription>
-              Cronología de actividades y eventos
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-gray-500">
-              <p>Timeline de actividades en desarrollo</p>
-            </div>
-          </CardContent>
-        </Card>
+      <TabsContent value="timeline" className="space-y-6">
+        <ContactTimelineTab contactId={contact.id} />
       </TabsContent>
     </Tabs>
   )
