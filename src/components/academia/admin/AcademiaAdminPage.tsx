@@ -16,6 +16,7 @@ import { useAcademyAdminQueries } from '@/hooks/academy/useAcademyAdminQueries'
 import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
 import { useEnhancedAcademiaAdminState } from '@/hooks/academy/useEnhancedAcademiaAdminState'
 import { toast } from 'sonner'
+import type { AcademyCourse } from '@/types/academy'
 
 export default function AcademiaAdminPage() {
   const { useAllCategories, useAllCourses, useAdminStats } = useAcademyAdminQueries()
@@ -70,8 +71,8 @@ export default function AcademiaAdminPage() {
     }
   }
 
-  const handleViewLessons = (courseId: string, courseTitle: string) => {
-    actions.openLessonsManagementDialog(courseId, courseTitle)
+  const handleViewLessons = (course: AcademyCourse) => {
+    actions.openLessonsManagementDialog(course.id, course.title)
   }
 
   const handleAddLesson = (courseId: string) => {

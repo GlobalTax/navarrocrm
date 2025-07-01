@@ -26,7 +26,7 @@ interface CoursesTableProps {
   courses: Course[]
   onEdit: (course: Course) => void
   onDelete: (courseId: string) => void
-  onViewLessons: (courseId: string) => void
+  onViewLessons: (course: Course) => void
   onAddLesson: (courseId: string) => void
 }
 
@@ -136,7 +136,7 @@ export function CoursesTable({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => onViewLessons(course.id)}
+                    onClick={() => onViewLessons(course)}
                     className="h-8 w-8 p-0"
                   >
                     <Eye className="h-4 w-4" />

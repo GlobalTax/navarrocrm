@@ -8,7 +8,7 @@ interface CoursesSectionProps {
   courses: AcademyCourse[]
   onEdit: (course: AcademyCourse) => void
   onDelete: (courseId: string) => void
-  onViewLessons: (courseId: string) => void
+  onViewLessons: (course: AcademyCourse) => void
   onAddLesson: (courseId: string) => void
   isLoading?: boolean
 }
