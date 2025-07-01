@@ -7,18 +7,20 @@ import { CategoriesSection } from './sections/CategoriesSection'
 import { CourseFormDialog } from './CourseFormDialog'
 import { CategoryFormDialog } from './CategoryFormDialog'
 import { LessonFormDialog } from './LessonFormDialog'
-import { AICourseGeneratorDialog } from './AICourseGeneratorDialog'
+import { LessonsManagementDialog } from './LessonsManagementDialog'
+import { EnhancedAICourseGeneratorDialog } from './EnhancedAICourseGeneratorDialog'
 import { LoadingState } from '../LoadingState'
 import { ErrorState } from '../ErrorState'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAcademyAdminQueries } from '@/hooks/academy/useAcademyAdminQueries'
 import { useAcademyMutations } from '@/hooks/academy/useAcademyMutations'
-import { useAcademiaAdminState } from '@/hooks/academy/useAcademiaAdminState'
+import { useEnhancedAcademiaAdminState } from '@/hooks/academy/useEnhancedAcademiaAdminState'
+import { toast } from 'sonner'
 
 export default function AcademiaAdminPage() {
   const { useAllCategories, useAllCourses, useAdminStats } = useAcademyAdminQueries()
   const { deleteCourse, deleteCategory } = useAcademyMutations()
-  const { state, actions } = useAcademiaAdminState()
+  const { state, actions } = useEnhancedAcademiaAdminState()
 
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useAllCategories()
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useAllCourses()
@@ -40,17 +42,50 @@ export default function AcademiaAdminPage() {
 
   const handleDeleteCourse = async (courseId: string) => {
     if (confirm('¿Estás seguro de que quieres eliminar este curso? Esta acción no se puede deshacer.')) {
-      await deleteCourse.mutateAsync(courseId)
+      try {
+        actions.setDeletingCourse(true)
+        await deleteCourse.mutateAsync(courseId)
+        toast.success('Curso eliminado exitosamente')
+      } catch (error) {
+        console.error('Error deleting course:', error)
+        actions.setError('Error al eliminar el curso')
+      } finally {
+        actions.setDeletingCourse(false)
+      }
     }
   }
 
   const handleDeleteCategory = async (categoryId: string) => {
-    await deleteCategory.mutateAsync(categoryId)
+    if (confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
+      try {
+        actions.setDeletingCategory(true)
+        await deleteCategory.mutateAsync(categoryId)
+        toast.success('Categoría eliminada exitosamente')
+      } catch (error) {
+        console.error('Error deleting category:', error)
+        actions.setError('Error al eliminar la categoría')
+      } finally {
+        actions.setDeletingCategory(false)
+      }
+    }
+  }
+
+  const handleViewLessons = (courseId: string, courseTitle: string) => {
+    actions.openLessonsManagementDialog(courseId, courseTitle)
+  }
+
+  const handleAddLesson = (courseId: string) => {
+    actions.openLessonDialog(courseId)
+  }
+
+  const handleEditLesson = (lesson: any) => {
+    actions.openLessonDialog(lesson.course_id, lesson)
   }
 
   const handleCourseGenerated = (courseId: string) => {
     console.log('Course generated:', courseId)
     actions.closeAIDialog()
+    toast.success('Curso generado exitosamente con IA')
   }
 
   return (
@@ -74,8 +109,8 @@ export default function AcademiaAdminPage() {
             courses={courses || []}
             onEdit={actions.openCourseDialog}
             onDelete={handleDeleteCourse}
-            onViewLessons={(courseId) => console.log('View lessons:', courseId)}
-            onAddLesson={actions.openLessonDialog}
+            onViewLessons={handleViewLessons}
+            onAddLesson={handleAddLesson}
           />
         </TabsContent>
 
@@ -88,7 +123,7 @@ export default function AcademiaAdminPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialogs */}
+      {/* All Dialogs */}
       <CourseFormDialog
         open={state.courseDialogOpen}
         onClose={actions.closeCourseDialog}
@@ -106,13 +141,25 @@ export default function AcademiaAdminPage() {
         open={state.lessonDialogOpen}
         onClose={actions.closeLessonDialog}
         courseId={state.selectedCourseForLesson}
+        lesson={state.selectedLesson}
       />
 
-      <AICourseGeneratorDialog
+      <LessonsManagementDialog
+        open={state.lessonsManagementDialogOpen}
+        onClose={actions.closeLessonsManagementDialog}
+        courseId={state.selectedCourseForManagement?.id || ''}
+        courseTitle={state.selectedCourseForManagement?.title || ''}
+        onEditLesson={handleEditLesson}
+        onCreateLesson={() => handleAddLesson(state.selectedCourseForManagement?.id || '')}
+      />
+
+      <EnhancedAICourseGeneratorDialog
         open={state.aiCourseDialogOpen}
         onClose={actions.closeAIDialog}
         categories={categories || []}
         onCourseGenerated={handleCourseGenerated}
+        isGenerating={state.isGeneratingWithAI}
+        onGeneratingChange={actions.setGeneratingWithAI}
       />
     </StandardPageContainer>
   )

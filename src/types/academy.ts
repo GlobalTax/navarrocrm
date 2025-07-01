@@ -1,4 +1,3 @@
-
 // Tipos centralizados para el módulo de Academia
 export interface AcademyCategory {
   id: string
@@ -36,6 +35,7 @@ export interface AcademyCourse {
 export interface AcademyLesson {
   id: string
   course_id: string
+  org_id: string
   title: string
   content: string
   lesson_type: 'text' | 'interactive' | 'quiz'
@@ -47,7 +47,6 @@ export interface AcademyLesson {
   practical_exercises?: any[]
   created_at: string
   updated_at: string
-  org_id: string
 }
 
 export interface UserProgress {
@@ -88,10 +87,10 @@ export interface LessonFormData {
   content: string
   lesson_type: 'text' | 'interactive' | 'quiz'
   estimated_duration?: number
-  sort_order?: number
+  sort_order: number
   is_published: boolean
-  learning_objectives?: string[]
-  prerequisites?: string[]
+  learning_objectives: string[]
+  prerequisites: string[]
 }
 
 export interface AIGenerationRequest {
