@@ -16,7 +16,7 @@ export function ScheduledReportsManager() {
   const updateReport = useUpdateScheduledReport()
   const deleteReport = useDeleteScheduledReport()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingReport, setEditingReport] = useState(null)
+  const [editingReport, setEditingReport] = useState<any>(null)
 
   const handleToggleEnabled = (reportId: string, isEnabled: boolean) => {
     updateReport.mutate({

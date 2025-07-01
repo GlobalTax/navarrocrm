@@ -3105,6 +3105,59 @@ export type Database = {
           },
         ]
       }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          email_recipients: string[]
+          frequency: string
+          id: string
+          is_enabled: boolean
+          metrics_included: string[]
+          next_send_date: string
+          org_id: string
+          report_name: string
+          report_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_recipients?: string[]
+          frequency?: string
+          id?: string
+          is_enabled?: boolean
+          metrics_included?: string[]
+          next_send_date: string
+          org_id: string
+          report_name: string
+          report_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_recipients?: string[]
+          frequency?: string
+          id?: string
+          is_enabled?: boolean
+          metrics_included?: string[]
+          next_send_date?: string
+          org_id?: string
+          report_name?: string
+          report_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_reports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_catalog: {
         Row: {
           billing_unit: string | null

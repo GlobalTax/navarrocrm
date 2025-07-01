@@ -23,7 +23,7 @@ export const useScheduledReports = () => {
     queryKey: ['scheduled-reports'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('scheduled_reports')
+        .from('scheduled_reports' as any)
         .select('*')
         .order('created_at', { ascending: false })
 
@@ -39,7 +39,7 @@ export const useCreateScheduledReport = () => {
   return useMutation({
     mutationFn: async (config: Omit<ScheduledReportConfig, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('scheduled_reports')
+        .from('scheduled_reports' as any)
         .insert(config)
         .select()
         .single()
@@ -64,7 +64,7 @@ export const useUpdateScheduledReport = () => {
   return useMutation({
     mutationFn: async ({ id, ...config }: ScheduledReportConfig) => {
       const { data, error } = await supabase
-        .from('scheduled_reports')
+        .from('scheduled_reports' as any)
         .update(config)
         .eq('id', id)
         .select()
@@ -90,7 +90,7 @@ export const useDeleteScheduledReport = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('scheduled_reports')
+        .from('scheduled_reports' as any)
         .delete()
         .eq('id', id)
 
