@@ -9,11 +9,10 @@ import { ContactEmptyState } from './ContactEmptyState'
 
 interface ContactsListProps {
   onCreateContact: () => void
-  onViewContact: (contact: Contact) => void
   onEditContact: (contact: Contact) => void
 }
 
-export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: ContactsListProps) => {
+export const ContactsList = ({ onCreateContact, onEditContact }: ContactsListProps) => {
   const {
     filteredContacts,
     isLoading,
@@ -100,7 +99,6 @@ export const ContactsList = ({ onCreateContact, onViewContact, onEditContact }: 
           {!error && !isLoading && filteredContacts.length > 0 && (
             <ContactTable
               contacts={filteredContacts}
-              onViewContact={onViewContact}
               onEditContact={onEditContact}
             />
           )}

@@ -9,11 +9,10 @@ import { CompaniesEmptyState } from './CompaniesEmptyState'
 
 interface CompaniesListProps {
   onCreateCompany: () => void
-  onViewCompany: (company: Company) => void
   onEditCompany: (company: Company) => void
 }
 
-export const CompaniesList = ({ onCreateCompany, onViewCompany, onEditCompany }: CompaniesListProps) => {
+export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListProps) => {
   const {
     filteredCompanies,
     isLoading,
@@ -100,7 +99,6 @@ export const CompaniesList = ({ onCreateCompany, onViewCompany, onEditCompany }:
           {!error && !isLoading && filteredCompanies.length > 0 && (
             <CompaniesTable
               companies={filteredCompanies}
-              onViewCompany={onViewCompany}
               onEditCompany={onEditCompany}
             />
           )}

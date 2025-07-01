@@ -9,11 +9,10 @@ import { PersonsEmptyState } from './PersonsEmptyState'
 
 interface PersonsListProps {
   onCreatePerson: () => void
-  onViewPerson: (person: Person) => void
   onEditPerson: (person: Person) => void
 }
 
-export const PersonsList = ({ onCreatePerson, onViewPerson, onEditPerson }: PersonsListProps) => {
+export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) => {
   const {
     filteredPersons,
     isLoading,
@@ -100,7 +99,6 @@ export const PersonsList = ({ onCreatePerson, onViewPerson, onEditPerson }: Pers
           {!error && !isLoading && filteredPersons.length > 0 && (
             <PersonsTable
               persons={filteredPersons}
-              onViewPerson={onViewPerson}
               onEditPerson={onEditPerson}
             />
           )}
