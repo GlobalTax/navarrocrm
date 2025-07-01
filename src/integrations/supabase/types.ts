@@ -1279,6 +1279,47 @@ export type Database = {
         }
         Relationships: []
       }
+      default_proposal_texts: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          introduction_text: string
+          org_id: string
+          practice_area: string
+          terms_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          introduction_text: string
+          org_id: string
+          practice_area: string
+          terms_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          introduction_text?: string
+          org_id?: string
+          practice_area?: string
+          terms_text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "default_proposal_texts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           color: string | null

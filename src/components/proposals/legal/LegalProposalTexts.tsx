@@ -1,10 +1,12 @@
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { FileText, RotateCcw } from 'lucide-react'
+import { useDefaultProposalTexts } from '@/hooks/useDefaultProposalTexts'
+import { DefaultTextsManager } from './DefaultTextsManager'
 
 interface LegalProposalTextsProps {
   introduction: string
@@ -14,7 +16,7 @@ interface LegalProposalTextsProps {
   practiceArea: string
 }
 
-const getDefaultTexts = (practiceArea: string) => {
+const getHardcodedDefaultTexts = (practiceArea: string) => {
   const defaults = {
     fiscal: {
       introduction: `Estimado cliente,
@@ -64,11 +66,29 @@ export const LegalProposalTexts: React.FC<LegalProposalTextsProps> = ({
   onTermsChange,
   practiceArea
 }) => {
+  const { getDefaultTextsByArea } = useDefaultProposalTexts()
+
   const handleResetTexts = () => {
-    const defaultTexts = getDefaultTexts(practiceArea)
-    onIntroductionChange(defaultTexts.introduction)
-    onTermsChange(defaultTexts.terms)
+    // Primero intentar obtener textos personalizados
+    const customTexts = getDefaultTextsByArea(practiceArea)
+    
+    if (customTexts) {
+      onIntroductionChange(customTexts.introduction_text)
+      onTermsChange(customTexts.terms_text)
+    } else {
+      // Fallback a textos hardcodeados
+      const defaultTexts = getHardcodedDefaultTexts(practiceArea)
+      onIntroductionChange(defaultTexts.introduction)
+      onTermsChange(defaultTexts.terms)
+    }
   }
+
+  // Auto-cargar textos por defecto cuando cambia el área de práctica
+  useEffect(() => {
+    if (practiceArea && (!introduction || !terms)) {
+      handleResetTexts()
+    }
+  }, [practiceArea])
 
   return (
     <div className="space-y-6">
@@ -77,14 +97,17 @@ export const LegalProposalTexts: React.FC<LegalProposalTextsProps> = ({
           <FileText className="h-5 w-5" />
           Contenido de la Propuesta
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleResetTexts}
-        >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Restaurar Textos por Defecto
-        </Button>
+        <div className="flex gap-2">
+          <DefaultTextsManager />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetTexts}
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Restaurar Textos por Defecto
+          </Button>
+        </div>
       </div>
 
       <Card>
