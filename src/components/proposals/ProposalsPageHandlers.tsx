@@ -121,22 +121,24 @@ export const useProposalsPageHandlers = ({
 
   const handleSaveRecurrentProposal = (data: ProposalFormData) => {
     console.log('Handling save recurrent proposal:', data)
+    
+    // Validación de seguridad - verificar que el usuario esté disponible
     if (!user || !user.org_id) {
-      console.error("User or org_id is not available. Cannot save proposal.")
+      console.error("User o org_id no está disponible. No se puede guardar la propuesta.")
       return
     }
     
+    // Preparar datos de propuesta recurrente
     const recurrentProposalData: ProposalFormData = {
       ...data,
       is_recurring: true,
       recurring_frequency: data.recurring_frequency || 'monthly',
     }
     
-    saveRecurrentProposal({
-      proposalData: recurrentProposalData,
-      orgId: user.org_id,
-      userId: user.id,
-    })
+    console.log('Pasando datos directamente al hook:', recurrentProposalData)
+    
+    // Pasar datos directamente al hook - sin wrapper
+    saveRecurrentProposal(recurrentProposalData)
     closeRecurrentBuilder()
   }
 
