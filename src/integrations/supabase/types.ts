@@ -3956,6 +3956,113 @@ export type Database = {
           },
         ]
       }
+      whatsapp_config: {
+        Row: {
+          access_token: string
+          appointment_confirms: boolean
+          auto_reminders: boolean
+          business_account_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          org_id: string
+          phone_number: string
+          updated_at: string
+          webhook_verify_token: string
+        }
+        Insert: {
+          access_token: string
+          appointment_confirms?: boolean
+          auto_reminders?: boolean
+          business_account_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_id: string
+          phone_number: string
+          updated_at?: string
+          webhook_verify_token: string
+        }
+        Update: {
+          access_token?: string
+          appointment_confirms?: boolean
+          auto_reminders?: boolean
+          business_account_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_id?: string
+          phone_number?: string
+          updated_at?: string
+          webhook_verify_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_config_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          contact_id: string | null
+          content: string
+          created_at: string
+          id: string
+          message_type: string
+          org_id: string
+          phone_number: string
+          sent_at: string | null
+          status: string
+          template_name: string | null
+          whatsapp_message_id: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          message_type: string
+          org_id: string
+          phone_number: string
+          sent_at?: string | null
+          status?: string
+          template_name?: string | null
+          whatsapp_message_id?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          org_id?: string
+          phone_number?: string
+          sent_at?: string | null
+          status?: string
+          template_name?: string | null
+          whatsapp_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_executions: {
         Row: {
           created_at: string

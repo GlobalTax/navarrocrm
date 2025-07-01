@@ -47,7 +47,7 @@ export const useWhatsAppIntegration = () => {
         .from('whatsapp_config')
         .select('*')
         .eq('org_id', user.org_id)
-        .single()
+        .maybeSingle()
 
       if (error && error.code !== 'PGRST116') {
         throw error
@@ -110,7 +110,7 @@ export const useWhatsAppIntegration = () => {
         org_id: user.org_id,
         contact_id: contactId,
         phone_number: phoneNumber,
-        message_type: templateName ? 'template' : 'text',
+        message_type: templateName ? 'template' as const : 'text' as const,
         content,
         template_name: templateName,
         status: 'pending' as const,
@@ -149,6 +149,9 @@ export const useWhatsAppIntegration = () => {
 
       if (updateError) throw updateError
 
+      // Actualizar la lista de mensajes local
+      await loadMessages()
+
       return messageRecord
     } catch (err: any) {
       console.error('Error sending WhatsApp message:', err)
@@ -180,16 +183,16 @@ export const useWhatsAppIntegration = () => {
 
   // Estadísticas
   const getStats = () => {
-    const totalSent = messages.filter(m => m.status === 'sent' || m.status === 'delivered').length
-    const totalDelivered = messages.filter(m => m.status === 'delivered').length
+    const totalSent = messages.filter(m => m.status === 'sent' || m.status === 'delivered' || m.status === 'read').length
+    const totalDelivered = messages.filter(m => m.status === 'delivered' || m.status === 'read').length
     const totalRead = messages.filter(m => m.status === 'read').length
-    const deliveryRate = totalSent > 0 ? (totalDelivered / totalSent) * 100 : 0
+    const deliveryRate = totalSent > 0 ? Math.round((totalDelivered / totalSent) * 100) : 0
 
     return {
       totalSent,
       totalDelivered,
       totalRead,
-      deliveryRate: Math.round(deliveryRate)
+      deliveryRate
     }
   }
 

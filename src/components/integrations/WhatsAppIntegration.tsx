@@ -18,47 +18,73 @@ import {
   Clock,
   Users
 } from 'lucide-react'
+import { useWhatsAppIntegration } from '@/hooks/useWhatsAppIntegration'
 
 export function WhatsAppIntegration() {
-  const [isConnected, setIsConnected] = useState(false)
+  const { config, isConnected, saveConfig, sendMessage, getStats } = useWhatsAppIntegration()
   const [phoneNumber, setPhoneNumber] = useState('')
   const [testMessage, setTestMessage] = useState('')
-  const [autoReminders, setAutoReminders] = useState(true)
-  const [appointmentConfirms, setAppointmentConfirms] = useState(true)
+  const [testPhoneNumber, setTestPhoneNumber] = useState('')
+  const [autoReminders, setAutoReminders] = useState(config?.auto_reminders ?? true)
+  const [appointmentConfirms, setAppointmentConfirms] = useState(config?.appointment_confirms ?? true)
 
   const connectionStatus = isConnected ? 'connected' : 'disconnected'
+  const stats = getStats()
 
   const getStatusIcon = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      default:
-        return <AlertTriangle className="h-4 w-4 text-red-600" />
+    if (connectionStatus === 'connected') {
+      return <CheckCircle className="h-4 w-4 text-green-600" />
     }
+    return <AlertTriangle className="h-4 w-4 text-red-600" />
   }
 
   const getStatusColor = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return 'bg-green-50 text-green-700 border-green-200'
-      case 'warning':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      default:
-        return 'bg-red-50 text-red-700 border-red-200'
+    if (connectionStatus === 'connected') {
+      return 'bg-green-50 text-green-700 border-green-200'
+    }
+    return 'bg-red-50 text-red-700 border-red-200'
+  }
+
+  const handleConnect = async () => {
+    try {
+      await saveConfig({
+        phone_number: phoneNumber,
+        business_account_id: 'demo_account',
+        access_token: 'demo_token',
+        webhook_verify_token: 'demo_verify',
+        is_active: true,
+        auto_reminders: autoReminders,
+        appointment_confirms: appointmentConfirms
+      })
+    } catch (error) {
+      console.error('Error connecting:', error)
     }
   }
 
-  const handleConnect = () => {
-    // Aquí iría la lógica de conexión con WhatsApp Business API
-    console.log('Conectando con WhatsApp Business API...')
-    setIsConnected(true)
+  const handleSendTest = async () => {
+    if (!testMessage || !testPhoneNumber) return
+    
+    try {
+      await sendMessage(testPhoneNumber, testMessage)
+      setTestMessage('')
+      setTestPhoneNumber('')
+    } catch (error) {
+      console.error('Error sending test message:', error)
+    }
   }
 
-  const handleSendTest = () => {
-    // Lógica para enviar mensaje de prueba
-    console.log('Enviando mensaje de prueba:', testMessage)
+  const handleToggleReminders = async (enabled: boolean) => {
+    setAutoReminders(enabled)
+    if (config) {
+      await saveConfig({ ...config, auto_reminders: enabled })
+    }
+  }
+
+  const handleToggleConfirms = async (enabled: boolean) => {
+    setAppointmentConfirms(enabled)
+    if (config) {
+      await saveConfig({ ...config, appointment_confirms: enabled })
+    }
   }
 
   return (
@@ -134,7 +160,7 @@ export function WhatsAppIntegration() {
                     </div>
                     <Switch
                       checked={autoReminders}
-                      onCheckedChange={setAutoReminders}
+                      onCheckedChange={handleToggleReminders}
                     />
                   </div>
                   
@@ -145,7 +171,7 @@ export function WhatsAppIntegration() {
                     </div>
                     <Switch
                       checked={appointmentConfirms}
-                      onCheckedChange={setAppointmentConfirms}
+                      onCheckedChange={handleToggleConfirms}
                     />
                   </div>
                 </div>
@@ -204,6 +230,8 @@ export function WhatsAppIntegration() {
                     <Label htmlFor="test-phone">Número de Destino</Label>
                     <Input
                       id="test-phone"
+                      value={testPhoneNumber}
+                      onChange={(e) => setTestPhoneNumber(e.target.value)}
                       placeholder="+34 600 000 000"
                       className="border-0.5 border-black rounded-[10px]"
                     />
@@ -229,7 +257,7 @@ export function WhatsAppIntegration() {
                   <Send className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">247</p>
+                  <p className="text-2xl font-bold">{stats.totalSent}</p>
                   <p className="text-sm text-gray-600">Mensajes Enviados</p>
                 </div>
               </div>
@@ -243,7 +271,7 @@ export function WhatsAppIntegration() {
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">89%</p>
+                  <p className="text-2xl font-bold">{stats.deliveryRate}%</p>
                   <p className="text-sm text-gray-600">Tasa de Entrega</p>
                 </div>
               </div>
@@ -257,8 +285,8 @@ export function WhatsAppIntegration() {
                   <MessageCircle className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">156</p>
-                  <p className="text-sm text-gray-600">Respuestas</p>
+                  <p className="text-2xl font-bold">{stats.totalRead}</p>
+                  <p className="text-sm text-gray-600">Mensajes Leídos</p>
                 </div>
               </div>
             </CardContent>
