@@ -66,8 +66,14 @@ export const useWhatsAppIntegration = () => {
 
     try {
       const payload = {
-        ...configData,
         org_id: user.org_id,
+        phone_number: configData.phone_number || '',
+        business_account_id: configData.business_account_id || '',
+        access_token: configData.access_token || '',
+        webhook_verify_token: configData.webhook_verify_token || '',
+        is_active: configData.is_active ?? false,
+        auto_reminders: configData.auto_reminders ?? true,
+        appointment_confirms: configData.appointment_confirms ?? true,
         updated_at: new Date().toISOString()
       }
 
@@ -80,7 +86,10 @@ export const useWhatsAppIntegration = () => {
             .single()
         : await supabase
             .from('whatsapp_config')
-            .insert([{ ...payload, created_at: new Date().toISOString() }])
+            .insert({
+              ...payload,
+              created_at: new Date().toISOString()
+            })
             .select()
             .single()
 
@@ -108,12 +117,12 @@ export const useWhatsAppIntegration = () => {
       // Crear registro de mensaje
       const messageData = {
         org_id: user.org_id,
-        contact_id: contactId,
+        contact_id: contactId || null,
         phone_number: phoneNumber,
-        message_type: templateName ? 'template' as const : 'text' as const,
+        message_type: (templateName ? 'template' : 'text') as 'text' | 'template' | 'media',
         content,
-        template_name: templateName,
-        status: 'pending' as const,
+        template_name: templateName || null,
+        status: 'pending' as 'pending' | 'sent' | 'delivered' | 'read' | 'failed',
         created_at: new Date().toISOString()
       }
 
@@ -174,7 +183,22 @@ export const useWhatsAppIntegration = () => {
 
       if (error) throw error
 
-      setMessages(data || [])
+      // Convertir los datos de la base de datos al tipo correcto
+      const typedMessages: WhatsAppMessage[] = (data || []).map(msg => ({
+        id: msg.id,
+        org_id: msg.org_id,
+        contact_id: msg.contact_id,
+        phone_number: msg.phone_number,
+        message_type: msg.message_type as 'text' | 'template' | 'media',
+        content: msg.content,
+        template_name: msg.template_name,
+        status: msg.status as 'pending' | 'sent' | 'delivered' | 'read' | 'failed',
+        whatsapp_message_id: msg.whatsapp_message_id,
+        created_at: msg.created_at,
+        sent_at: msg.sent_at
+      }))
+
+      setMessages(typedMessages)
     } catch (err: any) {
       console.error('Error loading WhatsApp messages:', err)
       setError(err.message)
