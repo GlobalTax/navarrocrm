@@ -255,6 +255,97 @@ export type Database = {
           },
         ]
       }
+      ai_alert_notifications: {
+        Row: {
+          alert_data: Json | null
+          alert_type: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          org_id: string
+          severity: string
+          user_id: string
+        }
+        Insert: {
+          alert_data?: Json | null
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          org_id: string
+          severity?: string
+          user_id: string
+        }
+        Update: {
+          alert_data?: Json | null
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          org_id?: string
+          severity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_alert_notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_notification_configs: {
+        Row: {
+          created_at: string
+          email_address: string | null
+          id: string
+          is_enabled: boolean
+          notification_type: string
+          org_id: string
+          threshold_cost: number
+          threshold_failures: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_address?: string | null
+          id?: string
+          is_enabled?: boolean
+          notification_type?: string
+          org_id: string
+          threshold_cost?: number
+          threshold_failures?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_address?: string | null
+          id?: string
+          is_enabled?: boolean
+          notification_type?: string
+          org_id?: string
+          threshold_cost?: number
+          threshold_failures?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_notification_configs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_usage_logs: {
         Row: {
           completion_tokens: number | null

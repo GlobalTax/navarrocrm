@@ -20,16 +20,21 @@ export const useAINotifications = () => {
   return useQuery({
     queryKey: ['ai-notifications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ai_notification_configs')
-        .select('*')
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('ai_notification_configs' as any)
+          .select('*')
+          .single()
 
-      if (error && error.code !== 'PGRST116') {
-        throw error
+        if (error && error.code !== 'PGRST116') {
+          throw error
+        }
+        
+        return data as AINotificationConfig | null
+      } catch (error) {
+        console.log('No existing configuration found, will create new one')
+        return null
       }
-      
-      return data
     }
   })
 }
@@ -38,13 +43,13 @@ export const useCreateAINotificationConfig = () => {
   return useMutation({
     mutationFn: async (config: Omit<AINotificationConfig, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ai_notification_configs')
+        .from('ai_notification_configs' as any)
         .insert(config)
         .select()
         .single()
 
       if (error) throw error
-      return data
+      return data as AINotificationConfig
     },
     onSuccess: () => {
       toast.success('Configuración de alertas guardada')
@@ -60,14 +65,14 @@ export const useUpdateAINotificationConfig = () => {
   return useMutation({
     mutationFn: async ({ id, ...config }: AINotificationConfig) => {
       const { data, error } = await supabase
-        .from('ai_notification_configs')
+        .from('ai_notification_configs' as any)
         .update(config)
         .eq('id', id)
         .select()
         .single()
 
       if (error) throw error
-      return data
+      return data as AINotificationConfig
     },
     onSuccess: () => {
       toast.success('Configuración actualizada')

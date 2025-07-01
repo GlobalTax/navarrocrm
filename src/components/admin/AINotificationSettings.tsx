@@ -17,7 +17,7 @@ export function AINotificationSettings() {
   const updateConfig = useUpdateAINotificationConfig()
 
   const [settings, setSettings] = useState({
-    notification_type: config?.notification_type || 'email',
+    notification_type: (config?.notification_type || 'email') as 'email' | 'dashboard' | 'both',
     threshold_cost: config?.threshold_cost || 50,
     threshold_failures: config?.threshold_failures || 20,
     is_enabled: config?.is_enabled ?? true,
