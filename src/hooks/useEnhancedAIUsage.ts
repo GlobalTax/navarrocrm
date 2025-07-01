@@ -34,6 +34,11 @@ export interface EnhancedAIUsageStats extends AIUsageStats {
   }>
 }
 
+interface AIUsageLogWithRelations extends AIUsageLog {
+  organizations?: { name: string } | null
+  users?: { email: string } | null
+}
+
 export const useEnhancedAIUsage = (months: number = 6) => {
   return useQuery({
     queryKey: ['enhanced-ai-usage', months],
@@ -41,41 +46,52 @@ export const useEnhancedAIUsage = (months: number = 6) => {
       const endDate = new Date()
       const startDate = subMonths(endDate, months)
 
-      // Obtener logs con información de usuarios
-      const { data: logs, error } = await supabase
+      // Obtener logs básicos primero
+      const { data: basicLogs, error: basicError } = await supabase
         .from('ai_usage_logs')
-        .select(`
-          *,
-          organizations!inner(name),
-          users!inner(email)
-        `)
+        .select('*')
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString())
         .order('created_at', { ascending: false })
 
-      if (error) {
-        throw new Error(`Error fetching enhanced AI usage: ${error.message}`)
+      if (basicError) {
+        throw new Error(`Error fetching AI usage logs: ${basicError.message}`)
       }
 
-      const typedLogs = (logs || []) as (AIUsageLog & { 
-        organizations: { name: string }
-        users: { email: string }
-      })[]
+      // Obtener información adicional por separado para evitar errores de JOIN
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('id, name')
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, email')
+
+      // Crear mapas para relaciones
+      const orgMap = new Map(orgData?.map(org => [org.id, org]) || [])
+      const userMap = new Map(userData?.map(user => [user.id, user]) || [])
+
+      // Combinar datos manualmente
+      const logsWithRelations: AIUsageLogWithRelations[] = (basicLogs || []).map(log => ({
+        ...log,
+        organizations: orgMap.get(log.org_id) || null,
+        users: userMap.get(log.user_id) || null
+      }))
 
       // Calcular estadísticas básicas
-      const basicStats = calculateBasicStats(typedLogs)
+      const basicStats = calculateBasicStats(logsWithRelations)
       
       // Calcular tendencias mensuales
-      const monthlyTrends = calculateMonthlyTrends(typedLogs, months)
+      const monthlyTrends = calculateMonthlyTrends(logsWithRelations, months)
       
       // Top usuarios
-      const topUsers = calculateTopUsers(typedLogs)
+      const topUsers = calculateTopUsers(logsWithRelations)
       
       // Rendimiento por modelo
-      const modelPerformance = calculateModelPerformance(typedLogs)
+      const modelPerformance = calculateModelPerformance(logsWithRelations)
       
       // Detectar anomalías
-      const anomalies = detectAnomalies(typedLogs, monthlyTrends)
+      const anomalies = detectAnomalies(logsWithRelations, monthlyTrends)
 
       return {
         ...basicStats,
@@ -90,7 +106,7 @@ export const useEnhancedAIUsage = (months: number = 6) => {
   })
 }
 
-function calculateBasicStats(logs: any[]): AIUsageStats {
+function calculateBasicStats(logs: AIUsageLogWithRelations[]): AIUsageStats {
   const totalCalls = logs.length
   const totalTokens = logs.reduce((sum, log) => sum + (log.total_tokens || 0), 0)
   const totalCost = logs.reduce((sum, log) => sum + (log.estimated_cost || 0), 0)
@@ -121,7 +137,7 @@ function calculateBasicStats(logs: any[]): AIUsageStats {
   }
 }
 
-function calculateMonthlyTrends(logs: any[], months: number) {
+function calculateMonthlyTrends(logs: AIUsageLogWithRelations[], months: number) {
   const trends = []
   
   for (let i = months - 1; i >= 0; i--) {
@@ -152,7 +168,7 @@ function calculateMonthlyTrends(logs: any[], months: number) {
   return trends
 }
 
-function calculateTopUsers(logs: any[]) {
+function calculateTopUsers(logs: AIUsageLogWithRelations[]) {
   const userStats: Record<string, any> = {}
   
   logs.forEach(log => {
@@ -179,7 +195,7 @@ function calculateTopUsers(logs: any[]) {
     .slice(0, 10)
 }
 
-function calculateModelPerformance(logs: any[]) {
+function calculateModelPerformance(logs: AIUsageLogWithRelations[]) {
   const modelStats: Record<string, any> = {}
   
   logs.forEach(log => {
@@ -213,7 +229,7 @@ function calculateModelPerformance(logs: any[]) {
   }))
 }
 
-function detectAnomalies(logs: any[], trends: any[]) {
+function detectAnomalies(logs: AIUsageLogWithRelations[], trends: any[]) {
   const anomalies = []
   
   // Detectar picos de costo
