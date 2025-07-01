@@ -157,7 +157,13 @@ export function ScheduledReportFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-2xl max-h-[80vh] overflow-y-auto" 
+        style={{ 
+          border: '0.5px solid black', 
+          borderRadius: '10px' 
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {report ? 'Editar Reporte' : 'Nuevo Reporte Programado'}
@@ -177,6 +183,7 @@ export function ScheduledReportFormDialog({
                 value={formData.report_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, report_name: e.target.value }))}
                 placeholder="Ej: Reporte Semanal de Productividad"
+                style={{ border: '0.5px solid black', borderRadius: '10px' }}
               />
             </div>
 
@@ -191,7 +198,7 @@ export function ScheduledReportFormDialog({
                     metrics_included: [] // Reset metrics when type changes
                   }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger style={{ border: '0.5px solid black', borderRadius: '10px' }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,7 +216,7 @@ export function ScheduledReportFormDialog({
                   value={formData.frequency}
                   onValueChange={(value: any) => setFormData(prev => ({ ...prev, frequency: value }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger style={{ border: '0.5px solid black', borderRadius: '10px' }}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -231,14 +238,24 @@ export function ScheduledReportFormDialog({
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="email@ejemplo.com"
                 onKeyPress={(e) => e.key === 'Enter' && handleAddEmail()}
+                style={{ border: '0.5px solid black', borderRadius: '10px' }}
               />
-              <Button type="button" onClick={handleAddEmail}>
+              <Button 
+                type="button" 
+                onClick={handleAddEmail}
+                style={{ border: '0.5px solid black', borderRadius: '10px' }}
+              >
                 Añadir
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               {formData.email_recipients.map((email) => (
-                <Badge key={email} variant="secondary" className="pr-1">
+                <Badge 
+                  key={email} 
+                  variant="secondary" 
+                  className="pr-1"
+                  style={{ border: '0.5px solid black', borderRadius: '10px' }}
+                >
                   {email}
                   <button
                     onClick={() => handleRemoveEmail(email)}
@@ -271,12 +288,17 @@ export function ScheduledReportFormDialog({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              style={{ border: '0.5px solid black', borderRadius: '10px' }}
+            >
               Cancelar
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={!isValid || createReport.isPending || updateReport.isPending}
+              style={{ border: '0.5px solid black', borderRadius: '10px' }}
             >
               {createReport.isPending || updateReport.isPending ? 'Guardando...' : 
                report ? 'Actualizar' : 'Crear Reporte'}

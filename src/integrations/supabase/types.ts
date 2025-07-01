@@ -4524,6 +4524,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      process_scheduled_reports: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       sincronizar_cuentas_quantum: {
         Args: Record<PropertyKey, never>
         Returns: string
