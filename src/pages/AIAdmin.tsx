@@ -1,4 +1,3 @@
-
 import { AIUsageStatsCards, AIUsageByOrgCard } from '@/components/admin/AIUsageStats'
 import { AIUsageTable } from '@/components/admin/AIUsageTable'
 import { EnhancedAIAdminAlerts } from '@/components/admin/EnhancedAIAdminAlerts'
@@ -14,6 +13,8 @@ import { Button } from '@/components/ui/button'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { AINotificationSettings } from '@/components/admin/AINotificationSettings'
 
 export default function AIAdmin() {
   const {
@@ -24,6 +25,8 @@ export default function AIAdmin() {
     enhancedData,
     isLoadingUsage
   } = useAIAdminData()
+
+  const [showSettings, setShowSettings] = useState(false)
 
   // Verificar permisos
   if (isLoadingRoles) {
@@ -118,7 +121,7 @@ export default function AIAdmin() {
       />
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">
             Resumen
           </TabsTrigger>
@@ -133,6 +136,9 @@ export default function AIAdmin() {
           </TabsTrigger>
           <TabsTrigger value="alerts">
             Alertas
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            Configuración
           </TabsTrigger>
           <TabsTrigger value="logs">
             Logs
@@ -171,7 +177,12 @@ export default function AIAdmin() {
           <EnhancedAIAdminAlerts 
             stats={stats}
             isLoading={isLoadingUsage}
+            onOpenSettings={() => setShowSettings(true)}
           />
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <AINotificationSettings />
         </TabsContent>
 
         <TabsContent value="logs" className="space-y-6">

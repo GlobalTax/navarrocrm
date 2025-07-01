@@ -2,15 +2,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, DollarSign, TrendingDown, Activity } from 'lucide-react'
+import { AlertTriangle, DollarSign, TrendingDown, Activity, Settings } from 'lucide-react'
 import { EnhancedAIUsageStats } from '@/hooks/useEnhancedAIUsage'
+import { useAutoAIAlerts } from '@/hooks/useAIAlertTrigger'
+import { useApp } from '@/contexts/AppContext'
+import { useEffect } from 'react'
 
 interface EnhancedAIAdminAlertsProps {
   stats: EnhancedAIUsageStats
   isLoading: boolean
+  onOpenSettings?: () => void
 }
 
-export function EnhancedAIAdminAlerts({ stats, isLoading }: EnhancedAIAdminAlertsProps) {
+export function EnhancedAIAdminAlerts({ stats, isLoading, onOpenSettings }: EnhancedAIAdminAlertsProps) {
+  const { user } = useApp()
+  const { checkAndTriggerAlerts } = useAutoAIAlerts(stats, user?.org_id || '')
+
+  // Verificar y triggear alertas cuando cambien las estadísticas
+  useEffect(() => {
+    if (stats.anomalies && stats.anomalies.length > 0) {
+      checkAndTriggerAlerts()
+    }
+  }, [stats.anomalies, checkAndTriggerAlerts])
+
   if (isLoading) {
     return (
       <Card>
@@ -56,16 +70,24 @@ export function EnhancedAIAdminAlerts({ stats, isLoading }: EnhancedAIAdminAlert
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-600" />
             Alertas Inteligentes
+            {totalAlerts > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {totalAlerts}
+              </Badge>
+            )}
           </CardTitle>
           <CardDescription>
             {totalAlerts} alertas detectadas, {criticalAlerts.length} críticas
           </CardDescription>
         </div>
-        {totalAlerts > 0 && (
-          <Button variant="outline" size="sm">
-            Configurar Alertas
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {onOpenSettings && (
+            <Button variant="outline" size="sm" onClick={onOpenSettings}>
+              <Settings className="h-4 w-4 mr-2" />
+              Configurar
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {stats.anomalies.length === 0 ? (
@@ -96,6 +118,9 @@ export function EnhancedAIAdminAlerts({ stats, isLoading }: EnhancedAIAdminAlert
                     </span>
                   </div>
                   <p className="text-sm font-medium">{anomaly.message}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Se han enviado las notificaciones configuradas automáticamente
+                  </p>
                 </div>
               </div>
             )
