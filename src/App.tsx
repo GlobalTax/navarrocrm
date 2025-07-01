@@ -1,42 +1,48 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { AppProvider } from '@/contexts/AppContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
+import { PageLoadingSkeleton } from '@/components/layout/PageLoadingSkeleton'
 
-// Import pages
+// Páginas críticas cargadas estáticamente (no lazy)
 import Index from '@/pages/Index'
 import Login from '@/pages/Login'
 import Setup from '@/pages/Setup'
-import Dashboard from '@/pages/Dashboard'
-import Contacts from '@/pages/Contacts'
-import ContactDetail from '@/pages/ContactDetail'
-import ClientDetail from '@/pages/ClientDetail'
-import Cases from '@/pages/Cases'
-import CaseDetail from '@/pages/CaseDetail'
-import Proposals from '@/pages/Proposals'
-import Tasks from '@/pages/Tasks'
-import TimeTracking from '@/pages/TimeTracking'
-import Calendar from '@/pages/Calendar'
-import Documents from '@/pages/Documents'
-import Users from '@/pages/Users'
-import Academia from '@/pages/Academia'
-import AIAdmin from '@/pages/AIAdmin'
-import Workflows from '@/pages/Workflows'
-import RecurrentFees from '@/pages/RecurrentFees'
-import AdvancedAI from '@/pages/AdvancedAI'
-import IntegrationSettings from '@/pages/IntegrationSettings'
 import Unauthorized from '@/pages/Unauthorized'
-import IntelligentDashboard from '@/pages/IntelligentDashboard'
 import NotFound from '@/pages/NotFound'
-import Reports from '@/pages/Reports'
-import SecurityAudit from '@/pages/SecurityAudit'
-import Clients from '@/pages/Clients'
-import AcademiaAdmin from '@/pages/AcademiaAdmin'
-import Rooms from '@/pages/Rooms'
-import RoomDisplay from '@/pages/RoomDisplay'
+
+// Lazy load para páginas principales
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Contacts = lazy(() => import('@/pages/Contacts'))
+const ContactDetail = lazy(() => import('@/pages/ContactDetail'))
+const ClientDetail = lazy(() => import('@/pages/ClientDetail'))
+const Cases = lazy(() => import('@/pages/Cases'))
+const CaseDetail = lazy(() => import('@/pages/CaseDetail'))
+const Proposals = lazy(() => import('@/pages/Proposals'))
+const Tasks = lazy(() => import('@/pages/Tasks'))
+const TimeTracking = lazy(() => import('@/pages/TimeTracking'))
+const Calendar = lazy(() => import('@/pages/Calendar'))
+const Documents = lazy(() => import('@/pages/Documents'))
+const Users = lazy(() => import('@/pages/Users'))
+const Academia = lazy(() => import('@/pages/Academia'))
+const AIAdmin = lazy(() => import('@/pages/AIAdmin'))
+const Workflows = lazy(() => import('@/pages/Workflows'))
+const RecurrentFees = lazy(() => import('@/pages/RecurrentFees'))
+const AdvancedAI = lazy(() => import('@/pages/AdvancedAI'))
+const IntegrationSettings = lazy(() => import('@/pages/IntegrationSettings'))
+const IntelligentDashboard = lazy(() => import('@/pages/IntelligentDashboard'))
+const Reports = lazy(() => import('@/pages/Reports'))
+const SecurityAudit = lazy(() => import('@/pages/SecurityAudit'))
+const Clients = lazy(() => import('@/pages/Clients'))
+const AcademiaAdmin = lazy(() => import('@/pages/AcademiaAdmin'))
+const Rooms = lazy(() => import('@/pages/Rooms'))
+const RoomDisplay = lazy(() => import('@/pages/RoomDisplay'))
+
+// Página pública - no necesita lazy loading por su naturaleza crítica
 import RoomOccupancyPanel from '@/pages/RoomOccupancyPanel'
 
 const queryClient = new QueryClient({
@@ -56,44 +62,224 @@ function App() {
         <Router>
           <div className="min-h-screen bg-gray-50">
             <Routes>
-              {/* Ruta pública para el panel de ocupación */}
+              {/* Ruta pública para el panel de ocupación - no lazy */}
               <Route path="/panel-ocupacion" element={<RoomOccupancyPanel />} />
               
+              {/* Rutas de auth - no lazy para experiencia crítica */}
               <Route path="/login" element={<Login />} />
               <Route path="/setup" element={<Setup />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
               <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                 <Route element={<MainLayout><Outlet /></MainLayout>}>
+                  {/* Ruta index - no lazy */}
                   <Route path="/" element={<Index />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/contacts" element={<Contacts />} />
-                  <Route path="/contacts/:id" element={<ContactDetail />} />
-                  <Route path="/clients" element={<Clients />} />
-                  <Route path="/client/:id" element={<ClientDetail />} />
-                  <Route path="/cases" element={<Cases />} />
-                  <Route path="/cases/:id" element={<CaseDetail />} />
-                  <Route path="/proposals" element={<Proposals />} />
-                  <Route path="/tasks" element={<Tasks />} />
-                  <Route path="/time-tracking" element={<TimeTracking />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/rooms" element={<Rooms />} />
-                  <Route path="/rooms/:roomId/display" element={<RoomDisplay />} />
-                  <Route path="/documents" element={<Documents />} />
-                  <Route path="/users" element={<Users />} />
-                  <Route path="/integrations" element={<IntegrationSettings />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/workflows" element={<Workflows />} />
-                  <Route path="/academia" element={<Academia />} />
-                  <Route path="/academia/admin" element={<AcademiaAdmin />} />
-                  <Route path="/ai-assistant" element={<AdvancedAI />} />
-                  <Route path="/ai-admin" element={<AIAdmin />} />
-                  <Route path="/dashboard-intelligent" element={<IntelligentDashboard />} />
-                  <Route path="/security-audit" element={<SecurityAudit />} />
-                  <Route path="/recurring-fees" element={<RecurrentFees />} />
+                  
+                  {/* Todas las rutas principales con lazy loading */}
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Dashboard />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/contacts" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Contacts />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/contacts/:id" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <ContactDetail />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/clients" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Clients />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/client/:id" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <ClientDetail />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/cases" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Cases />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/cases/:id" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <CaseDetail />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/proposals" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Proposals />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/tasks" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Tasks />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/time-tracking" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <TimeTracking />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/calendar" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Calendar />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/rooms" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Rooms />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/rooms/:roomId/display" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <RoomDisplay />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/documents" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Documents />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/users" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Users />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/integrations" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <IntegrationSettings />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/reports" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Reports />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/workflows" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Workflows />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/academia" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Academia />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/academia/admin" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <AcademiaAdmin />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/ai-assistant" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <AdvancedAI />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/ai-admin" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <AIAdmin />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/dashboard-intelligent" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <IntelligentDashboard />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/security-audit" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <SecurityAudit />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/recurring-fees" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <RecurrentFees />
+                      </Suspense>
+                    } 
+                  />
                 </Route>
               </Route>
               
+              {/* 404 - no lazy */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
