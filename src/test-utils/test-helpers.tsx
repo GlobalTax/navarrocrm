@@ -1,5 +1,4 @@
 
-
 import React from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { screen, fireEvent, waitFor } from '@testing-library/dom'
@@ -38,4 +37,3 @@ export { customRender as render, screen, fireEvent, waitFor }
 
 // También exportar todo lo demás de testing library
 export * from '@testing-library/react'
-
