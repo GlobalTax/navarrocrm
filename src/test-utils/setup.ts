@@ -1,6 +1,6 @@
 
 import '@testing-library/jest-dom'
-import { beforeAll, afterEach, afterAll } from 'vitest'
+import { beforeAll, afterEach, afterAll, vi } from 'vitest'
 import { server } from './mocks/server'
 
 // Establecer handlers de MSW antes de todas las pruebas
