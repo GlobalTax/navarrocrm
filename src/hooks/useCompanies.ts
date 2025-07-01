@@ -1,9 +1,9 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { Contact } from '@/hooks/useContacts'
+import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
 
 export interface Company extends Contact {
   client_type: 'empresa'
@@ -70,6 +70,7 @@ export const useCompanies = () => {
               ...company,
               client_type: 'empresa' as const,
               relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+              email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
               primary_contact: contactsData?.[0] || null,
               total_contacts: totalContacts || 0
             }
@@ -79,6 +80,7 @@ export const useCompanies = () => {
               ...company,
               client_type: 'empresa' as const,
               relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+              email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
               primary_contact: null,
               total_contacts: 0
             }

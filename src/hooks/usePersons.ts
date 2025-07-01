@@ -1,9 +1,9 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { Contact } from '@/hooks/useContacts'
+import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
 
 export interface Person extends Contact {
   client_type: 'particular' | 'autonomo'
@@ -54,6 +54,7 @@ export const usePersons = () => {
         ...person,
         client_type: (person.client_type as 'particular' | 'autonomo') || 'particular',
         relationship_type: (person.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+        email_preferences: parseEmailPreferences(person.email_preferences) || defaultEmailPreferences,
         company: person.company ? {
           id: person.company.id,
           name: person.company.name

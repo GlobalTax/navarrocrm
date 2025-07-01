@@ -1,8 +1,8 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
+import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
 
 export interface Contact {
   id: string
@@ -69,10 +69,11 @@ export const useContacts = () => {
       
       console.log('✅ Contacts fetched:', data?.length || 0)
       
-      // Asegurar que relationship_type tenga el tipo correcto
+      // Asegurar que relationship_type tenga el tipo correcto y parsear email_preferences
       return (data || []).map(contact => ({
         ...contact,
-        relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto'
+        relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+        email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
       }))
     },
     enabled: !!user?.org_id,

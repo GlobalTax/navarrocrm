@@ -1,10 +1,10 @@
-
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { useDebounced } from '@/hooks/useDebounced'
 import { Contact } from '@/hooks/useContacts'
+import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
 
 const PAGE_SIZE = 50
 
@@ -70,7 +70,8 @@ export const useInfiniteContacts = () => {
 
       const typedContacts = (contacts || []).map(contact => ({
         ...contact,
-        relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto'
+        relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+        email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
       }))
 
       console.log('✅ Contacts page fetched:', typedContacts.length)

@@ -1,10 +1,10 @@
-
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { useDebounced } from '@/hooks/useDebounced'
 import { Person } from '@/hooks/usePersons'
+import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
 
 const PAGE_SIZE = 50
 
@@ -79,6 +79,7 @@ export const useInfinitePersons = () => {
         ...person,
         client_type: (person.client_type as 'particular' | 'autonomo') || 'particular',
         relationship_type: (person.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+        email_preferences: parseEmailPreferences(person.email_preferences) || defaultEmailPreferences,
         company: person.company ? {
           id: person.company.id,
           name: person.company.name
