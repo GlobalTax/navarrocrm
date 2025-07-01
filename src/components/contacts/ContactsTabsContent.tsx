@@ -59,7 +59,6 @@ export const ContactsTabsContent = ({
 
         <PersonsList
           onCreatePerson={onCreatePerson}
-          onViewPerson={onViewPerson}
           onEditPerson={onEditPerson}
         />
       </TabsContent>
@@ -89,7 +88,6 @@ export const ContactsTabsContent = ({
 
         <CompaniesList
           onCreateCompany={onCreateCompany}
-          onViewCompany={onViewCompany}
           onEditCompany={onEditCompany}
         />
       </TabsContent>
