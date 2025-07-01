@@ -56,7 +56,6 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
       contract_duration_months: proposalData.retainerConfig?.contractDuration || null,
       payment_terms_days: proposalData.retainerConfig?.paymentTerms || 30,
       auto_renewal: proposalData.retainerConfig?.autoRenewal || false,
-      billing_frequency: proposalData.retainerConfig?.billingFrequency || 'monthly',
       billing_day: proposalData.retainerConfig?.billingDay || 1,
       terms_and_conditions: proposalData.terms || '',
       practice_area: proposalData.selectedArea || null,
