@@ -6,6 +6,23 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
   console.log('💾 ProposalService - Guardando propuesta:', proposalData)
 
   try {
+    // Obtener información del usuario actual
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      throw new Error('Usuario no autenticado')
+    }
+
+    // Obtener la información del usuario desde la tabla users para obtener org_id
+    const { data: userData, error: userDataError } = await supabase
+      .from('users')
+      .select('org_id')
+      .eq('id', user.id)
+      .single()
+
+    if (userDataError || !userData) {
+      throw new Error('No se pudo obtener información del usuario')
+    }
+
     // Validar que tenemos los datos mínimos necesarios
     if (!proposalData.clientId) {
       throw new Error('Cliente es requerido')
@@ -25,8 +42,10 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
 
     console.log('💰 Total calculado:', totalAmount, 'de', services.length, 'servicios')
 
-    // Preparar datos para la propuesta
+    // Preparar datos para la propuesta con campos requeridos
     const proposalInsert = {
+      org_id: userData.org_id,
+      created_by: user.id,
       contact_id: proposalData.clientId,
       title: proposalData.title,
       description: proposalData.introduction || '',
@@ -64,13 +83,13 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
     if (services.length > 0) {
       const lineItems = services.map(service => ({
         proposal_id: proposal.id,
-        service_name: service.name,
+        name: service.name, // Usar 'name' en lugar de 'service_name'
         description: service.description || '',
         quantity: service.quantity || 1,
         unit_price: service.customPrice || service.basePrice || 0,
         total_price: service.total || service.customPrice || service.basePrice || 0,
-        billing_unit: service.billingUnit || 'unit',
-        estimated_hours: service.estimatedHours || null
+        billing_unit: service.billingUnit || 'unit'
+        // Removemos estimated_hours ya que no existe en la tabla proposal_line_items
       }))
 
       console.log('📝 Insertando', lineItems.length, 'líneas de servicio')
