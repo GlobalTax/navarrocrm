@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Contact, useContacts } from '@/hooks/useContacts'
@@ -15,7 +16,6 @@ const Contacts = () => {
   const [isEditPersonDialogOpen, setIsEditPersonDialogOpen] = useState(false)
   const [isCreateCompanyDialogOpen, setIsCreateCompanyDialogOpen] = useState(false)
   const [isEditCompanyDialogOpen, setIsEditCompanyDialogOpen] = useState(false)
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
@@ -68,12 +68,11 @@ const Contacts = () => {
         onClose={handleDialogClose}
       />
 
-      {/* Diálogos para Empresas - Reutilizamos los existentes */}
+      {/* Diálogos para Empresas - Sin ClientDetailDialog */}
       <ContactsDialogManager
         selectedContact={selectedContact}
         isCreateDialogOpen={isCreateCompanyDialogOpen}
         isEditDialogOpen={isEditCompanyDialogOpen}
-        isDetailDialogOpen={isDetailDialogOpen}
         isBulkUploadOpen={isBulkUploadOpen}
         isExportDialogOpen={isExportDialogOpen}
         contacts={contacts}
@@ -105,14 +104,13 @@ const Contacts = () => {
     setIsEditCompanyDialogOpen(true)
   }
 
+  // Estas funciones ya no abren pop-ups, la navegación se maneja en los componentes
   function handleViewPerson(person: Person) {
-    setSelectedContact(person as Contact)
-    setIsDetailDialogOpen(true)
+    // La navegación se maneja directamente en las tablas
   }
 
   function handleViewCompany(company: Company) {
-    setSelectedContact(company as Contact)
-    setIsDetailDialogOpen(true)
+    // La navegación se maneja directamente en las tablas
   }
 
   function handleDialogClose() {
@@ -120,7 +118,6 @@ const Contacts = () => {
     setIsEditPersonDialogOpen(false)
     setIsCreateCompanyDialogOpen(false)
     setIsEditCompanyDialogOpen(false)
-    setIsDetailDialogOpen(false)
     setSelectedContact(null)
     setSelectedPerson(null)
     setSelectedCompany(null)

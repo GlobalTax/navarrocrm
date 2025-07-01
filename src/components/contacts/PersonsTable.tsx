@@ -2,16 +2,22 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Eye, Edit, Building2, User, Briefcase } from 'lucide-react'
+import { Edit, Building2, User, Briefcase } from 'lucide-react'
 import { Person } from '@/hooks/usePersons'
+import { useNavigate } from 'react-router-dom'
 
 interface PersonsTableProps {
   persons: Person[]
-  onViewPerson: (person: Person) => void
   onEditPerson: (person: Person) => void
 }
 
-export const PersonsTable = ({ persons, onViewPerson, onEditPerson }: PersonsTableProps) => {
+export const PersonsTable = ({ persons, onEditPerson }: PersonsTableProps) => {
+  const navigate = useNavigate()
+
+  const handleViewPerson = (person: Person) => {
+    navigate(`/contacts/${person.id}`)
+  }
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'particular': return <User className="h-4 w-4" />
@@ -61,7 +67,11 @@ export const PersonsTable = ({ persons, onViewPerson, onEditPerson }: PersonsTab
         </TableHeader>
         <TableBody>
           {persons.map((person) => (
-            <TableRow key={person.id}>
+            <TableRow 
+              key={person.id}
+              className="cursor-pointer hover:bg-gray-50"
+              onClick={() => handleViewPerson(person)}
+            >
               <TableCell className="font-medium">{person.name}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -96,14 +106,10 @@ export const PersonsTable = ({ persons, onViewPerson, onEditPerson }: PersonsTab
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onViewPerson(person)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEditPerson(person)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditPerson(person)
+                    }}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>

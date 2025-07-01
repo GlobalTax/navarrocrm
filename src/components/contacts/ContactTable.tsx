@@ -2,17 +2,16 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Eye, Edit, Mail, Phone, Building, User } from 'lucide-react'
+import { Edit, Mail, Phone, Building, User } from 'lucide-react'
 import { Contact } from '@/hooks/useContacts'
 import { useNavigate } from 'react-router-dom'
 
 interface ContactTableProps {
   contacts: Contact[]
-  onViewContact: (contact: Contact) => void
   onEditContact: (contact: Contact) => void
 }
 
-export function ContactTable({ contacts, onViewContact, onEditContact }: ContactTableProps) {
+export function ContactTable({ contacts, onEditContact }: ContactTableProps) {
   const navigate = useNavigate()
 
   const handleViewContact = (contact: Contact) => {
@@ -86,7 +85,8 @@ export function ContactTable({ contacts, onViewContact, onEditContact }: Contact
           {contacts.map((contact) => (
             <TableRow 
               key={contact.id} 
-              className="border-gray-50 hover:bg-gray-25 transition-colors duration-150 group"
+              className="border-gray-50 hover:bg-gray-25 transition-colors duration-150 group cursor-pointer"
+              onClick={() => handleViewContact(contact)}
             >
               <TableCell className="py-4 px-6">
                 <div className="flex items-center gap-3">
@@ -153,15 +153,10 @@ export function ContactTable({ contacts, onViewContact, onEditContact }: Contact
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
-                    onClick={() => handleViewContact(contact)}
-                  >
-                    <Eye className="h-3.5 w-3.5 text-gray-600" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 hover:bg-gray-100 transition-colors"
-                    onClick={() => onEditContact(contact)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditContact(contact)
+                    }}
                   >
                     <Edit className="h-3.5 w-3.5 text-gray-600" />
                   </Button>

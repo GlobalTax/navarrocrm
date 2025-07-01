@@ -2,16 +2,22 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Eye, Edit, Building2, Users, Mail, Phone } from 'lucide-react'
+import { Edit, Building2, Users, Mail, Phone } from 'lucide-react'
 import { Company } from '@/hooks/useCompanies'
+import { useNavigate } from 'react-router-dom'
 
 interface CompaniesTableProps {
   companies: Company[]
-  onViewCompany: (company: Company) => void
   onEditCompany: (company: Company) => void
 }
 
-export const CompaniesTable = ({ companies, onViewCompany, onEditCompany }: CompaniesTableProps) => {
+export const CompaniesTable = ({ companies, onEditCompany }: CompaniesTableProps) => {
+  const navigate = useNavigate()
+
+  const handleViewCompany = (company: Company) => {
+    navigate(`/contacts/${company.id}`)
+  }
+
   const getStatusBadge = (status: string | null) => {
     if (!status) return null
     
@@ -45,7 +51,11 @@ export const CompaniesTable = ({ companies, onViewCompany, onEditCompany }: Comp
         </TableHeader>
         <TableBody>
           {companies.map((company) => (
-            <TableRow key={company.id}>
+            <TableRow 
+              key={company.id}
+              className="cursor-pointer hover:bg-gray-50"
+              onClick={() => handleViewCompany(company)}
+            >
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-gray-500" />
@@ -113,14 +123,10 @@ export const CompaniesTable = ({ companies, onViewCompany, onEditCompany }: Comp
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onViewCompany(company)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEditCompany(company)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEditCompany(company)
+                    }}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
