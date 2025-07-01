@@ -211,6 +211,7 @@ export const VirtualizedContactTable = forwardRef<any, VirtualizedContactTablePr
                 }
               }}
               height={600}
+              width="100%"
               itemCount={itemCount}
               itemSize={80}
               itemData={{ contacts, onEditContact }}

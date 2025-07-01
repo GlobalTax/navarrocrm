@@ -229,6 +229,7 @@ export const VirtualizedPersonsTable = forwardRef<any, VirtualizedPersonsTablePr
                 }
               }}
               height={600}
+              width="100%"
               itemCount={itemCount}
               itemSize={80}
               itemData={{ persons, onEditPerson }}
