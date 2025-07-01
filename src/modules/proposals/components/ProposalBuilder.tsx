@@ -23,7 +23,6 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
       title: '',
       clientId: '',
       introduction: '',
-      scopeOfWork: '',
       timeline: '',
       pricingTiers: [{
         id: crypto.randomUUID(),
@@ -146,7 +145,7 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
 
   const calculateTierTotal = (tierIndex: number): number => {
     try {
-      const tier = form.watch(`pricingTiers.${tierIndex}`);
+      const tier = (form.watch('pricingTiers') || [])[tierIndex];
       if (!tier || !tier.services) {
         console.log('No tier or services found for index:', tierIndex);
         return 0;
@@ -159,7 +158,12 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
       }, 0);
       
       // Update the tier's total price
-      form.setValue(`pricingTiers.${tierIndex}.totalPrice`, total);
+      const currentTiers = form.getValues('pricingTiers') || [];
+      if (currentTiers[tierIndex]) {
+        const updatedTiers = [...currentTiers];
+        updatedTiers[tierIndex].totalPrice = total;
+        form.setValue('pricingTiers', updatedTiers);
+      }
       
       console.log(`Tier ${tierIndex} total calculated:`, total);
       return total;
@@ -174,13 +178,15 @@ export const ProposalBuilder: React.FC<ProposalBuilderProps> = ({ onSave, isSavi
     
     try {
       // Ensure all tier totals are updated before saving
-      data.pricingTiers.forEach((tier, index) => {
-        const total = tier.services.reduce((sum, service) => {
-          return sum + ((service.quantity || 0) * (service.unitPrice || 0));
-        }, 0);
-        tier.totalPrice = total;
-        console.log(`Final tier ${index} total:`, total);
-      });
+      if (data.pricingTiers) {
+        data.pricingTiers.forEach((tier, index) => {
+          const total = tier.services.reduce((sum, service) => {
+            return sum + ((service.quantity || 0) * (service.unitPrice || 0));
+          }, 0);
+          tier.totalPrice = total;
+          console.log(`Final tier ${index} total:`, total);
+        });
+      }
 
       console.log('Final proposal data:', data);
       onSave(data);

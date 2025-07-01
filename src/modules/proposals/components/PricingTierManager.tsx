@@ -77,7 +77,7 @@ export const PricingTierManager: React.FC<PricingTierManagerProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name={`pricingTiers.${tierIndex}.name`}
+                  name={`pricingTiers.${tierIndex}.name` as any}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre del Plan *</FormLabel>
@@ -95,7 +95,7 @@ export const PricingTierManager: React.FC<PricingTierManagerProps> = ({
 
                 <FormField
                   control={form.control}
-                  name={`pricingTiers.${tierIndex}.description`}
+                  name={`pricingTiers.${tierIndex}.description` as any}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Descripción</FormLabel>
@@ -125,7 +125,7 @@ export const PricingTierManager: React.FC<PricingTierManagerProps> = ({
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total del Plan:</span>
                   <span className="text-lg font-bold">
-                    {tierTotal.toFixed(2)} {form.watch('currency') || 'EUR'}
+                    {tierTotal.toFixed(2)} {(form.watch('currency') as string) || 'EUR'}
                   </span>
                 </div>
               </div>
