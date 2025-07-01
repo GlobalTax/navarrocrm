@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from '@/components/ui/card'
-import { TrendingUp, TrendingDown, Users, Building2, Phone, Mail } from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, Building2, Phone, Mail, UserCheck } from 'lucide-react'
 import { Contact } from '@/hooks/useContacts'
 
 interface ContactQuickMetricsProps {
@@ -28,60 +28,74 @@ export const ContactQuickMetrics = ({ contacts }: ContactQuickMetricsProps) => {
       label: 'Total Contactos',
       value: totalContacts,
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
+      gradient: 'from-blue-500 to-cyan-600',
+      bgGradient: 'from-blue-50 to-cyan-50',
+      iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-600'
     },
     {
       label: 'Clientes Activos',
       value: activeClients,
-      icon: TrendingUp,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      icon: UserCheck,
+      gradient: 'from-emerald-500 to-green-600',
+      bgGradient: 'from-emerald-50 to-green-50',
+      iconBg: 'bg-gradient-to-br from-emerald-500 to-green-600'
     },
     {
       label: 'Prospectos',
       value: prospects,
-      icon: TrendingDown,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100'
+      icon: TrendingUp,
+      gradient: 'from-amber-500 to-orange-600',
+      bgGradient: 'from-amber-50 to-orange-50',
+      iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600'
     },
     {
       label: 'Empresas',
       value: companies,
       icon: Building2,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
+      gradient: 'from-purple-500 to-violet-600',
+      bgGradient: 'from-purple-50 to-violet-50',
+      iconBg: 'bg-gradient-to-br from-purple-500 to-violet-600'
     },
     {
       label: 'Con Email',
       value: `${emailRate}%`,
       icon: Mail,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
+      gradient: 'from-pink-500 to-rose-600',
+      bgGradient: 'from-pink-50 to-rose-50',
+      iconBg: 'bg-gradient-to-br from-pink-500 to-rose-600'
     },
     {
       label: 'Con Teléfono',
       value: `${phoneRate}%`,
       icon: Phone,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      gradient: 'from-indigo-500 to-blue-600',
+      bgGradient: 'from-indigo-50 to-blue-50',
+      iconBg: 'bg-gradient-to-br from-indigo-500 to-blue-600'
     }
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
       {metrics.map((metric, index) => (
-        <Card key={index}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                <metric.icon className={`h-4 w-4 ${metric.color}`} />
+        <Card 
+          key={index} 
+          className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-0 shadow-sm hover:shadow-xl overflow-hidden"
+          style={{ animationDelay: `${index * 100}ms` }}
+        >
+          <CardContent className={`p-6 bg-gradient-to-br ${metric.bgGradient} relative overflow-hidden`}>
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className={`p-3 rounded-xl ${metric.iconBg} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                <metric.icon className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">{metric.label}</p>
-                <p className="text-xl font-bold">{metric.value}</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">{metric.label}</p>
+                <p className={`text-2xl font-bold bg-gradient-to-r ${metric.gradient} bg-clip-text text-transparent`}>
+                  {metric.value}
+                </p>
               </div>
             </div>
+            {/* Decorative gradient overlay */}
+            <div className="absolute -top-2 -right-2 w-12 h-12 bg-white/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
           </CardContent>
         </Card>
       ))}
