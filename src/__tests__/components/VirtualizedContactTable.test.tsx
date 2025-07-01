@@ -1,5 +1,5 @@
 
-import { render, screen } from '@/test-utils/test-helpers'
+import { render, screen, fireEvent } from '@/test-utils/test-helpers'
 import { describe, it, expect, vi } from 'vitest'
 import { VirtualizedContactTable } from '@/components/contacts/VirtualizedContactTable'
 import { Contact } from '@/hooks/useContacts'
@@ -46,7 +46,6 @@ const mockContacts: Contact[] = [
     preferred_language: 'es',
     contact_preference: 'email',
     payment_method: 'transferencia',
-    timezone: 'Europe/Madrid',
     preferred_meeting_time: 'morning',
     business_sector: null,
     how_found_us: null,
@@ -54,6 +53,7 @@ const mockContacts: Contact[] = [
     last_contact_date: null,
     company_id: null,
     legal_representative: null,
+    timezone: 'Europe/Madrid',
     email_preferences: { receive_followups: true, receive_reminders: true, receive_invitations: true }
   },
   {
@@ -77,7 +77,6 @@ const mockContacts: Contact[] = [
     preferred_language: 'es',
     contact_preference: 'phone',
     payment_method: 'transferencia',
-    timezone: 'Europe/Madrid',
     preferred_meeting_time: 'afternoon',
     business_sector: 'tecnología',
     how_found_us: 'referencia',
@@ -85,6 +84,7 @@ const mockContacts: Contact[] = [
     last_contact_date: null,
     company_id: null,
     legal_representative: null,
+    timezone: 'Europe/Madrid',
     email_preferences: { receive_followups: true, receive_reminders: true, receive_invitations: true }
   }
 ]

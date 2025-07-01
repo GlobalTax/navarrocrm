@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
@@ -30,6 +31,13 @@ export interface Contact {
   updated_at: string
   last_contact_date: string | null
   company_id?: string | null
+  timezone: string | null
+  preferred_meeting_time: string | null
+  email_preferences: {
+    receive_followups: boolean
+    receive_reminders: boolean
+    receive_invitations: boolean
+  } | null
 }
 
 export const useContacts = () => {
