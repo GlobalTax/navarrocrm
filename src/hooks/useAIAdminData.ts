@@ -1,6 +1,7 @@
 
 import { useState } from 'react'
-import { useAIUsage, useIsSuperAdmin } from '@/hooks/useAIUsage'
+import { useEnhancedAIUsage } from '@/hooks/useEnhancedAIUsage'
+import { useIsSuperAdmin } from '@/hooks/useAIUsage'
 import { toast } from 'sonner'
 
 export const useAIAdminData = () => {
@@ -8,10 +9,10 @@ export const useAIAdminData = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date())
   
   const { 
-    data: usageData, 
+    data: enhancedData, 
     isLoading: isLoadingUsage, 
     error 
-  } = useAIUsage(selectedMonth)
+  } = useEnhancedAIUsage(6) // Últimos 6 meses
 
   if (error) {
     toast.error('Error al cargar los datos de uso de IA')
@@ -22,7 +23,12 @@ export const useAIAdminData = () => {
     isLoadingRoles,
     selectedMonth,
     setSelectedMonth,
-    usageData,
-    isLoadingUsage
+    enhancedData,
+    isLoadingUsage,
+    // Mantener compatibilidad con la interfaz anterior
+    usageData: enhancedData ? {
+      logs: [],
+      stats: enhancedData
+    } : undefined
   }
 }
