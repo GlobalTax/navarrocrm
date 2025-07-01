@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useInfiniteContacts } from '@/hooks/useInfiniteContacts'
 import { AppProvider } from '@/contexts/AppContext'
 import React from 'react'
+import { act } from '@testing-library/react'
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
