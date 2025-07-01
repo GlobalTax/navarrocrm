@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,22 +12,39 @@ import { Bell, Mail, Monitor } from 'lucide-react'
 
 export function AINotificationSettings() {
   const { user } = useApp()
-  const { data: config } = useAINotifications()
+  const { data: config, isLoading } = useAINotifications()
   const createConfig = useCreateAINotificationConfig()
   const updateConfig = useUpdateAINotificationConfig()
 
   const [settings, setSettings] = useState({
-    notification_type: (config?.notification_type || 'email') as 'email' | 'dashboard' | 'both',
-    threshold_cost: config?.threshold_cost || 50,
-    threshold_failures: config?.threshold_failures || 20,
-    is_enabled: config?.is_enabled ?? true,
-    email_address: config?.email_address || user?.email || ''
+    notification_type: 'email' as 'email' | 'dashboard' | 'both',
+    threshold_cost: 50,
+    threshold_failures: 20,
+    is_enabled: true,
+    email_address: user?.email || ''
   })
 
+  useEffect(() => {
+    if (config) {
+      setSettings({
+        notification_type: config.notification_type || 'email',
+        threshold_cost: config.threshold_cost || 50,
+        threshold_failures: config.threshold_failures || 20,
+        is_enabled: config.is_enabled ?? true,
+        email_address: config.email_address || user?.email || ''
+      })
+    }
+  }, [config, user?.email])
+
   const handleSave = () => {
+    if (!user?.org_id || !user?.id) {
+      toast.error('Error: Usuario no válido')
+      return
+    }
+
     const configData = {
-      org_id: user?.org_id!,
-      user_id: user?.id!,
+      org_id: user.org_id,
+      user_id: user.id,
       ...settings
     }
 
@@ -36,6 +53,26 @@ export function AINotificationSettings() {
     } else {
       createConfig.mutate(configData)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Configuración de Alertas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -69,8 +106,8 @@ export function AINotificationSettings() {
           <Label htmlFor="notification_type">Tipo de Notificación</Label>
           <Select
             value={settings.notification_type}
-            onValueChange={(value) => 
-              setSettings(prev => ({ ...prev, notification_type: value as any }))
+            onValueChange={(value: 'email' | 'dashboard' | 'both') => 
+              setSettings(prev => ({ ...prev, notification_type: value }))
             }
           >
             <SelectTrigger>

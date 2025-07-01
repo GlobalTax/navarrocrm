@@ -1,5 +1,5 @@
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 
@@ -22,7 +22,7 @@ export const useAINotifications = () => {
     queryFn: async () => {
       try {
         const { data, error } = await supabase
-          .from('ai_notification_configs' as any)
+          .from('ai_notification_configs')
           .select('*')
           .single()
 
@@ -30,7 +30,7 @@ export const useAINotifications = () => {
           throw error
         }
         
-        return data as AINotificationConfig | null
+        return data || null
       } catch (error) {
         console.log('No existing configuration found, will create new one')
         return null
@@ -40,18 +40,21 @@ export const useAINotifications = () => {
 }
 
 export const useCreateAINotificationConfig = () => {
+  const queryClient = useQueryClient()
+  
   return useMutation({
     mutationFn: async (config: Omit<AINotificationConfig, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
-        .from('ai_notification_configs' as any)
+        .from('ai_notification_configs')
         .insert(config)
         .select()
         .single()
 
       if (error) throw error
-      return data as AINotificationConfig
+      return data
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-notifications'] })
       toast.success('Configuración de alertas guardada')
     },
     onError: (error: any) => {
@@ -62,19 +65,22 @@ export const useCreateAINotificationConfig = () => {
 }
 
 export const useUpdateAINotificationConfig = () => {
+  const queryClient = useQueryClient()
+  
   return useMutation({
     mutationFn: async ({ id, ...config }: AINotificationConfig) => {
       const { data, error } = await supabase
-        .from('ai_notification_configs' as any)
+        .from('ai_notification_configs')
         .update(config)
         .eq('id', id)
         .select()
         .single()
 
       if (error) throw error
-      return data as AINotificationConfig
+      return data
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-notifications'] })
       toast.success('Configuración actualizada')
     },
     onError: (error: any) => {
