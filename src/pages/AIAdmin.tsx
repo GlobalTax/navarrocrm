@@ -15,6 +15,7 @@ import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 import { AINotificationSettings } from '@/components/admin/AINotificationSettings'
+import { ScheduledReportsManager } from '@/components/admin/ScheduledReportsManager'
 
 export default function AIAdmin() {
   const {
@@ -121,7 +122,7 @@ export default function AIAdmin() {
       />
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">
             Resumen
           </TabsTrigger>
@@ -136,6 +137,9 @@ export default function AIAdmin() {
           </TabsTrigger>
           <TabsTrigger value="alerts">
             Alertas
+          </TabsTrigger>
+          <TabsTrigger value="reports">
+            Reportes
           </TabsTrigger>
           <TabsTrigger value="settings">
             Configuración
@@ -179,6 +183,10 @@ export default function AIAdmin() {
             isLoading={isLoadingUsage}
             onOpenSettings={() => setShowSettings(true)}
           />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6">
+          <ScheduledReportsManager />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
