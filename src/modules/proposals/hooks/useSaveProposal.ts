@@ -1,50 +1,31 @@
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { saveProposal as saveProposalService } from '../services/proposal.service';
-import { ProposalFormData } from '../types/proposal.schema';
-import { toast } from 'sonner';
-
-interface SaveProposalPayload {
-  proposalData: ProposalFormData;
-  orgId: string;
-  userId: string;
-}
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { saveProposal } from '../services/proposal.service'
+import { toast } from 'sonner'
+import type { ProposalFormData } from '../types/proposal.schema'
 
 export const useSaveProposal = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-  const mutation = useMutation({
-    mutationFn: ({ proposalData, orgId, userId }: SaveProposalPayload) => {
-      console.log('Guardando propuesta con datos:', { 
-        ...proposalData, 
-        is_recurring: proposalData.is_recurring,
-        recurring_frequency: proposalData.recurring_frequency 
-      });
-      
-      // Asegurar que is_recurring se mantenga correctamente
-      const dataToSave = {
-        ...proposalData,
-        is_recurring: Boolean(proposalData.is_recurring), // Forzar boolean
-        recurring_frequency: proposalData.is_recurring ? proposalData.recurring_frequency : null
-      };
-      
-      return saveProposalService(dataToSave, orgId, userId);
+  return useMutation({
+    mutationFn: async (proposalData: ProposalFormData) => {
+      console.log('🚀 useSaveProposal - Iniciando guardado:', proposalData)
+      return await saveProposal(proposalData)
     },
     onSuccess: (data) => {
-      console.log('Propuesta guardada exitosamente:', {
-        id: data.id,
-        title: data.title,
-        is_recurring: data.is_recurring,
-        recurring_frequency: data.recurring_frequency
-      });
-      queryClient.invalidateQueries({ queryKey: ['proposals'] });
-      toast.success(`Propuesta "${data.title}" guardada con éxito`);
+      console.log('✅ Propuesta guardada exitosamente:', data.id)
+      
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      queryClient.invalidateQueries({ queryKey: ['proposal-metrics'] })
+      
+      toast.success('Propuesta guardada correctamente')
+      return data
     },
-    onError: (error: Error) => {
-      console.error('Error al guardar propuesta:', error);
-      toast.error(`Error al guardar: ${error.message}`);
-    },
-  });
-
-  return mutation;
-};
+    onError: (error: any) => {
+      console.error('❌ Error al guardar propuesta:', error)
+      toast.error(error.message || 'Error al guardar la propuesta')
+      throw error
+    }
+  })
+}

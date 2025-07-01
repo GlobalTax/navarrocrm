@@ -1,86 +1,96 @@
 
 import { supabase } from '@/integrations/supabase/client'
-import { ProposalFormData } from '../types/proposal.schema'
+import type { ProposalFormData } from '../types/proposal.schema'
 
-interface ProposalInsertData {
-  title: string
-  contact_id: string  // Changed from client_id to contact_id
-  org_id: string
-  created_by: string
-  status: 'draft'
-  introduction?: string
-  scope_of_work?: string
-  timeline?: string
-  currency: 'EUR' | 'USD' | 'GBP'
-  valid_until?: string
-  pricing_tiers_data: any
-  total_amount: number
-  // Campos para propuestas recurrentes
-  is_recurring?: boolean
-  recurring_frequency?: string
-  contract_start_date?: string
-  contract_end_date?: string
-  auto_renewal?: boolean
-  retainer_amount?: number
-  included_hours?: number
-  hourly_rate_extra?: number
-  billing_day?: number
-}
+export const saveProposal = async (proposalData: ProposalFormData) => {
+  console.log('💾 ProposalService - Guardando propuesta:', proposalData)
 
-export const saveProposal = async (
-  formData: ProposalFormData,
-  orgId: string,
-  userId: string
-): Promise<any> => {
-  const grandTotal = formData.pricingTiers.reduce((total, tier) => {
-    return total + tier.services.reduce((tierTotal, service) => {
-      return tierTotal + (service.quantity * service.unitPrice)
+  try {
+    // Validar que tenemos los datos mínimos necesarios
+    if (!proposalData.clientId) {
+      throw new Error('Cliente es requerido')
+    }
+
+    if (!proposalData.title) {
+      throw new Error('Título es requerido')
+    }
+
+    // Asegurar que selectedServices existe y es un array
+    const services = Array.isArray(proposalData.selectedServices) ? proposalData.selectedServices : []
+    
+    // Calcular el total de los servicios
+    const totalAmount = services.reduce((sum, service) => {
+      return sum + (service.total || service.customPrice || service.basePrice || 0)
     }, 0)
-  }, 0)
 
-  console.log('Preparando datos para guardar:', {
-    is_recurring: formData.is_recurring,
-    recurring_frequency: formData.recurring_frequency
-  });
+    console.log('💰 Total calculado:', totalAmount, 'de', services.length, 'servicios')
 
-  const proposalInsertData: ProposalInsertData = {
-    title: formData.title,
-    contact_id: formData.clientId,  // Changed from client_id to contact_id
-    org_id: orgId,
-    created_by: userId,
-    status: 'draft',
-    introduction: formData.introduction || '',
-    scope_of_work: formData.scopeOfWork || '',
-    timeline: formData.timeline || '',
-    currency: formData.currency,
-    valid_until: formData.validUntil.toISOString(),
-    pricing_tiers_data: formData.pricingTiers,
-    total_amount: grandTotal,
-    // Campos recurrentes - CORREGIDO
-    is_recurring: Boolean(formData.is_recurring),
-    recurring_frequency: formData.is_recurring ? formData.recurring_frequency : null,
-    contract_start_date: formData.contract_start_date?.toISOString().split('T')[0],
-    contract_end_date: formData.contract_end_date?.toISOString().split('T')[0],
-    auto_renewal: formData.auto_renewal || false,
-    retainer_amount: formData.retainer_amount || 0,
-    included_hours: formData.included_hours || 0,
-    hourly_rate_extra: formData.hourly_rate_extra || 0,
-    billing_day: formData.billing_day || 1,
+    // Preparar datos para la propuesta
+    const proposalInsert = {
+      contact_id: proposalData.clientId,
+      title: proposalData.title,
+      description: proposalData.introduction || '',
+      total_amount: totalAmount,
+      status: 'draft' as const,
+      is_recurring: proposalData.is_recurring || false,
+      recurring_frequency: proposalData.recurring_frequency || null,
+      contract_duration_months: proposalData.retainerConfig?.contractDuration || null,
+      payment_terms_days: proposalData.retainerConfig?.paymentTerms || 30,
+      auto_renewal: proposalData.retainerConfig?.autoRenewal || false,
+      billing_frequency: proposalData.retainerConfig?.billingFrequency || 'monthly',
+      billing_day: proposalData.retainerConfig?.billingDay || 1,
+      terms_and_conditions: proposalData.terms || '',
+      practice_area: proposalData.selectedArea || null,
+      valid_until: new Date(Date.now() + (proposalData.validityDays || 30) * 24 * 60 * 60 * 1000).toISOString()
+    }
+
+    console.log('📋 Datos de propuesta preparados:', proposalInsert)
+
+    // Insertar la propuesta
+    const { data: proposal, error: proposalError } = await supabase
+      .from('proposals')
+      .insert(proposalInsert)
+      .select()
+      .single()
+
+    if (proposalError) {
+      console.error('❌ Error al insertar propuesta:', proposalError)
+      throw proposalError
+    }
+
+    console.log('✅ Propuesta creada:', proposal.id)
+
+    // Insertar líneas de servicios si existen
+    if (services.length > 0) {
+      const lineItems = services.map(service => ({
+        proposal_id: proposal.id,
+        service_name: service.name,
+        description: service.description || '',
+        quantity: service.quantity || 1,
+        unit_price: service.customPrice || service.basePrice || 0,
+        total_price: service.total || service.customPrice || service.basePrice || 0,
+        billing_unit: service.billingUnit || 'unit',
+        estimated_hours: service.estimatedHours || null
+      }))
+
+      console.log('📝 Insertando', lineItems.length, 'líneas de servicio')
+
+      const { error: lineItemsError } = await supabase
+        .from('proposal_line_items')
+        .insert(lineItems)
+
+      if (lineItemsError) {
+        console.error('❌ Error al insertar líneas de servicio:', lineItemsError)
+        throw lineItemsError
+      }
+
+      console.log('✅ Líneas de servicio insertadas')
+    }
+
+    return proposal
+
+  } catch (error) {
+    console.error('💥 Error en saveProposal:', error)
+    throw error
   }
-
-  console.log('Datos finales a insertar:', proposalInsertData);
-
-  const { data, error } = await supabase
-    .from('proposals')
-    .insert(proposalInsertData)
-    .select()
-    .single()
-
-  if (error) {
-    console.error('Error en la base de datos:', error);
-    throw new Error(error.message);
-  }
-  
-  console.log('Propuesta guardada en BD:', data);
-  return data
 }
