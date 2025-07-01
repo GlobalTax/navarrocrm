@@ -1,6 +1,8 @@
 
+
 import React from 'react'
-import { render, RenderOptions, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, RenderOptions } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router-dom'
 import { AppProvider } from '@/contexts/AppContext'
@@ -36,3 +38,4 @@ export { customRender as render, screen, fireEvent, waitFor }
 
 // También exportar todo lo demás de testing library
 export * from '@testing-library/react'
+
