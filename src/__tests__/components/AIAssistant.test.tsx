@@ -1,27 +1,34 @@
 
 import { render, screen, fireEvent, waitFor } from '@/test-utils/test-helpers'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AIAssistant } from '@/components/ai/AIAssistant'
+import { useAIChat } from '@/components/ai/useAIChat'
 
-// Mock para el hook useAIAssistant
-vi.mock('@/hooks/useAIAssistant', () => ({
-  useAIAssistant: vi.fn(() => ({
+// Mock para el hook useAIChat
+vi.mock('@/components/ai/useAIChat', () => ({
+  useAIChat: vi.fn(() => ({
     messages: [],
     isLoading: false,
-    sendMessage: vi.fn(),
-    clearMessages: vi.fn()
+    sendMessage: vi.fn()
   }))
 }))
 
-const mockUseAIAssistant = vi.mocked(useAIAssistant)
+const mockUseAIChat = vi.mocked(useAIChat)
 
 describe('AIAssistant', () => {
+  const defaultProps = {
+    isOpen: true,
+    onToggle: vi.fn(),
+    onMinimize: vi.fn(),
+    isMinimized: false
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('should render chat interface', () => {
-    render(<AIAssistant />)
+  it('should render chat interface when open', () => {
+    render(<AIAssistant {...defaultProps} />)
     
     expect(screen.getByPlaceholderText('Escribe tu pregunta aquí...')).toBeInTheDocument()
     expect(screen.getByText('Enviar')).toBeInTheDocument()
@@ -30,14 +37,13 @@ describe('AIAssistant', () => {
   it('should send message when form is submitted', async () => {
     const mockSendMessage = vi.fn()
     
-    mockUseAIAssistant.mockReturnValue({
+    mockUseAIChat.mockReturnValue({
       messages: [],
       isLoading: false,
-      sendMessage: mockSendMessage,
-      clearMessages: vi.fn()
+      sendMessage: mockSendMessage
     })
 
-    render(<AIAssistant />)
+    render(<AIAssistant {...defaultProps} />)
     
     const input = screen.getByPlaceholderText('Escribe tu pregunta aquí...')
     const submitButton = screen.getByText('Enviar')
@@ -51,32 +57,36 @@ describe('AIAssistant', () => {
   })
 
   it('should display messages', () => {
-    mockUseAIAssistant.mockReturnValue({
+    mockUseAIChat.mockReturnValue({
       messages: [
         { id: '1', content: 'Hello', role: 'user', timestamp: new Date() },
         { id: '2', content: 'Hi there!', role: 'assistant', timestamp: new Date() }
       ],
       isLoading: false,
-      sendMessage: vi.fn(),
-      clearMessages: vi.fn()
+      sendMessage: vi.fn()
     })
 
-    render(<AIAssistant />)
+    render(<AIAssistant {...defaultProps} />)
     
     expect(screen.getByText('Hello')).toBeInTheDocument()
     expect(screen.getByText('Hi there!')).toBeInTheDocument()
   })
 
   it('should show loading state', () => {
-    mockUseAIAssistant.mockReturnValue({
+    mockUseAIChat.mockReturnValue({
       messages: [],
       isLoading: true,
-      sendMessage: vi.fn(),
-      clearMessages: vi.fn()
+      sendMessage: vi.fn()
     })
 
-    render(<AIAssistant />)
+    render(<AIAssistant {...defaultProps} />)
     
     expect(screen.getByText('Enviando...')).toBeInTheDocument()
+  })
+
+  it('should not render when closed', () => {
+    render(<AIAssistant {...defaultProps} isOpen={false} />)
+    
+    expect(screen.queryByPlaceholderText('Escribe tu pregunta aquí...')).not.toBeInTheDocument()
   })
 })

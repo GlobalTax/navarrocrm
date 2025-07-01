@@ -35,7 +35,26 @@ const mockContacts: Contact[] = [
     relationship_type: 'cliente',
     org_id: 'test-org',
     created_at: '2024-01-01',
-    updated_at: '2024-01-01'
+    updated_at: '2024-01-01',
+    dni_nif: '12345678A',
+    address_street: 'Calle Test 123',
+    address_city: 'Madrid',
+    address_postal_code: '28001',
+    address_country: 'España',
+    tags: [],
+    internal_notes: null,
+    preferred_language: 'es',
+    contact_preference: 'email',
+    payment_method: 'transferencia',
+    timezone: 'Europe/Madrid',
+    preferred_meeting_time: 'morning',
+    business_sector: null,
+    how_found_us: null,
+    hourly_rate: null,
+    last_contact_date: null,
+    company_id: null,
+    legal_representative: null,
+    email_preferences: { receive_followups: true, receive_reminders: true, receive_invitations: true }
   },
   {
     id: '2',
@@ -47,7 +66,26 @@ const mockContacts: Contact[] = [
     relationship_type: 'prospecto',
     org_id: 'test-org',
     created_at: '2024-01-01',
-    updated_at: '2024-01-01'
+    updated_at: '2024-01-01',
+    dni_nif: '87654321B',
+    address_street: 'Avenida Test 456',
+    address_city: 'Barcelona',
+    address_postal_code: '08001',
+    address_country: 'España',
+    tags: [],
+    internal_notes: null,
+    preferred_language: 'es',
+    contact_preference: 'phone',
+    payment_method: 'transferencia',
+    timezone: 'Europe/Madrid',
+    preferred_meeting_time: 'afternoon',
+    business_sector: 'tecnología',
+    how_found_us: 'referencia',
+    hourly_rate: null,
+    last_contact_date: null,
+    company_id: null,
+    legal_representative: null,
+    email_preferences: { receive_followups: true, receive_reminders: true, receive_invitations: true }
   }
 ]
 
@@ -93,7 +131,7 @@ describe('VirtualizedContactTable', () => {
   })
 
   it('should call onEditContact when edit button is clicked', async () => {
-    const { user } = render(
+    render(
       <VirtualizedContactTable
         contacts={mockContacts}
         onEditContact={mockOnEditContact}
@@ -107,7 +145,7 @@ describe('VirtualizedContactTable', () => {
     )
 
     if (editButton) {
-      await user.click(editButton)
+      fireEvent.click(editButton)
       expect(mockOnEditContact).toHaveBeenCalledWith(mockContacts[0])
     }
   })

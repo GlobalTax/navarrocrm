@@ -12,6 +12,32 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
 
+// Simple in-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+const RATE_LIMIT_REQUESTS = 10 // requests per window
+const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute in milliseconds
+
+function checkRateLimit(identifier: string): boolean {
+  const now = Date.now()
+  const userLimit = rateLimitMap.get(identifier)
+
+  if (!userLimit || now > userLimit.resetTime) {
+    // Reset or create new limit
+    rateLimitMap.set(identifier, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW
+    })
+    return true
+  }
+
+  if (userLimit.count >= RATE_LIMIT_REQUESTS) {
+    return false // Rate limit exceeded
+  }
+
+  userLimit.count++
+  return true
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -33,11 +59,28 @@ serve(async (req) => {
   }
 
   try {
+    // Extract user identifier for rate limiting (IP + user_id if available)
+    const userAgent = req.headers.get('user-agent') || 'unknown'
+    const xForwardedFor = req.headers.get('x-forwarded-for')
+    const remoteAddr = xForwardedFor ? xForwardedFor.split(',')[0] : 'unknown'
+    
+    const { message, context, conversation_history } = await req.json()
+    const rateLimitIdentifier = `${remoteAddr}-${context?.user_id || 'anon'}`
+    
+    // Check rate limit
+    if (!checkRateLimit(rateLimitIdentifier)) {
+      return new Response(JSON.stringify({ 
+        error: 'Rate limit exceeded. Please try again later.',
+        response: 'Lo siento, has enviado demasiadas consultas. Por favor, inténtalo de nuevo en un minuto.'
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured')
     }
-
-    const { message, context, conversation_history } = await req.json()
     
     // Capturar org_id and user_id para logging
     logData.org_id = context?.org_id
@@ -51,7 +94,7 @@ serve(async (req) => {
     if (context?.org_id) {
       // Obtener estadísticas básicas de clientes
       const { data: clientStats } = await supabase
-        .from('clients')
+        .from('contacts')
         .select('status, client_type')
         .eq('org_id', context.org_id)
 
@@ -199,7 +242,6 @@ function generateSuggestions(userMessage: string, aiResponse: string, context: a
   const suggestions: string[] = []
   
   const lowerMessage = userMessage.toLowerCase()
-  const lowerResponse = aiResponse.toLowerCase()
 
   // Sugerencias basadas en el mensaje del usuario
   if (lowerMessage.includes('cliente') || lowerMessage.includes('crear')) {
@@ -269,7 +311,7 @@ function extractClientDataFromMessage(message: string): any {
 function extractPageFromMessage(message: string): string | null {
   const lowerMessage = message.toLowerCase()
   
-  if (lowerMessage.includes('cliente')) return '/clients'
+  if (lowerMessage.includes('cliente')) return '/contacts'
   if (lowerMessage.includes('expediente') || lowerMessage.includes('caso')) return '/cases'
   if (lowerMessage.includes('calendario') || lowerMessage.includes('agenda')) return '/calendar'
   if (lowerMessage.includes('dashboard') || lowerMessage.includes('inicio')) return '/dashboard'

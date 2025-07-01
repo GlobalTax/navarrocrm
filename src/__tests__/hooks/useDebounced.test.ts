@@ -1,6 +1,6 @@
 
 import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useDebounced } from '@/hooks/useDebounced'
 
 describe('useDebounced', () => {
@@ -64,5 +64,26 @@ describe('useDebounced', () => {
       vi.advanceTimersByTime(500)
     })
     expect(result.current).toBe('change2')
+  })
+
+  it('should handle different delay values', () => {
+    const { result, rerender } = renderHook(
+      ({ value, delay }) => useDebounced(value, delay),
+      {
+        initialProps: { value: 'initial', delay: 300 }
+      }
+    )
+
+    rerender({ value: 'updated', delay: 300 })
+    
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    expect(result.current).toBe('initial')
+
+    act(() => {
+      vi.advanceTimersByTime(100)
+    })
+    expect(result.current).toBe('updated')
   })
 })
