@@ -1,4 +1,5 @@
 
+
 import { supabase } from '@/integrations/supabase/client'
 import type { ProposalFormData } from '../types/proposal.schema'
 
@@ -56,7 +57,6 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
       auto_renewal: proposalData.retainerConfig?.autoRenewal || false,
       billing_day: proposalData.retainerConfig?.billingDay || 1,
       terms_and_conditions: proposalData.terms || '',
-      practice_area: proposalData.selectedArea || null,
       valid_until: new Date(Date.now() + (proposalData.validityDays || 30) * 24 * 60 * 60 * 1000).toISOString()
     }
 
@@ -110,3 +110,4 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
     throw error
   }
 }
+
