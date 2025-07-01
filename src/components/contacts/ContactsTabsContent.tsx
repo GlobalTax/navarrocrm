@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button'
 import { TabsContent } from '@/components/ui/tabs'
-import { Grid, List, Upload, Download, UserPlus, Building2 } from 'lucide-react'
+import { Upload, Download, UserPlus, Building2 } from 'lucide-react'
 import { Contact } from '@/hooks/useContacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
@@ -15,9 +15,7 @@ interface ContactsTabsContentProps {
   onExport: () => void
   onCreatePerson: () => void
   onCreateCompany: () => void
-  onViewPerson: (person: Person) => void
   onEditPerson: (person: Person) => void
-  onViewCompany: (company: Company) => void
   onEditCompany: (company: Company) => void
 }
 
@@ -27,9 +25,7 @@ export const ContactsTabsContent = ({
   onExport,
   onCreatePerson,
   onCreateCompany,
-  onViewPerson,
   onEditPerson,
-  onViewCompany,
   onEditCompany
 }: ContactsTabsContentProps) => {
   return (
@@ -39,7 +35,7 @@ export const ContactsTabsContent = ({
           <div className="flex items-center gap-2">
             <Button
               onClick={onCreatePerson}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-slate-700 hover:bg-slate-800 text-white border-slate-700"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Nueva Persona
@@ -68,7 +64,7 @@ export const ContactsTabsContent = ({
           <div className="flex items-center gap-2">
             <Button
               onClick={onCreateCompany}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-slate-700 hover:bg-slate-800 text-white border-slate-700"
             >
               <Building2 className="h-4 w-4 mr-2" />
               Nueva Empresa

@@ -12,7 +12,7 @@ export interface Company extends Contact {
     name: string
     email: string | null
     phone: string | null
-  }
+  } | null
   total_contacts?: number
 }
 
@@ -45,32 +45,43 @@ export const useCompanies = () => {
         throw companiesError
       }
 
-      // Para cada empresa, obtener información de contactos vinculados
+      // Para cada empresa, obtener información de contactos vinculados con manejo seguro de errores
       const companiesWithContacts = await Promise.all(
         (companiesData || []).map(async (company) => {
-          const { data: contactsData, error: contactsError } = await supabase
-            .from('contacts')
-            .select('id, name, email, phone')
-            .eq('company_id', company.id)
-            .eq('org_id', user.org_id)
-            .limit(1)
+          try {
+            const { data: contactsData, error: contactsError } = await supabase
+              .from('contacts')
+              .select('id, name, email, phone')
+              .eq('company_id', company.id)
+              .eq('org_id', user.org_id)
+              .limit(1)
 
-          if (contactsError) {
-            console.error('❌ Error fetching company contacts:', contactsError)
-          }
+            if (contactsError) {
+              console.warn('⚠️ Error fetching company contacts for', company.name, ':', contactsError)
+            }
 
-          const { count: totalContacts } = await supabase
-            .from('contacts')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', company.id)
-            .eq('org_id', user.org_id)
+            const { count: totalContacts } = await supabase
+              .from('contacts')
+              .select('*', { count: 'exact', head: true })
+              .eq('company_id', company.id)
+              .eq('org_id', user.org_id)
 
-          return {
-            ...company,
-            client_type: 'empresa' as const,
-            relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-            primary_contact: contactsData?.[0] || undefined,
-            total_contacts: totalContacts || 0
+            return {
+              ...company,
+              client_type: 'empresa' as const,
+              relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+              primary_contact: contactsData?.[0] || null,
+              total_contacts: totalContacts || 0
+            }
+          } catch (error) {
+            console.error('❌ Error processing company', company.name, ':', error)
+            return {
+              ...company,
+              client_type: 'empresa' as const,
+              relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+              primary_contact: null,
+              total_contacts: 0
+            }
           }
         })
       )
@@ -83,8 +94,9 @@ export const useCompanies = () => {
   })
 
   const filteredCompanies = companies.filter(company => {
+    // Verificación segura de búsqueda
     const matchesSearch = !searchTerm || 
-      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (company.email && company.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (company.phone && company.phone.includes(searchTerm)) ||
       (company.primary_contact?.name && company.primary_contact.name.toLowerCase().includes(searchTerm.toLowerCase()))

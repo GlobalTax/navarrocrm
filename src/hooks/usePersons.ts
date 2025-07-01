@@ -7,11 +7,10 @@ import { Contact } from '@/hooks/useContacts'
 
 export interface Person extends Contact {
   client_type: 'particular' | 'autonomo'
-  company_id?: string | null
   company?: {
     id: string
     name: string
-  }
+  } | null
 }
 
 export const usePersons = () => {
@@ -30,11 +29,12 @@ export const usePersons = () => {
         return []
       }
 
-      const { data, error } = await supabase
+      // Obtener personas físicas con información de empresa si está vinculada
+      const { data: personsData, error: personsError } = await supabase
         .from('contacts')
         .select(`
           *,
-          company:company_id (
+          company:company_id(
             id,
             name
           )
@@ -43,28 +43,33 @@ export const usePersons = () => {
         .in('client_type', ['particular', 'autonomo'])
         .order('name', { ascending: true })
 
-      if (error) {
-        console.error('❌ Error fetching persons:', error)
-        throw error
+      if (personsError) {
+        console.error('❌ Error fetching persons:', personsError)
+        throw personsError
       }
       
-      console.log('✅ Persons fetched:', data?.length || 0)
+      console.log('✅ Persons fetched:', personsData?.length || 0)
       
-      return (data || []).map(person => ({
+      return (personsData || []).map(person => ({
         ...person,
-        client_type: person.client_type as 'particular' | 'autonomo',
+        client_type: (person.client_type as 'particular' | 'autonomo') || 'particular',
         relationship_type: (person.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-        company: person.company || undefined
+        company: person.company ? {
+          id: person.company.id,
+          name: person.company.name
+        } : null
       }))
     },
     enabled: !!user?.org_id,
   })
 
   const filteredPersons = persons.filter(person => {
+    // Verificación segura de búsqueda
     const matchesSearch = !searchTerm || 
-      person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      person.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (person.email && person.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (person.phone && person.phone.includes(searchTerm))
+      (person.phone && person.phone.includes(searchTerm)) ||
+      (person.company?.name && person.company.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const matchesStatus = statusFilter === 'all' || person.status === statusFilter
 

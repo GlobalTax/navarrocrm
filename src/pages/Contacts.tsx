@@ -25,6 +25,41 @@ const Contacts = () => {
 
   const { contacts, refetch } = useContacts()
 
+  const handleCreatePerson = () => {
+    setSelectedPerson(null)
+    setIsCreatePersonDialogOpen(true)
+  }
+
+  const handleCreateCompany = () => {
+    setSelectedCompany(null)
+    setIsCreateCompanyDialogOpen(true)
+  }
+
+  const handleEditPerson = (person: Person) => {
+    setSelectedPerson(person)
+    setIsEditPersonDialogOpen(true)
+  }
+
+  const handleEditCompany = (company: Company) => {
+    setSelectedCompany(company)
+    setIsEditCompanyDialogOpen(true)
+  }
+
+  const handleDialogClose = () => {
+    setIsCreatePersonDialogOpen(false)
+    setIsEditPersonDialogOpen(false)
+    setIsCreateCompanyDialogOpen(false)
+    setIsEditCompanyDialogOpen(false)
+    setSelectedContact(null)
+    setSelectedPerson(null)
+    setSelectedCompany(null)
+    refetch()
+  }
+
+  const handleBulkUploadSuccess = () => {
+    refetch()
+  }
+
   return (
     <StandardPageContainer>
       <StandardPageHeader
@@ -54,9 +89,7 @@ const Contacts = () => {
           onExport={() => setIsExportDialogOpen(true)}
           onCreatePerson={handleCreatePerson}
           onCreateCompany={handleCreateCompany}
-          onViewPerson={handleViewPerson}
           onEditPerson={handleEditPerson}
-          onViewCompany={handleViewCompany}
           onEditCompany={handleEditCompany}
         />
       </Tabs>
@@ -68,7 +101,7 @@ const Contacts = () => {
         onClose={handleDialogClose}
       />
 
-      {/* Diálogos para Empresas - Sin ClientDetailDialog */}
+      {/* Diálogos para Empresas */}
       <ContactsDialogManager
         selectedContact={selectedContact}
         isCreateDialogOpen={isCreateCompanyDialogOpen}
@@ -83,50 +116,6 @@ const Contacts = () => {
       />
     </StandardPageContainer>
   )
-
-  function handleCreatePerson() {
-    setSelectedPerson(null)
-    setIsCreatePersonDialogOpen(true)
-  }
-
-  function handleCreateCompany() {
-    setSelectedCompany(null)
-    setIsCreateCompanyDialogOpen(true)
-  }
-
-  function handleEditPerson(person: Person) {
-    setSelectedPerson(person)
-    setIsEditPersonDialogOpen(true)
-  }
-
-  function handleEditCompany(company: Company) {
-    setSelectedCompany(company)
-    setIsEditCompanyDialogOpen(true)
-  }
-
-  // Estas funciones ya no abren pop-ups, la navegación se maneja en los componentes
-  function handleViewPerson(person: Person) {
-    // La navegación se maneja directamente en las tablas
-  }
-
-  function handleViewCompany(company: Company) {
-    // La navegación se maneja directamente en las tablas
-  }
-
-  function handleDialogClose() {
-    setIsCreatePersonDialogOpen(false)
-    setIsEditPersonDialogOpen(false)
-    setIsCreateCompanyDialogOpen(false)
-    setIsEditCompanyDialogOpen(false)
-    setSelectedContact(null)
-    setSelectedPerson(null)
-    setSelectedCompany(null)
-    refetch()
-  }
-
-  function handleBulkUploadSuccess() {
-    refetch()
-  }
 }
 
 export default Contacts
