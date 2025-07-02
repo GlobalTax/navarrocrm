@@ -5,6 +5,9 @@ export { OnboardingNavigation } from './OnboardingNavigation'
 export { OnboardingStepContent } from './OnboardingStepContent'
 export { OnboardingProvider, useOnboarding } from '@/contexts/OnboardingContext'
 
+// Exportar pasos
+export * from './steps'
+
 // Re-exportar tipos
 export type {
   OnboardingStep,

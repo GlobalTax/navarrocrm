@@ -71,14 +71,14 @@ export interface OnboardingActions {
   clearError: () => void
 }
 
-// Flujos predefinidos
+// Flujos predefinidos  
 export const ONBOARDING_FLOWS: OnboardingFlow[] = [
   {
     id: 'general',
     name: 'Onboarding General',
     description: 'Proceso completo de incorporación de cliente',
     clientType: 'both',
-    steps: [],
+    steps: [], // Los pasos se cargarán dinámicamente
     estimatedDuration: 15
   },
   {
