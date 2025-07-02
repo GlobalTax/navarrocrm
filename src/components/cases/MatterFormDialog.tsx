@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -19,9 +19,10 @@ interface MatterFormDialogProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: CreateCaseData) => void
   isLoading?: boolean
+  initialData?: any
 }
 
-export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: MatterFormDialogProps) {
+export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading, initialData }: MatterFormDialogProps) {
   const { clients = [] } = useClients()
   const { practiceAreas = [] } = usePracticeAreas()
   const { users = [] } = useUsers()
@@ -39,6 +40,38 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
     estimated_budget: undefined,
     template_selection: 'none'
   })
+
+  // Populate form with initial data when editing
+  useEffect(() => {
+    if (initialData && open) {
+      setFormData({
+        title: initialData.title || '',
+        description: initialData.description || '',
+        status: initialData.status || 'open',
+        contact_id: initialData.contact_id || '',
+        practice_area: initialData.practice_area || '',
+        responsible_solicitor_id: initialData.responsible_solicitor_id || '',
+        originating_solicitor_id: initialData.originating_solicitor_id || '',
+        billing_method: initialData.billing_method || 'hourly',
+        estimated_budget: initialData.estimated_budget,
+        template_selection: 'none'
+      })
+    } else if (!initialData && open) {
+      // Reset form when creating new case
+      setFormData({
+        title: '',
+        description: '',
+        status: 'open',
+        contact_id: '',
+        practice_area: '',
+        responsible_solicitor_id: '',
+        originating_solicitor_id: '',
+        billing_method: 'hourly',
+        estimated_budget: undefined,
+        template_selection: 'none'
+      })
+    }
+  }, [initialData, open])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,7 +96,9 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Nuevo Expediente</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              {initialData ? 'Editar Expediente' : 'Nuevo Expediente'}
+            </DialogTitle>
           </DialogHeader>
 
           <Tabs defaultValue="template" className="mt-6">
@@ -169,7 +204,7 @@ export function MatterFormDialog({ open, onOpenChange, onSubmit, isLoading }: Ma
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Crear Expediente
+                  {initialData ? 'Actualizar Expediente' : 'Crear Expediente'}
                 </>
               )}
             </Button>

@@ -10,6 +10,8 @@ import { CaseStatsPanel } from '@/components/cases/stats/CaseStatsPanel'
 import { CaseTimeline } from '@/components/cases/timeline/CaseTimeline'
 import { CaseTasksPanel } from '@/components/cases/tasks/CaseTasksPanel'
 import { useCases } from '@/hooks/useCases'
+import { MatterFormDialog } from '@/components/cases/MatterFormDialog'
+import { useState } from 'react'
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -40,7 +42,8 @@ const getStatusLabel = (status: string) => {
 export default function CaseDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { cases, isLoading } = useCases()
+  const { cases, isLoading, updateCase, deleteCase, archiveCase, isUpdating, isDeleting, isArchiving } = useCases()
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   if (isLoading) {
     return (
@@ -71,13 +74,26 @@ export default function CaseDetail() {
   }
 
   const handleEdit = () => {
-    // TODO: Implementar edición del expediente
-    console.log('Editar expediente:', case_.id)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleEditSubmit = (formData: any) => {
+    if (!case_?.id) return
+    updateCase({ id: case_.id, ...formData })
+    setIsEditDialogOpen(false)
   }
 
   const handleArchive = () => {
-    // TODO: Implementar archivado del expediente
-    console.log('Archivar expediente:', case_.id)
+    if (!case_?.id) return
+    archiveCase(case_.id)
+  }
+
+  const handleDelete = () => {
+    if (!case_?.id) return
+    if (window.confirm('¿Estás seguro de que quieres eliminar este expediente? Esta acción no se puede deshacer.')) {
+      deleteCase(case_.id)
+      navigate('/cases')
+    }
   }
 
   return (
@@ -111,7 +127,12 @@ export default function CaseDetail() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleEdit}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleEdit}
+                disabled={isUpdating}
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Editar
               </Button>
@@ -123,12 +144,19 @@ export default function CaseDetail() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleArchive}>
+                  <DropdownMenuItem 
+                    onClick={handleArchive}
+                    disabled={isArchiving}
+                  >
                     <Archive className="h-4 w-4 mr-2" />
                     {case_.status === 'closed' ? 'Reabrir' : 'Cerrar'} Expediente
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
+                  <DropdownMenuItem 
+                    className="text-red-600" 
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
                     Eliminar Expediente
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -233,6 +261,15 @@ export default function CaseDetail() {
             </div>
           </Tabs>
         </StandardPageContainer>
+
+        {/* Diálogo de edición */}
+        <MatterFormDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSubmit={handleEditSubmit}
+          isLoading={isUpdating}
+          initialData={case_}
+        />
       </div>
     </div>
   )

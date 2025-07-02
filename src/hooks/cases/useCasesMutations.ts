@@ -80,7 +80,7 @@ export const useCasesMutations = () => {
             phone
           )
         `)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('❌ Error updating case:', error)
@@ -135,7 +135,7 @@ export const useCasesMutations = () => {
         .from('cases')
         .select('status')
         .eq('id', caseId)
-        .single()
+        .maybeSingle()
 
       // Toggle between closed and open
       const newStatus = currentCase?.status === 'closed' ? 'open' : 'closed'
