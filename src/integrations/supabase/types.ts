@@ -1473,6 +1473,87 @@ export type Database = {
           },
         ]
       }
+      employee_onboarding: {
+        Row: {
+          banking_data: Json | null
+          completed_at: string | null
+          contact_data: Json | null
+          created_at: string | null
+          created_by: string
+          current_step: number | null
+          department_id: string | null
+          documents: Json | null
+          email: string
+          expires_at: string
+          id: string
+          job_data: Json | null
+          org_id: string
+          personal_data: Json | null
+          position_title: string
+          signed_at: string | null
+          status: string
+          token: string
+          updated_at: string | null
+        }
+        Insert: {
+          banking_data?: Json | null
+          completed_at?: string | null
+          contact_data?: Json | null
+          created_at?: string | null
+          created_by: string
+          current_step?: number | null
+          department_id?: string | null
+          documents?: Json | null
+          email: string
+          expires_at: string
+          id?: string
+          job_data?: Json | null
+          org_id: string
+          personal_data?: Json | null
+          position_title: string
+          signed_at?: string | null
+          status?: string
+          token: string
+          updated_at?: string | null
+        }
+        Update: {
+          banking_data?: Json | null
+          completed_at?: string | null
+          contact_data?: Json | null
+          created_at?: string | null
+          created_by?: string
+          current_step?: number | null
+          department_id?: string | null
+          documents?: Json | null
+          email?: string
+          expires_at?: string
+          id?: string
+          job_data?: Json | null
+          org_id?: string
+          personal_data?: Json | null
+          position_title?: string
+          signed_at?: string | null
+          status?: string
+          token?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_onboarding_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_onboarding_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_assignments: {
         Row: {
           assigned_by: string
@@ -4521,6 +4602,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_expired_onboarding: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       cleanup_expired_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -4531,6 +4616,10 @@ export type Database = {
       }
       generate_matter_number: {
         Args: { org_uuid: string }
+        Returns: string
+      }
+      generate_onboarding_token: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       generate_proposal_number: {

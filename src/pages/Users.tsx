@@ -4,7 +4,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Users as UsersIcon, Mail, Upload } from 'lucide-react'
+import { Users as UsersIcon, Mail, Upload, Building } from 'lucide-react'
 
 // Hooks y componentes refactorizados
 import { useEnhancedUsers } from '@/hooks/useEnhancedUsers'
@@ -13,6 +13,7 @@ import { UserInvitationsTable } from '@/components/users/UserInvitationsTable'
 import { UserMetrics } from '@/components/users/UserMetrics'
 import { UserTable } from '@/components/users/UserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
+import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboardingManager'
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -113,7 +114,7 @@ const Users = () => {
 
       {/* Tabs para diferentes vistas */}
       <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <UsersIcon className="h-4 w-4" />
             Usuarios ({users.length})
@@ -121,6 +122,10 @@ const Users = () => {
           <TabsTrigger value="invitations" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Invitaciones
+          </TabsTrigger>
+          <TabsTrigger value="onboarding" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            Onboarding
           </TabsTrigger>
         </TabsList>
 
@@ -137,6 +142,10 @@ const Users = () => {
 
         <TabsContent value="invitations" className="mt-6">
           <UserInvitationsTable />
+        </TabsContent>
+
+        <TabsContent value="onboarding" className="mt-6">
+          <EmployeeOnboardingManager />
         </TabsContent>
       </Tabs>
 

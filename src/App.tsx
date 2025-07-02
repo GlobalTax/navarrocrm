@@ -44,6 +44,8 @@ const Clients = lazy(() => import('@/pages/Clients'))
 const AcademiaAdmin = lazy(() => import('@/pages/AcademiaAdmin'))
 const Rooms = lazy(() => import('@/pages/Rooms'))
 const RoomDisplay = lazy(() => import('@/pages/RoomDisplay'))
+const EmployeeOnboarding = lazy(() => import('@/pages/EmployeeOnboarding'))
+const EmployeeOnboardingSuccess = lazy(() => import('@/pages/EmployeeOnboardingSuccess'))
 
 // Página pública - no necesita lazy loading por su naturaleza crítica
 import RoomOccupancyPanel from '@/pages/RoomOccupancyPanel'
@@ -73,6 +75,22 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/setup" element={<Setup />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route 
+                path="/employee-onboarding" 
+                element={
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    <EmployeeOnboarding />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/employee-onboarding/success" 
+                element={
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    <EmployeeOnboardingSuccess />
+                  </Suspense>
+                } 
+              />
               
               <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                 <Route element={<MainLayout><Outlet /></MainLayout>}>
