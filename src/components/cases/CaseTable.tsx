@@ -28,6 +28,7 @@ import {
   Calendar,
   User
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Case } from '@/hooks/useCases'
 
 interface CaseTableProps {
@@ -53,6 +54,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
   onSelectCase,
   onSelectAll
 }) => {
+  const navigate = useNavigate()
   const allSelected = cases.length > 0 && selectedCases.length === cases.length
   const someSelected = selectedCases.length > 0 && selectedCases.length < cases.length
 
@@ -173,7 +175,7 @@ export const CaseTable: React.FC<CaseTableProps> = ({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewCase(case_)}>
+                      <DropdownMenuItem onClick={() => navigate(`/cases/${case_.id}`)}>
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalles
                       </DropdownMenuItem>

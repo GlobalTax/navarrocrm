@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Edit, Eye, Check, Trash2, MoreHorizontal, Calendar, ChevronUp, ChevronDown, Users } from 'lucide-react'
 import { format, isToday, isTomorrow, isThisWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
 import { BulkTaskAssignmentModal } from './BulkTaskAssignmentModal'
 
 interface TasksListProps {
@@ -15,6 +16,7 @@ interface TasksListProps {
 }
 
 export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
+  const navigate = useNavigate()
   const [selectedTasks, setSelectedTasks] = useState<string[]>([])
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null)
   const [isBulkAssignmentOpen, setIsBulkAssignmentOpen] = useState(false)
@@ -210,7 +212,7 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate(`/tasks/${task.id}`)}>
                           <Eye className="h-4 w-4 mr-2" />
                           Ver detalles
                         </DropdownMenuItem>

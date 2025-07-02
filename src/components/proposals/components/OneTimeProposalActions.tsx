@@ -15,6 +15,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 interface OneTimeProposalActionsProps {
   proposal: any
@@ -31,6 +32,7 @@ export const OneTimeProposalActions: React.FC<OneTimeProposalActionsProps> = ({
   onDuplicateProposal,
   onStatusChange
 }) => {
+  const navigate = useNavigate()
   return (
     <TooltipProvider>
       <div className="flex items-center gap-1">
@@ -39,7 +41,7 @@ export const OneTimeProposalActions: React.FC<OneTimeProposalActionsProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onViewProposal(proposal)}
+              onClick={() => navigate(`/proposals/${proposal.id}`)}
               className="h-8 w-8 p-0 hover:bg-blue-50"
               title="Ver propuesta"
             >

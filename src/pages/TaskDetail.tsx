@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Edit, MoreHorizontal, CheckCircle, Clock, AlertTriangle, User } from 'lucide-react'
+import { Edit, MoreHorizontal, CheckCircle, Clock, AlertTriangle, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { DetailPageHeader } from '@/components/layout/DetailPageHeader'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { TaskWithRelations, STATUS_COLORS, STATUS_LABELS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/hooks/tasks/types'
@@ -109,7 +110,6 @@ export default function TaskDetail() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Tarea no encontrada</h2>
           <p className="text-gray-600 mb-4">La tarea que buscas no existe o no tienes permisos para verla.</p>
           <Button onClick={() => navigate('/tasks')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Tareas
           </Button>
         </div>
@@ -119,105 +119,90 @@ export default function TaskDetail() {
 
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed'
 
+  const breadcrumbItems = [
+    { label: 'Tareas', href: '/tasks' },
+    { label: task.title }
+  ]
+
+  const subtitle = `Creada el ${new Date(task.created_at).toLocaleDateString('es-ES')}${task.due_date ? ` • Vence el ${new Date(task.due_date).toLocaleDateString('es-ES')}` : ''}`
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/tasks')}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Tareas
-              </Button>
-              <div className="h-6 w-px bg-gray-300" />
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">{task.title}</h1>
-                  <Badge variant="outline" className={STATUS_COLORS[task.status]}>
-                    {STATUS_LABELS[task.status]}
-                  </Badge>
-                  <Badge variant="outline" className={PRIORITY_COLORS[task.priority]}>
-                    {PRIORITY_LABELS[task.priority]}
-                  </Badge>
-                  {isOverdue && (
-                    <Badge variant="destructive">
-                      <AlertTriangle className="h-3 w-3 mr-1" />
-                      Vencida
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Creada el {new Date(task.created_at).toLocaleDateString('es-ES')}
-                  {task.due_date && ` • Vence el ${new Date(task.due_date).toLocaleDateString('es-ES')}`}
-                </p>
-              </div>
-            </div>
+      <DetailPageHeader
+        title={task.title}
+        subtitle={subtitle}
+        breadcrumbItems={breadcrumbItems}
+        backUrl="/tasks"
+      >
+        <Badge variant="outline" className={STATUS_COLORS[task.status]}>
+          {STATUS_LABELS[task.status]}
+        </Badge>
+        <Badge variant="outline" className={PRIORITY_COLORS[task.priority]}>
+          {PRIORITY_LABELS[task.priority]}
+        </Badge>
+        {isOverdue && (
+          <Badge variant="destructive">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Vencida
+          </Badge>
+        )}
+        
+        {task.status === 'pending' && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleStart}
+            disabled={isUpdating}
+          >
+            <Clock className="h-4 w-4 mr-2" />
+            Iniciar
+          </Button>
+        )}
+        
+        {task.status !== 'completed' && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleComplete}
+            disabled={isUpdating}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Completar
+          </Button>
+        )}
 
-            <div className="flex items-center gap-2">
-              {task.status === 'pending' && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleStart}
-                  disabled={isUpdating}
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Iniciar
-                </Button>
-              )}
-              
-              {task.status !== 'completed' && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleComplete}
-                  disabled={isUpdating}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Completar
-                </Button>
-              )}
-
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleEdit}
-                disabled={isUpdating}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <User className="h-4 w-4 mr-2" />
-                    Reasignar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                  >
-                    Eliminar Tarea
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleEdit}
+          disabled={isUpdating}
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Editar
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              <User className="h-4 w-4 mr-2" />
+              Reasignar
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-red-600"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              Eliminar Tarea
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DetailPageHeader>
 
       <div className="max-w-7xl mx-auto p-6">
         <StandardPageContainer>

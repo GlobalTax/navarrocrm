@@ -1,11 +1,12 @@
 
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit, Archive, MoreHorizontal } from 'lucide-react'
+import { Edit, Archive, MoreHorizontal, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { DetailPageHeader } from '@/components/layout/DetailPageHeader'
 import { CaseStatsPanel } from '@/components/cases/stats/CaseStatsPanel'
 import { CaseTimeline } from '@/components/cases/timeline/CaseTimeline'
 import { CaseTasksPanel } from '@/components/cases/tasks/CaseTasksPanel'
@@ -96,75 +97,60 @@ export default function CaseDetail() {
     }
   }
 
+  const breadcrumbItems = [
+    { label: 'Expedientes', href: '/cases' },
+    { label: case_.title }
+  ]
+
+  const subtitle = `Creado el ${new Date(case_.created_at).toLocaleDateString('es-ES')}${case_.practice_area ? ` • ${case_.practice_area}` : ''}`
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/cases')}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Expedientes
-              </Button>
-              <div className="h-6 w-px bg-gray-300" />
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">{case_.title}</h1>
-                  <Badge variant="outline" className={getStatusColor(case_.status)}>
-                    {getStatusLabel(case_.status)}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Creado el {new Date(case_.created_at).toLocaleDateString('es-ES')}
-                  {case_.practice_area && ` • ${case_.practice_area}`}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleEdit}
-                disabled={isUpdating}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={handleArchive}
-                    disabled={isArchiving}
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    {case_.status === 'closed' ? 'Reabrir' : 'Cerrar'} Expediente
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600" 
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                  >
-                    Eliminar Expediente
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DetailPageHeader
+        title={case_.title}
+        subtitle={subtitle}
+        breadcrumbItems={breadcrumbItems}
+        backUrl="/cases"
+      >
+        <Badge variant="outline" className={getStatusColor(case_.status)}>
+          {getStatusLabel(case_.status)}
+        </Badge>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleEdit}
+          disabled={isUpdating}
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Editar
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem 
+              onClick={handleArchive}
+              disabled={isArchiving}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              {case_.status === 'closed' ? 'Reabrir' : 'Cerrar'} Expediente
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="text-red-600" 
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              Eliminar Expediente
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DetailPageHeader>
 
       <div className="max-w-7xl mx-auto p-6">
         <StandardPageContainer>

@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Edit, Archive, MoreHorizontal, Send, CheckCircle, XCircle } from 'lucide-react'
+import { Edit, Archive, MoreHorizontal, Send, CheckCircle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { DetailPageHeader } from '@/components/layout/DetailPageHeader'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { Proposal } from '@/types/proposals'
@@ -128,7 +129,6 @@ export default function ProposalDetail() {
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Propuesta no encontrada</h2>
           <p className="text-gray-600 mb-4">La propuesta que buscas no existe o no tienes permisos para verla.</p>
           <Button onClick={() => navigate('/proposals')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Propuestas
           </Button>
         </div>
@@ -136,106 +136,91 @@ export default function ProposalDetail() {
     )
   }
 
+  const breadcrumbItems = [
+    { label: 'Propuestas', href: '/proposals' },
+    { label: proposal.title }
+  ]
+
+  const subtitle = `Creada el ${new Date(proposal.created_at).toLocaleDateString('es-ES')}${proposal.proposal_number ? ` • ${proposal.proposal_number}` : ''}`
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/proposals')}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Propuestas
-              </Button>
-              <div className="h-6 w-px bg-gray-300" />
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">{proposal.title}</h1>
-                  <Badge variant="outline" className={getStatusColor(proposal.status)}>
-                    {getStatusLabel(proposal.status)}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Creada el {new Date(proposal.created_at).toLocaleDateString('es-ES')}
-                  {proposal.proposal_number && ` • ${proposal.proposal_number}`}
-                </p>
-              </div>
-            </div>
+      <DetailPageHeader
+        title={proposal.title}
+        subtitle={subtitle}
+        breadcrumbItems={breadcrumbItems}
+        backUrl="/proposals"
+      >
+        <Badge variant="outline" className={getStatusColor(proposal.status)}>
+          {getStatusLabel(proposal.status)}
+        </Badge>
+        
+        {proposal.status === 'draft' && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSend}
+            disabled={isUpdating}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Enviar
+          </Button>
+        )}
+        
+        {proposal.status === 'sent' && (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleAccept}
+              disabled={isUpdating}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Aceptar
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleReject}
+              disabled={isUpdating}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Rechazar
+            </Button>
+          </>
+        )}
 
-            <div className="flex items-center gap-2">
-              {proposal.status === 'draft' && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleSend}
-                  disabled={isUpdating}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar
-                </Button>
-              )}
-              
-              {proposal.status === 'sent' && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleAccept}
-                    disabled={isUpdating}
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Aceptar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleReject}
-                    disabled={isUpdating}
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Rechazar
-                  </Button>
-                </>
-              )}
-
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleEdit}
-                disabled={isUpdating}
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={handleArchive}
-                    disabled={isUpdating}
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archivar Propuesta
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
-                    Eliminar Propuesta
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleEdit}
+          disabled={isUpdating}
+        >
+          <Edit className="h-4 w-4 mr-2" />
+          Editar
+        </Button>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem 
+              onClick={handleArchive}
+              disabled={isUpdating}
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archivar Propuesta
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600">
+              Eliminar Propuesta
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DetailPageHeader>
 
       <div className="max-w-7xl mx-auto p-6">
         <StandardPageContainer>

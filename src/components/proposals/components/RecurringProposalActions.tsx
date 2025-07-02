@@ -18,6 +18,7 @@ import {
   XCircle,
   Send
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 interface RecurringProposalActionsProps {
   proposal: any
@@ -34,6 +35,7 @@ export const RecurringProposalActions: React.FC<RecurringProposalActionsProps> =
   onDuplicateProposal,
   onStatusChange
 }) => {
+  const navigate = useNavigate()
   return (
     <TooltipProvider>
       <div className="flex items-center gap-1">
@@ -42,7 +44,7 @@ export const RecurringProposalActions: React.FC<RecurringProposalActionsProps> =
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onViewProposal(proposal)}
+              onClick={() => navigate(`/proposals/${proposal.id}`)}
               className="h-8 w-8 p-0 hover:bg-blue-50"
             >
               <Eye className="h-4 w-4" />
