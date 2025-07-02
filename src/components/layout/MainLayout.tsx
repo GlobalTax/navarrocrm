@@ -2,6 +2,7 @@
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { AIAssistant } from '@/components/ai/AIAssistant'
+import { OnboardingDialog } from '@/components/onboarding'
 import { useAIAssistant } from '@/hooks/useAIAssistant'
 
 interface MainLayoutProps {
@@ -28,6 +29,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onToggle={toggle}
         onMinimize={minimize}
       />
+      
+      {/* Onboarding Dialog */}
+      <OnboardingDialog />
     </div>
   )
 }

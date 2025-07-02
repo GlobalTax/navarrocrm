@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom
 import { lazy, Suspense } from 'react'
 import { Toaster } from 'sonner'
 import { AppProvider } from '@/contexts/AppContext'
+import { OnboardingProvider } from '@/components/onboarding'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { PageLoadingSkeleton } from '@/components/layout/PageLoadingSkeleton'
@@ -58,7 +59,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <Toaster position="top-right" />
+        <OnboardingProvider>
+          <Toaster position="top-right" />
         <Router>
           <div className="min-h-screen bg-gray-50">
             <Routes>
@@ -284,6 +286,7 @@ function App() {
             </Routes>
           </div>
         </Router>
+        </OnboardingProvider>
       </AppProvider>
     </QueryClientProvider>
   )

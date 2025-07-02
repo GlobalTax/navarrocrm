@@ -1,6 +1,8 @@
 
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { UserPlus } from 'lucide-react'
 import { Contact, useContacts } from '@/hooks/useContacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
@@ -10,6 +12,7 @@ import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
 import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { useOnboarding } from '@/components/onboarding'
 
 const Contacts = () => {
   const [isCreatePersonDialogOpen, setIsCreatePersonDialogOpen] = useState(false)
@@ -24,6 +27,7 @@ const Contacts = () => {
   const [activeTab, setActiveTab] = useState('persons')
 
   const { contacts, refetch } = useContacts()
+  const { startOnboarding } = useOnboarding()
 
   const handleCreatePerson = () => {
     setSelectedPerson(null)
@@ -60,12 +64,27 @@ const Contacts = () => {
     refetch()
   }
 
+  const handleStartOnboarding = () => {
+    startOnboarding('general')
+  }
+
   return (
     <StandardPageContainer>
       <StandardPageHeader
         title="Contactos"
         description="Gestiona personas físicas y empresas de tu cartera"
       />
+      
+      {/* Botón de Onboarding */}
+      <div className="mb-6">
+        <Button 
+          onClick={handleStartOnboarding}
+          className="border-0.5 border-black rounded-[10px] bg-primary text-white hover:bg-primary/90"
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Nuevo Cliente - Onboarding
+        </Button>
+      </div>
 
       {/* Métricas rápidas */}
       <ContactQuickMetrics contacts={contacts} />
