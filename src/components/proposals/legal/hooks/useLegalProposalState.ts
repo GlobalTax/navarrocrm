@@ -36,8 +36,8 @@ export const useLegalProposalState = () => {
   const handleAreaChange = useCallback((areaId: string) => {
     setProposalData(prev => ({
       ...prev,
-      selectedArea: areaId,
-      selectedServices: [] // Clear services when area changes
+      selectedArea: areaId
+      // Mantener servicios seleccionados al cambiar de área
     }))
   }, [])
 
