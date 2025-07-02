@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { useTasks } from '@/hooks/useTasks'
 import { TaskStatus, TaskPriority } from '@/hooks/tasks/types'
+import { supabase } from '@/integrations/supabase/client'
 
 interface TaskFormData {
   title: string
@@ -149,7 +150,46 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
         // Actualizar tarea existente
         await updateTask({ id: task.id, ...taskData })
         
-        // TODO: Gestionar cambios en asignaciones
+        // Gestionar cambios en asignaciones para tarea existente
+        if (formData.assigned_users.length > 0) {
+          // Eliminar asignaciones existentes que no están en la nueva lista
+          const currentAssignments = task.assignments || []
+          const currentUserIds = currentAssignments.map(a => a.user_id)
+          const newUserIds = formData.assigned_users
+          
+          // Usuarios a desasignar
+          const toUnassign = currentUserIds.filter(userId => !newUserIds.includes(userId))
+          for (const userId of toUnassign) {
+            try {
+              // Eliminar asignación directamente desde la tabla task_assignments
+              const { error } = await supabase
+                .from('task_assignments')
+                .delete()
+                .eq('task_id', task.id)
+                .eq('user_id', userId)
+              
+              if (error) throw error
+              console.log('✅ Usuario desasignado:', userId)
+            } catch (error) {
+              console.error('❌ Error desasignando usuario:', userId, error)
+            }
+          }
+          
+          // Usuarios a asignar (nuevos)
+          const toAssign = newUserIds.filter(userId => !currentUserIds.includes(userId))
+          for (const userId of toAssign) {
+            try {
+              await assignTask({
+                taskId: task.id,
+                userId,
+                assignedBy: user.id
+              })
+              console.log('✅ Usuario asignado:', userId)
+            } catch (error) {
+              console.error('❌ Error asignando usuario:', userId, error)
+            }
+          }
+        }
       } else {
         // Crear nueva tarea
         console.log('🔄 Creando nueva tarea:', taskData)

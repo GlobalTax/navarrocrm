@@ -374,9 +374,40 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   }, [state.progress])
 
   const validateStep = useCallback((stepId: string): boolean => {
-    // TODO: Implementar validación específica por paso
-    return true
-  }, [])
+    // Validación específica por paso del onboarding
+    if (!state.progress) return false
+    
+    const stepData = state.progress.stepData[stepId] || {}
+    
+    switch (stepId) {
+      case 'welcome':
+        return true // Welcome siempre es válido
+      
+      case 'client-type':
+        return !!stepData.client_type
+      
+      case 'basic-info':
+        return !!(stepData.name && stepData.email)
+      
+      case 'business-info':
+        if (stepData.client_type === 'empresa') {
+          return !!(stepData.name && stepData.dni_nif)
+        }
+        return true
+      
+      case 'preferences':
+        return !!stepData.contact_preference
+      
+      case 'services':
+        return stepData.selected_services?.length > 0
+      
+      case 'summary':
+        return true // Summary solo requiere revisión
+      
+      default:
+        return true
+    }
+  }, [state.progress])
 
   const value: OnboardingContextValue = {
     // Estado

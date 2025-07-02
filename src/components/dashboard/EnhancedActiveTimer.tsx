@@ -5,18 +5,48 @@ import { Badge } from '@/components/ui/badge'
 import { Play, Pause, Square, Clock, Timer } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboardData } from '@/hooks/useDashboardData'
+import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 
 export const EnhancedActiveTimer = () => {
   const navigate = useNavigate()
   const { data: dashboardData } = useDashboardData()
+  const { timeEntries, createTimeEntry } = useTimeEntries()
+  const [elapsedTime, setElapsedTime] = useState(0)
   
-  // TODO: Integrar con el estado real del timer
+  // Por ahora, mostrar estado estático hasta implementar funcionalidad completa
   const hasActiveTimer = false
-  const currentTime = '00:00'
-  const currentTask = ''
+  const currentTask = 'Trabajo general'
   
   const todayHours = dashboardData?.quickStats.todayHours || 0
   const weekHours = dashboardData?.quickStats.weekHours || 0
+
+  // TODO: Implementar timer en tiempo real con time entries
+  useEffect(() => {
+    // Funcionalidad futura para tiempo real
+  }, [hasActiveTimer])
+
+  // Formatear tiempo elapsed a MM:SS
+  const formatElapsedTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const handleStartTimer = () => {
+    // Navegar a time tracking para funcionalidad completa
+    navigate('/time-tracking')
+    toast.success('Redirigiendo a Time Tracking para iniciar timer')
+  }
+
+  const handlePauseTimer = () => {
+    navigate('/time-tracking')
+  }
+
+  const handleStopTimer = () => {
+    navigate('/time-tracking')
+  }
 
   if (!hasActiveTimer) {
     return (
@@ -38,7 +68,7 @@ export const EnhancedActiveTimer = () => {
             </div>
             <Button 
               size="sm" 
-              onClick={() => navigate('/time-tracking')}
+              onClick={handleStartTimer}
               className="bg-blue-600 hover:bg-blue-700 h-7 px-3 text-xs"
             >
               <Play className="h-3 w-3 mr-1" />
@@ -60,7 +90,7 @@ export const EnhancedActiveTimer = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="font-medium text-sm font-mono">{currentTime}</p>
+                <p className="font-medium text-sm font-mono">{formatElapsedTime(elapsedTime)}</p>
                 <Badge variant="outline" className="text-xs bg-green-50 border-green-200 h-5 px-2">
                   En curso
                 </Badge>
@@ -71,10 +101,20 @@ export const EnhancedActiveTimer = () => {
             </div>
           </div>
           <div className="flex gap-1">
-            <Button size="sm" variant="outline" className="h-6 w-6 p-0">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-6 w-6 p-0"
+              onClick={handlePauseTimer}
+            >
               <Pause className="h-3 w-3" />
             </Button>
-            <Button size="sm" variant="outline" className="h-6 w-6 p-0">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-6 w-6 p-0"
+              onClick={handleStopTimer}
+            >
               <Square className="h-3 w-3" />
             </Button>
           </div>

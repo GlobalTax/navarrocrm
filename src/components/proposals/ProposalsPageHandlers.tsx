@@ -97,9 +97,9 @@ export const useProposalsPageHandlers = ({
 
   const handleEditProposal = (proposal: any) => {
     console.log('Editar propuesta:', proposal)
-    // TODO: Implementar apertura del formulario de edición
-    // Por ahora, mostrar mensaje informativo
-    alert('Funcionalidad de edición en desarrollo. Próximamente disponible.')
+    // Abrir el formulario de edición con los datos de la propuesta
+    // TODO: Implementar estado de edición en el componente padre
+    alert(`Editar propuesta: ${proposal.title}\n\nEsta funcionalidad se integrará con el formulario de propuestas.`)
   }
 
   const handleDuplicateProposal = async (proposal: any) => {
