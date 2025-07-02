@@ -227,6 +227,58 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     toast.success('¡Bienvenido! Comenzemos con tu incorporación')
   }, [])
 
+  const startOnboardingFromProposal = useCallback(async (proposal: any) => {
+    if (!proposal.contact_id) {
+      toast.error('No se puede iniciar onboarding: falta información del contacto')
+      return
+    }
+
+    try {
+      // Obtener datos del contacto
+      const { data: contact, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', proposal.contact_id)
+        .single()
+
+      if (error) throw error
+
+      // Determinar el tipo de cliente y flujo
+      const clientType = contact.client_type || 'particular'
+      const flowId = clientType === 'empresa' ? 'empresa' : 'particular'
+      
+      const flow = ONBOARDING_FLOWS.find(f => f.id === flowId)
+      if (!flow) {
+        dispatch({ type: 'SET_ERROR', payload: `Flujo de onboarding "${flowId}" no encontrado` })
+        return
+      }
+
+      // Pre-llenar datos del contacto
+      const prefilledData = {
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+        dni_nif: contact.dni_nif,
+        address_street: contact.address_street,
+        address_city: contact.address_city,
+        address_postal_code: contact.address_postal_code,
+        address_country: contact.address_country,
+        client_type: clientType,
+        business_sector: contact.business_sector,
+        proposal_id: proposal.id,
+        proposal_title: proposal.title
+      }
+
+      dispatch({ type: 'START_ONBOARDING', payload: { flow, clientType: clientType as 'particular' | 'empresa' } })
+      dispatch({ type: 'UPDATE_CLIENT_DATA', payload: prefilledData })
+      
+      toast.success('¡Propuesta aceptada! Completemos tu información de cliente')
+    } catch (error) {
+      console.error('Error starting onboarding from proposal:', error)
+      toast.error('Error al iniciar el proceso de onboarding')
+    }
+  }, [])
+
   const saveProgress = useCallback(async () => {
     if (!state.progress || !user?.id || !user?.org_id || !state.currentFlow) return
 
@@ -332,6 +384,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     
     // Acciones
     startOnboarding,
+    startOnboardingFromProposal,
     pauseOnboarding: () => dispatch({ type: 'PAUSE_ONBOARDING' }),
     resumeOnboarding: () => dispatch({ type: 'RESUME_ONBOARDING' }),
     completeOnboarding,

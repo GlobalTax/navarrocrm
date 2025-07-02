@@ -5,10 +5,10 @@ import { useUpdateProposalStatus } from './useUpdateProposalStatus'
 
 export * from '@/types/proposals'
 
-export const useProposals = () => {
+export const useProposals = (onProposalWon?: (proposal: any) => void) => {
   const { proposals, isLoading, error } = useProposalsData()
   const { createProposal, isCreating } = useCreateProposal()
-  const { updateProposalStatus, isUpdating } = useUpdateProposalStatus(proposals)
+  const { updateProposalStatus, isUpdating } = useUpdateProposalStatus(proposals, onProposalWon)
 
   return {
     proposals,

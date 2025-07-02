@@ -61,6 +61,7 @@ export interface OnboardingState {
 export interface OnboardingActions {
   // Control del flujo
   startOnboarding: (flowId: string, clientType?: 'particular' | 'empresa') => void
+  startOnboardingFromProposal: (proposal: any) => Promise<void>
   pauseOnboarding: () => void
   resumeOnboarding: () => void
   completeOnboarding: () => Promise<void>

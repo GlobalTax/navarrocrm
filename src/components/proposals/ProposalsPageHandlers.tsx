@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 import { useProposalActions } from '@/hooks/proposals/useProposalActions'
+import { useOnboarding } from '@/contexts/OnboardingContext'
 
 interface ProposalsPageHandlersProps {
   updateProposalStatus: any
@@ -18,6 +19,15 @@ export const useProposalsPageHandlers = ({
 }: ProposalsPageHandlersProps) => {
   const [selectedProposal, setSelectedProposal] = useState<any>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [onboardingDialog, setOnboardingDialog] = useState<{
+    isOpen: boolean
+    proposal: any
+  }>({
+    isOpen: false,
+    proposal: null
+  })
+
+  const { startOnboardingFromProposal } = useOnboarding()
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     title: string
@@ -151,6 +161,25 @@ export const useProposalsPageHandlers = ({
     setConfirmDialog(prev => ({ ...prev, isOpen: false }))
   }
 
+  const handleProposalWon = (proposal: any) => {
+    // Mostrar diálogo de confirmación de onboarding
+    setOnboardingDialog({
+      isOpen: true,
+      proposal
+    })
+  }
+
+  const handleStartOnboarding = async () => {
+    if (onboardingDialog.proposal) {
+      await startOnboardingFromProposal(onboardingDialog.proposal)
+      setOnboardingDialog({ isOpen: false, proposal: null })
+    }
+  }
+
+  const closeOnboardingDialog = () => {
+    setOnboardingDialog({ isOpen: false, proposal: null })
+  }
+
   return {
     // Handlers originales
     handleStatusChange,
@@ -161,14 +190,18 @@ export const useProposalsPageHandlers = ({
     handleEditProposal,
     handleDuplicateProposal,
     handleDetailStatusChange,
+    handleProposalWon,
     
     // Estados para diálogos
     selectedProposal,
     isDetailDialogOpen,
     confirmDialog,
+    onboardingDialog,
     
     // Handlers para cerrar diálogos
     closeDetailDialog,
-    closeConfirmDialog
+    closeConfirmDialog,
+    handleStartOnboarding,
+    closeOnboardingDialog
   }
 }

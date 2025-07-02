@@ -7,8 +7,8 @@ import { useProposalsFilters } from '@/hooks/proposals/useProposalsFilters'
 import { useClients } from '@/hooks/useClients'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
-export const useProposalsPageLogic = () => {
-  const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals()
+export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) => {
+  const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals(onProposalWon)
   const { mutate: saveRecurrentProposal, isPending: isSavingRecurrent } = useSaveProposal()
   const { user } = useApp()
   const { clients } = useClients()

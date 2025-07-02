@@ -5,7 +5,7 @@ import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import type { Proposal } from '@/types/proposals'
 
-export const useUpdateProposalStatus = (proposals: Proposal[]) => {
+export const useUpdateProposalStatus = (proposals: Proposal[], onProposalWon?: (proposal: any) => void) => {
   const { user } = useApp()
   const queryClient = useQueryClient()
 
@@ -83,9 +83,11 @@ export const useUpdateProposalStatus = (proposals: Proposal[]) => {
 
       if (error) throw error
 
-      // Si se acepta una propuesta recurrente, crear la cuota recurrente
+      // Si se acepta una propuesta, crear la cuota recurrente y disparar onboarding
       if (status === 'won') {
         await createRecurringFeeOnAcceptance(data)
+        // Callback para iniciar onboarding
+        onProposalWon?.(data)
       }
 
       return data

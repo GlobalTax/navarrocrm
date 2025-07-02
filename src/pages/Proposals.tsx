@@ -1,4 +1,5 @@
 
+import { useState } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useProposalsPageLogic } from '@/components/proposals/ProposalsPageLogic'
@@ -11,10 +12,29 @@ import { ProposalsTabsView } from '@/components/proposals/ProposalsTabsView'
 import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
 import { ProposalDetailDialog } from '@/components/proposals/ProposalDetailDialog'
 import { ProposalConfirmationDialog } from '@/components/proposals/ProposalConfirmationDialog'
+import { OnboardingConfirmationDialog } from '@/components/proposals/OnboardingConfirmationDialog'
+import { useOnboarding } from '@/contexts/OnboardingContext'
 
 export default function Proposals() {
   console.log('Proposals page rendering')
   
+  const { startOnboardingFromProposal } = useOnboarding()
+  const [onboardingDialog, setOnboardingDialog] = useState<{
+    isOpen: boolean
+    proposal: any
+  }>({
+    isOpen: false,
+    proposal: null
+  })
+
+  // Función para manejar propuesta ganada y mostrar diálogo de onboarding
+  const handleProposalWon = (proposal: any) => {
+    setOnboardingDialog({
+      isOpen: true,
+      proposal
+    })
+  }
+
   const {
     categorizedProposals,
     clients,
@@ -26,7 +46,7 @@ export default function Proposals() {
     setFilters,
     updateProposalStatus,
     saveRecurrentProposal
-  } = useProposalsPageLogic()
+  } = useProposalsPageLogic(handleProposalWon)
 
   const { 
     handleStatusChange, 
@@ -157,6 +177,21 @@ export default function Proposals() {
         title={confirmDialog.title}
         description={confirmDialog.description}
         variant={confirmDialog.variant}
+      />
+
+      {/* Diálogo de confirmación de onboarding */}
+      <OnboardingConfirmationDialog
+        isOpen={onboardingDialog.isOpen}
+        onClose={() => setOnboardingDialog({ isOpen: false, proposal: null })}
+        onConfirm={async () => {
+          if (onboardingDialog.proposal) {
+            await startOnboardingFromProposal(onboardingDialog.proposal)
+            setOnboardingDialog({ isOpen: false, proposal: null })
+          }
+        }}
+        proposalTitle={onboardingDialog.proposal?.title || ''}
+        clientName={onboardingDialog.proposal?.contact?.name || 'Cliente'}
+        clientType={onboardingDialog.proposal?.contact?.client_type || 'particular'}
       />
     </StandardPageContainer>
   )
