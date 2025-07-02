@@ -24,5 +24,22 @@
     "preserveInProduction": true,
     "preserveInErrorHandling": true,
     "preserveInDebugComments": false
+  },
+  "todoFinder": {
+    "priorities": {
+      "FIXME": "critical",
+      "BUG": "critical", 
+      "HACK": "high",
+      "TODO": "normal",
+      "OPTIMIZE": "normal",
+      "REVIEW": "low",
+      "XXX": "low",
+      "NOTE": "info"
+    },
+    "outputFormat": "console",
+    "groupBy": "file",
+    "showStats": true,
+    "detectUserAssignment": true,
+    "detectDateAssignment": true
   }
 }

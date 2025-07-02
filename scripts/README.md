@@ -1,4 +1,6 @@
-# 🧹 Script de Limpieza Inteligente de Console.logs
+# 🛠️ Scripts de Desarrollo Inteligente
+
+## 🧹 Script de Limpieza de Console.logs
 
 ## Características
 
@@ -129,4 +131,126 @@ npm run clean:console
 
 # Agregar al pre-commit hook
 echo "npm run clean:console:preview" >> .git/hooks/pre-commit
+```
+
+---
+
+# 🔍 Script de Detección Inteligente de TODOs
+
+## Características
+
+- ✅ **Detección avanzada** de múltiples patrones TODO/FIXME/BUG
+- 🎯 **Categorización por prioridad** (crítico, alto, normal, bajo)
+- 👤 **Detección de asignaciones** a usuarios
+- 📅 **Reconocimiento de fechas** en TODOs
+- 📊 **Estadísticas detalladas** por tipo y archivo
+- 📋 **Múltiples formatos** de salida (consola, JSON, Markdown)
+- ⚙️ **Agrupación flexible** por archivo, tipo o prioridad
+
+## Uso Rápido
+
+```bash
+# Buscar todos los TODOs
+npm run find:todos
+
+# Agrupar por prioridad
+npm run find:todos:priority
+
+# Generar reporte JSON
+npm run find:todos:json
+
+# Generar reporte Markdown
+npm run find:todos:markdown
+```
+
+## Patrones Detectados
+
+El script reconoce múltiples formatos de TODOs:
+
+```javascript
+// TODO: Implementar validación
+// FIXME: Error en el cálculo
+// BUG: No funciona en Safari
+// HACK: Solución temporal
+// TODO(juan): Revisar antes del lunes
+// TODO 2024-07-15: Actualizar después de la migración
+// FIXME HIGH: Crítico para producción
+```
+
+## Uso Avanzado
+
+```bash
+# Solo mostrar TODOs críticos
+node scripts/find-todos.js --group-by=priority
+
+# Generar reporte JSON en archivo específico
+node scripts/find-todos.js --json --output=mi-reporte.json
+
+# Buscar en directorio específico
+node scripts/find-todos.js --target=./src/components
+
+# Modo no interactivo (para CI/CD)
+node scripts/find-todos.js --no-interactive
+
+# Sin estadísticas
+node scripts/find-todos.js --no-stats
+```
+
+## Niveles de Prioridad
+
+| Palabra Clave | Prioridad | Emoji | Descripción |
+|---------------|-----------|-------|-------------|
+| FIXME, BUG    | Crítica   | 🚨    | Requiere atención inmediata |
+| HACK          | Alta      | ⚠️     | Código que necesita refactoring |
+| TODO, OPTIMIZE| Normal    | 📝    | Mejoras planificadas |
+| REVIEW, XXX   | Baja      | 💡    | Revisiones opcionales |
+| NOTE          | Info      | ℹ️     | Información adicional |
+
+## Formatos de Salida
+
+### Consola (por defecto)
+Salida colorizada y organizada con emojis y estadísticas.
+
+### JSON
+```json
+{
+  "timestamp": "2024-07-02T10:00:00Z",
+  "stats": {
+    "filesProcessed": 45,
+    "todosFound": 12,
+    "byType": {"TODO": 8, "FIXME": 3, "BUG": 1},
+    "byPriority": {"normal": 8, "critical": 4}
+  },
+  "todos": [...]
+}
+```
+
+### Markdown
+Reporte estructurado ideal para documentación.
+
+## Configuración
+
+Edita `scripts/clean-config.json`:
+
+```json
+{
+  "todoFinder": {
+    "priorities": {
+      "FIXME": "critical",
+      "TODO": "normal"
+    },
+    "outputFormat": "console",
+    "groupBy": "file",
+    "showStats": true
+  }
+}
+```
+
+## Integración con CI/CD
+
+```bash
+# En tu pipeline
+npm run find:todos:json
+# Fallar si hay TODOs críticos
+node -e "const r=require('./todos-report.json'); process.exit(r.stats.byPriority.critical > 0 ? 1 : 0)"
 ```
