@@ -1,0 +1,28 @@
+{
+  "extensions": [".ts", ".tsx", ".js", ".jsx"],
+  "excludeDirs": [
+    "node_modules", 
+    "dist", 
+    ".git", 
+    "build", 
+    "coverage",
+    "public"
+  ],
+  "excludeFiles": [
+    "*.test.*", 
+    "*.spec.*",
+    "*.config.*",
+    "vite.config.ts",
+    "tailwind.config.ts"
+  ],
+  "preserveTypes": ["error", "warn"],
+  "removeTypes": ["log", "info", "debug"],
+  "createBackup": true,
+  "dryRun": false,
+  "interactive": true,
+  "customRules": {
+    "preserveInProduction": true,
+    "preserveInErrorHandling": true,
+    "preserveInDebugComments": false
+  }
+}
