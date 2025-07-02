@@ -1,5 +1,6 @@
 import React from 'react'
 import type { OnboardingStep } from '@/types/onboarding'
+import { useOnboarding } from '@/contexts/OnboardingContext'
 
 interface OnboardingStepContentProps {
   step: OnboardingStep
@@ -14,6 +15,8 @@ export function OnboardingStepContent({
   stepData,
   clientData
 }: OnboardingStepContentProps) {
+  const { updateStepData, updateClientData } = useOnboarding()
+
   if (!step) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -23,6 +26,14 @@ export function OnboardingStepContent({
   }
 
   const StepComponent = step.component
+
+  const handleStepUpdate = (data: any) => {
+    // Actualizar datos del paso específico
+    updateStepData(step.id, data)
+    
+    // También actualizar datos del cliente si es información relevante
+    updateClientData(data)
+  }
 
   return (
     <div className="p-6">
@@ -39,10 +50,7 @@ export function OnboardingStepContent({
         <StepComponent
           stepData={stepData}
           clientData={clientData}
-          onUpdate={(data: any) => {
-            // TODO: Implementar actualización de datos del paso
-            console.log('Step data updated:', data)
-          }}
+          onUpdate={handleStepUpdate}
         />
       </div>
 

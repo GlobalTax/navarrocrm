@@ -302,6 +302,8 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     
     updateStepData: (stepId: string, data: any) => 
       dispatch({ type: 'UPDATE_STEP_DATA', payload: { stepId, data } }),
+    updateClientData: (data: any) => 
+      dispatch({ type: 'UPDATE_CLIENT_DATA', payload: data }),
     validateStep,
     saveProgress,
     

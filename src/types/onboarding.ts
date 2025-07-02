@@ -1,3 +1,14 @@
+import React from 'react'
+import { 
+  WelcomeStep, 
+  ClientTypeStep, 
+  BasicInfoStep, 
+  BusinessInfoStep, 
+  ServicesStep, 
+  PreferencesStep, 
+  SummaryStep 
+} from '@/components/onboarding/steps'
+
 // Tipos para el sistema de onboarding de clientes
 export interface OnboardingStep {
   id: string
@@ -63,6 +74,7 @@ export interface OnboardingActions {
   
   // Datos
   updateStepData: (stepId: string, data: any) => void
+  updateClientData: (data: any) => void
   validateStep: (stepId: string) => boolean
   saveProgress: () => Promise<void>
   
@@ -71,6 +83,66 @@ export interface OnboardingActions {
   clearError: () => void
 }
 
+// Pasos del onboarding
+const COMMON_STEPS: OnboardingStep[] = [
+  {
+    id: 'welcome-step',
+    title: 'Bienvenido',
+    description: 'Inicio del proceso de incorporación',
+    component: WelcomeStep,
+    isRequired: false,
+    completionCriteria: ['welcomeViewed']
+  },
+  {
+    id: 'client-type-step',
+    title: 'Tipo de Cliente',
+    description: 'Seleccione si es particular o empresa',
+    component: ClientTypeStep,
+    isRequired: true,
+    completionCriteria: ['clientType']
+  },
+  {
+    id: 'basic-info-step',
+    title: 'Información Básica',
+    description: 'Datos de contacto principales',
+    component: BasicInfoStep,
+    isRequired: true,
+    completionCriteria: ['name']
+  },
+  {
+    id: 'business-info-step',
+    title: 'Información Empresarial',
+    description: 'Datos específicos de la empresa',
+    component: BusinessInfoStep,
+    isRequired: false,
+    completionCriteria: ['business_name']
+  },
+  {
+    id: 'services-step',
+    title: 'Servicios de Interés',
+    description: 'Áreas legales que le interesan',
+    component: ServicesStep,
+    isRequired: false,
+    completionCriteria: []
+  },
+  {
+    id: 'preferences-step',
+    title: 'Preferencias',
+    description: 'Configuración de comunicación',
+    component: PreferencesStep,
+    isRequired: false,
+    completionCriteria: []
+  },
+  {
+    id: 'summary-step',
+    title: 'Resumen',
+    description: 'Revisión final de la información',
+    component: SummaryStep,
+    isRequired: true,
+    completionCriteria: []
+  }
+]
+
 // Flujos predefinidos  
 export const ONBOARDING_FLOWS: OnboardingFlow[] = [
   {
@@ -78,7 +150,7 @@ export const ONBOARDING_FLOWS: OnboardingFlow[] = [
     name: 'Onboarding General',
     description: 'Proceso completo de incorporación de cliente',
     clientType: 'both',
-    steps: [], // Los pasos se cargarán dinámicamente
+    steps: COMMON_STEPS,
     estimatedDuration: 15
   },
   {
@@ -86,7 +158,7 @@ export const ONBOARDING_FLOWS: OnboardingFlow[] = [
     name: 'Cliente Particular',
     description: 'Onboarding específico para personas físicas',
     clientType: 'particular',
-    steps: [],
+    steps: COMMON_STEPS.filter(step => step.id !== 'business-info-step'),
     estimatedDuration: 10
   },
   {
@@ -94,7 +166,7 @@ export const ONBOARDING_FLOWS: OnboardingFlow[] = [
     name: 'Cliente Empresa',
     description: 'Onboarding específico para empresas',
     clientType: 'empresa',
-    steps: [],
+    steps: COMMON_STEPS,
     estimatedDuration: 20
   }
 ]
