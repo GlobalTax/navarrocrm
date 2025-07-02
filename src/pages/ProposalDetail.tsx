@@ -13,6 +13,7 @@ import { Proposal } from '@/types/proposals'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
 import { useProposals } from '@/hooks/useProposals'
+import { ProposalPricingTab } from '@/components/proposals/ProposalPricingTab'
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -287,18 +288,150 @@ export default function ProposalDetail() {
                 </div>
               </TabsContent>
               
-              <TabsContent value="details">
-                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2 text-card-foreground">Detalles de la Propuesta</div>
-                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
+              <TabsContent value="details" className="space-y-6">
+                {/* Información completa de la propuesta */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Información básica expandida */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm">
+                    <h3 className="text-lg font-semibold mb-4 text-card-foreground">Información General</h3>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Número:</span>
+                        <span className="col-span-2 text-card-foreground">{proposal.proposal_number || 'No asignado'}</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Tipo:</span>
+                        <span className="col-span-2 text-card-foreground">{proposal.proposal_type}</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Estado:</span>
+                        <span className="col-span-2">
+                          <Badge variant="outline" className={getStatusColor(proposal.status)}>
+                            {getStatusLabel(proposal.status)}
+                          </Badge>
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <span className="font-medium text-muted-foreground">Moneda:</span>
+                        <span className="col-span-2 text-card-foreground">{proposal.currency || 'EUR'}</span>
+                      </div>
+                      {proposal.introduction && (
+                        <div>
+                          <span className="font-medium text-muted-foreground block mb-2">Introducción:</span>
+                          <p className="text-sm text-card-foreground bg-muted/50 p-3 rounded">{proposal.introduction}</p>
+                        </div>
+                      )}
+                      {proposal.scope_of_work && (
+                        <div>
+                          <span className="font-medium text-muted-foreground block mb-2">Alcance del trabajo:</span>
+                          <p className="text-sm text-card-foreground bg-muted/50 p-3 rounded">{proposal.scope_of_work}</p>
+                        </div>
+                      )}
+                      {proposal.timeline && (
+                        <div>
+                          <span className="font-medium text-muted-foreground block mb-2">Cronograma:</span>
+                          <p className="text-sm text-card-foreground bg-muted/50 p-3 rounded">{proposal.timeline}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Configuración recurrente si aplica */}
+                  {proposal.is_recurring && (
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Configuración Recurrente</h3>
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Frecuencia:</span>
+                          <span className="col-span-2 text-card-foreground">
+                            {proposal.recurring_frequency === 'monthly' && 'Mensual'}
+                            {proposal.recurring_frequency === 'quarterly' && 'Trimestral'}
+                            {proposal.recurring_frequency === 'yearly' && 'Anual'}
+                          </span>
+                        </div>
+                        {proposal.billing_day && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-medium text-muted-foreground">Día facturación:</span>
+                            <span className="col-span-2 text-card-foreground">{proposal.billing_day}</span>
+                          </div>
+                        )}
+                        {proposal.contract_start_date && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-medium text-muted-foreground">Inicio contrato:</span>
+                            <span className="col-span-2 text-card-foreground">
+                              {new Date(proposal.contract_start_date).toLocaleDateString('es-ES')}
+                            </span>
+                          </div>
+                        )}
+                        {proposal.contract_end_date && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-medium text-muted-foreground">Fin contrato:</span>
+                            <span className="col-span-2 text-card-foreground">
+                              {new Date(proposal.contract_end_date).toLocaleDateString('es-ES')}
+                            </span>
+                          </div>
+                        )}
+                        {proposal.retainer_amount > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-medium text-muted-foreground">Retainer:</span>
+                            <span className="col-span-2 text-card-foreground font-semibold">
+                              €{proposal.retainer_amount.toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        {proposal.included_hours > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-medium text-muted-foreground">Horas incluidas:</span>
+                            <span className="col-span-2 text-card-foreground">{proposal.included_hours}h</span>
+                          </div>
+                        )}
+                        {proposal.hourly_rate_extra > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <span className="font-medium text-muted-foreground">Tarifa extra/hora:</span>
+                            <span className="col-span-2 text-card-foreground">€{proposal.hourly_rate_extra}</span>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Auto-renovación:</span>
+                          <span className="col-span-2 text-card-foreground">{proposal.auto_renewal ? 'Sí' : 'No'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Términos y notas */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm lg:col-span-2">
+                    <h3 className="text-lg font-semibold mb-4 text-card-foreground">Términos y Notas</h3>
+                    <div className="space-y-3">
+                      {proposal.notes && (
+                        <div>
+                          <span className="font-medium text-muted-foreground block mb-2">Notas internas:</span>
+                          <p className="text-sm text-card-foreground bg-muted/50 p-3 rounded">{proposal.notes}</p>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Validez:</span>
+                          <span className="col-span-2 text-card-foreground">
+                            {proposal.valid_until ? 
+                              `${Math.ceil((new Date(proposal.valid_until).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} días` :
+                              'Sin límite'
+                            }
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="font-medium text-muted-foreground">Creado por:</span>
+                          <span className="col-span-2 text-card-foreground">{proposal.created_by}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
               
-              <TabsContent value="pricing">
-                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2 text-card-foreground">Estructura de Precios</div>
-                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
-                </div>
+              <TabsContent value="pricing" className="space-y-6">
+                {/* Consultar line items */}
+                <ProposalPricingTab proposalId={proposal.id} totalAmount={proposal.total_amount} currency={proposal.currency} />
               </TabsContent>
               
               <TabsContent value="documents">
