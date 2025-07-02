@@ -40,7 +40,6 @@ export const useMonthlyTimeStats = (targetMonth?: number, targetYear?: number) =
       })
 
       if (error) {
-        console.error('Error fetching monthly time stats:', error)
         throw error
       }
 

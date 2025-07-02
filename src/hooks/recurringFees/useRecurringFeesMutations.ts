@@ -26,7 +26,7 @@ export const useCreateRecurringFee = () => {
         .from('recurring_fees')
         .insert(insertData)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return result
@@ -55,7 +55,7 @@ export const useUpdateRecurringFee = () => {
         .update(updateData)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return result
@@ -126,7 +126,7 @@ export const useCreateRecurringFeeFromProposal = () => {
         .select('*')
         .eq('id', proposalId)
         .eq('org_id', user.org_id)
-        .single()
+        .maybeSingle()
 
       if (proposalError) throw proposalError
 
@@ -157,7 +157,7 @@ export const useCreateRecurringFeeFromProposal = () => {
         .from('recurring_fees')
         .insert(recurringFeeData)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return result

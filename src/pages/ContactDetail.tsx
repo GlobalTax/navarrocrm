@@ -45,7 +45,7 @@ export default function ContactDetail() {
         .select('*')
         .eq('id', id)
         .eq('org_id', user.org_id)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data as Contact

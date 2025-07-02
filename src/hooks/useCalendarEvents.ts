@@ -27,7 +27,6 @@ export const useCalendarEvents = () => {
       .order('start_datetime', { ascending: true })
 
     if (error) {
-      console.error('Error fetching calendar events:', error)
       throw error
     }
 
@@ -55,7 +54,7 @@ export const useCalendarEvents = () => {
         .from('users')
         .select('org_id')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (!userData?.org_id) throw new Error('Usuario sin organización')
 
@@ -69,7 +68,7 @@ export const useCalendarEvents = () => {
         .from('calendar_events')
         .insert([completeEventData])
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -79,7 +78,6 @@ export const useCalendarEvents = () => {
       toast.success('Evento creado exitosamente')
     },
     onError: (error) => {
-      console.error('Error creating event:', error)
       toast.error('Error al crear el evento')
     },
   })
@@ -92,7 +90,7 @@ export const useCalendarEvents = () => {
         .update(eventData)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return data
@@ -102,7 +100,6 @@ export const useCalendarEvents = () => {
       toast.success('Evento actualizado exitosamente')
     },
     onError: (error) => {
-      console.error('Error updating event:', error)
       toast.error('Error al actualizar el evento')
     },
   })
@@ -122,7 +119,6 @@ export const useCalendarEvents = () => {
       toast.success('Evento eliminado exitosamente')
     },
     onError: (error) => {
-      console.error('Error deleting event:', error)
       toast.error('Error al eliminar el evento')
     },
   })

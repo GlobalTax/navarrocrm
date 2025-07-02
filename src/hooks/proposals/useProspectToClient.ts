@@ -55,7 +55,7 @@ export const useProspectToClient = () => {
         .from('contacts')
         .insert(contactData)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return contact

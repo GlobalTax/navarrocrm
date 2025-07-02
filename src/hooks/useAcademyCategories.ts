@@ -19,7 +19,7 @@ export const useAcademyCategoriesMutation = () => {
     }) => {
       if (!user?.org_id) throw new Error('No organization found')
 
-      console.log('🏗️ Creating category:', data)
+      
 
       const { data: category, error } = await supabase
         .from('academy_categories')
@@ -28,14 +28,12 @@ export const useAcademyCategoriesMutation = () => {
           org_id: user.org_id
         })
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('❌ Error creating category:', error)
         throw error
       }
-      
-      console.log('✅ Category created successfully:', category)
       return category
     },
     onSuccess: () => {
@@ -43,7 +41,6 @@ export const useAcademyCategoriesMutation = () => {
       toast.success('Categoría creada exitosamente')
     },
     onError: (error) => {
-      console.error('Error creating category:', error)
       toast.error('Error al crear la categoría: ' + error.message)
     }
   })
@@ -63,7 +60,7 @@ export const useAcademyCategoriesMutation = () => {
         .update(data)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return category
@@ -73,7 +70,6 @@ export const useAcademyCategoriesMutation = () => {
       toast.success('Categoría actualizada exitosamente')
     },
     onError: (error) => {
-      console.error('Error updating category:', error)
       toast.error('Error al actualizar la categoría')
     }
   })
@@ -92,7 +88,6 @@ export const useAcademyCategoriesMutation = () => {
       toast.success('Categoría eliminada exitosamente')
     },
     onError: (error) => {
-      console.error('Error deleting category:', error)
       toast.error('Error al eliminar la categoría')
     }
   })

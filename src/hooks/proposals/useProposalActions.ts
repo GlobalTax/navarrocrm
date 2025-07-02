@@ -60,7 +60,7 @@ export const useProposalActions = () => {
         .from('proposals')
         .insert(duplicateData)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 

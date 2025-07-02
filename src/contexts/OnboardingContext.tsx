@@ -192,10 +192,9 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         .eq('is_completed', false)
         .order('last_active_at', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading onboarding progress:', error)
+      if (error) {
         return
       }
 
@@ -212,7 +211,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         dispatch({ type: 'LOAD_PROGRESS', payload: progress })
       }
     } catch (error) {
-      console.error('Error loading onboarding progress:', error)
+      // Error silently handled - onboarding progress is optional
     }
   }
 
@@ -239,7 +238,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         .from('contacts')
         .select('*')
         .eq('id', proposal.contact_id)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 
@@ -274,7 +273,6 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       
       toast.success('¡Propuesta aceptada! Completemos tu información de cliente')
     } catch (error) {
-      console.error('Error starting onboarding from proposal:', error)
       toast.error('Error al iniciar el proceso de onboarding')
     }
   }, [])
@@ -308,7 +306,6 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       if (error) throw error
       
     } catch (error) {
-      console.error('Error saving onboarding progress:', error)
       toast.error('Error al guardar el progreso')
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
@@ -347,7 +344,6 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         .eq('flow_id', state.currentFlow?.id)
 
     } catch (error) {
-      console.error('Error completing onboarding:', error)
       toast.error('Error al completar el onboarding')
       dispatch({ type: 'SET_ERROR', payload: 'Error al crear el cliente' })
     } finally {

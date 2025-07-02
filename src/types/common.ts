@@ -1,5 +1,7 @@
 // Tipos comunes para reemplazar any en toda la aplicación
 
+// ============ TIPOS DE ENTIDADES DE NEGOCIO ============
+
 export interface ProposalFormData {
   clientId: string
   title: string
@@ -191,7 +193,100 @@ export interface QuickStats {
   revenue: number
 }
 
-// Tipos para configuraciones
+// ============ TIPOS DE EVENTOS Y FORMULARIOS ============
+
+export interface TimeEntryFormData {
+  case_id?: string
+  description?: string
+  duration_minutes: number
+  is_billable?: boolean
+  entry_type?: 'billable' | 'office_admin' | 'business_development' | 'internal'
+}
+
+export interface CalendarEventFormData {
+  title: string
+  description?: string
+  start_datetime: string
+  end_datetime: string
+  is_all_day?: boolean
+  location?: string
+  contact_id?: string
+  case_id?: string
+  event_type?: 'meeting' | 'call' | 'court' | 'deadline' | 'other'
+  attendees_emails?: string[]
+  reminder_minutes?: number
+}
+
+export interface RecurringFeeFormData {
+  name: string
+  description?: string
+  contact_id: string
+  amount: number
+  frequency: 'monthly' | 'quarterly' | 'yearly'
+  start_date: string
+  end_date?: string
+  billing_day?: number
+  included_hours?: number
+  hourly_rate_extra?: number
+  auto_invoice?: boolean
+  payment_terms?: number
+  priority?: 'low' | 'medium' | 'high'
+  status?: 'active' | 'inactive' | 'pending'
+}
+
+// ============ TIPOS DE HOOKS Y MUTACIONES ============
+
+export interface MutationState {
+  isPending: boolean
+  isSuccess: boolean
+  isError: boolean
+  error: Error | null
+}
+
+export interface QueryState<T = any> {
+  data: T
+  isLoading: boolean
+  isError: boolean
+  error: Error | null
+  refetch: () => void
+}
+
+export interface PaginatedResponse<T = any> {
+  data: T[]
+  count: number
+  hasMore: boolean
+  nextCursor?: string
+}
+
+// ============ TIPOS DE COMPONENTES ESPECÍFICOS ============
+
+export interface TableActionProps {
+  onEdit?: () => void
+  onDelete?: () => void
+  onView?: () => void
+  isLoading?: boolean
+  disabled?: boolean
+}
+
+export interface FormDialogProps {
+  open: boolean
+  onClose: () => void
+  title?: string
+  initialData?: any
+  onSubmit: (data: any) => Promise<void> | void
+  isLoading?: boolean
+}
+
+export interface EmptyStateProps {
+  title?: string
+  description?: string
+  actionText?: string
+  onAction?: () => void
+  icon?: React.ComponentType<any>
+}
+
+// ============ TIPOS DE CONFIGURACIONES ============
+
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system'
   language: 'es' | 'en'
