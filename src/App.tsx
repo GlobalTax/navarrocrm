@@ -24,7 +24,9 @@ const ClientDetail = lazy(() => import('@/pages/ClientDetail'))
 const Cases = lazy(() => import('@/pages/Cases'))
 const CaseDetail = lazy(() => import('@/pages/CaseDetail'))
 const Proposals = lazy(() => import('@/pages/Proposals'))
+const ProposalDetail = lazy(() => import('@/pages/ProposalDetail'))
 const Tasks = lazy(() => import('@/pages/Tasks'))
+const TaskDetail = lazy(() => import('@/pages/TaskDetail'))
 const TimeTracking = lazy(() => import('@/pages/TimeTracking'))
 const Calendar = lazy(() => import('@/pages/Calendar'))
 const Documents = lazy(() => import('@/pages/Documents'))
@@ -143,10 +145,26 @@ function App() {
                     } 
                   />
                   <Route 
+                    path="/proposals/:id" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <ProposalDetail />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
                     path="/tasks" 
                     element={
                       <Suspense fallback={<PageLoadingSkeleton />}>
                         <Tasks />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/tasks/:id" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <TaskDetail />
                       </Suspense>
                     } 
                   />
