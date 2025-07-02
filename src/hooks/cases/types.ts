@@ -10,6 +10,9 @@ export interface Case {
   originating_solicitor_id: string | null
   billing_method: 'hourly' | 'fixed' | 'contingency' | 'retainer'
   estimated_budget: number | null
+  matter_number: string | null
+  date_opened: string | null
+  date_closed: string | null
   created_at: string
   updated_at: string
   org_id: string

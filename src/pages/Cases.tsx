@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { CasesStats } from '@/components/cases/CasesStats'
 import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
 import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
+import { CasesLoadingState } from '@/components/cases/CasesLoadingState'
 import { useCases, Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
@@ -83,31 +84,28 @@ export default function Cases() {
     setCaseToArchive(null)
   }
 
-  const handleSelectCase = (caseId: string, selected: boolean) => {
-    if (selected) {
-      setSelectedCases([...selectedCases, caseId])
-    } else {
-      setSelectedCases(selectedCases.filter(id => id !== caseId))
-    }
-  }
+  // Optimizar callbacks con useCallback
+  const handleSelectCase = useCallback((caseId: string, selected: boolean) => {
+    setSelectedCases(prev => 
+      selected 
+        ? [...prev, caseId]
+        : prev.filter(id => id !== caseId)
+    )
+  }, [])
 
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      setSelectedCases(filteredCases.map(c => c.id))
-    } else {
-      setSelectedCases([])
-    }
-  }
+  const handleSelectAll = useCallback((selected: boolean) => {
+    setSelectedCases(selected ? filteredCases.map(c => c.id) : [])
+  }, [filteredCases])
 
-  const handleExportCases = () => {
+  const handleExportCases = useCallback(() => {
     exportCasesToCSV(filteredCases, 'expedientes')
-  }
+  }, [filteredCases, exportCasesToCSV])
 
-  const handleNewTemplate = () => {
+  const handleNewTemplate = useCallback(() => {
     setIsNewTemplateOpen(true)
-  }
+  }, [])
 
-  const handleNewTemplateSubmit = (data: {
+  const handleNewTemplateSubmit = useCallback((data: {
     name: string
     description?: string
     practice_area_id?: string
@@ -115,16 +113,22 @@ export default function Cases() {
   }) => {
     createTemplate(data)
     setIsNewTemplateOpen(false)
-  }
+  }, [createTemplate])
 
+  // Usar skeleton loader optimizado
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando expedientes...</p>
-        </div>
-      </div>
+      <StandardPageContainer>
+        <StandardPageHeader
+          title="Expedientes"
+          description="Gestiona todos los expedientes del despacho"
+          primaryAction={{
+            label: 'Nuevo Expediente',
+            onClick: () => setIsWizardOpen(true)
+          }}
+        />
+        <CasesLoadingState />
+      </StandardPageContainer>
     )
   }
 
