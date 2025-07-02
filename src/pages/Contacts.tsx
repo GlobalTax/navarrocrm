@@ -14,6 +14,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
+import { RevolutionaryOnboardingDashboard } from '@/components/onboarding/revolutionary/RevolutionaryOnboardingDashboard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const Contacts = () => {
@@ -24,6 +25,7 @@ const Contacts = () => {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [isImprovedOnboardingOpen, setIsImprovedOnboardingOpen] = useState(false)
+  const [isRevolutionaryOnboardingOpen, setIsRevolutionaryOnboardingOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
@@ -83,14 +85,21 @@ const Contacts = () => {
         description="Gestiona personas físicas y empresas de tu cartera"
       />
       
-      {/* Botón de Onboarding Mejorado */}
-      <div className="mb-6">
+      {/* Botones de Onboarding */}
+      <div className="mb-6 flex gap-3">
         <Button 
           onClick={handleStartImprovedOnboarding}
           className="border-0.5 border-black rounded-[10px] bg-primary text-white hover:bg-primary/90"
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          Nuevo Cliente - Onboarding Inteligente
+          Onboarding Inteligente
+        </Button>
+        <Button 
+          onClick={() => setIsRevolutionaryOnboardingOpen(true)}
+          className="border-0.5 border-black rounded-[10px] bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Sistema Revolucionario ⚡
         </Button>
       </div>
 
@@ -153,6 +162,13 @@ const Contacts = () => {
           <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
             <ImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo del Sistema Revolucionario */}
+      <Dialog open={isRevolutionaryOnboardingOpen} onOpenChange={setIsRevolutionaryOnboardingOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden border-0.5 border-black rounded-[10px]">
+          <RevolutionaryOnboardingDashboard onClose={() => setIsRevolutionaryOnboardingOpen(false)} />
         </DialogContent>
       </Dialog>
     </StandardPageContainer>
