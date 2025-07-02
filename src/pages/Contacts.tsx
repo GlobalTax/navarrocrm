@@ -13,6 +13,8 @@ import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOnboarding } from '@/components/onboarding'
+import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const Contacts = () => {
   const [isCreatePersonDialogOpen, setIsCreatePersonDialogOpen] = useState(false)
@@ -21,6 +23,7 @@ const Contacts = () => {
   const [isEditCompanyDialogOpen, setIsEditCompanyDialogOpen] = useState(false)
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+  const [isImprovedOnboardingOpen, setIsImprovedOnboardingOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
@@ -64,8 +67,13 @@ const Contacts = () => {
     refetch()
   }
 
-  const handleStartOnboarding = () => {
-    startOnboarding('general')
+  const handleStartImprovedOnboarding = () => {
+    setIsImprovedOnboardingOpen(true)
+  }
+
+  const handleCloseImprovedOnboarding = () => {
+    setIsImprovedOnboardingOpen(false)
+    refetch() // Refrescar datos después del onboarding
   }
 
   return (
@@ -75,14 +83,14 @@ const Contacts = () => {
         description="Gestiona personas físicas y empresas de tu cartera"
       />
       
-      {/* Botón de Onboarding */}
+      {/* Botón de Onboarding Mejorado */}
       <div className="mb-6">
         <Button 
-          onClick={handleStartOnboarding}
+          onClick={handleStartImprovedOnboarding}
           className="border-0.5 border-black rounded-[10px] bg-primary text-white hover:bg-primary/90"
         >
           <UserPlus className="h-4 w-4 mr-2" />
-          Nuevo Cliente - Onboarding
+          Nuevo Cliente - Onboarding Inteligente
         </Button>
       </div>
 
@@ -133,6 +141,20 @@ const Contacts = () => {
         onExportClose={() => setIsExportDialogOpen(false)}
         onBulkUploadSuccess={handleBulkUploadSuccess}
       />
+
+      {/* Diálogo de Onboarding Mejorado */}
+      <Dialog open={isImprovedOnboardingOpen} onOpenChange={setIsImprovedOnboardingOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden border-0.5 border-black rounded-[10px]">
+          <DialogHeader className="px-6 py-4 border-b border-gray-200">
+            <DialogTitle className="text-xl font-semibold">
+              Onboarding Inteligente de Clientes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <ImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </StandardPageContainer>
   )
 }

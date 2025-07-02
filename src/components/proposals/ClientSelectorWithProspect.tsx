@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Users, UserPlus, Check, AlertCircle } from 'lucide-react'
+import { Users, UserPlus, Check, AlertCircle, TrendingUp } from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
-import { ProspectToClientForm } from './ProspectToClientForm'
+import { useContacts } from '@/hooks/useContacts'
 import { useProspectToClient } from '@/hooks/proposals/useProspectToClient'
+import { ProspectToClientForm } from './ProspectToClientForm'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface ClientSelectorWithProspectProps {
@@ -21,7 +22,9 @@ export const ClientSelectorWithProspect: React.FC<ClientSelectorWithProspectProp
   onClientSelected
 }) => {
   const { clients, isLoading, error } = useClients()
-  const [mode, setMode] = useState<'existing' | 'new'>('existing')
+  const { contacts } = useContacts()
+  const [mode, setMode] = useState<'existing' | 'convert' | 'new'>('existing')
+  const [selectedProspect, setSelectedProspect] = useState<any>(null)
   
   const {
     prospectData,
