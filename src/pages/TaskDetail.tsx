@@ -126,9 +126,9 @@ export default function TaskDetail() {
 
   const subtitle = `Creada el ${new Date(task.created_at).toLocaleDateString('es-ES')}${task.due_date ? ` • Vence el ${new Date(task.due_date).toLocaleDateString('es-ES')}` : ''}`
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <DetailPageHeader
+    return (
+      <div className="min-h-screen bg-background">
+        <DetailPageHeader
         title={task.title}
         subtitle={subtitle}
         breadcrumbItems={breadcrumbItems}
@@ -220,41 +220,41 @@ export default function TaskDetail() {
                 {/* Información básica de la tarea */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
-                    <div className="bg-white p-6 rounded-lg border shadow-sm">
-                      <h3 className="text-lg font-semibold mb-4">Información de la Tarea</h3>
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Información de la Tarea</h3>
                       <div className="space-y-4">
                         <div>
-                          <span className="font-medium text-gray-700">Título:</span>
-                          <span className="ml-2">{task.title}</span>
+                          <span className="font-medium text-muted-foreground">Título:</span>
+                          <span className="ml-2 text-card-foreground">{task.title}</span>
                         </div>
                         {task.description && (
                           <div>
-                            <span className="font-medium text-gray-700">Descripción:</span>
-                            <p className="mt-1 text-gray-600">{task.description}</p>
+                            <span className="font-medium text-muted-foreground">Descripción:</span>
+                            <p className="mt-1 text-card-foreground">{task.description}</p>
                           </div>
                         )}
                         <div>
-                          <span className="font-medium text-gray-700">Estado:</span>
+                          <span className="font-medium text-muted-foreground">Estado:</span>
                           <Badge variant="outline" className={`ml-2 ${STATUS_COLORS[task.status]}`}>
                             {STATUS_LABELS[task.status]}
                           </Badge>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-700">Prioridad:</span>
+                          <span className="font-medium text-muted-foreground">Prioridad:</span>
                           <Badge variant="outline" className={`ml-2 ${PRIORITY_COLORS[task.priority]}`}>
                             {PRIORITY_LABELS[task.priority]}
                           </Badge>
                         </div>
                         {task.estimated_hours && (
                           <div>
-                            <span className="font-medium text-gray-700">Horas estimadas:</span>
-                            <span className="ml-2">{task.estimated_hours}h</span>
+                            <span className="font-medium text-muted-foreground">Horas estimadas:</span>
+                            <span className="ml-2 text-card-foreground">{task.estimated_hours}h</span>
                           </div>
                         )}
                         {task.due_date && (
                           <div>
-                            <span className="font-medium text-gray-700">Fecha límite:</span>
-                            <span className="ml-2">{new Date(task.due_date).toLocaleDateString('es-ES')}</span>
+                            <span className="font-medium text-muted-foreground">Fecha límite:</span>
+                            <span className="ml-2 text-card-foreground">{new Date(task.due_date).toLocaleDateString('es-ES')}</span>
                           </div>
                         )}
                       </div>
@@ -263,26 +263,26 @@ export default function TaskDetail() {
                   
                   <div className="space-y-6">
                     {/* Asignaciones */}
-                    <div className="bg-white p-6 rounded-lg border shadow-sm">
-                      <h3 className="text-lg font-semibold mb-4">Asignaciones</h3>
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Asignaciones</h3>
                       {task.task_assignments && task.task_assignments.length > 0 ? (
                         <div className="space-y-2">
                           {task.task_assignments.map((assignment) => (
                             <div key={assignment.id} className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-gray-400" />
-                              <span className="text-sm">{assignment.user?.email}</span>
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-card-foreground">{assignment.user?.email}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-gray-500">Sin asignaciones</div>
+                        <div className="text-muted-foreground">Sin asignaciones</div>
                       )}
                     </div>
 
                     {/* Caso relacionado */}
                     {task.case && (
-                      <div className="bg-white p-6 rounded-lg border shadow-sm">
-                        <h3 className="text-lg font-semibold mb-4">Expediente</h3>
+                      <div className="bg-card p-6 rounded-lg border shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 text-card-foreground">Expediente</h3>
                         <div className="text-sm">
                           <Button 
                             variant="link" 
@@ -297,8 +297,8 @@ export default function TaskDetail() {
 
                     {/* Cliente relacionado */}
                     {task.contact && (
-                      <div className="bg-white p-6 rounded-lg border shadow-sm">
-                        <h3 className="text-lg font-semibold mb-4">Cliente</h3>
+                      <div className="bg-card p-6 rounded-lg border shadow-sm">
+                        <h3 className="text-lg font-semibold mb-4 text-card-foreground">Cliente</h3>
                         <div className="text-sm">
                           <Button 
                             variant="link" 
@@ -315,30 +315,30 @@ export default function TaskDetail() {
               </TabsContent>
               
               <TabsContent value="subtasks">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Subtareas</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Subtareas</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
               
               <TabsContent value="comments">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Comentarios</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Comentarios</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
               
               <TabsContent value="time">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Registro de Tiempo</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Registro de Tiempo</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="history">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Historial de Cambios</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Historial de Cambios</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
             </div>

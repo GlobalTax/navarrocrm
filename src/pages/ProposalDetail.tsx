@@ -17,19 +17,19 @@ import { useProposals } from '@/hooks/useProposals'
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'draft':
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-muted/50 text-muted-foreground border-border'
     case 'sent':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-chart-1/10 text-chart-1 border-chart-1/20'
     case 'negotiating':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-chart-4/10 text-chart-4 border-chart-4/20'
     case 'won':
-      return 'bg-green-100 text-green-800'
+      return 'bg-chart-2/10 text-chart-2 border-chart-2/20'
     case 'lost':
-      return 'bg-red-100 text-red-800'
+      return 'bg-destructive/10 text-destructive border-destructive/20'
     case 'expired':
-      return 'bg-orange-100 text-orange-800'
+      return 'bg-chart-3/10 text-chart-3 border-chart-3/20'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-muted/50 text-muted-foreground border-border'
   }
 }
 
@@ -143,9 +143,9 @@ export default function ProposalDetail() {
 
   const subtitle = `Creada el ${new Date(proposal.created_at).toLocaleDateString('es-ES')}${proposal.proposal_number ? ` • ${proposal.proposal_number}` : ''}`
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <DetailPageHeader
+    return (
+      <div className="min-h-screen bg-background">
+        <DetailPageHeader
         title={proposal.title}
         subtitle={subtitle}
         breadcrumbItems={breadcrumbItems}
@@ -238,31 +238,31 @@ export default function ProposalDetail() {
                 {/* Información básica de la propuesta */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
-                    <div className="bg-white p-6 rounded-lg border shadow-sm">
-                      <h3 className="text-lg font-semibold mb-4">Información de la Propuesta</h3>
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Información de la Propuesta</h3>
                       <div className="space-y-4">
                         <div>
-                          <span className="font-medium text-gray-700">Título:</span>
-                          <span className="ml-2">{proposal.title}</span>
+                          <span className="font-medium text-muted-foreground">Título:</span>
+                          <span className="ml-2 text-card-foreground">{proposal.title}</span>
                         </div>
                         {proposal.description && (
                           <div>
-                            <span className="font-medium text-gray-700">Descripción:</span>
-                            <p className="mt-1 text-gray-600">{proposal.description}</p>
+                            <span className="font-medium text-muted-foreground">Descripción:</span>
+                            <p className="mt-1 text-card-foreground">{proposal.description}</p>
                           </div>
                         )}
                         <div>
-                          <span className="font-medium text-gray-700">Tipo:</span>
-                          <span className="ml-2">{proposal.proposal_type}</span>
+                          <span className="font-medium text-muted-foreground">Tipo:</span>
+                          <span className="ml-2 text-card-foreground">{proposal.proposal_type}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-700">Importe total:</span>
-                          <span className="ml-2 font-semibold">€{proposal.total_amount.toLocaleString()}</span>
+                          <span className="font-medium text-muted-foreground">Importe total:</span>
+                          <span className="ml-2 font-semibold text-card-foreground">€{proposal.total_amount.toLocaleString()}</span>
                         </div>
                         {proposal.valid_until && (
                           <div>
-                            <span className="font-medium text-gray-700">Válida hasta:</span>
-                            <span className="ml-2">{new Date(proposal.valid_until).toLocaleDateString('es-ES')}</span>
+                            <span className="font-medium text-muted-foreground">Válida hasta:</span>
+                            <span className="ml-2 text-card-foreground">{new Date(proposal.valid_until).toLocaleDateString('es-ES')}</span>
                           </div>
                         )}
                       </div>
@@ -270,17 +270,17 @@ export default function ProposalDetail() {
                   </div>
                   
                   <div>
-                    <div className="bg-white p-6 rounded-lg border shadow-sm">
-                      <h3 className="text-lg font-semibold mb-4">Cliente</h3>
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Cliente</h3>
                       {proposal.client ? (
                         <div className="space-y-2">
-                          <div className="font-medium">{proposal.client.name}</div>
+                          <div className="font-medium text-card-foreground">{proposal.client.name}</div>
                           {proposal.client.email && (
-                            <div className="text-sm text-gray-600">{proposal.client.email}</div>
+                            <div className="text-sm text-muted-foreground">{proposal.client.email}</div>
                           )}
                         </div>
                       ) : (
-                        <div className="text-gray-500">Sin cliente asignado</div>
+                        <div className="text-muted-foreground">Sin cliente asignado</div>
                       )}
                     </div>
                   </div>
@@ -288,30 +288,30 @@ export default function ProposalDetail() {
               </TabsContent>
               
               <TabsContent value="details">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Detalles de la Propuesta</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Detalles de la Propuesta</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
               
               <TabsContent value="pricing">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Estructura de Precios</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Estructura de Precios</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
               
               <TabsContent value="documents">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Documentos</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Documentos</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="history">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Historial de Cambios</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
+                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
+                  <div className="text-lg font-medium mb-2 text-card-foreground">Historial de Cambios</div>
+                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
                 </div>
               </TabsContent>
             </div>
