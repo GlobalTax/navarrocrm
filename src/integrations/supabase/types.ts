@@ -2117,6 +2117,60 @@ export type Database = {
           },
         ]
       }
+      onboarding_progress: {
+        Row: {
+          client_data: Json
+          client_type: string | null
+          completed_at: string | null
+          completed_steps: string[]
+          created_at: string
+          current_step_index: number
+          flow_id: string
+          id: string
+          is_completed: boolean
+          last_active_at: string
+          org_id: string
+          started_at: string
+          step_data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_data?: Json
+          client_type?: string | null
+          completed_at?: string | null
+          completed_steps?: string[]
+          created_at?: string
+          current_step_index?: number
+          flow_id: string
+          id?: string
+          is_completed?: boolean
+          last_active_at?: string
+          org_id: string
+          started_at?: string
+          step_data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_data?: Json
+          client_type?: string | null
+          completed_at?: string | null
+          completed_steps?: string[]
+          created_at?: string
+          current_step_index?: number
+          flow_id?: string
+          id?: string
+          is_completed?: boolean
+          last_active_at?: string
+          org_id?: string
+          started_at?: string
+          step_data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organization_integrations: {
         Row: {
           auto_email_enabled: boolean

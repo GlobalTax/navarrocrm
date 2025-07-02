@@ -184,10 +184,31 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
 
   const loadSavedProgress = async () => {
     try {
-      // TODO: Implementar carga desde localStorage o supabase
-      const saved = localStorage.getItem(`onboarding_progress_${user?.id}`)
-      if (saved) {
-        const progress = JSON.parse(saved)
+      // Cargar desde Supabase
+      const { data, error } = await supabase
+        .from('onboarding_progress')
+        .select('*')
+        .eq('user_id', user?.id)
+        .eq('is_completed', false)
+        .order('last_active_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading onboarding progress:', error)
+        return
+      }
+
+      if (data) {
+        const progress: OnboardingProgress = {
+          currentStepIndex: data.current_step_index,
+          completedSteps: data.completed_steps,
+          stepData: (data.step_data as Record<string, any>) || {},
+          startedAt: data.started_at,
+          lastActiveAt: data.last_active_at,
+          isCompleted: data.is_completed,
+          clientType: data.client_type as 'particular' | 'empresa' | undefined
+        }
         dispatch({ type: 'LOAD_PROGRESS', payload: progress })
       }
     } catch (error) {
@@ -207,15 +228,32 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   }, [])
 
   const saveProgress = useCallback(async () => {
-    if (!state.progress || !user?.id) return
+    if (!state.progress || !user?.id || !user?.org_id || !state.currentFlow) return
 
     try {
       dispatch({ type: 'SET_LOADING', payload: true })
       
-      // Guardar en localStorage como fallback
-      localStorage.setItem(`onboarding_progress_${user.id}`, JSON.stringify(state.progress))
-      
-      // TODO: Guardar en Supabase para persistencia entre dispositivos
+      const progressData = {
+        org_id: user.org_id,
+        user_id: user.id,
+        flow_id: state.currentFlow.id,
+        current_step_index: state.progress.currentStepIndex,
+        completed_steps: state.progress.completedSteps,
+        step_data: state.progress.stepData,
+        client_data: state.clientData,
+        client_type: state.progress.clientType,
+        last_active_at: new Date().toISOString(),
+        is_completed: state.progress.isCompleted
+      }
+
+      const { error } = await supabase
+        .from('onboarding_progress')
+        .upsert(progressData, { 
+          onConflict: 'user_id,flow_id',
+          ignoreDuplicates: false 
+        })
+
+      if (error) throw error
       
     } catch (error) {
       console.error('Error saving onboarding progress:', error)
@@ -223,7 +261,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [state.progress, user?.id])
+  }, [state.progress, state.clientData, state.currentFlow, user?.id, user?.org_id])
 
   const completeOnboarding = useCallback(async () => {
     if (!state.progress || !user?.org_id) return
@@ -250,7 +288,11 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       toast.success('¡Onboarding completado exitosamente!')
       
       // Limpiar progreso guardado
-      localStorage.removeItem(`onboarding_progress_${user.id}`)
+      await supabase
+        .from('onboarding_progress')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('flow_id', state.currentFlow?.id)
 
     } catch (error) {
       console.error('Error completing onboarding:', error)
