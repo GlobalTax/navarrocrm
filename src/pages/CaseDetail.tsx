@@ -10,6 +10,8 @@ import { DetailPageHeader } from '@/components/layout/DetailPageHeader'
 import { CaseStatsPanel } from '@/components/cases/stats/CaseStatsPanel'
 import { CaseTimeline } from '@/components/cases/timeline/CaseTimeline'
 import { CaseTasksPanel } from '@/components/cases/tasks/CaseTasksPanel'
+import { CaseDocumentsPanel } from '@/components/cases/documents/CaseDocumentsPanel'
+import { CaseTimePanel } from '@/components/cases/time/CaseTimePanel'
 import { useCases } from '@/hooks/useCases'
 import { MatterFormDialog } from '@/components/cases/MatterFormDialog'
 import { useState } from 'react'
@@ -17,13 +19,13 @@ import { useState } from 'react'
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'open':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-chart-1/10 text-chart-1 border-chart-1/20'
     case 'on_hold':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-chart-4/10 text-chart-4 border-chart-4/20'
     case 'closed':
-      return 'bg-green-100 text-green-800'
+      return 'bg-chart-2/10 text-chart-2 border-chart-2/20'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-muted/50 text-muted-foreground border-border'
   }
 }
 
@@ -48,10 +50,10 @@ export default function CaseDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando expediente...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando expediente...</p>
         </div>
       </div>
     )
@@ -61,10 +63,10 @@ export default function CaseDetail() {
 
   if (!case_) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Expediente no encontrado</h1>
-          <p className="text-gray-600 mb-4">El expediente que buscas no existe o no tienes permisos para verlo.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Expediente no encontrado</h1>
+          <p className="text-muted-foreground mb-4">El expediente que buscas no existe o no tienes permisos para verlo.</p>
           <Button onClick={() => navigate('/cases')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Expedientes
@@ -105,7 +107,7 @@ export default function CaseDetail() {
   const subtitle = `Creado el ${new Date(case_.created_at).toLocaleDateString('es-ES')}${case_.practice_area ? ` • ${case_.practice_area}` : ''}`
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <DetailPageHeader
         title={case_.title}
         subtitle={subtitle}
@@ -168,31 +170,31 @@ export default function CaseDetail() {
                 {/* Información básica del expediente */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
-                    <div className="bg-white p-6 rounded-lg border shadow-sm">
-                      <h3 className="text-lg font-semibold mb-4">Información del Expediente</h3>
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Información del Expediente</h3>
                       <div className="space-y-4">
                         <div>
-                          <span className="font-medium text-gray-700">Título:</span>
-                          <span className="ml-2">{case_.title}</span>
+                          <span className="font-medium text-muted-foreground">Título:</span>
+                          <span className="ml-2 text-card-foreground">{case_.title}</span>
                         </div>
                         {case_.description && (
                           <div>
-                            <span className="font-medium text-gray-700">Descripción:</span>
-                            <p className="mt-1 text-gray-600">{case_.description}</p>
+                            <span className="font-medium text-muted-foreground">Descripción:</span>
+                            <p className="mt-1 text-card-foreground">{case_.description}</p>
                           </div>
                         )}
                         <div>
-                          <span className="font-medium text-gray-700">Área de práctica:</span>
-                          <span className="ml-2">{case_.practice_area || 'No especificada'}</span>
+                          <span className="font-medium text-muted-foreground">Área de práctica:</span>
+                          <span className="ml-2 text-card-foreground">{case_.practice_area || 'No especificada'}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-700">Método de facturación:</span>
-                          <span className="ml-2">{case_.billing_method === 'hourly' ? 'Por horas' : case_.billing_method}</span>
+                          <span className="font-medium text-muted-foreground">Método de facturación:</span>
+                          <span className="ml-2 text-card-foreground">{case_.billing_method === 'hourly' ? 'Por horas' : case_.billing_method}</span>
                         </div>
                         {case_.estimated_budget && (
                           <div>
-                            <span className="font-medium text-gray-700">Presupuesto estimado:</span>
-                            <span className="ml-2">€{case_.estimated_budget.toLocaleString()}</span>
+                            <span className="font-medium text-muted-foreground">Presupuesto estimado:</span>
+                            <span className="ml-2 text-card-foreground">€{case_.estimated_budget.toLocaleString()}</span>
                           </div>
                         )}
                       </div>
@@ -200,20 +202,20 @@ export default function CaseDetail() {
                   </div>
                   
                   <div>
-                    <div className="bg-white p-6 rounded-lg border shadow-sm">
-                      <h3 className="text-lg font-semibold mb-4">Cliente</h3>
+                    <div className="bg-card p-6 rounded-lg border shadow-sm">
+                      <h3 className="text-lg font-semibold mb-4 text-card-foreground">Cliente</h3>
                       {case_.contact ? (
                         <div className="space-y-2">
-                          <div className="font-medium">{case_.contact.name}</div>
+                          <div className="font-medium text-card-foreground">{case_.contact.name}</div>
                           {case_.contact.email && (
-                            <div className="text-sm text-gray-600">{case_.contact.email}</div>
+                            <div className="text-sm text-muted-foreground">{case_.contact.email}</div>
                           )}
                           {case_.contact.phone && (
-                            <div className="text-sm text-gray-600">{case_.contact.phone}</div>
+                            <div className="text-sm text-muted-foreground">{case_.contact.phone}</div>
                           )}
                         </div>
                       ) : (
-                        <div className="text-gray-500">Sin cliente asignado</div>
+                        <div className="text-muted-foreground">Sin cliente asignado</div>
                       )}
                     </div>
                   </div>
@@ -232,17 +234,11 @@ export default function CaseDetail() {
               </TabsContent>
               
               <TabsContent value="documents">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Gestión de Documentos</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
-                </div>
+                <CaseDocumentsPanel caseId={case_.id} />
               </TabsContent>
 
               <TabsContent value="time">
-                <div className="bg-white p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2">Registro de Tiempo</div>
-                  <p className="text-sm text-gray-600">Esta funcionalidad estará disponible próximamente</p>
-                </div>
+                <CaseTimePanel caseId={case_.id} />
               </TabsContent>
             </div>
           </Tabs>
