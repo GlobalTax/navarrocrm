@@ -106,7 +106,7 @@ export const useTimeEntries = () => {
           entry_type: data.entry_type || 'billable',
         })
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return result

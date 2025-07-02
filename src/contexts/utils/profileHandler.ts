@@ -22,7 +22,7 @@ export const enrichUserProfileAsync = async (
         .from('users')
         .select('role, org_id')
         .eq('id', authUser.id)
-        .single(),
+        .maybeSingle(),
       new Promise<never>((_, reject) => {
         setTimeout(() => reject(new Error('TIMEOUT')), 2000) // Reducido timeout
       })

@@ -18,7 +18,7 @@ export const useAcademyMutations = () => {
         .from('academy_categories')
         .insert({ ...data, org_id: user.org_id })
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return category
@@ -41,7 +41,7 @@ export const useAcademyMutations = () => {
         .update(data)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return category
@@ -96,7 +96,7 @@ export const useAcademyMutations = () => {
             color
           )
         `)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return course
@@ -119,7 +119,7 @@ export const useAcademyMutations = () => {
         .update(data)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return course
@@ -167,7 +167,7 @@ export const useAcademyMutations = () => {
           org_id: user.org_id
         })
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 
@@ -176,7 +176,7 @@ export const useAcademyMutations = () => {
         .from('academy_courses')
         .select('total_lessons')
         .eq('id', data.course_id)
-        .single()
+        .maybeSingle()
 
       if (course) {
         await supabase
@@ -209,7 +209,7 @@ export const useAcademyMutations = () => {
         .update(data)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
       return lesson
@@ -238,7 +238,7 @@ export const useAcademyMutations = () => {
         .from('academy_courses')
         .select('total_lessons')
         .eq('id', course_id)
-        .single()
+        .maybeSingle()
 
       if (course) {
         await supabase

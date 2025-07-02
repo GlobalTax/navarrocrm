@@ -8,21 +8,21 @@ export const useCreateSuperAdmin = () => {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      console.log('🔄 Creando Super Admin para usuario:', userId)
+      
       
       // Verificar primero si el usuario existe
       const { data: user, error: userError } = await supabase
         .from('users')
         .select('id, email, role, org_id')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
       if (userError) {
-        console.error('❌ Error verificando usuario:', userError)
+        
         throw new Error(`Usuario no encontrado: ${userError.message}`)
       }
 
-      console.log('✅ Usuario encontrado:', user)
+      
 
       // Verificar si ya tiene el rol de super_admin
       const { data: existingRole, error: roleCheckError } = await supabase
@@ -68,7 +68,7 @@ export const useCreateSuperAdmin = () => {
           role: 'super_admin'
         })
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('❌ Error insertando rol:', error)

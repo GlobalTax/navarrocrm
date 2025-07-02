@@ -15,7 +15,7 @@ export const useCasesMutations = () => {
         throw new Error('Usuario no autenticado')
       }
 
-      console.log('📋 Creando caso:', caseData)
+      
 
       // Prepare data for insertion, making sure contact_id has a default value
       const insertData = {
@@ -43,14 +43,14 @@ export const useCasesMutations = () => {
             phone
           )
         `)
-        .single()
+        .maybeSingle()
 
       if (error) {
-        console.error('❌ Error creating case:', error)
+        
         throw error
       }
 
-      console.log('✅ Caso creado:', data)
+      
       return data
     },
     onSuccess: () => {
@@ -65,7 +65,7 @@ export const useCasesMutations = () => {
 
   const updateCaseMutation = useMutation({
     mutationFn: async ({ id, ...updateData }: UpdateCaseData) => {
-      console.log('📋 Actualizando caso:', id, updateData)
+      
 
       const { data, error } = await supabase
         .from('cases')
@@ -87,7 +87,7 @@ export const useCasesMutations = () => {
         throw error
       }
 
-      console.log('✅ Caso actualizado:', data)
+      
       return data
     },
     onSuccess: () => {
@@ -102,7 +102,7 @@ export const useCasesMutations = () => {
 
   const deleteCaseMutation = useMutation({
     mutationFn: async (caseId: string) => {
-      console.log('📋 Eliminando caso:', caseId)
+      
 
       const { error } = await supabase
         .from('cases')

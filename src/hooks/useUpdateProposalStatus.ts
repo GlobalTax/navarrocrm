@@ -40,7 +40,7 @@ export const useUpdateProposalStatus = (proposals: Proposal[], onProposalWon?: (
       .from('recurring_fees')
       .select('id')
       .eq('proposal_id', proposal.id)
-      .single()
+      .maybeSingle()
 
     if (!existingFee) {
       const { error } = await supabase
@@ -79,7 +79,7 @@ export const useUpdateProposalStatus = (proposals: Proposal[], onProposalWon?: (
         .update(updateData)
         .eq('id', id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 

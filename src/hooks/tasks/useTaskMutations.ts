@@ -45,7 +45,7 @@ export const useTaskMutations = () => {
           contact:contacts!tasks_contact_id_fkey(name),
           created_by_user:users!tasks_created_by_fkey(email)
         `)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error('❌ Error creando tarea:', error)

@@ -99,7 +99,7 @@ export const useCreateProposal = () => {
         .from('proposals')
         .insert(proposalInsert)
         .select()
-        .single()
+        .maybeSingle()
 
       if (proposalError) throw proposalError
 
