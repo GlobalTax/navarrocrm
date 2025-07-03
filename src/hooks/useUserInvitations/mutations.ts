@@ -93,7 +93,7 @@ export const useSendInvitation = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-invitations', user?.org_id] })
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
     },
     onError: (error: any) => {
       console.error('Error procesando invitación:', error)
@@ -103,7 +103,6 @@ export const useSendInvitation = () => {
 }
 
 export const useCancelInvitation = () => {
-  const { user } = useApp()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -116,7 +115,7 @@ export const useCancelInvitation = () => {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-invitations', user?.org_id] })
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
       toast.success('Invitación cancelada')
     },
     onError: (error: any) => {
@@ -126,7 +125,6 @@ export const useCancelInvitation = () => {
 }
 
 export const useDeleteInvitation = () => {
-  const { user } = useApp()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -141,7 +139,7 @@ export const useDeleteInvitation = () => {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-invitations', user?.org_id] })
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
       toast.success('Invitación eliminada permanentemente')
     },
     onError: (error: any) => {
@@ -152,7 +150,6 @@ export const useDeleteInvitation = () => {
 }
 
 export const useResendInvitation = () => {
-  const { user } = useApp()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -191,7 +188,7 @@ export const useResendInvitation = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-invitations', user?.org_id] })
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
       toast.success('Invitación reenviada exitosamente')
     },
     onError: (error: any) => {
@@ -202,7 +199,6 @@ export const useResendInvitation = () => {
 }
 
 export const useBulkCleanupInvitations = () => {
-  const { user } = useApp()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -219,7 +215,7 @@ export const useBulkCleanupInvitations = () => {
       return cleanupResult
     },
     onSuccess: (cleanedCount) => {
-      queryClient.invalidateQueries({ queryKey: ['user-invitations', user?.org_id] })
+      queryClient.invalidateQueries({ queryKey: ['user-invitations'] })
       toast.success(`Limpieza completada: ${cleanedCount} invitaciones expiradas procesadas`)
     },
     onError: (error: any) => {
