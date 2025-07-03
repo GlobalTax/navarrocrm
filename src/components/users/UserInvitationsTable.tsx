@@ -1,4 +1,5 @@
 
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,6 +21,7 @@ import { UserBulkActions } from './UserBulkActions'
 
 export const UserInvitationsTable = () => {
   const { invitations, isLoading, cancelInvitation, deleteInvitation, resendInvitation, getRoleLabel } = useUserInvitations()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null)
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -138,7 +140,10 @@ export const UserInvitationsTable = () => {
                         )}
                         
                         {invitation.status !== 'accepted' && (
-                          <AlertDialog>
+                          <AlertDialog 
+                            open={deleteDialogOpen === invitation.id} 
+                            onOpenChange={(open) => setDeleteDialogOpen(open ? invitation.id : null)}
+                          >
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem 
                                 className="text-red-600"
@@ -160,7 +165,10 @@ export const UserInvitationsTable = () => {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction 
-                                  onClick={() => deleteInvitation.mutate(invitation.id)}
+                                  onClick={async () => {
+                                    await deleteInvitation.mutateAsync(invitation.id)
+                                    setDeleteDialogOpen(null)
+                                  }}
                                   className="bg-red-600 hover:bg-red-700"
                                 >
                                   Eliminar
