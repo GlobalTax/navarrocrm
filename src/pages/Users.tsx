@@ -10,6 +10,7 @@ import { Users as UsersIcon, Mail, Upload, Building } from 'lucide-react'
 import { useEnhancedUsers } from '@/hooks/useEnhancedUsers'
 import { UserAdvancedFilters, UserFilters } from '@/components/users/UserAdvancedFilters'
 import { UserInvitationsTable } from '@/components/users/UserInvitationsTable'
+import { InvitationNotifications } from '@/components/users/InvitationNotifications'
 import { UserMetrics } from '@/components/users/UserMetrics'
 import { UserTable } from '@/components/users/UserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
@@ -141,6 +142,7 @@ const Users = () => {
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-6">
+          <InvitationNotifications />
           <UserInvitationsTable />
         </TabsContent>
 
