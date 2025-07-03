@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         // Enviar email de prueba con tu dominio personalizado
         const testResponse = await resend.emails.send({
-          from: 'CRM Sistema <no-reply@send.nrro.es>',
+          from: 'CRM Sistema <no-reply@nrro.es>',
           to: [to],
           subject: 'Test de configuración - CRM Sistema',
           html: `
