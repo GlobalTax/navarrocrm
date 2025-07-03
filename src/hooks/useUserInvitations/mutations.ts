@@ -145,26 +145,16 @@ export const useDeleteInvitation = () => {
     onSuccess: (deletedId) => {
       console.log('✅ Invitación eliminada, invalidando cache...')
       
-      // Estrategia 1: Invalidación específica con org_id
-      queryClient.invalidateQueries({ 
-        queryKey: ['user-invitations', user?.org_id] 
+      // Forzar refetch inmediato sin cache
+      queryClient.refetchQueries({ 
+        queryKey: ['user-invitations', user?.org_id],
+        type: 'active'
       })
       
-      // Estrategia 2: Invalidación amplia usando predicate
+      // Invalidar todas las queries relacionadas
       queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === 'user-invitations'
       })
-      
-      // Estrategia 3: Actualización optimista del cache
-      queryClient.setQueryData(['user-invitations', user?.org_id], (oldData: any) => {
-        if (!oldData) return oldData
-        return oldData.filter((inv: any) => inv.id !== deletedId)
-      })
-      
-      // Estrategia 4: Refetch manual como fallback
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['user-invitations', user?.org_id] })
-      }, 100)
       
       toast.success('Invitación eliminada permanentemente')
     },
