@@ -114,38 +114,49 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Enviar email real con dominio personalizado
+    // Enviar email real con fallback automático
     console.log('📧 [Send Email] Enviando email real...');
     
     let emailResponse;
-    let retryCount = 0;
-    const maxRetries = 3;
+    let usedDomain = 'send.nrro.es';
     
-    while (retryCount < maxRetries) {
+    // Intentar primero con dominio personalizado
+    try {
+      console.log('📧 [Send Email] Intentando con dominio personalizado...');
+      emailResponse = await resend.emails.send({
+        from: 'CRM Sistema <no-reply@send.nrro.es>',
+        to: [to],
+        subject: subject,
+        html: html,
+      });
+
+      if (emailResponse.error) {
+        throw new Error(emailResponse.error.message || 'Error con dominio personalizado');
+      }
+
+      console.log('📧 [Send Email] Email enviado exitosamente con dominio personalizado:', emailResponse);
+    } catch (customDomainError: any) {
+      console.warn('⚠️ [Send Email] Dominio personalizado falló, usando fallback:', customDomainError.message);
+      
+      // Fallback a dominio por defecto de Resend
       try {
+        console.log('📧 [Send Email] Usando dominio por defecto como fallback...');
         emailResponse = await resend.emails.send({
-          from: 'CRM Sistema <no-reply@send.nrro.es>',
+          from: 'CRM Sistema <onboarding@resend.dev>',
           to: [to],
           subject: subject,
           html: html,
         });
 
         if (emailResponse.error) {
-          throw new Error(emailResponse.error.message || 'Error desconocido de Resend');
+          throw new Error(emailResponse.error.message || 'Error con dominio por defecto');
         }
 
-        console.log('📧 [Send Email] Email enviado exitosamente:', emailResponse);
-        break;
-      } catch (sendError: any) {
-        retryCount++;
-        console.error(`❌ [Send Email] Intento ${retryCount} falló:`, sendError);
-        
-        if (retryCount >= maxRetries) {
-          throw sendError;
-        }
-        
-        // Esperar antes del siguiente intento
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        usedDomain = 'resend.dev';
+        console.log('📧 [Send Email] Email enviado exitosamente con dominio por defecto:', emailResponse);
+      } catch (fallbackError: any) {
+        console.error('❌ [Send Email] Ambos dominios fallaron:', fallbackError);
+        throw new Error(`Error en ambos dominios - Personalizado: ${customDomainError.message}, Fallback: ${fallbackError.message}`);
       }
     }
 
@@ -168,8 +179,8 @@ const handler = async (req: Request): Promise<Response> => {
               target_user_id: invitation.invited_by,
               action_by: invitation.invited_by,
               action_type: 'invitation_sent',
-              new_value: { email: to, role: invitation.role, domain: 'send.nrro.es' },
-              details: `Invitación enviada a ${to} para rol ${invitation.role} desde dominio personalizado`
+              new_value: { email: to, role: invitation.role, domain: usedDomain },
+              details: `Invitación enviada a ${to} para rol ${invitation.role} desde dominio ${usedDomain}`
             });
           
           console.log('📧 [Send Email] Auditoría registrada exitosamente');
@@ -181,10 +192,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ 
       success: true,
-      message: 'Email enviado exitosamente desde dominio personalizado',
+      message: `Email enviado exitosamente desde dominio ${usedDomain}`,
       messageId: emailResponse?.data?.id || emailResponse?.id,
-      retryCount: retryCount,
-      domain: 'send.nrro.es'
+      domain: usedDomain,
+      fallbackUsed: usedDomain !== 'send.nrro.es'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
