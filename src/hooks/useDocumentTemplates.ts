@@ -236,6 +236,49 @@ export const useDocumentTemplates = () => {
     },
   })
 
+  const duplicateTemplate = useMutation({
+    mutationFn: async (templateId: string) => {
+      if (!user?.org_id) throw new Error('No organization found')
+
+      // Obtener la plantilla original
+      const { data: originalTemplate, error: fetchError } = await supabase
+        .from('document_templates')
+        .select('*')
+        .eq('id', templateId)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      // Crear copia con nuevo nombre
+      const { data, error } = await supabase
+        .from('document_templates')
+        .insert({
+          org_id: user.org_id,
+          created_by: user.id,
+          name: `${originalTemplate.name} (Copia)`,
+          description: originalTemplate.description,
+          document_type: originalTemplate.document_type,
+          category: originalTemplate.category,
+          practice_area: originalTemplate.practice_area,
+          template_content: originalTemplate.template_content,
+          variables: originalTemplate.variables,
+          is_ai_enhanced: originalTemplate.is_ai_enhanced
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document-templates'] })
+      toast.success('Plantilla duplicada exitosamente')
+    },
+    onError: (error: any) => {
+      toast.error('Error duplicando la plantilla: ' + error.message)
+    },
+  })
+
   return {
     templates: templatesQuery.data || [],
     generatedDocuments: generatedDocumentsQuery.data || [],
@@ -245,6 +288,7 @@ export const useDocumentTemplates = () => {
     updateTemplate,
     deleteTemplate,
     generateDocument,
-    updateDocumentStatus
+    updateDocumentStatus,
+    duplicateTemplate
   }
 }

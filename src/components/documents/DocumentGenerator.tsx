@@ -1,72 +1,113 @@
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useMemo } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { FileText, Plus, Settings, Bot, Gavel, MessageCircle } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useDocumentTemplates } from '@/hooks/useDocumentTemplates'
 import { DocumentTemplateDialog } from './DocumentTemplateDialog'
 import { DocumentGeneratorDialog } from './DocumentGeneratorDialog'
 import { GeneratedDocumentsList } from './GeneratedDocumentsList'
+import { DocumentsFilters } from './DocumentsFilters'
+import { TemplateCard } from './TemplateCard'
+import { TemplatePreviewDialog } from './TemplatePreviewDialog'
 
 export const DocumentGenerator = () => {
-  const { templates, generatedDocuments, isLoading } = useDocumentTemplates()
+  const { templates, generatedDocuments, isLoading, duplicateTemplate } = useDocumentTemplates()
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
   const [generatorDialogOpen, setGeneratorDialogOpen] = useState(false)
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [selectedTemplateForPreview, setSelectedTemplateForPreview] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('templates')
+  
+  // Estados para filtros
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [practiceAreaFilter, setPracticeAreaFilter] = useState('all')
+  const [showFavorites, setShowFavorites] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [favorites, setFavorites] = useState<Set<string>>(new Set())
 
-  const getDocumentTypeIcon = (type: string) => {
-    switch (type) {
-      case 'contract':
-        return <FileText className="h-4 w-4" />
-      case 'communication':
-        return <MessageCircle className="h-4 w-4" />
-      case 'procedural':
-        return <Gavel className="h-4 w-4" />
-      default:
-        return <FileText className="h-4 w-4" />
-    }
-  }
+  // Filtrar templates
+  const filteredTemplates = useMemo(() => {
+    return templates.filter(template => {
+      // Filtro de búsqueda
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase()
+        const matchesName = template.name.toLowerCase().includes(searchLower)
+        const matchesDescription = template.description?.toLowerCase().includes(searchLower)
+        const matchesContent = template.template_content.toLowerCase().includes(searchLower)
+        if (!matchesName && !matchesDescription && !matchesContent) {
+          return false
+        }
+      }
 
-  const getDocumentTypeLabel = (type: string) => {
-    switch (type) {
-      case 'contract':
-        return 'Contrato'
-      case 'communication':
-        return 'Comunicación'
-      case 'procedural':
-        return 'Procesal'
-      default:
-        return type
-    }
-  }
+      // Filtro de tipo
+      if (typeFilter !== 'all' && template.document_type !== typeFilter) {
+        return false
+      }
 
-  const getDocumentTypeColor = (type: string) => {
-    switch (type) {
-      case 'contract':
-        return 'bg-primary/10 text-primary border-primary/20'
-      case 'communication':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'procedural':
-        return 'bg-purple-50 text-purple-700 border-purple-200'
-      default:
-        return 'bg-muted text-muted-foreground border-muted'
-    }
-  }
+      // Filtro de categoría
+      if (categoryFilter !== 'all' && template.category !== categoryFilter) {
+        return false
+      }
 
-  const groupedTemplates = templates.reduce((acc, template) => {
-    if (!acc[template.document_type]) {
-      acc[template.document_type] = []
-    }
-    acc[template.document_type].push(template)
-    return acc
-  }, {} as Record<string, typeof templates>)
+      // Filtro de área de práctica
+      if (practiceAreaFilter !== 'all' && template.practice_area !== practiceAreaFilter) {
+        return false
+      }
+
+      // Filtro de favoritos
+      if (showFavorites && !favorites.has(template.id)) {
+        return false
+      }
+
+      return true
+    })
+  }, [templates, searchTerm, typeFilter, categoryFilter, practiceAreaFilter, showFavorites, favorites])
 
   const handleGenerateDocument = (templateId: string) => {
     setSelectedTemplate(templateId)
     setGeneratorDialogOpen(true)
   }
+
+  const handleEditTemplate = (templateId: string) => {
+    // TODO: Implementar edición de plantilla
+    console.log('Editar plantilla:', templateId)
+  }
+
+  const handleDuplicateTemplate = async (templateId: string) => {
+    await duplicateTemplate.mutateAsync(templateId)
+  }
+
+  const handleToggleFavorite = (templateId: string) => {
+    const newFavorites = new Set(favorites)
+    if (newFavorites.has(templateId)) {
+      newFavorites.delete(templateId)
+    } else {
+      newFavorites.add(templateId)
+    }
+    setFavorites(newFavorites)
+    // TODO: Persistir favoritos en localStorage o base de datos
+  }
+
+  const handlePreviewTemplate = (templateId: string) => {
+    setSelectedTemplateForPreview(templateId)
+    setPreviewDialogOpen(true)
+  }
+
+  const handleClearFilters = () => {
+    setSearchTerm('')
+    setTypeFilter('all')
+    setCategoryFilter('all')
+    setPracticeAreaFilter('all')
+    setShowFavorites(false)
+  }
+
+  const selectedTemplateData = selectedTemplateForPreview 
+    ? templates.find(t => t.id === selectedTemplateForPreview) 
+    : null
 
   if (isLoading) {
     return (
@@ -107,86 +148,49 @@ export const DocumentGenerator = () => {
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
-          {/* Plantillas por tipo */}
-          {Object.entries(groupedTemplates).map(([type, typeTemplates]) => (
-            <Card key={type}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  {getDocumentTypeIcon(type)}
-                  {getDocumentTypeLabel(type)}
-                  <Badge variant="secondary">{typeTemplates.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {typeTemplates.map((template) => (
-                    <Card key={template.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-medium text-foreground line-clamp-2">
-                              {template.name}
-                            </h3>
-                            {template.is_ai_enhanced && (
-                              <Bot className="h-4 w-4 text-primary flex-shrink-0" />
-                            )}
-                          </div>
+          {/* Filtros */}
+          <DocumentsFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            typeFilter={typeFilter}
+            onTypeFilterChange={setTypeFilter}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={setCategoryFilter}
+            practiceAreaFilter={practiceAreaFilter}
+            onPracticeAreaFilterChange={setPracticeAreaFilter}
+            showFavorites={showFavorites}
+            onShowFavoritesChange={setShowFavorites}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            templates={templates}
+            onClearFilters={handleClearFilters}
+          />
 
-                          {template.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {template.description}
-                            </p>
-                          )}
-
-                          <div className="flex items-center gap-2">
-                            <Badge className={getDocumentTypeColor(template.document_type)}>
-                              {getDocumentTypeLabel(template.document_type)}
-                            </Badge>
-                            {template.category && (
-                              <Badge variant="outline" className="text-xs">
-                                {template.category}
-                              </Badge>
-                            )}
-                          </div>
-
-                          {template.practice_area && (
-                            <p className="text-xs text-muted-foreground">
-                              Área: {template.practice_area}
-                            </p>
-                          )}
-
-                          <div className="flex gap-2 pt-2">
-                            <Button
-                              size="sm"
-                              onClick={() => handleGenerateDocument(template.id)}
-                              className="flex-1"
-                            >
-                              Generar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                // TODO: Implementar edición de plantilla
-                                console.log('Editar plantilla:', template.id)
-                              }}
-                            >
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {templates.length === 0 && (
+          {/* Lista de plantillas */}
+          {filteredTemplates.length > 0 ? (
+            <div className={
+              viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
+                : "space-y-4"
+            }>
+              {filteredTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  isFavorite={favorites.has(template.id)}
+                  onGenerate={handleGenerateDocument}
+                  onEdit={handleEditTemplate}
+                  onDuplicate={handleDuplicateTemplate}
+                  onToggleFavorite={handleToggleFavorite}
+                  onPreview={handlePreviewTemplate}
+                  viewMode={viewMode}
+                />
+              ))}
+            </div>
+          ) : templates.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
-                <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <Plus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
                   No hay plantillas disponibles
                 </h3>
@@ -196,6 +200,17 @@ export const DocumentGenerator = () => {
                 <Button onClick={() => setTemplateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Crear Primera Plantilla
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="text-muted-foreground mb-4">
+                  No se encontraron plantillas que coincidan con los filtros aplicados
+                </div>
+                <Button variant="outline" onClick={handleClearFilters}>
+                  Limpiar filtros
                 </Button>
               </CardContent>
             </Card>
@@ -220,6 +235,16 @@ export const DocumentGenerator = () => {
           templateId={selectedTemplate}
         />
       )}
+
+      {/* Preview Dialog */}
+      <TemplatePreviewDialog
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        template={selectedTemplateData}
+        onGenerate={handleGenerateDocument}
+        onEdit={handleEditTemplate}
+        onDuplicate={handleDuplicateTemplate}
+      />
     </div>
   )
 }
