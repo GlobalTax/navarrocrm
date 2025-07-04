@@ -73,9 +73,9 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('📧 [Send Email] Modo test - verificando configuración...');
       
       try {
-        // Enviar email de prueba con tu dominio personalizado
+        // Enviar email de prueba con dominio por defecto de Resend
         const testResponse = await resend.emails.send({
-          from: 'CRM Sistema <no-reply@nrro.es>',
+          from: 'CRM Sistema <onboarding@resend.dev>',
           to: [to],
           subject: 'Test de configuración - CRM Sistema',
           html: `
@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
           message: 'Test de configuración exitoso con dominio personalizado',
           messageId: testResponse.data?.id,
           testMode: true,
-          domain: 'send.nrro.es'
+          domain: 'resend.dev'
         }), {
           status: 200,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -114,50 +114,29 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Enviar email real con fallback automático
-    console.log('📧 [Send Email] Enviando email real...');
+    // Enviar email real con dominio por defecto de Resend
+    console.log('📧 [Send Email] Enviando email...');
     
     let emailResponse;
-    let usedDomain = 'send.nrro.es';
+    let usedDomain = 'resend.dev';
     
-    // Intentar primero con dominio personalizado
     try {
-      console.log('📧 [Send Email] Intentando con dominio personalizado...');
+      console.log('📧 [Send Email] Enviando con dominio por defecto...');
       emailResponse = await resend.emails.send({
-        from: 'CRM Sistema <no-reply@send.nrro.es>',
+        from: 'CRM Sistema <onboarding@resend.dev>',
         to: [to],
         subject: subject,
         html: html,
       });
 
       if (emailResponse.error) {
-        throw new Error(emailResponse.error.message || 'Error con dominio personalizado');
+        throw new Error(emailResponse.error.message || 'Error enviando email');
       }
 
-      console.log('📧 [Send Email] Email enviado exitosamente con dominio personalizado:', emailResponse);
-    } catch (customDomainError: any) {
-      console.warn('⚠️ [Send Email] Dominio personalizado falló, usando fallback:', customDomainError.message);
-      
-      // Fallback a dominio por defecto de Resend
-      try {
-        console.log('📧 [Send Email] Usando dominio por defecto como fallback...');
-        emailResponse = await resend.emails.send({
-          from: 'CRM Sistema <onboarding@resend.dev>',
-          to: [to],
-          subject: subject,
-          html: html,
-        });
-
-        if (emailResponse.error) {
-          throw new Error(emailResponse.error.message || 'Error con dominio por defecto');
-        }
-
-        usedDomain = 'resend.dev';
-        console.log('📧 [Send Email] Email enviado exitosamente con dominio por defecto:', emailResponse);
-      } catch (fallbackError: any) {
-        console.error('❌ [Send Email] Ambos dominios fallaron:', fallbackError);
-        throw new Error(`Error en ambos dominios - Personalizado: ${customDomainError.message}, Fallback: ${fallbackError.message}`);
-      }
+      console.log('📧 [Send Email] Email enviado exitosamente:', emailResponse);
+    } catch (emailError: any) {
+      console.error('❌ [Send Email] Error enviando email:', emailError);
+      throw new Error(`Error enviando email: ${emailError.message}`);
     }
 
     // Registrar en auditoría si es una invitación
@@ -195,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
       message: `Email enviado exitosamente desde dominio ${usedDomain}`,
       messageId: emailResponse?.data?.id || emailResponse?.id,
       domain: usedDomain,
-      fallbackUsed: usedDomain !== 'send.nrro.es'
+      fallbackUsed: false
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },

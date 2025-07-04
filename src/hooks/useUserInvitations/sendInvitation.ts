@@ -82,7 +82,9 @@ export const useSendInvitation = () => {
           toast.success('Invitación enviada exitosamente')
         } catch (emailError: any) {
           console.error('❌ Error crítico en envío de email:', emailError)
-          throw new Error(`Error enviando el email de invitación: ${emailError.message}`)
+          // Mostrar mensaje más específico al usuario
+          const errorMessage = emailError.details?.message || emailError.message || 'Error desconocido'
+          throw new Error(`Error enviando el email de invitación: ${errorMessage}. Por favor, verifica la configuración de email.`)
         }
 
         return invitation
@@ -96,7 +98,11 @@ export const useSendInvitation = () => {
     },
     onError: (error: any) => {
       console.error('Error procesando invitación:', error)
-      toast.error(error.message || 'Error procesando la invitación')
+      const errorMessage = error.message || 'Error procesando la invitación'
+      toast.error(errorMessage, {
+        duration: 5000,
+        description: 'Por favor, revisa la configuración de email e inténtalo de nuevo.'
+      })
     },
   })
 }
