@@ -212,7 +212,13 @@ export const useDocumentAI = () => {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data || []
+      return (data || []).map(item => ({
+        ...item,
+        analysis_type: item.analysis_type as 'content_quality' | 'consistency_check' | 'legal_review' | 'sentiment_analysis',
+        findings: Array.isArray(item.findings) ? item.findings as unknown as AIFinding[] : [],
+        suggestions: Array.isArray(item.suggestions) ? item.suggestions as unknown as AISuggestion[] : [],
+        analysis_data: typeof item.analysis_data === 'object' ? item.analysis_data as Record<string, any> : {}
+      }))
     },
     enabled: !!user?.org_id,
   })

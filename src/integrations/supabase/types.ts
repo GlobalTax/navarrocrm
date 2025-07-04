@@ -1389,6 +1389,78 @@ export type Database = {
         }
         Relationships: []
       }
+      document_ai_metrics: {
+        Row: {
+          accuracy_score: number | null
+          created_at: string
+          documents_analyzed: number | null
+          id: string
+          metric_date: string
+          org_id: string
+          processing_time_avg: number | null
+          suggestions_applied: number | null
+          updated_at: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          created_at?: string
+          documents_analyzed?: number | null
+          id?: string
+          metric_date?: string
+          org_id: string
+          processing_time_avg?: number | null
+          suggestions_applied?: number | null
+          updated_at?: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          created_at?: string
+          documents_analyzed?: number | null
+          id?: string
+          metric_date?: string
+          org_id?: string
+          processing_time_avg?: number | null
+          suggestions_applied?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_analysis: {
+        Row: {
+          analysis_data: Json | null
+          analysis_type: string
+          confidence_score: number | null
+          created_at: string
+          document_id: string
+          findings: Json
+          id: string
+          org_id: string
+          suggestions: Json
+        }
+        Insert: {
+          analysis_data?: Json | null
+          analysis_type: string
+          confidence_score?: number | null
+          created_at?: string
+          document_id: string
+          findings?: Json
+          id?: string
+          org_id: string
+          suggestions?: Json
+        }
+        Update: {
+          analysis_data?: Json | null
+          analysis_type?: string
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string
+          findings?: Json
+          id?: string
+          org_id?: string
+          suggestions?: Json
+        }
+        Relationships: []
+      }
       document_comments: {
         Row: {
           comment_text: string

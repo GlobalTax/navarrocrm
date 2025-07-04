@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { FileText, Eye, Download, Send, Bot, Zap, Clock, MessageSquare, Share, Activity } from 'lucide-react'
+import { FileText, Eye, Download, Send, Bot, Zap, Clock, MessageSquare, Share, Activity, RefreshCw, Brain } from 'lucide-react'
 import { useDocumentTemplates } from '@/hooks/useDocumentTemplates'
 import { useCases } from '@/hooks/useCases'
 import { useContacts } from '@/hooks/useContacts'
@@ -16,6 +16,8 @@ import { DocumentVersionHistory } from './collaboration/DocumentVersionHistory'
 import { DocumentComments } from './collaboration/DocumentComments'
 import { DocumentCompare } from './collaboration/DocumentCompare'
 import { DocumentActivity } from './collaboration/DocumentActivity'
+import { AIDocumentAnalyzer } from './ai/AIDocumentAnalyzer'
+import { AIContentGenerator } from './ai/AIContentGenerator'
 import { DocumentVersion } from '@/hooks/useDocumentCollaboration'
 
 interface DocumentGeneratorDialogProps {
@@ -214,8 +216,10 @@ export const DocumentGeneratorDialog = ({
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="form">Formulario</TabsTrigger>
+            <TabsTrigger value="ai-generator">IA Generador</TabsTrigger>
+            <TabsTrigger value="ai-analyzer">IA Análisis</TabsTrigger>
             <TabsTrigger value="preview">Vista Previa</TabsTrigger>
           </TabsList>
 
@@ -396,12 +400,58 @@ export const DocumentGeneratorDialog = ({
                     <Eye className="h-4 w-4 mr-2" />
                     Vista Previa
                   </Button>
-                  <Button type="submit" disabled={generateDocument.isPending}>
-                    {generateDocument.isPending ? 'Generando...' : 'Generar Documento'}
+                  <Button
+                    type="submit"
+                    disabled={generateDocument.isPending}
+                    className="gap-2"
+                  >
+                    {generateDocument.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        Generando...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-4 w-4" />
+                        Generar
+                      </>
+                    )}
                   </Button>
                 </div>
               )}
             </form>
+          </TabsContent>
+
+          <TabsContent value="ai-generator">
+            <AIContentGenerator
+              documentType={template.document_type}
+              templateId={template.id}
+              initialVariables={formData.variables}
+              onContentGenerated={(content) => {
+                // Actualizar el preview con el contenido generado
+                setPreview(content)
+                // Opcional: cambiar a la pestaña de preview
+                setActiveTab('preview')
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="ai-analyzer">
+            {generatedDocumentId ? (
+              <AIDocumentAnalyzer
+                documentId={generatedDocumentId}
+                documentContent={preview}
+                onContentUpdate={(newContent) => {
+                  setPreview(newContent)
+                }}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Brain className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">Análisis IA Disponible</h3>
+                <p>Genera primero el documento para acceder a las funcionalidades de análisis IA</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="preview">
