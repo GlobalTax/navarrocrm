@@ -1171,63 +1171,6 @@ export type Database = {
           },
         ]
       }
-      "Contacts hubspot": {
-        Row: {
-          attrs: Json | null
-          created_at: string | null
-          email: string | null
-          firstname: string | null
-          id: string | null
-          lastname: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          attrs?: Json | null
-          created_at?: string | null
-          email?: string | null
-          firstname?: string | null
-          id?: string | null
-          lastname?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          attrs?: Json | null
-          created_at?: string | null
-          email?: string | null
-          firstname?: string | null
-          id?: string | null
-          lastname?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      "CRM hubspot companies": {
-        Row: {
-          attrs: Json | null
-          created_at: string | null
-          domain: string | null
-          id: string | null
-          name: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          attrs?: Json | null
-          created_at?: string | null
-          domain?: string | null
-          id?: string | null
-          name?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          attrs?: Json | null
-          created_at?: string | null
-          domain?: string | null
-          id?: string | null
-          name?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       custom_reports: {
         Row: {
           created_at: string
@@ -2275,78 +2218,6 @@ export type Database = {
           metric_name?: string
           metric_value?: number
           org_id?: string
-        }
-        Relationships: []
-      }
-      hubspot_companies: {
-        Row: {
-          archived: boolean | null
-          created_at: string | null
-          id: number | null
-          properties: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          archived?: boolean | null
-          created_at?: string | null
-          id?: number | null
-          properties?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          archived?: boolean | null
-          created_at?: string | null
-          id?: number | null
-          properties?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      hubspot_contacts: {
-        Row: {
-          archived: boolean | null
-          created_at: string | null
-          id: number | null
-          properties: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          archived?: boolean | null
-          created_at?: string | null
-          id?: number | null
-          properties?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          archived?: boolean | null
-          created_at?: string | null
-          id?: number | null
-          properties?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      hubspot_deals: {
-        Row: {
-          archived: boolean | null
-          created_at: string | null
-          id: number | null
-          properties: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          archived?: boolean | null
-          created_at?: string | null
-          id?: number | null
-          properties?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          archived?: boolean | null
-          created_at?: string | null
-          id?: number | null
-          properties?: Json | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -4994,28 +4865,7 @@ export type Database = {
       }
     }
     Views: {
-      copia_contactos_hubspot: {
-        Row: {
-          apellido: string | null
-          attrs: Json | null
-          created_at: string | null
-          email: string | null
-          id: string | null
-          nombre: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
-      copia_empresas_hubspot: {
-        Row: {
-          attrs: Json | null
-          created_at: string | null
-          id: string | null
-          nombre_empresa: string | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_next_billing_date: {
