@@ -1353,6 +1353,65 @@ export type Database = {
         }
         Relationships: []
       }
+      document_templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          document_type: string
+          id: string
+          is_active: boolean | null
+          is_ai_enhanced: boolean | null
+          name: string
+          org_id: string
+          practice_area: string | null
+          template_content: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          document_type: string
+          id?: string
+          is_active?: boolean | null
+          is_ai_enhanced?: boolean | null
+          name: string
+          org_id: string
+          practice_area?: string | null
+          template_content: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          document_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_ai_enhanced?: boolean | null
+          name?: string
+          org_id?: string
+          practice_area?: string | null
+          template_content?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_templates: {
         Row: {
           body_template: string
@@ -1808,6 +1867,83 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      generated_documents: {
+        Row: {
+          case_id: string | null
+          contact_id: string | null
+          content: string
+          created_at: string | null
+          file_path: string | null
+          generated_by: string
+          id: string
+          org_id: string
+          status: string | null
+          template_id: string
+          title: string
+          updated_at: string | null
+          variables_data: Json | null
+        }
+        Insert: {
+          case_id?: string | null
+          contact_id?: string | null
+          content: string
+          created_at?: string | null
+          file_path?: string | null
+          generated_by: string
+          id?: string
+          org_id: string
+          status?: string | null
+          template_id: string
+          title: string
+          updated_at?: string | null
+          variables_data?: Json | null
+        }
+        Update: {
+          case_id?: string | null
+          contact_id?: string | null
+          content?: string
+          created_at?: string | null
+          file_path?: string | null
+          generated_by?: string
+          id?: string
+          org_id?: string
+          status?: string | null
+          template_id?: string
+          title?: string
+          updated_at?: string | null
+          variables_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "generated_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
             referencedColumns: ["id"]
           },
         ]
