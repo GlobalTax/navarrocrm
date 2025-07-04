@@ -7,11 +7,16 @@ import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { FileText, Eye, Download, Send, Bot, Zap } from 'lucide-react'
+import { FileText, Eye, Download, Send, Bot, Zap, Clock, MessageSquare, Share, Activity } from 'lucide-react'
 import { useDocumentTemplates } from '@/hooks/useDocumentTemplates'
 import { useCases } from '@/hooks/useCases'
 import { useContacts } from '@/hooks/useContacts'
 import { DocumentFormWizard } from './advanced/DocumentFormWizard'
+import { DocumentVersionHistory } from './collaboration/DocumentVersionHistory'
+import { DocumentComments } from './collaboration/DocumentComments'
+import { DocumentCompare } from './collaboration/DocumentCompare'
+import { DocumentActivity } from './collaboration/DocumentActivity'
+import { DocumentVersion } from '@/hooks/useDocumentCollaboration'
 
 interface DocumentGeneratorDialogProps {
   open: boolean
@@ -39,6 +44,8 @@ export const DocumentGeneratorDialog = ({
   const [preview, setPreview] = useState('')
   const [activeTab, setActiveTab] = useState('form')
   const [useAdvancedMode, setUseAdvancedMode] = useState(true)
+  const [compareVersions, setCompareVersions] = useState<{ version1: DocumentVersion; version2: DocumentVersion } | null>(null)
+  const [generatedDocumentId, setGeneratedDocumentId] = useState<string | null>(null)
 
   const template = templates.find(t => t.id === templateId)
 

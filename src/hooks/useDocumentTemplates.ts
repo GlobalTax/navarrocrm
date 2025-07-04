@@ -43,6 +43,13 @@ export interface GeneratedDocument {
   generated_by: string
   created_at: string
   updated_at: string
+  version_number: number
+  parent_document_id: string | null
+  is_current_version: boolean
+  approval_status: 'draft' | 'pending_review' | 'approved' | 'rejected'
+  approved_by: string | null
+  approved_at: string | null
+  revision_notes: string | null
 }
 
 export const useDocumentTemplates = () => {
@@ -86,7 +93,10 @@ export const useDocumentTemplates = () => {
       return (data || []).map(item => ({
         ...item,
         status: item.status as 'draft' | 'finalized' | 'sent',
-        variables_data: typeof item.variables_data === 'object' ? item.variables_data as Record<string, any> : {}
+        variables_data: typeof item.variables_data === 'object' ? item.variables_data as Record<string, any> : {},
+        approval_status: (item.approval_status || 'draft') as 'draft' | 'pending_review' | 'approved' | 'rejected',
+        version_number: item.version_number || 1,
+        is_current_version: item.is_current_version ?? true
       }))
     },
     enabled: !!user?.org_id,

@@ -1353,6 +1353,177 @@ export type Database = {
         }
         Relationships: []
       }
+      document_activities: {
+        Row: {
+          action_type: string
+          created_at: string
+          details: Json | null
+          document_id: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          org_id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          details?: Json | null
+          document_id: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          org_id: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          details?: Json | null
+          document_id?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          org_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      document_comments: {
+        Row: {
+          comment_text: string
+          created_at: string
+          document_id: string
+          id: string
+          is_internal: boolean | null
+          mentioned_users: string[] | null
+          org_id: string
+          parent_comment_id: string | null
+          position_data: Json | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          version_id: string | null
+        }
+        Insert: {
+          comment_text: string
+          created_at?: string
+          document_id: string
+          id?: string
+          is_internal?: boolean | null
+          mentioned_users?: string[] | null
+          org_id: string
+          parent_comment_id?: string | null
+          position_data?: Json | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          version_id?: string | null
+        }
+        Update: {
+          comment_text?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          is_internal?: boolean | null
+          mentioned_users?: string[] | null
+          org_id?: string
+          parent_comment_id?: string | null
+          position_data?: Json | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          version_id?: string | null
+        }
+        Relationships: []
+      }
+      document_metadata: {
+        Row: {
+          access_count: number | null
+          created_at: string
+          custom_fields: Json | null
+          document_id: string
+          id: string
+          is_locked: boolean | null
+          last_accessed_at: string | null
+          locked_at: string | null
+          locked_by: string | null
+          org_id: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          access_count?: number | null
+          created_at?: string
+          custom_fields?: Json | null
+          document_id: string
+          id?: string
+          is_locked?: boolean | null
+          last_accessed_at?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          org_id: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          access_count?: number | null
+          created_at?: string
+          custom_fields?: Json | null
+          document_id?: string
+          id?: string
+          is_locked?: boolean | null
+          last_accessed_at?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          org_id?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_shares: {
+        Row: {
+          created_at: string
+          document_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          org_id: string
+          permissions: Json
+          share_token: string | null
+          shared_by: string
+          shared_with: string | null
+          shared_with_role: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          org_id: string
+          permissions?: Json
+          share_token?: string | null
+          shared_by: string
+          shared_with?: string | null
+          shared_with_role?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          org_id?: string
+          permissions?: Json
+          share_token?: string | null
+          shared_by?: string
+          shared_with?: string | null
+          shared_with_role?: string | null
+        }
+        Relationships: []
+      }
       document_templates: {
         Row: {
           category: string | null
@@ -1411,6 +1582,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_versions: {
+        Row: {
+          changes_summary: string | null
+          content: string
+          created_at: string
+          created_by: string
+          document_id: string
+          id: string
+          org_id: string
+          variables_data: Json
+          version_number: number
+        }
+        Insert: {
+          changes_summary?: string | null
+          content: string
+          created_at?: string
+          created_by: string
+          document_id: string
+          id?: string
+          org_id: string
+          variables_data?: Json
+          version_number?: number
+        }
+        Update: {
+          changes_summary?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          document_id?: string
+          id?: string
+          org_id?: string
+          variables_data?: Json
+          version_number?: number
+        }
+        Relationships: []
       }
       email_templates: {
         Row: {
@@ -1873,6 +2080,9 @@ export type Database = {
       }
       generated_documents: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           case_id: string | null
           contact_id: string | null
           content: string
@@ -1880,14 +2090,21 @@ export type Database = {
           file_path: string | null
           generated_by: string
           id: string
+          is_current_version: boolean | null
           org_id: string
+          parent_document_id: string | null
+          revision_notes: string | null
           status: string | null
           template_id: string
           title: string
           updated_at: string | null
           variables_data: Json | null
+          version_number: number | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           case_id?: string | null
           contact_id?: string | null
           content: string
@@ -1895,14 +2112,21 @@ export type Database = {
           file_path?: string | null
           generated_by: string
           id?: string
+          is_current_version?: boolean | null
           org_id: string
+          parent_document_id?: string | null
+          revision_notes?: string | null
           status?: string | null
           template_id: string
           title: string
           updated_at?: string | null
           variables_data?: Json | null
+          version_number?: number | null
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           case_id?: string | null
           contact_id?: string | null
           content?: string
@@ -1910,12 +2134,16 @@ export type Database = {
           file_path?: string | null
           generated_by?: string
           id?: string
+          is_current_version?: boolean | null
           org_id?: string
+          parent_document_id?: string | null
+          revision_notes?: string | null
           status?: string | null
           template_id?: string
           title?: string
           updated_at?: string | null
           variables_data?: Json | null
+          version_number?: number | null
         }
         Relationships: [
           {
