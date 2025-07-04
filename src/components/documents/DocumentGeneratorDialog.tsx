@@ -3,15 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { FileText, Eye, Download, Send, Bot } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { FileText, Eye, Download, Send, Bot, Zap } from 'lucide-react'
 import { useDocumentTemplates } from '@/hooks/useDocumentTemplates'
 import { useCases } from '@/hooks/useCases'
 import { useContacts } from '@/hooks/useContacts'
+import { DocumentFormWizard } from './advanced/DocumentFormWizard'
 
 interface DocumentGeneratorDialogProps {
   open: boolean
@@ -38,6 +38,7 @@ export const DocumentGeneratorDialog = ({
   
   const [preview, setPreview] = useState('')
   const [activeTab, setActiveTab] = useState('form')
+  const [useAdvancedMode, setUseAdvancedMode] = useState(true)
 
   const template = templates.find(t => t.id === templateId)
 
@@ -187,6 +188,24 @@ export const DocumentGeneratorDialog = ({
           </DialogTitle>
         </DialogHeader>
 
+        {/* Mode selector */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="advanced_mode"
+              checked={useAdvancedMode}
+              onCheckedChange={setUseAdvancedMode}
+            />
+            <Label htmlFor="advanced_mode" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Modo Avanzado
+            </Label>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {useAdvancedMode ? 'Asistente paso a paso con validación' : 'Formulario tradicional'}
+          </span>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="form">Formulario</TabsTrigger>
@@ -273,77 +292,108 @@ export const DocumentGeneratorDialog = ({
                 </CardContent>
               </Card>
 
-              {/* Variables de la plantilla */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Variables del Documento</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {template.variables.map((variable) => (
-                      <div key={variable.name} className="space-y-2">
-                        <Label htmlFor={variable.name}>
-                          {variable.label}
-                          {variable.required && <span className="text-destructive">*</span>}
-                        </Label>
-                        
-                        {variable.type === 'text' && (
-                          <Input
-                            id={variable.name}
-                            value={formData.variables[variable.name] || ''}
-                            onChange={(e) => handleVariableChange(variable.name, e.target.value)}
-                            required={variable.required}
-                          />
-                        )}
-                        
-                        {variable.type === 'number' && (
-                          <Input
-                            id={variable.name}
-                            type="number"
-                            value={formData.variables[variable.name] || ''}
-                            onChange={(e) => handleVariableChange(variable.name, e.target.value)}
-                            required={variable.required}
-                          />
-                        )}
-                        
-                        {variable.type === 'date' && (
-                          <Input
-                            id={variable.name}
-                            type="date"
-                            value={formData.variables[variable.name] || ''}
-                            onChange={(e) => handleVariableChange(variable.name, e.target.value)}
-                            required={variable.required}
-                          />
-                        )}
-                        
-                        {variable.type === 'boolean' && (
-                          <Switch
-                            checked={formData.variables[variable.name] || false}
-                            onCheckedChange={(checked) => handleVariableChange(variable.name, checked)}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Advanced or traditional form */}
+              {useAdvancedMode ? (
+                <DocumentFormWizard
+                  template={template}
+                  formData={formData}
+                  onDataChange={setFormData}
+                  cases={cases}
+                  contacts={contacts}
+                />
+              ) : (
+                /* Traditional form */
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Variables del Documento</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {template.variables.map((variable) => (
+                        <div key={variable.name} className="space-y-2">
+                          <Label htmlFor={variable.name}>
+                            {variable.label}
+                            {variable.required && <span className="text-destructive">*</span>}
+                          </Label>
+                          
+                          {variable.type === 'text' && (
+                            <Input
+                              id={variable.name}
+                              value={formData.variables[variable.name] || ''}
+                              onChange={(e) => handleVariableChange(variable.name, e.target.value)}
+                              required={variable.required}
+                            />
+                          )}
+                          
+                          {variable.type === 'number' && (
+                            <Input
+                              id={variable.name}
+                              type="number"
+                              value={formData.variables[variable.name] || ''}
+                              onChange={(e) => handleVariableChange(variable.name, e.target.value)}
+                              required={variable.required}
+                            />
+                          )}
+                          
+                          {variable.type === 'date' && (
+                            <Input
+                              id={variable.name}
+                              type="date"
+                              value={formData.variables[variable.name] || ''}
+                              onChange={(e) => handleVariableChange(variable.name, e.target.value)}
+                              required={variable.required}
+                            />
+                          )}
+                          
+                          {variable.type === 'boolean' && (
+                            <Switch
+                              checked={formData.variables[variable.name] || false}
+                              onCheckedChange={(checked) => handleVariableChange(variable.name, checked)}
+                            />
+                          )}
 
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setActiveTab('preview')}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Vista Previa
-                </Button>
-                <Button type="submit" disabled={generateDocument.isPending}>
-                  {generateDocument.isPending ? 'Generando...' : 'Generar Documento'}
-                </Button>
-              </div>
+                          {variable.type === 'select' && (
+                            <Select
+                              value={formData.variables[variable.name] || ''}
+                              onValueChange={(value) => handleVariableChange(variable.name, value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder={`Seleccionar ${variable.label.toLowerCase()}`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {variable.options?.map((option) => (
+                                  <SelectItem key={option} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {!useAdvancedMode && (
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setActiveTab('preview')}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Vista Previa
+                  </Button>
+                  <Button type="submit" disabled={generateDocument.isPending}>
+                    {generateDocument.isPending ? 'Generando...' : 'Generar Documento'}
+                  </Button>
+                </div>
+              )}
             </form>
           </TabsContent>
 
