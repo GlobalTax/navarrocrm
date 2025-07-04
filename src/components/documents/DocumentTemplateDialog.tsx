@@ -22,7 +22,7 @@ export const DocumentTemplateDialog = ({
   onOpenChange,
   template
 }: DocumentTemplateDialogProps) => {
-  const { createTemplate } = useDocumentTemplates()
+  const { createTemplate, updateTemplate } = useDocumentTemplates()
   const [formData, setFormData] = useState({
     name: template?.name || '',
     description: template?.description || '',
@@ -44,10 +44,22 @@ export const DocumentTemplateDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    await createTemplate.mutateAsync({
-      ...formData,
-      is_active: true
-    })
+    if (template) {
+      // Editando plantilla existente
+      await updateTemplate.mutateAsync({
+        id: template.id,
+        updates: {
+          ...formData,
+          is_active: true
+        }
+      })
+    } else {
+      // Creando nueva plantilla
+      await createTemplate.mutateAsync({
+        ...formData,
+        is_active: true
+      })
+    }
     
     onOpenChange(false)
     // Reset form
@@ -280,8 +292,8 @@ export const DocumentTemplateDialog = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={createTemplate.isPending}>
-              {createTemplate.isPending ? 'Creando...' : (template ? 'Actualizar' : 'Crear Plantilla')}
+            <Button type="submit" disabled={createTemplate.isPending || updateTemplate.isPending}>
+              {(createTemplate.isPending || updateTemplate.isPending) ? (template ? 'Actualizando...' : 'Creando...') : (template ? 'Actualizar' : 'Crear Plantilla')}
             </Button>
           </div>
         </form>

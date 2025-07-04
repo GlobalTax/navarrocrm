@@ -45,18 +45,72 @@ export const DocumentPreview = ({
 
   const handleDownloadPDF = async () => {
     try {
-      // TODO: Implementar descarga PDF
-      toast.success('Función de descarga PDF próximamente')
+      const response = await fetch('/functions/v1/generate-document-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content,
+          title,
+          templateName
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error generando PDF')
+      }
+
+      const data = await response.json()
+      
+      // Create a new window with the HTML content for printing/saving as PDF
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(data.html)
+        printWindow.document.close()
+        setTimeout(() => {
+          printWindow.print()
+        }, 100)
+      }
+      
+      toast.success('PDF preparado para descarga')
     } catch (error) {
-      toast.error('Error al descargar PDF')
+      console.error('Error downloading PDF:', error)
+      toast.error('Error al generar PDF')
     }
   }
 
   const handleSendEmail = async () => {
     try {
-      // TODO: Implementar envío por email
-      toast.success('Función de envío por email próximamente')
+      const email = prompt('Ingrese el email de destino:')
+      if (!email) return
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error('Email inválido')
+        return
+      }
+
+      const response = await fetch('/functions/v1/send-document-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: email,
+          subject: `📄 ${title}`,
+          content,
+          title,
+          templateName
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error enviando email')
+      }
+
+      toast.success(`Documento enviado exitosamente a ${email}`)
     } catch (error) {
+      console.error('Error sending email:', error)
       toast.error('Error al enviar email')
     }
   }

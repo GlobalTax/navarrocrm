@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -18,6 +18,7 @@ export const DocumentGenerator = () => {
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [selectedTemplateForPreview, setSelectedTemplateForPreview] = useState<string | null>(null)
+  const [editingTemplate, setEditingTemplate] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('templates')
   
   // Estados para filtros
@@ -28,6 +29,19 @@ export const DocumentGenerator = () => {
   const [showFavorites, setShowFavorites] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  // Cargar favoritos desde localStorage
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('document-template-favorites')
+    if (savedFavorites) {
+      try {
+        const favoritesArray = JSON.parse(savedFavorites) as string[]
+        setFavorites(new Set(favoritesArray))
+      } catch (error) {
+        console.error('Error loading favorites:', error)
+      }
+    }
+  }, [])
 
   // Filtrar templates
   const filteredTemplates = useMemo(() => {
@@ -73,8 +87,11 @@ export const DocumentGenerator = () => {
   }
 
   const handleEditTemplate = (templateId: string) => {
-    // TODO: Implementar edición de plantilla
-    console.log('Editar plantilla:', templateId)
+    const template = templates.find(t => t.id === templateId)
+    if (template) {
+      setEditingTemplate(template)
+      setTemplateDialogOpen(true)
+    }
   }
 
   const handleDuplicateTemplate = async (templateId: string) => {
@@ -89,7 +106,13 @@ export const DocumentGenerator = () => {
       newFavorites.add(templateId)
     }
     setFavorites(newFavorites)
-    // TODO: Persistir favoritos en localStorage o base de datos
+    
+    // Persistir favoritos en localStorage
+    try {
+      localStorage.setItem('document-template-favorites', JSON.stringify(Array.from(newFavorites)))
+    } catch (error) {
+      console.error('Error saving favorites:', error)
+    }
   }
 
   const handlePreviewTemplate = (templateId: string) => {
@@ -225,7 +248,13 @@ export const DocumentGenerator = () => {
       {/* Dialogs */}
       <DocumentTemplateDialog
         open={templateDialogOpen}
-        onOpenChange={setTemplateDialogOpen}
+        onOpenChange={(open) => {
+          setTemplateDialogOpen(open)
+          if (!open) {
+            setEditingTemplate(null)
+          }
+        }}
+        template={editingTemplate}
       />
       
       {selectedTemplate && (
