@@ -194,6 +194,57 @@ export function useOutlookConnection() {
     }
   })
 
+  // Sincronizar contactos
+  const syncContactsMutation = useMutation({
+    mutationFn: async (forceSync: boolean = false) => {
+      if (!isUserReady) {
+        throw new Error('Usuario no autenticado')
+      }
+
+      if (connectionStatus !== 'connected') {
+        throw new Error('Debe conectar con Outlook primero')
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke('outlook-contacts-sync', {
+          body: {
+            user_id: user.id,
+            org_id: user.org_id,
+            force_sync: forceSync
+          }
+        })
+
+        if (error) throw error
+        return data
+      } catch (error) {
+        console.error('Contacts sync failed:', error)
+        throw error
+      }
+    },
+    onSuccess: (data) => {
+      toast.success('Contactos sincronizados', {
+        description: `${data?.synced_contacts || 0} contactos sincronizados`
+      })
+    },
+    onError: (error) => {
+      toast.error('Error sincronizando contactos', {
+        description: error.message
+      })
+    }
+  })
+
+  const syncContacts = useCallback((forceSync: boolean = false) => {
+    if (!isUserReady) {
+      toast.error('Debe estar autenticado para sincronizar')
+      return
+    }
+    if (connectionStatus !== 'connected') {
+      toast.error('Debe conectar con Outlook primero')
+      return
+    }
+    syncContactsMutation.mutate(forceSync)
+  }, [syncContactsMutation, isUserReady, connectionStatus])
+
   const connect = useCallback(() => {
     if (!isUserReady) {
       toast.error('Debe estar autenticado para conectar')
@@ -219,8 +270,10 @@ export function useOutlookConnection() {
     connectionData,
     isConnecting: connectMutation.isPending,
     isSyncing: syncMutation.isPending,
+    isSyncingContacts: syncContactsMutation.isPending,
     connect,
     syncEmails,
+    syncContacts,
     refetchConnection
   }
 }

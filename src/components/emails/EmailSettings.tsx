@@ -11,7 +11,9 @@ export function EmailSettings() {
     connectionStatus, 
     connectionData, 
     connect, 
-    isConnecting 
+    isConnecting,
+    syncContacts,
+    isSyncingContacts
   } = useOutlookConnection()
 
   const getStatusInfo = () => {
@@ -103,35 +105,68 @@ export function EmailSettings() {
             </AlertDescription>
           </Alert>
 
-          {/* Detalles de conexión */}
-          {connectionData && connectionStatus === 'connected' && (
-            <div className="mt-4 space-y-2">
-              <div className="text-sm">
-                <span className="font-medium">Conectado desde:</span>{' '}
-                <span className="text-muted-foreground">
-                  {new Date(connectionData.created_at).toLocaleString('es-ES')}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="font-medium">Última actualización:</span>{' '}
-                <span className="text-muted-foreground">
-                  {new Date(connectionData.updated_at).toLocaleString('es-ES')}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="font-medium">Token expira:</span>{' '}
-                <span className="text-muted-foreground">
-                  {new Date(connectionData.token_expires_at).toLocaleString('es-ES')}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="font-medium">Permisos:</span>{' '}
-                <span className="text-muted-foreground">
-                  {connectionData.scope_permissions?.join(', ') || 'Lectura y envío de emails'}
-                </span>
-              </div>
+      {/* Detalles de conexión */}
+      {connectionData && connectionStatus === 'connected' && (
+        <div className="mt-4 space-y-4">
+          <div className="space-y-2">
+            <div className="text-sm">
+              <span className="font-medium">Conectado desde:</span>{' '}
+              <span className="text-muted-foreground">
+                {new Date(connectionData.created_at).toLocaleString('es-ES')}
+              </span>
             </div>
-          )}
+            <div className="text-sm">
+              <span className="font-medium">Última actualización:</span>{' '}
+              <span className="text-muted-foreground">
+                {new Date(connectionData.updated_at).toLocaleString('es-ES')}
+              </span>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Token expira:</span>{' '}
+              <span className="text-muted-foreground">
+                {new Date(connectionData.token_expires_at).toLocaleString('es-ES')}
+              </span>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Email:</span>{' '}
+              <span className="text-muted-foreground">
+                {connectionData.outlook_email || 'No disponible'}
+              </span>
+            </div>
+          </div>
+
+          {/* Sincronización de contactos */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-sm">Sincronizar Contactos</h4>
+                <p className="text-xs text-muted-foreground">
+                  Importa tus contactos de Outlook al CRM
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => syncContacts(false)}
+                disabled={isSyncingContacts}
+                className="gap-2"
+              >
+                {isSyncingContacts ? (
+                  <>
+                    <Settings className="h-4 w-4 animate-spin" />
+                    Sincronizando...
+                  </>
+                ) : (
+                  <>
+                    <Settings className="h-4 w-4" />
+                    Sincronizar Contactos
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
         </CardContent>
       </Card>
 

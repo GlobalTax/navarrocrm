@@ -37,7 +37,7 @@ export default function ContactDetail() {
   // Fetch contact data
   const { data: contact, isLoading: contactLoading, error: contactError, refetch } = useQuery({
     queryKey: ['contact', id],
-    queryFn: async (): Promise<Contact> => {
+    queryFn: async () => {
       if (!id || !user?.org_id) throw new Error('Missing ID or org_id')
       
       const { data, error } = await supabase
@@ -48,7 +48,18 @@ export default function ContactDetail() {
         .maybeSingle()
 
       if (error) throw error
-      return data as Contact
+      if (!data) return null
+      
+      // Convertir datos de Supabase al tipo Contact
+      return {
+        ...data,
+        email_preferences: (data.email_preferences as any) || {
+          receive_followups: true,
+          receive_reminders: true,
+          receive_invitations: true
+        },
+        relationship_type: (data.relationship_type as any) || 'prospecto'
+      } as Contact
     },
     enabled: !!id && !!user?.org_id,
   })

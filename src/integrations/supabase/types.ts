@@ -1082,6 +1082,7 @@ export type Database = {
           legal_representative: string | null
           name: string
           org_id: string
+          outlook_id: string | null
           payment_method: string | null
           phone: string | null
           preferred_language: string | null
@@ -1113,6 +1114,7 @@ export type Database = {
           legal_representative?: string | null
           name: string
           org_id: string
+          outlook_id?: string | null
           payment_method?: string | null
           phone?: string | null
           preferred_language?: string | null
@@ -1144,6 +1146,7 @@ export type Database = {
           legal_representative?: string | null
           name?: string
           org_id?: string
+          outlook_id?: string | null
           payment_method?: string | null
           phone?: string | null
           preferred_language?: string | null
