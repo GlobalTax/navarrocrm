@@ -33,7 +33,7 @@ export const useProposalsData = () => {
       return data.map(proposal => ({
         ...proposal,
         client_id: proposal.contact_id,
-        client: proposal.contact || {
+        client: proposal.contact && proposal.contact.id ? proposal.contact : {
           id: proposal.contact_id,
           name: 'Cliente no encontrado',
           email: null

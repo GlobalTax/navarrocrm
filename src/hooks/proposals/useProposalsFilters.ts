@@ -26,7 +26,7 @@ export const useProposalsFilters = () => {
       // Filtro por búsqueda (título o cliente)
       if (filters.search && 
           !proposal.title.toLowerCase().includes(filters.search.toLowerCase()) && 
-          !proposal.client?.name.toLowerCase().includes(filters.search.toLowerCase())) return false
+          !proposal.client?.name?.toLowerCase().includes(filters.search.toLowerCase())) return false
       
       // Filtro por fecha
       if (filters.dateFrom && new Date(proposal.created_at) < filters.dateFrom) return false
