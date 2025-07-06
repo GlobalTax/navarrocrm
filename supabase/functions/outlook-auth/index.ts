@@ -41,7 +41,7 @@ serve(async (req) => {
       throw new Error('Microsoft Graph API credentials not configured')
     }
 
-    const redirectUri = `${req.headers.get('origin') || 'http://localhost:3000'}/auth/outlook/callback`
+    const redirectUri = `https://jzbbbwfnzpwxmuhpbdya.supabase.co/functions/v1/outlook-auth`
     const scope = 'https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read offline_access'
     const tenantId = 'common'
 
