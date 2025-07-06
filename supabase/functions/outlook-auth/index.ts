@@ -160,7 +160,8 @@ serve(async (req) => {
             token_expires_at: expiresAt.toISOString(),
             scope_permissions: tokenData.scope ? tokenData.scope.split(' ') : [],
             outlook_email: userData.mail || userData.userPrincipalName,
-            is_active: true
+            is_active: true,
+            last_used_at: new Date().toISOString()
           })
           .select()
           .single()
@@ -171,6 +172,14 @@ serve(async (req) => {
         }
         
         console.log('Token insertado exitosamente:', userToken?.id)
+        
+        // Registrar evento de inserción exitosa
+        console.log('Token guardado correctamente en BD:', {
+          tokenId: userToken?.id,
+          userId: authUser.id,
+          orgId: userProfile.org_id,
+          outlookEmail: userData.mail
+        })
 
         return new Response(
           JSON.stringify({ 
