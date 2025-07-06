@@ -16,20 +16,44 @@ interface NewProposalDialogProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: CreateProposalData) => void
   isCreating: boolean
+  editingProposal?: any // Propuesta a editar (opcional)
+  isEditMode?: boolean  // Indica si está en modo edición
 }
 
-export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: NewProposalDialogProps) {
+export function NewProposalDialog({ 
+  open, 
+  onOpenChange, 
+  onSubmit, 
+  isCreating, 
+  editingProposal, 
+  isEditMode = false 
+}: NewProposalDialogProps) {
   const { clients = [] } = useClients()
   const { services = [] } = useServiceCatalog()
 
-  const [formData, setFormData] = useState<CreateProposalData>({
-    contact_id: '',
-    title: '',
-    description: '',
-    proposal_type: 'service',
-    valid_until: '',
-    notes: '',
-    line_items: []
+  const [formData, setFormData] = useState<CreateProposalData>(() => {
+    // Si estamos editando, precargar los datos
+    if (isEditMode && editingProposal) {
+      return {
+        contact_id: editingProposal.contact_id || '',
+        title: editingProposal.title || '',
+        description: editingProposal.description || '',
+        proposal_type: editingProposal.proposal_type || 'service',
+        valid_until: editingProposal.valid_until || '',
+        notes: editingProposal.notes || '',
+        line_items: editingProposal.line_items || []
+      }
+    }
+    // Valores por defecto para nueva propuesta
+    return {
+      contact_id: '',
+      title: '',
+      description: '',
+      proposal_type: 'service',
+      valid_until: '',
+      notes: '',
+      line_items: []
+    }
   })
 
   const addLineItem = () => {
@@ -113,7 +137,9 @@ export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nueva Propuesta</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? 'Editar Propuesta' : 'Nueva Propuesta'}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -281,10 +307,10 @@ export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: 
               {isCreating ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Creando...
+                  {isEditMode ? 'Actualizando...' : 'Creando...'}
                 </>
               ) : (
-                'Crear Propuesta'
+                isEditMode ? 'Actualizar Propuesta' : 'Crear Propuesta'
               )}
             </Button>
           </div>

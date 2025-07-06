@@ -9,6 +9,7 @@ interface ProposalsPageHandlersProps {
   saveRecurrentProposal: any
   user: any
   closeRecurrentBuilder: () => void
+  openEditProposal?: (proposal: any) => void // Nueva función para abrir editor
 }
 
 export const useProposalsPageHandlers = ({
@@ -16,6 +17,7 @@ export const useProposalsPageHandlers = ({
   saveRecurrentProposal,
   user,
   closeRecurrentBuilder,
+  openEditProposal,
 }: ProposalsPageHandlersProps) => {
   const [selectedProposal, setSelectedProposal] = useState<any>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
@@ -97,9 +99,13 @@ export const useProposalsPageHandlers = ({
 
   const handleEditProposal = (proposal: any) => {
     console.log('Editar propuesta:', proposal)
-    // Abrir el formulario de edición con los datos de la propuesta
-    // TODO: Implementar estado de edición en el componente padre
-    alert(`Editar propuesta: ${proposal.title}\n\nEsta funcionalidad se integrará con el formulario de propuestas.`)
+    // Abrir el formulario correcto en modo edición usando el nuevo estado
+    // Esta funcionalidad será manejada por el componente padre que pasará openEditProposal
+    if (typeof openEditProposal === 'function') {
+      openEditProposal(proposal)
+    } else {
+      alert('Funcionalidad de edición no disponible. Asegúrate de pasar openEditProposal como prop.')
+    }
   }
 
   const handleDuplicateProposal = async (proposal: any) => {

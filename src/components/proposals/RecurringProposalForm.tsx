@@ -27,6 +27,8 @@ interface RecurringProposalFormProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: CreateProposalData & RecurringFields) => void
   isCreating: boolean
+  editingProposal?: any // Propuesta a editar (opcional)
+  isEditMode?: boolean  // Indica si está en modo edición
 }
 
 interface RecurringFields {
@@ -41,25 +43,64 @@ interface RecurringFields {
   billing_day?: number
 }
 
-export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating }: RecurringProposalFormProps) {
+export function RecurringProposalForm({ 
+  open, 
+  onOpenChange, 
+  onSubmit, 
+  isCreating, 
+  editingProposal, 
+  isEditMode = false 
+}: RecurringProposalFormProps) {
   const { clients = [] } = useClients()
   const { templates = [] } = useProposalTemplates()
 
-  const [formData, setFormData] = useState<CreateProposalData & RecurringFields>({
-    contact_id: '',
-    title: '',
-    description: '',
-    proposal_type: 'service',
-    valid_until: '',
-    notes: '',
-    line_items: [],
-    is_recurring: false,
-    auto_renewal: false,
-    billing_day: 1
+  const [formData, setFormData] = useState<CreateProposalData & RecurringFields>(() => {
+    // Si estamos editando, precargar los datos
+    if (isEditMode && editingProposal) {
+      return {
+        contact_id: editingProposal.contact_id || '',
+        title: editingProposal.title || '',
+        description: editingProposal.description || '',
+        proposal_type: editingProposal.proposal_type || 'service',
+        valid_until: editingProposal.valid_until || '',
+        notes: editingProposal.notes || '',
+        line_items: editingProposal.line_items || [],
+        is_recurring: editingProposal.is_recurring || false,
+        recurring_frequency: editingProposal.recurring_frequency || 'monthly',
+        auto_renewal: editingProposal.auto_renewal || false,
+        retainer_amount: editingProposal.retainer_amount || 0,
+        included_hours: editingProposal.included_hours || 0,
+        hourly_rate_extra: editingProposal.hourly_rate_extra || 0,
+        billing_day: editingProposal.billing_day || 1
+      }
+    }
+    // Valores por defecto para nueva propuesta
+    return {
+      contact_id: '',
+      title: '',
+      description: '',
+      proposal_type: 'service',
+      valid_until: '',
+      notes: '',
+      line_items: [],
+      is_recurring: false,
+      auto_renewal: false,
+      billing_day: 1
+    }
   })
 
-  const [contractStartDate, setContractStartDate] = useState<Date>()
-  const [contractEndDate, setContractEndDate] = useState<Date>()
+  const [contractStartDate, setContractStartDate] = useState<Date>(() => {
+    if (isEditMode && editingProposal?.contract_start_date) {
+      return new Date(editingProposal.contract_start_date)
+    }
+    return undefined
+  })
+  const [contractEndDate, setContractEndDate] = useState<Date>(() => {
+    if (isEditMode && editingProposal?.contract_end_date) {
+      return new Date(editingProposal.contract_end_date)
+    }
+    return undefined
+  })
 
   const handleTemplateSelect = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
@@ -115,7 +156,9 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nueva Propuesta Avanzada</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? 'Editar Propuesta Avanzada' : 'Nueva Propuesta Avanzada'}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -361,10 +404,10 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
               {isCreating ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Creando...
+                  {isEditMode ? 'Actualizando...' : 'Creando...'}
                 </>
               ) : (
-                'Crear Propuesta'
+                isEditMode ? 'Actualizar Propuesta' : 'Crear Propuesta'
               )}
             </Button>
           </div>

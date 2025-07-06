@@ -167,9 +167,80 @@ export const useProposalActions = () => {
     }
   }
 
+  const updateProposal = async (proposalId: string, proposalData: any) => {
+    if (!user?.org_id) {
+      toast.error('Usuario no autenticado')
+      return
+    }
+
+    setIsLoading(true)
+    
+    try {
+      // Separar line_items del resto de datos
+      const { line_items, ...proposalMainData } = proposalData
+      
+      // Actualizar la propuesta principal
+      const { error: updateError } = await supabase
+        .from('proposals')
+        .update({
+          ...proposalMainData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', proposalId)
+
+      if (updateError) throw updateError
+
+      // Si hay line_items, actualizar/crear/eliminar según sea necesario
+      if (line_items) {
+        // Primero eliminar todos los line_items existentes
+        const { error: deleteError } = await supabase
+          .from('proposal_line_items')
+          .delete()
+          .eq('proposal_id', proposalId)
+
+        if (deleteError) throw deleteError
+
+        // Luego insertar los nuevos line_items
+        if (line_items.length > 0) {
+          const lineItemsToInsert = line_items.map((item: any) => ({
+            ...item,
+            proposal_id: proposalId,
+            id: undefined // Generar nuevo ID
+          }))
+
+          const { error: insertError } = await supabase
+            .from('proposal_line_items')
+            .insert(lineItemsToInsert)
+
+          if (insertError) throw insertError
+        }
+      }
+
+      // Registrar la acción de actualización
+      await logProposalAction(
+        proposalId, 
+        'updated', 
+        'Propuesta actualizada manualmente'
+      )
+
+      await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      await queryClient.invalidateQueries({ queryKey: ['proposal-history'] })
+      toast.success('Propuesta actualizada exitosamente')
+      
+      return true
+    } catch (error: any) {
+      console.error('Error updating proposal:', error)
+      toast.error(`Error al actualizar propuesta: ${error.message}`)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     duplicateProposal,
     updateProposalStatus,
+    updateProposal,
     validateStatusTransition,
     logProposalAction,
     isLoading

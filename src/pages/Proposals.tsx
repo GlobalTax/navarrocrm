@@ -4,6 +4,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useProposalsPageLogic } from '@/components/proposals/ProposalsPageLogic'
 import { useProposalsPageHandlers } from '@/components/proposals/ProposalsPageHandlers'
+import { useProposalActions } from '@/hooks/proposals/useProposalActions'
 import { ProposalsEmptyClientsBanner } from '@/components/proposals/ProposalsEmptyClientsBanner'
 import { ProposalsLoadingState } from '@/components/proposals/ProposalsLoadingState'
 import { ProposalsFiltersSection } from '@/components/proposals/ProposalsFiltersSection'
@@ -67,6 +68,7 @@ export default function Proposals() {
     saveRecurrentProposal,
     user,
     closeRecurrentBuilder: pageState.closeRecurrentBuilder,
+    openEditProposal: pageState.openEditProposal, // Pasar la nueva función
   })
 
   console.log('Current state:', { 
@@ -85,14 +87,22 @@ export default function Proposals() {
   const showingBuilder = pageState.isRecurrentBuilderOpen || pageState.isSpecificBuilderOpen
   if (showingBuilder) {
     return (
-      <ProposalsBuilderManager
-        isRecurrentBuilderOpen={pageState.isRecurrentBuilderOpen}
-        isSpecificBuilderOpen={pageState.isSpecificBuilderOpen}
-        onCloseRecurrentBuilder={pageState.closeRecurrentBuilder}
-        onCloseSpecificBuilder={pageState.closeSpecificBuilder}
-        onSaveRecurrentProposal={handleSaveRecurrentProposal}
-        isSavingRecurrent={isSavingRecurrent}
-      />
+        <ProposalsBuilderManager
+          isRecurrentBuilderOpen={pageState.isRecurrentBuilderOpen}
+          isSpecificBuilderOpen={pageState.isSpecificBuilderOpen}
+          onCloseRecurrentBuilder={pageState.closeRecurrentBuilder}
+          onCloseSpecificBuilder={pageState.closeSpecificBuilder}
+          onSaveRecurrentProposal={handleSaveRecurrentProposal}
+          isSavingRecurrent={isSavingRecurrent}
+          isEditMode={pageState.isEditMode}
+          editingProposal={pageState.editingProposal}
+          onUpdateProposal={async (proposalId: string, data: any) => {
+            // Usar el hook de actualización de propuestas
+            const { updateProposal } = useProposalActions()
+            await updateProposal(proposalId, data)
+            pageState.closeEditProposal()
+          }}
+        />
     )
   }
 
