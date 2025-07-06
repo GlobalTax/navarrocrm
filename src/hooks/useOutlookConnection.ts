@@ -49,8 +49,7 @@ export function useOutlookConnection() {
       
       const { data, error } = await supabase.functions.invoke('outlook-auth', {
         body: {
-          action: 'get_auth_url',
-          org_id: user?.org_id
+          action: 'get_auth_url'
         }
       })
 

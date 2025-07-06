@@ -1,66 +1,40 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { useOutlookConnection } from '@/hooks/useOutlookConnection'
+import { useEmailMetrics } from '@/hooks/useEmailMetrics'
+import { OutlookConnectionStatus } from './OutlookConnectionStatus'
+import { EmailMetricsCards } from './EmailMetricsCards'
+import { RecentEmailsList } from './RecentEmailsList'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { 
-  Mail, 
-  MailOpen, 
-  Send, 
-  FileText, 
-  RefreshCw, 
-  Plus,
-  Settings,
-  Inbox,
-  MailSearch
-} from 'lucide-react'
-import { useEmailMetrics } from '@/hooks/useEmailMetrics'
-import { useOutlookConnection } from '@/hooks/useOutlookConnection'
-import { OutlookConnectionStatus } from '@/components/emails/OutlookConnectionStatus'
-import { EmailMetricsCards } from '@/components/emails/EmailMetricsCards'
-import { RecentEmailsList } from '@/components/emails/RecentEmailsList'
-import { toast } from 'sonner'
+import { Mail, RefreshCw, Settings } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export function EmailDashboard() {
   const navigate = useNavigate()
-  const { metrics, isLoading, refetch } = useEmailMetrics()
-  const { connectionStatus, syncEmails, isSyncing } = useOutlookConnection()
-  const [lastSync, setLastSync] = useState<Date>(new Date())
+  const { 
+    connectionStatus, 
+    connectionData, 
+    isConnecting, 
+    isSyncing, 
+    connect, 
+    syncEmails 
+  } = useOutlookConnection()
+  
+  const { metrics, isLoading: metricsLoading } = useEmailMetrics()
 
-  const handleSync = async () => {
-    try {
-      await syncEmails()
-      setLastSync(new Date())
-      toast.success('Sincronización completada')
-    } catch (error) {
-      toast.error('Error en la sincronización')
-    }
+  const handleConfigure = () => {
+    connect()
   }
 
-  const handleRefresh = async () => {
-    try {
-      await refetch()
-      toast.success('Datos actualizados')
-    } catch (error) {
-      toast.error('Error al actualizar')
-    }
+  const handleSync = () => {
+    syncEmails(false)
   }
 
   return (
     <div className="space-y-6">
       <StandardPageHeader
-        title="Email Dashboard"
-        description="Gestión centralizada de correo electrónico"
-        badges={[
-          {
-            label: `Estado: ${connectionStatus}`,
-            variant: connectionStatus === 'connected' ? 'default' : 'outline',
-            color: connectionStatus === 'connected' 
-              ? 'text-green-600 border-green-200 bg-green-50' 
-              : 'text-amber-600 border-amber-200 bg-amber-50'
-          }
-        ]}
+        title="Dashboard de Email"
+        description="Gestiona tus emails y sincronización con Outlook"
         actions={
           <div className="flex gap-2">
             <Button
@@ -75,110 +49,120 @@ export function EmailDashboard() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleSync}
-              disabled={isSyncing || connectionStatus !== 'connected'}
+              onClick={() => navigate('/emails/inbox')}
               className="gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              Sincronizar
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => navigate('/emails/compose')}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Redactar
+              <Mail className="h-4 w-4" />
+              Ver Bandeja
             </Button>
           </div>
         }
       />
 
       {/* Estado de conexión */}
-      <OutlookConnectionStatus 
+      <OutlookConnectionStatus
         status={connectionStatus}
-        lastSync={lastSync}
+        lastSync={connectionData?.updated_at ? new Date(connectionData.updated_at) : undefined}
         onSync={handleSync}
+        onConfigure={handleConfigure}
         isSyncing={isSyncing}
       />
 
-      {/* Métricas principales */}
-      <EmailMetricsCards metrics={metrics} isLoading={isLoading} />
-
-      {/* Accesos rápidos */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow border-0.5 border-black rounded-[10px]"
-          onClick={() => navigate('/emails/inbox')}
-        >
-          <CardContent className="p-6 text-center">
-            <Inbox className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium">Bandeja de Entrada</h3>
-            <Badge variant="secondary" className="mt-2">
-              {metrics?.unreadCount || 0} sin leer
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow border-0.5 border-black rounded-[10px]"
-          onClick={() => navigate('/emails/sent')}
-        >
-          <CardContent className="p-6 text-center">
-            <Send className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium">Enviados</h3>
-            <Badge variant="secondary" className="mt-2">
-              {metrics?.sentToday || 0} hoy
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow border-0.5 border-black rounded-[10px]"
-          onClick={() => navigate('/emails/drafts')}
-        >
-          <CardContent className="p-6 text-center">
-            <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium">Borradores</h3>
-            <Badge variant="secondary" className="mt-2">
-              {metrics?.draftsCount || 0} pendientes
-            </Badge>
-          </CardContent>
-        </Card>
-
-        <Card 
-          className="cursor-pointer hover:shadow-md transition-shadow border-0.5 border-black rounded-[10px]"
-          onClick={() => navigate('/emails/search')}
-        >
-          <CardContent className="p-6 text-center">
-            <MailSearch className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-medium">Buscar</h3>
-            <Badge variant="secondary" className="mt-2">
-              Avanzada
-            </Badge>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Métricas de email */}
+      <EmailMetricsCards 
+        metrics={metrics} 
+        isLoading={metricsLoading} 
+      />
 
       {/* Emails recientes */}
-      <Card className="border-0.5 border-black rounded-[10px]">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Emails Recientes
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RecentEmailsList />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card className="border-0.5 border-black rounded-[10px]">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Emails Recientes
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSync}
+                  disabled={isSyncing}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? 'Sincronizando...' : 'Actualizar'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <RecentEmailsList />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          {/* Acciones rápidas */}
+          <Card className="border-0.5 border-black rounded-[10px]">
+            <CardHeader>
+              <CardTitle>Acciones Rápidas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                className="w-full gap-2" 
+                onClick={() => navigate('/emails/compose')}
+              >
+                <Mail className="h-4 w-4" />
+                Nuevo Email
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => navigate('/emails/inbox')}
+              >
+                <Mail className="h-4 w-4" />
+                Ver Bandeja de Entrada
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full gap-2"
+                onClick={() => navigate('/emails/sent')}
+              >
+                <Mail className="h-4 w-4" />
+                Emails Enviados
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Estadísticas de conexión */}
+          {connectionData && (
+            <Card className="border-0.5 border-black rounded-[10px]">
+              <CardHeader>
+                <CardTitle>Estado de Conexión</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Estado:</span>{' '}
+                  <span className="text-green-600">Conectado</span>
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Última actualización:</span>{' '}
+                  <span className="text-muted-foreground">
+                    {new Date(connectionData.updated_at).toLocaleString('es-ES')}
+                  </span>
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Token expira:</span>{' '}
+                  <span className="text-muted-foreground">
+                    {new Date(connectionData.token_expires_at).toLocaleString('es-ES')}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

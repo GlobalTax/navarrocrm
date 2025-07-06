@@ -11,7 +11,7 @@ interface OutlookAuthRequest {
   code?: string
   action: 'get_auth_url' | 'exchange_code' | 'refresh_token'
   refresh_token?: string
-  org_id: string
+  user_id?: string
 }
 
 serve(async (req) => {
@@ -25,25 +25,19 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { code, action, refresh_token, org_id }: OutlookAuthRequest = await req.json()
+    const { code, action, refresh_token, user_id }: OutlookAuthRequest = await req.json()
 
-    // Obtener configuración de la organización
-    const { data: orgConfig } = await supabase
-      .from('organization_integrations')
-      .select('outlook_client_id, outlook_tenant_id, outlook_client_secret_encrypted')
-      .eq('org_id', org_id)
-      .single()
+    // Obtener credenciales de Microsoft Graph desde Supabase secrets
+    const clientId = Deno.env.get('MICROSOFT_CLIENT_ID')
+    const clientSecret = Deno.env.get('MICROSOFT_CLIENT_SECRET')
 
-    if (!orgConfig) {
-      throw new Error('Organización no configurada para Outlook')
+    if (!clientId || !clientSecret) {
+      throw new Error('Microsoft Graph API credentials not configured')
     }
 
-    const clientId = orgConfig.outlook_client_id
-    const tenantId = orgConfig.outlook_tenant_id
-    const clientSecret = orgConfig.outlook_client_secret_encrypted // En producción descifrar
-
     const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/outlook-auth`
-    const scope = 'https://graph.microsoft.com/Calendars.ReadWrite https://graph.microsoft.com/Mail.Send offline_access'
+    const scope = 'https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read offline_access'
+    const tenantId = 'common' // Usar tenant común para multi-tenant
 
     switch (action) {
       case 'get_auth_url': {
@@ -90,21 +84,38 @@ serve(async (req) => {
         })
         const userData = await userResponse.json()
 
-        // Guardar tokens en la base de datos (cifrados en producción)
+        // Obtener el usuario autenticado y su org_id
+        const authHeader = req.headers.get('Authorization')
+        const { data: { user: authUser } } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
+        
+        if (!authUser) {
+          throw new Error('Usuario no autenticado')
+        }
+
+        // Obtener org_id del usuario
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('org_id')
+          .eq('id', authUser.id)
+          .single()
+
+        if (!userProfile?.org_id) {
+          throw new Error('Usuario sin organización asignada')
+        }
+
+        // Guardar tokens en la base de datos
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
         const { data: userToken } = await supabase
           .from('user_outlook_tokens')
           .upsert({
-            user_id: (await supabase.auth.getUser()).data.user?.id,
-            org_id: org_id,
-            access_token_encrypted: tokenData.access_token, // Cifrar en producción
-            refresh_token_encrypted: tokenData.refresh_token, // Cifrar en producción
+            user_id: authUser.id,
+            org_id: userProfile.org_id,
+            access_token: tokenData.access_token,
+            refresh_token: tokenData.refresh_token,
             token_expires_at: expiresAt.toISOString(),
-            scope_permissions: tokenData.scope.split(' '),
-            outlook_email: userData.mail || userData.userPrincipalName,
-            is_active: true,
-            last_used_at: new Date().toISOString()
+            scope: tokenData.scope,
+            is_active: true
           })
           .select()
           .single()
@@ -145,16 +156,22 @@ serve(async (req) => {
         // Actualizar tokens
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
+        // Obtener el usuario autenticado
+        const authHeader = req.headers.get('Authorization')
+        const { data: { user: authUser } } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
+        
+        if (!authUser) {
+          throw new Error('Usuario no autenticado')
+        }
+
         const { data } = await supabase
           .from('user_outlook_tokens')
           .update({
-            access_token_encrypted: tokenData.access_token,
-            refresh_token_encrypted: tokenData.refresh_token,
-            token_expires_at: expiresAt.toISOString(),
-            last_used_at: new Date().toISOString()
+            access_token: tokenData.access_token,
+            refresh_token: tokenData.refresh_token,
+            token_expires_at: expiresAt.toISOString()
           })
-          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-          .eq('org_id', org_id)
+          .eq('user_id', authUser.id)
           .select()
           .single()
 
