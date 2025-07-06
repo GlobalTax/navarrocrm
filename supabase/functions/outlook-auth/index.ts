@@ -20,6 +20,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🔧 [outlook-auth] Iniciando función edge...')
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -28,8 +30,14 @@ serve(async (req) => {
     // Obtener credenciales de Microsoft Graph desde Supabase secrets
     const clientId = Deno.env.get('MICROSOFT_CLIENT_ID')
     const clientSecret = Deno.env.get('MICROSOFT_CLIENT_SECRET')
+    
+    console.log('🔑 [outlook-auth] Credenciales:', { 
+      clientId: clientId ? 'PRESENTE' : 'AUSENTE',
+      clientSecret: clientSecret ? 'PRESENTE' : 'AUSENTE'
+    })
 
     if (!clientId || !clientSecret) {
+      console.error('❌ [outlook-auth] Credenciales no configuradas')
       throw new Error('Microsoft Graph API credentials not configured')
     }
 
@@ -93,6 +101,9 @@ serve(async (req) => {
       }
 
       case 'exchange_code': {
+        console.log('🔄 [outlook-auth] Iniciando exchange_code...')
+        console.log('📝 [outlook-auth] Datos recibidos:', { code: code ? 'PRESENTE' : 'AUSENTE' })
+        
         const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
         
         const body = new URLSearchParams({
@@ -104,6 +115,7 @@ serve(async (req) => {
           client_secret: clientSecret
         })
 
+        console.log('🌐 [outlook-auth] Llamando a Microsoft para tokens...')
         const tokenResponse = await fetch(tokenUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -111,80 +123,126 @@ serve(async (req) => {
         })
 
         const tokenData = await tokenResponse.json()
+        console.log('🎟️ [outlook-auth] Respuesta de tokens:', { 
+          success: !tokenData.error, 
+          error: tokenData.error || 'NINGUNO',
+          hasAccessToken: !!tokenData.access_token,
+          hasRefreshToken: !!tokenData.refresh_token,
+          expiresIn: tokenData.expires_in
+        })
 
         if (tokenData.error) {
+          console.error('❌ [outlook-auth] Error OAuth:', tokenData.error_description)
           throw new Error(`OAuth error: ${tokenData.error_description}`)
         }
 
         // Obtener info del usuario de Microsoft Graph
+        console.log('👤 [outlook-auth] Obteniendo información del usuario...')
         const userResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
           headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
         })
         const userData = await userResponse.json()
+        console.log('📧 [outlook-auth] Usuario obtenido:', { 
+          mail: userData.mail, 
+          userPrincipalName: userData.userPrincipalName,
+          displayName: userData.displayName
+        })
 
         // Obtener el usuario autenticado y su org_id
+        console.log('🔐 [outlook-auth] Verificando usuario autenticado...')
         const authHeader = req.headers.get('Authorization')
-        const { data: { user: authUser } } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
+        console.log('🎫 [outlook-auth] Auth header:', authHeader ? 'PRESENTE' : 'AUSENTE')
+        
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
+        
+        if (authError) {
+          console.error('❌ [outlook-auth] Error obteniendo usuario:', authError)
+          throw new Error(`Error de autenticación: ${authError.message}`)
+        }
         
         if (!authUser) {
+          console.error('❌ [outlook-auth] Usuario no autenticado')
           throw new Error('Usuario no autenticado')
         }
+        
+        console.log('✅ [outlook-auth] Usuario autenticado:', authUser.id)
 
         // Obtener org_id del usuario
-        const { data: userProfile } = await supabase
+        console.log('🏢 [outlook-auth] Obteniendo organización del usuario...')
+        const { data: userProfile, error: profileError } = await supabase
           .from('users')
           .select('org_id')
           .eq('id', authUser.id)
           .single()
 
+        if (profileError) {
+          console.error('❌ [outlook-auth] Error obteniendo perfil:', profileError)
+          throw new Error(`Error obteniendo perfil: ${profileError.message}`)
+        }
+
         if (!userProfile?.org_id) {
+          console.error('❌ [outlook-auth] Usuario sin organización')
           throw new Error('Usuario sin organización asignada')
         }
+        
+        console.log('✅ [outlook-auth] Organización encontrada:', userProfile.org_id)
 
         // Guardar tokens en la base de datos
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
-        // Encriptar tokens (simple base64 para demostración)
+        console.log('🔐 [outlook-auth] Encriptando tokens...')
+        // Simplificar encriptación para debugging
         const encryptedAccessToken = btoa(tokenData.access_token)
-        const encryptedRefreshToken = btoa(tokenData.refresh_token)
+        const encryptedRefreshToken = btoa(tokenData.refresh_token || '')
         
-        console.log('Insertando token para usuario:', authUser.id, 'org:', userProfile.org_id)
+        const tokenRecord = {
+          user_id: authUser.id,
+          org_id: userProfile.org_id,
+          access_token_encrypted: encryptedAccessToken,
+          refresh_token_encrypted: encryptedRefreshToken,
+          token_expires_at: expiresAt.toISOString(),
+          scope_permissions: tokenData.scope ? tokenData.scope.split(' ') : [],
+          outlook_email: userData.mail || userData.userPrincipalName || 'no-email',
+          is_active: true,
+          last_used_at: new Date().toISOString()
+        }
+        
+        console.log('💾 [outlook-auth] Insertando token en BD...', {
+          userId: tokenRecord.user_id,
+          orgId: tokenRecord.org_id,
+          outlookEmail: tokenRecord.outlook_email,
+          expiresAt: tokenRecord.token_expires_at,
+          scopeCount: tokenRecord.scope_permissions.length
+        })
         
         const { data: userToken, error: insertError } = await supabase
           .from('user_outlook_tokens')
-          .upsert({
-            user_id: authUser.id,
-            org_id: userProfile.org_id,
-            access_token_encrypted: encryptedAccessToken,
-            refresh_token_encrypted: encryptedRefreshToken,
-            token_expires_at: expiresAt.toISOString(),
-            scope_permissions: tokenData.scope ? tokenData.scope.split(' ') : [],
-            outlook_email: userData.mail || userData.userPrincipalName,
-            is_active: true,
-            last_used_at: new Date().toISOString()
-          })
+          .upsert(tokenRecord)
           .select()
           .single()
         
         if (insertError) {
-          console.error('Error insertando token:', insertError)
+          console.error('❌ [outlook-auth] Error insertando token:', insertError)
+          console.error('🔍 [outlook-auth] Detalles del error:', {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint
+          })
           throw new Error(`Error guardando token: ${insertError.message}`)
         }
         
-        console.log('Token insertado exitosamente:', userToken?.id)
-        
-        // Registrar evento de inserción exitosa
-        console.log('Token guardado correctamente en BD:', {
+        console.log('✅ [outlook-auth] Token insertado exitosamente:', {
           tokenId: userToken?.id,
           userId: authUser.id,
           orgId: userProfile.org_id,
-          outlookEmail: userData.mail
+          outlookEmail: userData.mail || userData.userPrincipalName
         })
 
         return new Response(
           JSON.stringify({ 
             success: true, 
-            user_email: userData.mail,
+            user_email: userData.mail || userData.userPrincipalName,
             expires_at: expiresAt 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -251,9 +309,16 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('Error en outlook-auth:', error)
+    console.error('❌ [outlook-auth] Error crítico:', error)
+    console.error('🔍 [outlook-auth] Stack trace:', error.stack)
+    console.error('🔍 [outlook-auth] Error type:', typeof error)
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        timestamp: new Date().toISOString(),
+        function: 'outlook-auth'
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
