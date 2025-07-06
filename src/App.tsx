@@ -46,6 +46,7 @@ const Rooms = lazy(() => import('@/pages/Rooms'))
 const RoomDisplay = lazy(() => import('@/pages/RoomDisplay'))
 const EmployeeOnboarding = lazy(() => import('@/pages/EmployeeOnboarding'))
 const EmployeeOnboardingSuccess = lazy(() => import('@/pages/EmployeeOnboardingSuccess'))
+const OutlookCallback = lazy(() => import('@/pages/OutlookCallback'))
 
 // Página pública - no necesita lazy loading por su naturaleza crítica
 import RoomOccupancyPanel from '@/pages/RoomOccupancyPanel'
@@ -88,6 +89,14 @@ function App() {
                 element={
                   <Suspense fallback={<PageLoadingSkeleton />}>
                     <EmployeeOnboardingSuccess />
+                  </Suspense>
+                } 
+              />
+              <Route 
+                path="/auth/outlook/callback" 
+                element={
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    <OutlookCallback />
                   </Suspense>
                 } 
               />

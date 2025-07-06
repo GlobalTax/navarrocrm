@@ -25,8 +25,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { code, action, refresh_token, user_id }: OutlookAuthRequest = await req.json()
-
     // Obtener credenciales de Microsoft Graph desde Supabase secrets
     const clientId = Deno.env.get('MICROSOFT_CLIENT_ID')
     const clientSecret = Deno.env.get('MICROSOFT_CLIENT_SECRET')
@@ -35,9 +33,49 @@ serve(async (req) => {
       throw new Error('Microsoft Graph API credentials not configured')
     }
 
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/outlook-auth`
+    const redirectUri = `${req.headers.get('origin') || 'http://localhost:3000'}/auth/outlook/callback`
     const scope = 'https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read offline_access'
-    const tenantId = 'common' // Usar tenant común para multi-tenant
+    const tenantId = 'common'
+
+    // Handle GET requests (callback from Microsoft)
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      const code = url.searchParams.get('code')
+      
+      if (code) {
+        // Return HTML page that will handle the callback
+        const html = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Outlook Authentication</title>
+            </head>
+            <body>
+              <script>
+                const code = '${code}';
+                if (window.opener) {
+                  window.opener.postMessage({
+                    type: 'OUTLOOK_AUTH_CODE',
+                    code: code
+                  }, '*');
+                  window.close();
+                } else {
+                  window.location.href = '/emails/dashboard';
+                }
+              </script>
+              <p>Autenticación completada. Esta ventana se cerrará automáticamente...</p>
+            </body>
+          </html>
+        `
+        
+        return new Response(html, {
+          headers: { 'Content-Type': 'text/html' }
+        })
+      }
+    }
+
+    // Handle POST requests
+    const { code, action, refresh_token, user_id }: OutlookAuthRequest = await req.json()
 
     switch (action) {
       case 'get_auth_url': {

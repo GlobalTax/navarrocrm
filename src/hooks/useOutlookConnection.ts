@@ -59,19 +59,42 @@ export function useOutlookConnection() {
 
   // Función para manejar OAuth con popup
   const handleOAuthCallback = useCallback((event: MessageEvent) => {
-    if (event.origin !== window.location.origin) return
-    
-    if (event.data.type === 'OUTLOOK_AUTH_SUCCESS') {
-      toast.success('Conexión establecida con Outlook')
-      setConnectionStatus('connected')
-      refetchConnection()
+    if (event.data.type === 'OUTLOOK_AUTH_CODE') {
+      // Exchange code for tokens
+      exchangeCodeMutation.mutate(event.data.code)
     } else if (event.data.type === 'OUTLOOK_AUTH_ERROR') {
       toast.error('Error en la autenticación', {
         description: event.data.error
       })
       setConnectionStatus('error')
     }
-  }, [refetchConnection])
+  }, [])
+
+  // Mutation para intercambiar código por tokens
+  const exchangeCodeMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const { data, error } = await supabase.functions.invoke('outlook-auth', {
+        body: {
+          action: 'exchange_code',
+          code: code
+        }
+      })
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      toast.success('Conexión establecida con Outlook')
+      setConnectionStatus('connected')
+      refetchConnection()
+    },
+    onError: (error) => {
+      toast.error('Error al completar la autenticación', {
+        description: error.message
+      })
+      setConnectionStatus('error')
+    }
+  })
 
   useEffect(() => {
     window.addEventListener('message', handleOAuthCallback)
