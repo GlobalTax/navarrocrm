@@ -8,7 +8,7 @@ import { useClients } from '@/hooks/useClients'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) => {
-  const { proposals, isLoading, createProposal, updateProposalStatus, isCreating } = useProposals(onProposalWon)
+  const { proposals, isLoading, createProposal, updateProposalStatus, isCreating, error } = useProposals(onProposalWon)
   const { mutate: saveRecurrentProposal, isPending: isSavingRecurrent } = useSaveProposal()
   const { user } = useApp()
   const { clients } = useClients()
@@ -35,6 +35,9 @@ export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) =
     isLoading,
     isCreating,
     isSavingRecurrent,
+    
+    // Error state
+    error,
     
     // Page state
     pageState,

@@ -16,19 +16,28 @@ export const useProposalsData = () => {
         .from('proposals')
         .select(`
           *,
-          contact:contacts(name, email),
+          contact:contacts!proposals_contact_id_fkey(id, name, email, phone, dni_nif),
           line_items:proposal_line_items(*)
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching proposals:', error)
+        throw error
+      }
+      
+      if (!data) return []
       
       // Map contact_id to client_id for backward compatibility
       return data.map(proposal => ({
         ...proposal,
         client_id: proposal.contact_id,
-        client: proposal.contact
+        client: proposal.contact || {
+          id: proposal.contact_id,
+          name: 'Cliente no encontrado',
+          email: null
+        }
       })) as Proposal[]
     },
     enabled: !!user?.org_id

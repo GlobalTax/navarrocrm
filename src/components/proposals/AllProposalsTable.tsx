@@ -35,7 +35,7 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
   const handleClientClick = (e: React.MouseEvent, clientId: string) => {
     e.stopPropagation()
     if (clientId) {
-      navigate(`/client/${clientId}`)
+      navigate(`/contacts/${clientId}`)
     }
   }
 

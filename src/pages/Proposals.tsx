@@ -13,6 +13,7 @@ import { ProposalMetrics } from '@/components/proposals/ProposalMetrics'
 import { ProposalDetailDialog } from '@/components/proposals/ProposalDetailDialog'
 import { ProposalConfirmationDialog } from '@/components/proposals/ProposalConfirmationDialog'
 import { OnboardingConfirmationDialog } from '@/components/proposals/OnboardingConfirmationDialog'
+import { ProposalsErrorBoundary } from '@/components/proposals/ProposalsErrorBoundary'
 import { useOnboarding } from '@/contexts/OnboardingContext'
 
 export default function Proposals() {
@@ -45,7 +46,8 @@ export default function Proposals() {
     filters,
     setFilters,
     updateProposalStatus,
-    saveRecurrentProposal
+    saveRecurrentProposal,
+    error
   } = useProposalsPageLogic(handleProposalWon)
 
   const { 
@@ -138,26 +140,28 @@ export default function Proposals() {
         }}
       />
 
-      <ProposalsEmptyClientsBanner clientsCount={clients.length} />
+      <ProposalsErrorBoundary error={error}>
+        <ProposalsEmptyClientsBanner clientsCount={clients.length} />
 
-      <ProposalMetrics />
+        <ProposalMetrics />
 
-      <ProposalsFiltersSection
-        filters={filters}
-        setFilters={setFilters}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={handleClearFilters}
-      />
+        <ProposalsFiltersSection
+          filters={filters}
+          setFilters={setFilters}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={handleClearFilters}
+        />
 
-      <ProposalsTabsView
-        proposals={categorizedProposals}
-        onStatusChange={handleStatusChange}
-        onViewProposal={handleViewProposal}
-        onEditProposal={handleEditProposal}
-        onDuplicateProposal={handleDuplicateProposal}
-        onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
-        onOpenSpecificBuilder={pageState.openSpecificBuilder}
-      />
+        <ProposalsTabsView
+          proposals={categorizedProposals}
+          onStatusChange={handleStatusChange}
+          onViewProposal={handleViewProposal}
+          onEditProposal={handleEditProposal}
+          onDuplicateProposal={handleDuplicateProposal}
+          onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
+          onOpenSpecificBuilder={pageState.openSpecificBuilder}
+        />
+      </ProposalsErrorBoundary>
 
       {/* Diálogo de detalles */}
       <ProposalDetailDialog

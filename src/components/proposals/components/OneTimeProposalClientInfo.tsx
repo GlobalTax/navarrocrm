@@ -15,7 +15,7 @@ export const OneTimeProposalClientInfo: React.FC<OneTimeProposalClientInfoProps>
   const handleClientClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (client?.id) {
-      navigate(`/client/${client.id}`)
+      navigate(`/contacts/${client.id}`)
     }
   }
 
