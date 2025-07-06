@@ -16,7 +16,7 @@ import Setup from '@/pages/Setup'
 import Unauthorized from '@/pages/Unauthorized'
 import NotFound from '@/pages/NotFound'
 
-// Lazy load para páginas principales
+const Emails = lazy(() => import('@/pages/Emails'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const Contacts = lazy(() => import('@/pages/Contacts'))
 const ContactDetail = lazy(() => import('@/pages/ContactDetail'))
@@ -107,6 +107,14 @@ function App() {
                     } 
                   />
                   <Route 
+                    path="/emails/*" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Emails />
+                      </Suspense>
+                    } 
+                  />
+                  <Route
                     path="/contacts" 
                     element={
                       <Suspense fallback={<PageLoadingSkeleton />}>
