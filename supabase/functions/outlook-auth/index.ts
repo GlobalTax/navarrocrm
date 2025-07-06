@@ -144,19 +144,33 @@ serve(async (req) => {
         // Guardar tokens en la base de datos
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
-        const { data: userToken } = await supabase
+        // Encriptar tokens (simple base64 para demostración)
+        const encryptedAccessToken = btoa(tokenData.access_token)
+        const encryptedRefreshToken = btoa(tokenData.refresh_token)
+        
+        console.log('Insertando token para usuario:', authUser.id, 'org:', userProfile.org_id)
+        
+        const { data: userToken, error: insertError } = await supabase
           .from('user_outlook_tokens')
           .upsert({
             user_id: authUser.id,
             org_id: userProfile.org_id,
-            access_token: tokenData.access_token,
-            refresh_token: tokenData.refresh_token,
+            access_token_encrypted: encryptedAccessToken,
+            refresh_token_encrypted: encryptedRefreshToken,
             token_expires_at: expiresAt.toISOString(),
-            scope: tokenData.scope,
+            scope_permissions: tokenData.scope ? tokenData.scope.split(' ') : [],
+            outlook_email: userData.mail || userData.userPrincipalName,
             is_active: true
           })
           .select()
           .single()
+        
+        if (insertError) {
+          console.error('Error insertando token:', insertError)
+          throw new Error(`Error guardando token: ${insertError.message}`)
+        }
+        
+        console.log('Token insertado exitosamente:', userToken?.id)
 
         return new Response(
           JSON.stringify({ 
@@ -194,6 +208,10 @@ serve(async (req) => {
         // Actualizar tokens
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
+        // Encriptar tokens actualizados
+        const encryptedAccessToken = btoa(tokenData.access_token)
+        const encryptedRefreshToken = btoa(tokenData.refresh_token)
+        
         // Obtener el usuario autenticado
         const authHeader = req.headers.get('Authorization')
         const { data: { user: authUser } } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
@@ -205,8 +223,8 @@ serve(async (req) => {
         const { data } = await supabase
           .from('user_outlook_tokens')
           .update({
-            access_token: tokenData.access_token,
-            refresh_token: tokenData.refresh_token,
+            access_token_encrypted: encryptedAccessToken,
+            refresh_token_encrypted: encryptedRefreshToken,
             token_expires_at: expiresAt.toISOString()
           })
           .eq('user_id', authUser.id)
