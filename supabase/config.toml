@@ -55,3 +55,15 @@ enabled = true
 
 [functions.ai-assistant]
 verify_jwt = false
+
+[functions.outlook-auth]
+verify_jwt = true
+
+[functions.outlook-email-sync]
+verify_jwt = true
+
+[functions.outlook-email-send]
+verify_jwt = true
+
+[functions.email-rules-processor]
+verify_jwt = true
