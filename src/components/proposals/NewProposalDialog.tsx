@@ -23,7 +23,7 @@ export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: 
   const { services = [] } = useServiceCatalog()
 
   const [formData, setFormData] = useState<CreateProposalData>({
-    client_id: '',
+    contact_id: '',
     title: '',
     description: '',
     proposal_type: 'service',
@@ -89,7 +89,7 @@ export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.client_id || !formData.title) {
+    if (!formData.contact_id || !formData.title) {
       return
     }
 
@@ -97,7 +97,7 @@ export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: 
     
     // Reset form
     setFormData({
-      client_id: '',
+      contact_id: '',
       title: '',
       description: '',
       proposal_type: 'service',
@@ -120,16 +120,16 @@ export function NewProposalDialog({ open, onOpenChange, onSubmit, isCreating }: 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="client">Cliente *</Label>
-              <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
+              <Select value={formData.contact_id} onValueChange={(value) => setFormData(prev => ({ ...prev, contact_id: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar cliente" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
+                      {clients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name} ({client.email || 'Sin email'})
+                        </SelectItem>
+                      ))}
                 </SelectContent>
               </Select>
             </div>

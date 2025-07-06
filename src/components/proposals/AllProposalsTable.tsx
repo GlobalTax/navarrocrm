@@ -82,7 +82,7 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
               <TableCell>
                 <div 
                   className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
-                  onClick={(e) => handleClientClick(e, proposal.client?.id)}
+                  onClick={(e) => handleClientClick(e, proposal.client?.id || proposal.contact_id)}
                 >
                   <User className="h-4 w-4 text-gray-400" />
                   <div>

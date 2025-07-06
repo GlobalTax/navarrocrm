@@ -46,7 +46,7 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
   const { templates = [] } = useProposalTemplates()
 
   const [formData, setFormData] = useState<CreateProposalData & RecurringFields>({
-    client_id: '',
+    contact_id: '',
     title: '',
     description: '',
     proposal_type: 'service',
@@ -66,7 +66,7 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
     if (template) {
       setFormData(prev => ({
         ...prev,
-        title: `${template.name} - ${clients.find(c => c.id === prev.client_id)?.name || ''}`,
+        title: `${template.name} - ${clients.find(c => c.id === prev.contact_id)?.name || ''}`,
         description: template.description || '',
         proposal_type: template.template_type === 'project' ? 'project' : 
                       template.template_type === 'retainer' ? 'retainer' : 'service',
@@ -82,7 +82,7 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.client_id || !formData.title) {
+    if (!formData.contact_id || !formData.title) {
       return
     }
 
@@ -96,7 +96,7 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
     
     // Reset form
     setFormData({
-      client_id: '',
+      contact_id: '',
       title: '',
       description: '',
       proposal_type: 'service',
@@ -130,14 +130,14 @@ export function RecurringProposalForm({ open, onOpenChange, onSubmit, isCreating
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="client">Cliente *</Label>
-                  <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
+                  <Select value={formData.contact_id} onValueChange={(value) => setFormData(prev => ({ ...prev, contact_id: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar cliente" />
                     </SelectTrigger>
                     <SelectContent>
                       {clients.map(client => (
                         <SelectItem key={client.id} value={client.id}>
-                          {client.name}
+                          {client.name} ({client.email || 'Sin email'})
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -29,7 +29,7 @@ export const useProposalsData = () => {
       
       if (!data) return []
       
-      // Map contact_id to client_id for backward compatibility
+      // Map contact_id to client_id for backward compatibility  
       return data.map(proposal => ({
         ...proposal,
         client_id: proposal.contact_id,

@@ -2,7 +2,8 @@
 export interface Proposal {
   id: string
   org_id: string
-  client_id: string
+  contact_id: string // Real field in DB
+  client_id?: string  // Computed field for compatibility
   title: string
   description?: string
   status: 'draft' | 'sent' | 'negotiating' | 'won' | 'lost' | 'expired' | 'viewed' | 'accepted' | 'declined' | 'invoiced' | 'archived'
@@ -31,14 +32,30 @@ export interface Proposal {
   introduction?: string
   scope_of_work?: string
   timeline?: string
-  pricing_tiers_data?: any
+  pricing_tiers_data?: PricingTierData[] | any // Flexible to handle DB Json type
   created_at: string
   updated_at: string
-  client?: {
-    name: string
-    email?: string
-  }
+  // Contact/Client data from join
+  contact?: ContactInfo
+  client?: ContactInfo  // Alias for compatibility
   line_items?: ProposalLineItem[]
+}
+
+export interface ContactInfo {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  dni_nif?: string
+}
+
+export interface PricingTierData {
+  id: string
+  name: string
+  description?: string
+  price: number
+  features: string[]
+  recommended?: boolean
 }
 
 export interface ProposalLineItem {
@@ -55,7 +72,7 @@ export interface ProposalLineItem {
 }
 
 export interface CreateProposalData {
-  client_id: string
+  contact_id: string
   title: string
   description?: string
   proposal_type?: 'service' | 'retainer' | 'project'
