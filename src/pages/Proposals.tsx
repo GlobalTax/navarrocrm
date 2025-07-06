@@ -21,6 +21,7 @@ export default function Proposals() {
   console.log('Proposals page rendering')
   
   const { startOnboardingFromProposal } = useOnboarding()
+  const { updateProposal } = useProposalActions()
   const [onboardingDialog, setOnboardingDialog] = useState<{
     isOpen: boolean
     proposal: any
@@ -97,8 +98,6 @@ export default function Proposals() {
           isEditMode={pageState.isEditMode}
           editingProposal={pageState.editingProposal}
           onUpdateProposal={async (proposalId: string, data: any) => {
-            // Usar el hook de actualización de propuestas
-            const { updateProposal } = useProposalActions()
             await updateProposal(proposalId, data)
             pageState.closeEditProposal()
           }}
