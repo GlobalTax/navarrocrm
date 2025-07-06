@@ -73,8 +73,23 @@ export function useOutlookConnection() {
   // Mutation para intercambiar código por tokens
   const exchangeCodeMutation = useMutation({
     mutationFn: async (code: string) => {
-      // Obtener la sesión actual para el header de autorización
-      const { data: { session } } = await supabase.auth.getSession()
+      // Validar que el usuario está autenticado
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Error getting session:', sessionError)
+        throw new Error('Error obteniendo sesión de usuario')
+      }
+      
+      if (!session?.access_token) {
+        console.error('No session or access_token found:', { 
+          hasSession: !!session, 
+          hasAccessToken: !!session?.access_token 
+        })
+        throw new Error('Debe iniciar sesión para conectar con Outlook')
+      }
+      
+      console.log('📤 [exchange_code] Enviando petición con token válido')
       
       const { data, error } = await supabase.functions.invoke('outlook-auth', {
         body: {
@@ -82,7 +97,7 @@ export function useOutlookConnection() {
           code: code
         },
         headers: {
-          Authorization: `Bearer ${session?.access_token}`
+          Authorization: `Bearer ${session.access_token}`
         }
       })
 
@@ -117,15 +132,30 @@ export function useOutlookConnection() {
       setConnectionStatus('connecting')
       
       try {
-        // Obtener la sesión actual para el header de autorización
-        const { data: { session } } = await supabase.auth.getSession()
+        // Validar que el usuario está autenticado
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Error getting session:', sessionError)
+          throw new Error('Error obteniendo sesión de usuario')
+        }
+        
+        if (!session?.access_token) {
+          console.error('No session or access_token found:', { 
+            hasSession: !!session, 
+            hasAccessToken: !!session?.access_token 
+          })
+          throw new Error('Debe iniciar sesión para conectar con Outlook')
+        }
+        
+        console.log('📤 [get_auth_url] Enviando petición con token válido')
         
         const { data, error } = await supabase.functions.invoke('outlook-auth', {
           body: {
             action: 'get_auth_url'
           },
           headers: {
-            Authorization: `Bearer ${session?.access_token}`
+            Authorization: `Bearer ${session.access_token}`
           }
         })
 

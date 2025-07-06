@@ -87,12 +87,36 @@ serve(async (req) => {
 
     switch (action) {
       case 'get_auth_url': {
+        console.log('🔗 [outlook-auth] Generando URL de autorización...')
+        
+        // Validar que el usuario esté autenticado para get_auth_url también
+        const authHeader = req.headers.get('Authorization')
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          console.error('❌ [outlook-auth] No valid authorization header for get_auth_url')
+          throw new Error('Header de autorización requerido')
+        }
+        
+        const token = authHeader.replace('Bearer ', '')
+        if (!token || token.trim() === '') {
+          throw new Error('Token de autorización vacío')
+        }
+        
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token)
+        if (authError || !authUser) {
+          console.error('❌ [outlook-auth] Usuario no autenticado en get_auth_url')
+          throw new Error('Debe estar autenticado para obtener URL de autorización')
+        }
+        
+        console.log('✅ [outlook-auth] Usuario autenticado para get_auth_url:', authUser.id)
+        
         const authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?` +
           `client_id=${clientId}&` +
           `response_type=code&` +
           `redirect_uri=${encodeURIComponent(redirectUri)}&` +
           `response_mode=query&` +
           `scope=${encodeURIComponent(scope)}`
+
+        console.log('🔗 [outlook-auth] URL generada exitosamente')
 
         return new Response(
           JSON.stringify({ auth_url: authUrl }),
@@ -151,9 +175,31 @@ serve(async (req) => {
         // Obtener el usuario autenticado y su org_id
         console.log('🔐 [outlook-auth] Verificando usuario autenticado...')
         const authHeader = req.headers.get('Authorization')
-        console.log('🎫 [outlook-auth] Auth header:', authHeader ? 'PRESENTE' : 'AUSENTE')
+        console.log('🎫 [outlook-auth] Auth header:', { 
+          present: !!authHeader,
+          length: authHeader?.length || 0,
+          startsWithBearer: authHeader?.startsWith('Bearer ') || false
+        })
         
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
+        if (!authHeader) {
+          console.error('❌ [outlook-auth] No authorization header provided')
+          throw new Error('Header de autorización requerido')
+        }
+        
+        if (!authHeader.startsWith('Bearer ')) {
+          console.error('❌ [outlook-auth] Invalid authorization header format')
+          throw new Error('Formato de header de autorización inválido')
+        }
+        
+        const token = authHeader.replace('Bearer ', '')
+        if (!token || token.trim() === '') {
+          console.error('❌ [outlook-auth] Empty token in authorization header')
+          throw new Error('Token de autorización vacío')
+        }
+        
+        console.log('🔍 [outlook-auth] Token extraído:', { length: token.length })
+        
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token)
         
         if (authError) {
           console.error('❌ [outlook-auth] Error obteniendo usuario:', authError)
@@ -161,8 +207,8 @@ serve(async (req) => {
         }
         
         if (!authUser) {
-          console.error('❌ [outlook-auth] Usuario no autenticado')
-          throw new Error('Usuario no autenticado')
+          console.error('❌ [outlook-auth] Usuario no autenticado - token inválido o expirado')
+          throw new Error('Token de autenticación inválido o expirado')
         }
         
         console.log('✅ [outlook-auth] Usuario autenticado:', authUser.id)
