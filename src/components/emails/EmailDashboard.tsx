@@ -1,13 +1,15 @@
+import { useState } from 'react'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOutlookConnection } from '@/hooks/useOutlookConnection'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
 import { OutlookConnectionStatus } from './OutlookConnectionStatus'
+import { OutlookConnectionDiagnostic } from './OutlookConnectionDiagnostic'
 import { EmailMetricsCards } from './EmailMetricsCards'
 import { RecentEmailsList } from './RecentEmailsList'
 import { EmailErrorBoundary } from './EmailErrorBoundary'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Mail, RefreshCw, Settings, AlertCircle } from 'lucide-react'
+import { Mail, RefreshCw, Settings, AlertCircle, Bug } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -42,6 +44,8 @@ export function EmailDashboard() {
 
 function EmailDashboardContent() {
   const navigate = useNavigate()
+  const [showDiagnostic, setShowDiagnostic] = useState(false)
+  
   const { 
     connectionStatus, 
     connectionData, 
@@ -69,6 +73,15 @@ function EmailDashboardContent() {
           description="Gestiona tus emails y sincronización con Outlook"
           actions={
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDiagnostic(true)}
+                className="gap-2"
+              >
+                <Bug className="h-4 w-4" />
+                Diagnóstico
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -206,6 +219,12 @@ function EmailDashboardContent() {
             )}
           </div>
         </div>
+
+        {/* Diagnóstico Modal */}
+        <OutlookConnectionDiagnostic 
+          isOpen={showDiagnostic}
+          onClose={() => setShowDiagnostic(false)}
+        />
       </div>
     </EmailErrorBoundary>
   )
