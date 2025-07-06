@@ -1634,6 +1634,326 @@ export type Database = {
         }
         Relationships: []
       }
+      email_attachments: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          download_url: string | null
+          file_path: string | null
+          file_size: number | null
+          filename: string
+          id: string
+          is_downloaded: boolean | null
+          message_id: string
+          org_id: string
+          outlook_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          download_url?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          filename: string
+          id?: string
+          is_downloaded?: boolean | null
+          message_id: string
+          org_id: string
+          outlook_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          download_url?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          filename?: string
+          id?: string
+          is_downloaded?: boolean | null
+          message_id?: string
+          org_id?: string
+          outlook_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "email_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_folders: {
+        Row: {
+          created_at: string
+          folder_name: string
+          folder_type: string | null
+          id: string
+          message_count: number | null
+          org_id: string
+          outlook_id: string | null
+          parent_folder_id: string | null
+          sync_enabled: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          folder_name: string
+          folder_type?: string | null
+          id?: string
+          message_count?: number | null
+          org_id: string
+          outlook_id?: string | null
+          parent_folder_id?: string | null
+          sync_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          folder_name?: string
+          folder_type?: string | null
+          id?: string
+          message_count?: number | null
+          org_id?: string
+          outlook_id?: string | null
+          parent_folder_id?: string | null
+          sync_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "email_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_messages: {
+        Row: {
+          bcc_addresses: string[] | null
+          body_html: string | null
+          body_text: string | null
+          cc_addresses: string[] | null
+          created_at: string
+          from_address: string | null
+          has_attachments: boolean | null
+          id: string
+          is_flagged: boolean | null
+          is_read: boolean | null
+          last_synced_at: string | null
+          message_type: string | null
+          org_id: string
+          outlook_id: string | null
+          received_datetime: string | null
+          sent_datetime: string | null
+          subject: string | null
+          sync_status: string | null
+          thread_id: string | null
+          to_addresses: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          bcc_addresses?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_addresses?: string[] | null
+          created_at?: string
+          from_address?: string | null
+          has_attachments?: boolean | null
+          id?: string
+          is_flagged?: boolean | null
+          is_read?: boolean | null
+          last_synced_at?: string | null
+          message_type?: string | null
+          org_id: string
+          outlook_id?: string | null
+          received_datetime?: string | null
+          sent_datetime?: string | null
+          subject?: string | null
+          sync_status?: string | null
+          thread_id?: string | null
+          to_addresses?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          bcc_addresses?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_addresses?: string[] | null
+          created_at?: string
+          from_address?: string | null
+          has_attachments?: boolean | null
+          id?: string
+          is_flagged?: boolean | null
+          is_read?: boolean | null
+          last_synced_at?: string | null
+          message_type?: string | null
+          org_id?: string
+          outlook_id?: string | null
+          received_datetime?: string | null
+          sent_datetime?: string | null
+          subject?: string | null
+          sync_status?: string | null
+          thread_id?: string | null
+          to_addresses?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          execution_count: number | null
+          id: string
+          is_active: boolean | null
+          last_executed_at: string | null
+          org_id: string
+          rule_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          org_id: string
+          rule_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          org_id?: string
+          rule_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_signatures: {
+        Row: {
+          created_at: string
+          html_content: string | null
+          id: string
+          is_default: boolean | null
+          org_id: string
+          signature_name: string
+          updated_at: string
+          use_for_new_messages: boolean | null
+          use_for_replies: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_default?: boolean | null
+          org_id: string
+          signature_name: string
+          updated_at?: string
+          use_for_new_messages?: boolean | null
+          use_for_replies?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_default?: boolean | null
+          org_id?: string
+          signature_name?: string
+          updated_at?: string
+          use_for_new_messages?: boolean | null
+          use_for_replies?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_sync_status: {
+        Row: {
+          created_at: string
+          error_count: number | null
+          folder_id: string | null
+          id: string
+          last_error_message: string | null
+          last_sync_datetime: string | null
+          next_sync_datetime: string | null
+          org_id: string
+          sync_status: string | null
+          synced_messages: number | null
+          total_messages: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_count?: number | null
+          folder_id?: string | null
+          id?: string
+          last_error_message?: string | null
+          last_sync_datetime?: string | null
+          next_sync_datetime?: string | null
+          org_id: string
+          sync_status?: string | null
+          synced_messages?: number | null
+          total_messages?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_count?: number | null
+          folder_id?: string | null
+          id?: string
+          last_error_message?: string | null
+          last_sync_datetime?: string | null
+          next_sync_datetime?: string | null
+          org_id?: string
+          sync_status?: string | null
+          synced_messages?: number | null
+          total_messages?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sync_status_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "email_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_templates: {
         Row: {
           body_template: string
@@ -1686,47 +2006,62 @@ export type Database = {
       }
       email_threads: {
         Row: {
+          auto_assigned_client_id: string | null
           case_id: string | null
           contact_id: string | null
           created_at: string
           created_by: string
+          folder_id: string | null
           id: string
           last_message_at: string | null
+          latest_message_id: string | null
           message_count: number | null
           org_id: string
           outlook_thread_id: string | null
           participants: string[] | null
+          priority_level: string | null
           status: string | null
+          tags: string[] | null
           thread_subject: string
           updated_at: string
         }
         Insert: {
+          auto_assigned_client_id?: string | null
           case_id?: string | null
           contact_id?: string | null
           created_at?: string
           created_by: string
+          folder_id?: string | null
           id?: string
           last_message_at?: string | null
+          latest_message_id?: string | null
           message_count?: number | null
           org_id: string
           outlook_thread_id?: string | null
           participants?: string[] | null
+          priority_level?: string | null
           status?: string | null
+          tags?: string[] | null
           thread_subject: string
           updated_at?: string
         }
         Update: {
+          auto_assigned_client_id?: string | null
           case_id?: string | null
           contact_id?: string | null
           created_at?: string
           created_by?: string
+          folder_id?: string | null
           id?: string
           last_message_at?: string | null
+          latest_message_id?: string | null
           message_count?: number | null
           org_id?: string
           outlook_thread_id?: string | null
           participants?: string[] | null
+          priority_level?: string | null
           status?: string | null
+          tags?: string[] | null
           thread_subject?: string
           updated_at?: string
         }
@@ -1743,6 +2078,20 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "email_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_latest_message_id_fkey"
+            columns: ["latest_message_id"]
+            isOneToOne: false
+            referencedRelation: "email_messages"
             referencedColumns: ["id"]
           },
           {
