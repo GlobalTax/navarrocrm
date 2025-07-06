@@ -1,195 +1,171 @@
-import { useState } from 'react'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { OutlookConnectionStatus } from './OutlookConnectionStatus'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Settings, Mail, AlertCircle, CheckCircle, XCircle } from 'lucide-react'
 import { useOutlookConnection } from '@/hooks/useOutlookConnection'
-import { Settings, Save, RefreshCw } from 'lucide-react'
-import { toast } from 'sonner'
 
 export function EmailSettings() {
-  const { connectionStatus, connect, syncEmails, isSyncing } = useOutlookConnection()
-  const [settings, setSettings] = useState({
-    autoSync: true,
-    syncInterval: '15',
-    enableNotifications: true,
-    saveToSent: true,
-    trackOpens: false,
-    signature: '',
-    syncFolders: ['inbox', 'sent', 'drafts']
-  })
-  const [isSaving, setIsSaving] = useState(false)
+  const { 
+    connectionStatus, 
+    connectionData, 
+    connect, 
+    isConnecting 
+  } = useOutlookConnection()
 
-  const handleSave = async () => {
-    setIsSaving(true)
-    try {
-      // TODO: Implementar guardado de configuración
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success('Configuración guardada')
-    } catch (error) {
-      toast.error('Error al guardar configuración')
-    } finally {
-      setIsSaving(false)
+  const getStatusInfo = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return {
+          icon: CheckCircle,
+          color: 'text-green-600',
+          bgColor: 'bg-green-50',
+          borderColor: 'border-green-200',
+          status: 'Conectado',
+          message: 'Tu cuenta de Outlook está conectada correctamente'
+        }
+      case 'connecting':
+        return {
+          icon: Settings,
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200',
+          status: 'Conectando',
+          message: 'Estableciendo conexión con Microsoft Outlook'
+        }
+      case 'error':
+        return {
+          icon: XCircle,
+          color: 'text-red-600',
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-200',
+          status: 'Error',
+          message: 'Hay un problema con la conexión. Intenta reconectar.'
+        }
+      default:
+        return {
+          icon: AlertCircle,
+          color: 'text-amber-600',
+          bgColor: 'bg-amber-50',
+          borderColor: 'border-amber-200',
+          status: 'No conectado',
+          message: 'Conecta tu cuenta de Outlook para gestionar emails'
+        }
     }
   }
 
-  const handleSync = async () => {
-    try {
-      await syncEmails(true) // Full sync
-      toast.success('Sincronización completa realizada')
-    } catch (error) {
-      toast.error('Error en la sincronización')
-    }
-  }
+  const statusInfo = getStatusInfo()
+  const StatusIcon = statusInfo.icon
 
   return (
     <div className="space-y-6">
       <StandardPageHeader
         title="Configuración de Email"
-        description="Gestiona la conexión y preferencias de correo electrónico"
-        actions={
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="gap-2"
-          >
-            <Save className="h-4 w-4" />
-            {isSaving ? 'Guardando...' : 'Guardar'}
-          </Button>
-        }
+        description="Gestiona la integración con Microsoft Outlook"
       />
 
       {/* Estado de conexión */}
-      <OutlookConnectionStatus 
-        status={connectionStatus}
-        onSync={handleSync}
-        onConfigure={connect}
-        isSyncing={isSyncing}
-      />
-
-      {/* Configuración de sincronización */}
       <Card className="border-0.5 border-black rounded-[10px]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <RefreshCw className="h-5 w-5" />
-            Sincronización
+            <Mail className="h-5 w-5" />
+            Integración con Microsoft Outlook
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="font-medium">Sincronización automática</label>
-              <p className="text-sm text-muted-foreground">
-                Sincronizar emails automáticamente en segundo plano
-              </p>
-            </div>
-            <Switch
-              checked={settings.autoSync}
-              onCheckedChange={(checked) => setSettings({ ...settings, autoSync: checked })}
-            />
-          </div>
+        <CardContent>
+          <Alert className={`${statusInfo.bgColor} ${statusInfo.borderColor} border-0.5 rounded-[10px]`}>
+            <StatusIcon className={`h-4 w-4 ${statusInfo.color} ${connectionStatus === 'connecting' ? 'animate-spin' : ''}`} />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">Estado:</span>
+                    <Badge variant={connectionStatus === 'connected' ? 'default' : 'outline'}>
+                      {statusInfo.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {statusInfo.message}
+                  </p>
+                </div>
+                {connectionStatus !== 'connected' && (
+                  <Button
+                    onClick={connect}
+                    disabled={isConnecting}
+                    className="gap-2"
+                  >
+                    <Settings className="h-4 w-4" />
+                    {isConnecting ? 'Conectando...' : 'Conectar Outlook'}
+                  </Button>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
 
-          <div>
-            <label className="font-medium mb-2 block">Intervalo de sincronización</label>
-            <Select 
-              value={settings.syncInterval}
-              onValueChange={(value) => setSettings({ ...settings, syncInterval: value })}
-            >
-              <SelectTrigger className="border-0.5 border-black rounded-[10px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">Cada 5 minutos</SelectItem>
-                <SelectItem value="15">Cada 15 minutos</SelectItem>
-                <SelectItem value="30">Cada 30 minutos</SelectItem>
-                <SelectItem value="60">Cada hora</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="font-medium mb-2 block">Carpetas a sincronizar</label>
-            <div className="flex flex-wrap gap-2">
-              {['inbox', 'sent', 'drafts', 'archive'].map((folder) => (
-                <Badge
-                  key={folder}
-                  variant={settings.syncFolders.includes(folder) ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => {
-                    const newFolders = settings.syncFolders.includes(folder)
-                      ? settings.syncFolders.filter(f => f !== folder)
-                      : [...settings.syncFolders, folder]
-                    setSettings({ ...settings, syncFolders: newFolders })
-                  }}
-                >
-                  {folder.charAt(0).toUpperCase() + folder.slice(1)}
-                </Badge>
-              ))}
+          {/* Detalles de conexión */}
+          {connectionData && connectionStatus === 'connected' && (
+            <div className="mt-4 space-y-2">
+              <div className="text-sm">
+                <span className="font-medium">Conectado desde:</span>{' '}
+                <span className="text-muted-foreground">
+                  {new Date(connectionData.created_at).toLocaleString('es-ES')}
+                </span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Última actualización:</span>{' '}
+                <span className="text-muted-foreground">
+                  {new Date(connectionData.updated_at).toLocaleString('es-ES')}
+                </span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Token expira:</span>{' '}
+                <span className="text-muted-foreground">
+                  {new Date(connectionData.token_expires_at).toLocaleString('es-ES')}
+                </span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Permisos:</span>{' '}
+                <span className="text-muted-foreground">
+                  {connectionData.scope_permissions?.join(', ') || 'Lectura y envío de emails'}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Configuración general */}
+      {/* Información adicional */}
       <Card className="border-0.5 border-black rounded-[10px]">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Preferencias
-          </CardTitle>
+          <CardTitle>Información sobre la Integración</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="font-medium">Notificaciones</label>
-              <p className="text-sm text-muted-foreground">
-                Recibir notificaciones de nuevos emails
-              </p>
-            </div>
-            <Switch
-              checked={settings.enableNotifications}
-              onCheckedChange={(checked) => setSettings({ ...settings, enableNotifications: checked })}
-            />
+        <CardContent className="space-y-3">
+          <div className="text-sm">
+            <h4 className="font-medium mb-2">¿Qué hace esta integración?</h4>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• Sincroniza tus emails de Outlook con el CRM</li>
+              <li>• Permite enviar emails desde la plataforma</li>
+              <li>• Mantiene un historial de comunicaciones por cliente</li>
+              <li>• Automatiza el seguimiento de conversaciones</li>
+            </ul>
+          </div>
+          
+          <div className="text-sm">
+            <h4 className="font-medium mb-2">Datos que accedemos:</h4>
+            <ul className="space-y-1 text-muted-foreground">
+              <li>• Emails recibidos y enviados</li>
+              <li>• Metadatos de mensajes (remitente, destinatario, fecha)</li>
+              <li>• Información de contactos relacionados</li>
+            </ul>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="font-medium">Guardar en enviados</label>
-              <p className="text-sm text-muted-foreground">
-                Guardar copias de emails enviados desde el CRM
-              </p>
-            </div>
-            <Switch
-              checked={settings.saveToSent}
-              onCheckedChange={(checked) => setSettings({ ...settings, saveToSent: checked })}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="font-medium">Rastreo de apertura</label>
-              <p className="text-sm text-muted-foreground">
-                Rastrear cuándo los destinatarios abren tus emails
-              </p>
-            </div>
-            <Switch
-              checked={settings.trackOpens}
-              onCheckedChange={(checked) => setSettings({ ...settings, trackOpens: checked })}
-            />
-          </div>
-
-          <div>
-            <label className="font-medium mb-2 block">Firma de email</label>
-            <Input
-              placeholder="Tu firma personalizada..."
-              value={settings.signature}
-              onChange={(e) => setSettings({ ...settings, signature: e.target.value })}
-              className="border-0.5 border-black rounded-[10px]"
-            />
+          <div className="text-sm">
+            <h4 className="font-medium mb-2">Seguridad:</h4>
+            <p className="text-muted-foreground">
+              Todos los datos se transfieren de forma segura usando protocolos de cifrado estándar de la industria. 
+              Tu información está protegida y solo es accesible por tu organización.
+            </p>
           </div>
         </CardContent>
       </Card>

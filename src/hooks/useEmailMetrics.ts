@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
+import { useMemo } from 'react'
 
 export interface EmailMetrics {
   totalEmails: number
@@ -18,11 +19,14 @@ export interface EmailMetrics {
 
 export function useEmailMetrics() {
   const { user } = useApp()
+  
+  // Memoizar para evitar re-renderizados
+  const isUserReady = useMemo(() => !!user?.org_id, [user?.org_id])
 
   const { data: metrics, isLoading, error, refetch } = useQuery({
     queryKey: ['email-metrics', user?.org_id],
     queryFn: async (): Promise<EmailMetrics> => {
-      if (!user?.org_id) {
+      if (!isUserReady) {
         return {
           totalEmails: 0,
           unreadCount: 0,
@@ -74,10 +78,11 @@ export function useEmailMetrics() {
         }
       }
     },
-    enabled: !!user?.org_id,
+    enabled: isUserReady,
     staleTime: 1000 * 60 * 5,
     refetchInterval: 1000 * 60 * 10,
-    retry: 1
+    retry: 1,
+    refetchOnWindowFocus: false
   })
 
   return {
