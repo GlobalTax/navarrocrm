@@ -45,6 +45,10 @@ export function useOutlookConnection() {
   // Conectar con Outlook
   const connectMutation = useMutation({
     mutationFn: async () => {
+      if (!user?.id) {
+        throw new Error('Usuario no autenticado')
+      }
+      
       setConnectionStatus('connecting')
       
       const { data, error } = await supabase.functions.invoke('outlook-auth', {
