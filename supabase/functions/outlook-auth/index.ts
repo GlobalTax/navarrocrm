@@ -187,13 +187,23 @@ serve(async (req) => {
         
         console.log('✅ [outlook-auth] Organización encontrada:', userProfile.org_id)
 
+        // Validar datos necesarios antes de guardar
+        if (!tokenData.access_token) {
+          console.error('❌ [outlook-auth] Access token faltante')
+          throw new Error('Access token no recibido de Microsoft')
+        }
+
+        if (!userData.mail && !userData.userPrincipalName) {
+          console.error('❌ [outlook-auth] Email del usuario no disponible')
+          throw new Error('No se pudo obtener el email del usuario')
+        }
+
         // Guardar tokens en la base de datos
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
-        console.log('🔐 [outlook-auth] Encriptando tokens...')
-        // Simplificar encriptación para debugging
+        console.log('🔐 [outlook-auth] Preparando tokens para almacenamiento...')
         const encryptedAccessToken = btoa(tokenData.access_token)
-        const encryptedRefreshToken = btoa(tokenData.refresh_token || '')
+        const encryptedRefreshToken = tokenData.refresh_token ? btoa(tokenData.refresh_token) : null
         
         const tokenRecord = {
           user_id: authUser.id,
@@ -202,7 +212,7 @@ serve(async (req) => {
           refresh_token_encrypted: encryptedRefreshToken,
           token_expires_at: expiresAt.toISOString(),
           scope_permissions: tokenData.scope ? tokenData.scope.split(' ') : [],
-          outlook_email: userData.mail || userData.userPrincipalName || 'no-email',
+          outlook_email: userData.mail || userData.userPrincipalName,
           is_active: true,
           last_used_at: new Date().toISOString()
         }
@@ -212,23 +222,22 @@ serve(async (req) => {
           orgId: tokenRecord.org_id,
           outlookEmail: tokenRecord.outlook_email,
           expiresAt: tokenRecord.token_expires_at,
-          scopeCount: tokenRecord.scope_permissions.length
+          scopeCount: tokenRecord.scope_permissions.length,
+          hasRefreshToken: !!tokenRecord.refresh_token_encrypted
         })
         
+        // Usar el service role client para bypass RLS
         const { data: userToken, error: insertError } = await supabase
           .from('user_outlook_tokens')
-          .upsert(tokenRecord)
+          .upsert(tokenRecord, {
+            onConflict: 'user_id,org_id'
+          })
           .select()
           .single()
         
         if (insertError) {
           console.error('❌ [outlook-auth] Error insertando token:', insertError)
-          console.error('🔍 [outlook-auth] Detalles del error:', {
-            code: insertError.code,
-            message: insertError.message,
-            details: insertError.details,
-            hint: insertError.hint
-          })
+          console.error('🔍 [outlook-auth] Registro que falló:', tokenRecord)
           throw new Error(`Error guardando token: ${insertError.message}`)
         }
         
