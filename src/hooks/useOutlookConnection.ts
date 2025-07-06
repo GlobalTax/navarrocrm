@@ -73,10 +73,16 @@ export function useOutlookConnection() {
   // Mutation para intercambiar código por tokens
   const exchangeCodeMutation = useMutation({
     mutationFn: async (code: string) => {
+      // Obtener la sesión actual para el header de autorización
+      const { data: { session } } = await supabase.auth.getSession()
+      
       const { data, error } = await supabase.functions.invoke('outlook-auth', {
         body: {
           action: 'exchange_code',
           code: code
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
         }
       })
 
@@ -111,9 +117,15 @@ export function useOutlookConnection() {
       setConnectionStatus('connecting')
       
       try {
+        // Obtener la sesión actual para el header de autorización
+        const { data: { session } } = await supabase.auth.getSession()
+        
         const { data, error } = await supabase.functions.invoke('outlook-auth', {
           body: {
             action: 'get_auth_url'
+          },
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`
           }
         })
 
