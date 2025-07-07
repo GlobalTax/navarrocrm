@@ -11,6 +11,7 @@ import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesM
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'
 import { RecurringFeesFilters } from '@/components/recurring-fees/RecurringFeesFilters'
 import { RecurringFeesList } from '@/components/recurring-fees/RecurringFeesList'
+import { RecurringFeesDashboard } from '@/components/recurring-fees/RecurringFeesDashboard'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
@@ -149,14 +150,30 @@ const RecurrentFees = () => {
       <StandardPageHeader
         title="Cuotas Recurrentes"
         description="Sistema integral de gestión de cuotas recurrentes y facturación automática"
+        badges={[
+          {
+            label: `${metrics.active} activas`,
+            variant: 'outline',
+            color: 'text-green-600 border-green-200 bg-green-50'
+          },
+          {
+            label: `${metrics.overdue} vencidas`,
+            variant: 'outline',
+            color: metrics.overdue > 0 ? 'text-red-600 border-red-200 bg-red-50' : 'text-gray-600 border-gray-200 bg-gray-50'
+          },
+          {
+            label: `€${metrics.monthlyRevenue.toFixed(0)}/mes`,
+            variant: 'outline',
+            color: 'text-blue-600 border-blue-200 bg-blue-50'
+          }
+        ]}
+        primaryAction={{
+          label: 'Nueva Cuota',
+          onClick: handleNewFee
+        }}
       />
 
-      <RecurringFeesMetrics
-        total={metrics.total}
-        active={metrics.active}
-        overdue={metrics.overdue}
-        monthlyRevenue={metrics.monthlyRevenue}
-      />
+      <RecurringFeesDashboard fees={recurringFees} />
 
       <RecurringFeesActions
         onNewFee={handleNewFee}
