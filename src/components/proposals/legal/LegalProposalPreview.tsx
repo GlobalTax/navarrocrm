@@ -210,41 +210,6 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
             </div>
           )}
 
-          {/* Configuración Económica */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-              <Euro className="h-5 w-5" />
-              Resumen Económico
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-blue-600 font-medium">Cuota Base</p>
-                <p className="text-lg font-semibold text-blue-900">
-                  {formatCurrency(safeRetainerConfig.retainerAmount)} / {safeRetainerConfig.billingFrequency}
-                </p>
-              </div>
-              <div>
-                <p className="text-blue-600 font-medium">Horas Incluidas</p>
-                <p className="text-lg font-semibold text-blue-900">
-                  {safeRetainerConfig.includedHours}h / período
-                </p>
-              </div>
-              <div>
-                <p className="text-blue-600 font-medium">Tarifa Extra</p>
-                <p className="text-lg font-semibold text-blue-900">
-                  {formatCurrency(safeRetainerConfig.extraHourlyRate)} / hora
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-blue-200">
-              <div className="flex justify-between items-center">
-                <span className="text-blue-600 font-medium">Total Servicios Adicionales:</span>
-                <span className="text-xl font-bold text-blue-900">
-                  {formatCurrency(getTotalAmount())}
-                </span>
-              </div>
-            </div>
-          </div>
 
           {/* Términos y Condiciones */}
           {terms && (

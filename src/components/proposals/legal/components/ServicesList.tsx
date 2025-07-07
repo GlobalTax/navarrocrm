@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Clock, Euro, Plus, Check, Loader2 } from 'lucide-react'
 import { PracticeAreaData } from '../data/practiceAreasData'
+import { CustomServiceDialog } from './CustomServiceDialog'
 
 interface ServicesListProps {
   selectedAreaData: PracticeAreaData
@@ -210,10 +211,7 @@ export const ServicesList: React.FC<ServicesListProps> = ({
               <p className="text-xs text-gray-500 mb-2">
                 ¿No encuentras el servicio que necesitas?
               </p>
-              <Button variant="outline" size="sm" className="text-xs">
-                <Plus className="w-3 h-3 mr-1" />
-                Solicitar Servicio Personalizado
-              </Button>
+              <CustomServiceDialog onServiceAdd={onServiceToggle} />
             </div>
           </div>
         )}
