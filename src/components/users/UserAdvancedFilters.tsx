@@ -40,7 +40,7 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
   const hasActiveFilters = activeFiltersCount > 0
 
   return (
-    <Card className="border-slate-200">
+    <Card className="border-0.5 border-black rounded-[10px]">
       <CardContent className="p-4">
         <div className="space-y-4">
           {/* Filtros básicos */}
@@ -51,7 +51,7 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
                 placeholder="Buscar por email o nombre..."
                 value={filters.search}
                 onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-                className="pl-10 border-slate-300"
+                className="pl-10 border-0.5 border-black rounded-[10px]"
               />
             </div>
 
@@ -91,12 +91,12 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
                 variant="outline"
                 size="sm"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className={`flex items-center gap-2 ${isExpanded ? 'bg-slate-50' : ''}`}
+                className={`flex items-center gap-2 border-0.5 border-black rounded-[10px] hover-lift ${isExpanded ? 'bg-muted' : ''}`}
               >
                 <Filter className="h-4 w-4" />
                 Más filtros
                 {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 min-w-5 text-xs">
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-5 text-xs rounded-[10px] animate-scale-in">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -106,9 +106,9 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
 
           {/* Filtros avanzados */}
           {isExpanded && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-[10px] border-0.5 border-muted animate-fade-in">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Últimos días activo</label>
+                <label className="text-sm font-medium text-foreground">Últimos días activo</label>
                 <Select 
                   value={filters.lastLoginDays?.toString() || ''} 
                   onValueChange={(value) => onFiltersChange({ 
@@ -129,7 +129,7 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Creado después de</label>
+                <label className="text-sm font-medium text-foreground">Creado después de</label>
                 <Input
                   type="date"
                   value={filters.createdAfter || ''}
@@ -138,7 +138,7 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Creado antes de</label>
+                <label className="text-sm font-medium text-foreground">Creado antes de</label>
                 <Input
                   type="date"
                   value={filters.createdBefore || ''}
@@ -149,7 +149,7 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
           )}
 
           {/* Resultados y reset */}
-          <div className="flex items-center justify-between text-sm text-slate-600">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>
               {userCount} usuario{userCount !== 1 ? 's' : ''} encontrado{userCount !== 1 ? 's' : ''}
             </span>
@@ -158,7 +158,7 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
                 variant="ghost"
                 size="sm"
                 onClick={resetFilters}
-                className="text-slate-600 hover:text-slate-900"
+                className="text-muted-foreground hover:text-foreground border-0.5 border-black rounded-[10px] hover-lift"
               >
                 <X className="h-4 w-4 mr-1" />
                 Limpiar filtros

@@ -9,6 +9,9 @@ import { Users as UsersIcon, Mail, Upload, Building } from 'lucide-react'
 // Hooks y componentes refactorizados
 import { useEnhancedUsers } from '@/hooks/useEnhancedUsers'
 import { UserAdvancedFilters, UserFilters } from '@/components/users/UserAdvancedFilters'
+import { UserTableSkeleton } from '@/components/users/skeleton/UserTableSkeleton'
+import { UserMetricsSkeleton } from '@/components/users/skeleton/UserMetricsSkeleton'
+import { useUsersPageStats } from '@/hooks/useUsersPageStats'
 import { UserInvitationsTable } from '@/components/users/UserInvitationsTable'
 import { InvitationNotifications } from '@/components/users/InvitationNotifications'
 import { UserMetrics } from '@/components/users/UserMetrics'
@@ -25,6 +28,7 @@ const Users = () => {
   })
 
   const { users, isLoading, activateUser, getFilteredStats } = useEnhancedUsers(filters)
+  const { invitationCount, pendingInvitations } = useUsersPageStats()
   
   // Estados para diálogos
   const [showUserForm, setShowUserForm] = useState(false)
@@ -74,12 +78,29 @@ const Users = () => {
     window.location.reload()
   }
 
+  const hasFilters = filters.search !== '' || filters.role !== 'all' || filters.status !== 'all'
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: '',
+      role: 'all', 
+      status: 'all'
+    })
+  }
+
   if (isLoading) {
     return (
       <StandardPageContainer>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-        </div>
+        <StandardPageHeader
+          title="Gestión de Usuarios"
+          description="Administra los usuarios de tu asesoría con funcionalidades avanzadas"
+          primaryAction={{
+            label: 'Invitar Usuario',
+            onClick: () => {}
+          }}
+        />
+        <UserMetricsSkeleton />
+        <UserTableSkeleton />
       </StandardPageContainer>
     )
   }
@@ -116,16 +137,21 @@ const Users = () => {
 
       {/* Tabs para diferentes vistas */}
       <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-3 border-0.5 border-black rounded-[10px]">
+          <TabsTrigger value="users" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UsersIcon className="h-4 w-4" />
             Usuarios ({users.length})
           </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center gap-2">
+          <TabsTrigger value="invitations" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Mail className="h-4 w-4" />
-            Invitaciones
+            Invitaciones ({invitationCount})
+            {pendingInvitations > 0 && (
+              <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full ml-1 animate-pulse">
+                {pendingInvitations}
+              </span>
+            )}
           </TabsTrigger>
-          <TabsTrigger value="onboarding" className="flex items-center gap-2">
+          <TabsTrigger value="onboarding" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Building className="h-4 w-4" />
             Onboarding
           </TabsTrigger>
@@ -134,17 +160,20 @@ const Users = () => {
         <TabsContent value="users" className="mt-6">
           <UserTable
             users={users}
+            hasFilters={hasFilters}
             onEditUser={handleEditUser}
             onManagePermissions={handleManagePermissions}
             onViewAudit={handleViewAudit}
             onActivateUser={handleActivateUser}
             onDeleteUser={handleDeleteUser}
+            onInviteUser={handleInviteUser}
+            onClearFilters={handleClearFilters}
           />
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-6">
           <InvitationNotifications />
-          <UserInvitationsTable />
+          <UserInvitationsTable onInviteUser={handleInviteUser} />
         </TabsContent>
 
         <TabsContent value="onboarding" className="mt-6">

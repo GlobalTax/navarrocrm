@@ -7,9 +7,10 @@ import { UserBulkActions } from './UserBulkActions'
 import { InvitationStats } from './InvitationStats'
 import { InvitationFilters } from './InvitationFilters'
 import { InvitationCard } from './InvitationCard'
+import { InvitationsEmptyState } from './states/InvitationsEmptyState'
 import { filterInvitations } from '@/hooks/useUserInvitations/utils'
 
-export const UserInvitationsTable = () => {
+export const UserInvitationsTable = ({ onInviteUser }: { onInviteUser?: () => void }) => {
   const { 
     invitations, 
     isLoading, 
@@ -69,42 +70,43 @@ export const UserInvitationsTable = () => {
       />
       
       {/* Tabla de invitaciones */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-medium text-foreground flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Invitaciones Enviadas ({filteredInvitations.length} de {invitations.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredInvitations.length === 0 ? (
-            <div className="text-center py-8">
-              <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-medium text-foreground mb-2">
-                {invitations.length === 0 ? 'No hay invitaciones enviadas' : 'No se encontraron resultados'}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {invitations.length === 0 
-                  ? 'Las invitaciones que envíes aparecerán aquí'
-                  : 'Intenta ajustar los filtros de búsqueda'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredInvitations.map((invitation) => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onDelete={handleDelete}
-                  deleteDialogOpen={deleteDialogOpen}
-                  setDeleteDialogOpen={setDeleteDialogOpen}
-                />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {filteredInvitations.length === 0 && invitations.length === 0 ? (
+        <InvitationsEmptyState onInviteUser={onInviteUser || (() => {})} />
+      ) : (
+        <Card className="border-0.5 border-black rounded-[10px]">
+          <CardHeader>
+            <CardTitle className="text-lg font-medium text-foreground flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Invitaciones Enviadas ({filteredInvitations.length} de {invitations.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {filteredInvitations.length === 0 ? (
+              <div className="text-center py-8">
+                <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No se encontraron resultados
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Intenta ajustar los filtros de búsqueda
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredInvitations.map((invitation) => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onDelete={handleDelete}
+                    deleteDialogOpen={deleteDialogOpen}
+                    setDeleteDialogOpen={setDeleteDialogOpen}
+                  />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
