@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Edit, Archive, MoreHorizontal, Send, CheckCircle, XCircle } from 'lucide-react'
+import { Edit, Archive, MoreHorizontal, Send, CheckCircle, XCircle, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -14,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
 import { useProposals } from '@/hooks/useProposals'
 import { ProposalPricingTab } from '@/components/proposals/ProposalPricingTab'
+import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
+import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
+import { toast } from 'sonner'
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -58,6 +61,20 @@ export default function ProposalDetail() {
   const navigate = useNavigate()
   const { user } = useApp()
   const { updateProposalStatus: updateStatus, isUpdating } = useProposals()
+  
+  // Estado para manejo de wizards de propuestas
+  const {
+    isRecurrentBuilderOpen,
+    isSpecificBuilderOpen,
+    isEditMode,
+    editingProposal,
+    openRecurrentBuilder,
+    closeRecurrentBuilder,
+    openSpecificBuilder,
+    closeSpecificBuilder,
+    openEditProposal,
+    closeEditProposal
+  } = useProposalsPageState()
 
   // Fetch proposal data
   const { data: proposal, isLoading: proposalLoading, error: proposalError, refetch } = useQuery({
@@ -89,8 +106,58 @@ export default function ProposalDetail() {
   })
 
   const handleEdit = () => {
-    // TODO: Implementar edición de propuesta
-    console.log('Editar propuesta:', proposal?.id)
+    if (!proposal) return
+    openEditProposal(proposal)
+  }
+
+  const handleCreateRecurrent = () => {
+    // Pre-configurar cliente si existe
+    if (proposal?.client) {
+      // Aquí podríamos pasar el cliente preseleccionado al wizard
+      console.log('Crear propuesta recurrente para cliente:', proposal.client.name)
+    }
+    openRecurrentBuilder()
+  }
+
+  const handleCreateSpecific = () => {
+    // Pre-configurar cliente si existe
+    if (proposal?.client) {
+      // Aquí podríamos pasar el cliente preseleccionado al wizard
+      console.log('Crear propuesta puntual para cliente:', proposal.client.name)
+    }
+    openSpecificBuilder()
+  }
+
+  const handleSaveProposal = async (data: any) => {
+    try {
+      // Lógica de guardado (placeholder)
+      console.log('Guardando propuesta:', data)
+      toast.success('Propuesta guardada correctamente')
+      await refetch()
+      
+      if (isEditMode) {
+        closeEditProposal()
+      } else {
+        closeRecurrentBuilder()
+        closeSpecificBuilder()
+      }
+    } catch (error) {
+      console.error('Error guardando propuesta:', error)
+      toast.error('Error al guardar la propuesta')
+    }
+  }
+
+  const handleUpdateProposal = async (proposalId: string, data: any) => {
+    try {
+      // Lógica de actualización (placeholder)
+      console.log('Actualizando propuesta:', proposalId, data)
+      toast.success('Propuesta actualizada correctamente')
+      await refetch()
+      closeEditProposal()
+    } catch (error) {
+      console.error('Error actualizando propuesta:', error)
+      toast.error('Error al actualizar la propuesta')
+    }
   }
 
   const handleSend = () => {
@@ -111,6 +178,23 @@ export default function ProposalDetail() {
   const handleArchive = () => {
     if (!proposal?.id) return
     updateStatus.mutate({ id: proposal.id, status: 'archived' })
+  }
+
+  // Mostrar wizards si están abiertos
+  if (isRecurrentBuilderOpen || isSpecificBuilderOpen) {
+    return (
+      <ProposalsBuilderManager
+        isRecurrentBuilderOpen={isRecurrentBuilderOpen}
+        isSpecificBuilderOpen={isSpecificBuilderOpen}
+        onCloseRecurrentBuilder={closeRecurrentBuilder}
+        onCloseSpecificBuilder={closeSpecificBuilder}
+        onSaveRecurrentProposal={handleSaveProposal}
+        isSavingRecurrent={false}
+        isEditMode={isEditMode}
+        editingProposal={editingProposal}
+        onUpdateProposal={handleUpdateProposal}
+      />
+    )
   }
 
   if (proposalLoading) {
@@ -174,9 +258,9 @@ export default function ProposalDetail() {
 
   const subtitle = `Creada el ${new Date(proposal.created_at).toLocaleDateString('es-ES')}${proposal.proposal_number ? ` • ${proposal.proposal_number}` : ''}`
 
-    return (
-      <div className="min-h-screen bg-background">
-        <DetailPageHeader
+  return (
+    <div className="min-h-screen bg-background">
+      <DetailPageHeader
         title={proposal.title}
         subtitle={subtitle}
         breadcrumbItems={breadcrumbItems}
@@ -185,6 +269,30 @@ export default function ProposalDetail() {
         <Badge variant="outline" className={getStatusColor(proposal.status)}>
           {getStatusLabel(proposal.status)}
         </Badge>
+        
+        {/* Botones para crear propuestas asociadas */}
+        {proposal.client && (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleCreateRecurrent}
+              disabled={isUpdating}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Recurrente
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleCreateSpecific}
+              disabled={isUpdating}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nueva Puntual
+            </Button>
+          </>
+        )}
         
         {proposal.status === 'draft' && (
           <Button 
@@ -319,7 +427,7 @@ export default function ProposalDetail() {
               </TabsContent>
               
               <TabsContent value="details" className="space-y-6">
-                {/* Información completa de la propuesta */}
+                {/* ... keep existing code (información completa de la propuesta) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Información básica expandida */}
                   <div className="bg-card p-6 rounded-lg border shadow-sm">
@@ -460,7 +568,6 @@ export default function ProposalDetail() {
               </TabsContent>
               
               <TabsContent value="pricing" className="space-y-6">
-                {/* Consultar line items */}
                 <ProposalPricingTab proposalId={proposal.id} totalAmount={proposal.total_amount} currency={proposal.currency} />
               </TabsContent>
               
