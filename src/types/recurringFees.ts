@@ -28,6 +28,14 @@ export interface RecurringFee {
     name: string
     email?: string
   }
+  proposal?: {
+    id: string
+    title: string
+    proposal_number?: string
+    status: string
+    created_at: string
+    total_amount?: number
+  }
 }
 
 export interface RecurringFeeHours {

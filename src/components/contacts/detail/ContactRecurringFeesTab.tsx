@@ -10,6 +10,7 @@ import { ContactRecurringFeeForm } from './ContactRecurringFeeForm'
 import { useDeleteRecurringFee, useUpdateRecurringFee } from '@/hooks/recurringFees/useRecurringFeesMutations'
 import { useNavigate } from 'react-router-dom'
 import type { RecurringFee } from '@/types/recurringFees'
+import { FileText, ExternalLink } from 'lucide-react'
 
 interface ContactRecurringFeesTabProps {
   contactId: string
@@ -184,14 +185,31 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {recurringFees.map((fee) => (
-            <RecurringFeeCard
-              key={fee.id}
-              recurringFee={fee}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onToggleStatus={handleToggleStatus}
-              onViewDetails={handleViewDetails}
-            />
+            <div key={fee.id} className="space-y-4">
+              {/* Información de la propuesta asociada */}
+              {fee.proposal && (
+                <div className="text-sm bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <FileText className="w-4 h-4" />
+                    <span className="font-medium">Propuesta asociada:</span>
+                  </div>
+                  <div className="mt-1 text-blue-600">
+                    <p className="font-medium">{fee.proposal.title}</p>
+                    <p className="text-xs">
+                      #{fee.proposal.proposal_number} • {fee.proposal.status}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              <RecurringFeeCard
+                recurringFee={fee}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+                onViewDetails={handleViewDetails}
+              />
+            </div>
           ))}
         </div>
       )}

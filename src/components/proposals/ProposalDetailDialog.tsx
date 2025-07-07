@@ -23,6 +23,7 @@ import {
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getStatusColor, getStatusLabel, getFrequencyLabel, formatCurrency, formatDate } from './utils/proposalFormatters'
+import { useRecurringFees } from '@/hooks/useRecurringFees'
 
 interface ProposalDetailDialogProps {
   proposal: any
@@ -42,6 +43,10 @@ export const ProposalDetailDialog = ({
   onStatusChange
 }: ProposalDetailDialogProps) => {
   if (!proposal) return null
+
+  // Obtener cuota recurrente asociada si existe
+  const { data: recurringFees = [] } = useRecurringFees()
+  const associatedFee = recurringFees.find(fee => fee.proposal_id === proposal.id)
 
   const handleStatusChange = (newStatus: string) => {
     onStatusChange(proposal.id, newStatus)
@@ -265,6 +270,22 @@ export const ProposalDetailDialog = ({
                   <FileText className="h-4 w-4 mr-2" />
                   Duplicar Propuesta
                 </Button>
+
+                {/* Mostrar cuota recurrente asociada */}
+                {associatedFee && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-700 mb-2">
+                      <Euro className="h-4 w-4" />
+                      <span className="font-medium text-sm">Cuota Recurrente Activa</span>
+                    </div>
+                    <div className="text-sm text-green-600">
+                      <p className="font-medium">{associatedFee.name}</p>
+                      <p className="text-xs">
+                        €{associatedFee.amount} • {associatedFee.frequency} • {associatedFee.status}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Cambios de estado */}
