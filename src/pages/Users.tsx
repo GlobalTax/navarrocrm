@@ -15,6 +15,7 @@ import { UserMetrics } from '@/components/users/UserMetrics'
 import { UserTable } from '@/components/users/UserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
 import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboardingManager'
+import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({

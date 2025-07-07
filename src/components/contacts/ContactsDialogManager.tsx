@@ -1,7 +1,7 @@
 
 import { Contact } from '@/hooks/useContacts'
 import { ContactFormDialog } from './ContactFormDialog'
-import { ClientBulkUpload } from '@/components/clients/ClientBulkUpload'
+import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { ClientExportDialog } from '@/components/clients/ClientExportDialog'
 
 interface ContactsDialogManagerProps {
@@ -43,10 +43,12 @@ export function ContactsDialogManager({
         contact={selectedContact}
       />
 
-      <ClientBulkUpload
+      <AIEnhancedBulkUpload
         open={isBulkUploadOpen}
         onClose={onBulkUploadClose}
         onSuccess={onBulkUploadSuccess}
+        dataType="contacts"
+        title="Importación Masiva de Contactos"
       />
 
       <ClientExportDialog

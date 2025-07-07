@@ -1,7 +1,7 @@
 
 import { EnhancedUserInviteDialog } from './EnhancedUserInviteDialog'
 import { UserFormDialog } from './UserFormDialog'
-import { UserBulkUpload } from './UserBulkUpload'
+import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { UserPermissionsDialog } from './UserPermissionsDialog'
 import { UserDeleteDialog } from './UserDeleteDialog'
 import { UserAuditLogDialog } from './UserAuditLogDialog'
@@ -87,10 +87,12 @@ export const UsersPageDialogs = ({
         onClose={() => setShowInviteDialog(false)}
       />
 
-      <UserBulkUpload
+      <AIEnhancedBulkUpload
         open={showBulkUpload}
         onClose={() => setShowBulkUpload(false)}
         onSuccess={onBulkUploadSuccess}
+        dataType="users"
+        title="Importación Masiva de Usuarios"
       />
 
       <UserPermissionsDialog
