@@ -63,7 +63,8 @@ export default function ProposalDetail() {
   const { data: proposal, isLoading: proposalLoading, error: proposalError, refetch } = useQuery({
     queryKey: ['proposal', id],
     queryFn: async (): Promise<Proposal> => {
-      if (!id || !user?.org_id) throw new Error('Missing ID or org_id')
+      if (!id) throw new Error('Missing proposal ID')
+      if (!user?.org_id) throw new Error('User not authenticated')
       
       const { data, error } = await supabase
         .from('proposals')
@@ -81,6 +82,7 @@ export default function ProposalDetail() {
         .maybeSingle()
 
       if (error) throw error
+      if (!data) throw new Error('Proposal not found')
       return data as any
     },
     enabled: !!id && !!user?.org_id,
@@ -124,14 +126,42 @@ export default function ProposalDetail() {
   }
 
   if (proposalError || !proposal) {
+    const isAuthError = proposalError?.message === 'User not authenticated'
+    const isNotFoundError = proposalError?.message === 'Proposal not found'
+    
     return (
       <StandardPageContainer>
         <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Propuesta no encontrada</h2>
-          <p className="text-gray-600 mb-4">La propuesta que buscas no existe o no tienes permisos para verla.</p>
-          <Button onClick={() => navigate('/proposals')}>
-            Volver a Propuestas
-          </Button>
+          {isAuthError ? (
+            <>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Acceso no autorizado</h2>
+              <p className="text-gray-600 mb-4">Necesitas iniciar sesión para ver esta propuesta.</p>
+              <Button onClick={() => navigate('/login')}>
+                Iniciar Sesión
+              </Button>
+            </>
+          ) : isNotFoundError ? (
+            <>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Propuesta no encontrada</h2>
+              <p className="text-gray-600 mb-4">La propuesta que buscas no existe.</p>
+              <Button onClick={() => navigate('/proposals')}>
+                Volver a Propuestas
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Error al cargar propuesta</h2>
+              <p className="text-gray-600 mb-4">Ha ocurrido un error al cargar la propuesta. Por favor, inténtalo de nuevo.</p>
+              <div className="space-x-2">
+                <Button variant="outline" onClick={() => refetch()}>
+                  Reintentar
+                </Button>
+                <Button onClick={() => navigate('/proposals')}>
+                  Volver a Propuestas
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </StandardPageContainer>
     )

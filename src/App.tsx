@@ -182,9 +182,11 @@ function App() {
                   <Route 
                     path="/proposals/:id" 
                     element={
-                      <Suspense fallback={<PageLoadingSkeleton />}>
-                        <ProposalDetail />
-                      </Suspense>
+                      <ProtectedRoute>
+                        <Suspense fallback={<PageLoadingSkeleton />}>
+                          <ProposalDetail />
+                        </Suspense>
+                      </ProtectedRoute>
                     } 
                   />
                   <Route 
