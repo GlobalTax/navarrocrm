@@ -1,4 +1,4 @@
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail } from 'lucide-react'
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro } from 'lucide-react'
 
 export interface NavigationItem {
   title: string
@@ -46,6 +46,11 @@ export const navigationData: NavigationSection[] = [
         title: "Propuestas",
         url: "/proposals",
         icon: FileText,
+      },
+      {
+        title: "Cuotas Recurrentes",
+        url: "/recurring-fees",
+        icon: Euro,
       },
     ]
   },
@@ -143,6 +148,10 @@ export const quickActions: QuickAction[] = [
   {
     name: "Nueva Propuesta",
     href: "/proposals/new"
+  },
+  {
+    name: "Nueva Cuota",
+    href: "/recurring-fees"
   },
   {
     name: "Reservar Sala",
