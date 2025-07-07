@@ -70,7 +70,7 @@ export default function ProposalDetail() {
         .from('proposals')
         .select(`
           *,
-          client:contacts(
+          client:contacts!proposals_contact_id_fkey(
             id,
             name,
             email,
