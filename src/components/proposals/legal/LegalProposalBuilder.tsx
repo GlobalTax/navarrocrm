@@ -6,10 +6,11 @@ import { LegalProposalNavigation } from './components/LegalProposalNavigation'
 import { LegalProposalStepContent } from './components/LegalProposalStepContent'
 import { LegalProposalProgressBar } from './components/LegalProposalProgressBar'
 import { useLegalProposalState } from './hooks/useLegalProposalState'
+import type { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 interface LegalProposalBuilderProps {
   onClose: () => void
-  onSave: (data: any) => void
+  onSave: (data: ProposalFormData) => void
   isSaving?: boolean
 }
 
@@ -34,7 +35,31 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
   } = useLegalProposalState()
 
   const handleSave = () => {
-    onSave(proposalData)
+    // Convertir LegalProposalData a ProposalFormData
+    const convertedData: ProposalFormData = {
+      clientId: proposalData.clientId,
+      title: proposalData.title,
+      introduction: proposalData.introduction,
+      terms: proposalData.terms,
+      validityDays: proposalData.validityDays,
+      selectedServices: proposalData.selectedServices.map(service => ({
+        id: service.id,
+        name: service.name,
+        description: service.description,
+        basePrice: service.basePrice,
+        customPrice: service.customPrice,
+        quantity: service.quantity,
+        billingUnit: service.billingUnit,
+        estimatedHours: service.estimatedHours,
+        total: service.total
+      })),
+      is_recurring: true, // Las propuestas legales son típicamente recurrentes
+      recurring_frequency: proposalData.retainerConfig.billingFrequency === 'monthly' ? 'monthly' : 
+                          proposalData.retainerConfig.billingFrequency === 'quarterly' ? 'quarterly' : 'yearly',
+      retainerConfig: proposalData.retainerConfig,
+      selectedArea: proposalData.selectedArea
+    }
+    onSave(convertedData)
   }
 
   const handleServiceAdd = () => {

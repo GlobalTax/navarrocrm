@@ -1,5 +1,5 @@
 
-import { ProposalWizard } from '@/components/proposals/ProposalWizard'
+import { LegalProposalBuilder } from '@/components/proposals/legal/LegalProposalBuilder'
 import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
@@ -30,15 +30,13 @@ export const ProposalsBuilderManager = ({
   // Mostrar el wizard profesional para ambos tipos de propuestas
   if (isRecurrentBuilderOpen || isSpecificBuilderOpen) {
     return (
-      <ProposalWizard
-        onBack={isRecurrentBuilderOpen ? onCloseRecurrentBuilder : onCloseSpecificBuilder}
-        onSubmit={isEditMode && editingProposal && onUpdateProposal 
+      <LegalProposalBuilder
+        onClose={isRecurrentBuilderOpen ? onCloseRecurrentBuilder : onCloseSpecificBuilder}
+        onSave={isEditMode && editingProposal && onUpdateProposal 
           ? (data: any) => onUpdateProposal(editingProposal.id, data)
           : onSaveRecurrentProposal
         }
-        isCreating={isSavingRecurrent}
-        editingProposal={isEditMode ? editingProposal : undefined}
-        isEditMode={isEditMode}
+        isSaving={isSavingRecurrent}
       />
     )
   }
