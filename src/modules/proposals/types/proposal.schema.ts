@@ -19,11 +19,11 @@ export const retainerConfigSchema = z.object({
   retainerAmount: z.number().optional(),
   includedHours: z.number().optional(),
   extraHourlyRate: z.number().optional(),
-  billingFrequency: z.enum(['monthly', 'quarterly', 'yearly']),
-  billingDay: z.number(),
-  autoRenewal: z.boolean(),
-  contractDuration: z.number(),
-  paymentTerms: z.number()
+  billingFrequency: z.enum(['monthly', 'quarterly', 'yearly']).optional(),
+  billingDay: z.number().optional(),
+  autoRenewal: z.boolean().optional(),
+  contractDuration: z.number().optional(),
+  paymentTerms: z.number().optional()
 })
 
 // Esquema para elementos de servicio (para PricingTier)

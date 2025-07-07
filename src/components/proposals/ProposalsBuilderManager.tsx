@@ -1,8 +1,6 @@
 
-import { NewProposalDialog } from '@/components/proposals/NewProposalDialog'
-import { RecurringProposalForm } from '@/components/proposals/RecurringProposalForm'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, Repeat, FileText } from 'lucide-react'
+import { ProposalWizard } from '@/components/proposals/ProposalWizard'
+import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 interface ProposalsBuilderManagerProps {
@@ -29,35 +27,14 @@ export const ProposalsBuilderManager = ({
   editingProposal,
   onUpdateProposal
 }: ProposalsBuilderManagerProps) => {
-  // Mostrar el constructor de propuestas recurrentes LEGALES
-  if (isRecurrentBuilderOpen) {
+  // Mostrar el wizard profesional para ambos tipos de propuestas
+  if (isRecurrentBuilderOpen || isSpecificBuilderOpen) {
     return (
-      <RecurringProposalForm
-        open={true}
-        onOpenChange={onCloseRecurrentBuilder}
+      <ProposalWizard
+        onBack={isRecurrentBuilderOpen ? onCloseRecurrentBuilder : onCloseSpecificBuilder}
         onSubmit={isEditMode && editingProposal && onUpdateProposal 
           ? (data: any) => onUpdateProposal(editingProposal.id, data)
           : onSaveRecurrentProposal
-        }
-        isCreating={isSavingRecurrent}
-        editingProposal={isEditMode ? editingProposal : undefined}
-        isEditMode={isEditMode}
-      />
-    )
-  }
-
-  // Mostrar el constructor de propuestas puntuales
-  if (isSpecificBuilderOpen) {
-    return (
-      <NewProposalDialog
-        open={true}
-        onOpenChange={onCloseSpecificBuilder}
-        onSubmit={isEditMode && editingProposal && onUpdateProposal 
-          ? (data: any) => onUpdateProposal(editingProposal.id, data)
-          : (data: any) => {
-              // Por ahora solo log, esto debería conectarse con la lógica de creación
-              console.log('Crear propuesta puntual:', data)
-            }
         }
         isCreating={isSavingRecurrent}
         editingProposal={isEditMode ? editingProposal : undefined}
