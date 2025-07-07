@@ -5,6 +5,7 @@ import { ContactCasesTab } from './ContactCasesTab'
 import { ContactCommunicationsTab } from './ContactCommunicationsTab'
 import { ContactDocumentsTab } from './ContactDocumentsTab'
 import { ContactTimelineTab } from './ContactTimelineTab'
+import { ContactRecurringFeesTab } from './ContactRecurringFeesTab'
 import { Contact } from '@/hooks/useContacts'
 
 interface CaseForContact {
@@ -31,9 +32,10 @@ export const ContactDetailTabs = ({
 }: ContactDetailTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="space-y-6">
-      <TabsList className="grid grid-cols-5 w-full max-w-lg">
+      <TabsList className="grid grid-cols-6 w-full max-w-2xl">
         <TabsTrigger value="overview">Resumen</TabsTrigger>
         <TabsTrigger value="cases">Casos</TabsTrigger>
+        <TabsTrigger value="fees">Cuotas</TabsTrigger>
         <TabsTrigger value="communications">Comunicaciones</TabsTrigger>
         <TabsTrigger value="documents">Documentos</TabsTrigger>
         <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -48,6 +50,13 @@ export const ContactDetailTabs = ({
           relatedCases={relatedCases}
           casesLoading={casesLoading}
           onCaseClick={onCaseClick}
+        />
+      </TabsContent>
+
+      <TabsContent value="fees" className="space-y-6">
+        <ContactRecurringFeesTab 
+          contactId={contact.id}
+          contactName={contact.name}
         />
       </TabsContent>
 
