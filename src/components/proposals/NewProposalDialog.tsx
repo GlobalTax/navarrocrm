@@ -10,6 +10,7 @@ import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
 import { useServiceCatalog } from '@/hooks/useServiceCatalog'
 import { CreateProposalData, ProposalLineItem } from '@/hooks/useProposals'
+import { toast } from 'sonner'
 
 interface NewProposalDialogProps {
   open: boolean
@@ -113,10 +114,28 @@ export function NewProposalDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validaciones mejoradas
     if (!formData.contact_id || !formData.title) {
+      toast.error('Por favor complete los campos obligatorios: Cliente y Título')
       return
     }
 
+    if (formData.line_items.length === 0) {
+      toast.error('Debe agregar al menos un servicio a la propuesta')
+      return
+    }
+
+    // Validar que todos los line_items tienen datos válidos
+    const invalidItems = formData.line_items.filter(item => 
+      !item.name || item.unit_price <= 0 || item.quantity <= 0
+    )
+    
+    if (invalidItems.length > 0) {
+      toast.error('Todos los servicios deben tener nombre, precio y cantidad válidos')
+      return
+    }
+
+    console.log('🚀 Enviando propuesta puntual:', formData)
     onSubmit(formData)
     
     // Reset form

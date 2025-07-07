@@ -1,11 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client'
 import type { ProposalFormData } from '../types/proposal.schema'
+import { transformLineItemsToServices, validateProposalData } from '../utils/dataTransformer'
 
-export const saveProposal = async (proposalData: ProposalFormData) => {
+export const saveProposal = async (proposalData: ProposalFormData | any) => {
   console.log('💾 ProposalService - Guardando propuesta:', proposalData)
 
   try {
+    // Validar datos antes de procesar
+    const validationErrors = validateProposalData(proposalData)
+    if (validationErrors.length > 0) {
+      throw new Error(`Errores de validación: ${validationErrors.join(', ')}`)
+    }
+
     // Obtener información del usuario actual
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
@@ -23,17 +30,17 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
       throw new Error('No se pudo obtener información del usuario')
     }
 
-    // Validar que tenemos los datos mínimos necesarios
-    if (!proposalData.clientId) {
-      throw new Error('Cliente es requerido')
+    // Procesar servicios - pueden venir como selectedServices o line_items
+    let services: any[] = []
+    
+    if (proposalData.selectedServices && Array.isArray(proposalData.selectedServices)) {
+      services = proposalData.selectedServices
+    } else if (proposalData.line_items && Array.isArray(proposalData.line_items)) {
+      // Convertir line_items a formato selectedServices
+      services = transformLineItemsToServices(proposalData.line_items)
     }
-
-    if (!proposalData.title) {
-      throw new Error('Título es requerido')
-    }
-
-    // Asegurar que selectedServices existe y es un array
-    const services = Array.isArray(proposalData.selectedServices) ? proposalData.selectedServices : []
+    
+    console.log('🔄 Servicios procesados:', services.length, 'elementos')
     
     // Calcular el total de los servicios
     const totalAmount = services.reduce((sum, service) => {
@@ -46,17 +53,28 @@ export const saveProposal = async (proposalData: ProposalFormData) => {
     const proposalInsert = {
       org_id: userData.org_id,
       created_by: user.id,
-      contact_id: proposalData.clientId,
+      contact_id: proposalData.clientId || proposalData.contact_id,
       title: proposalData.title,
-      description: proposalData.introduction || '',
+      description: proposalData.introduction || proposalData.description || '',
       total_amount: totalAmount,
       status: 'draft' as const,
       is_recurring: proposalData.is_recurring || false,
       recurring_frequency: proposalData.recurring_frequency || null,
-      auto_renewal: proposalData.retainerConfig?.autoRenewal || false,
-      billing_day: proposalData.retainerConfig?.billingDay || 1,
-      scope_of_work: proposalData.terms || '',
-      valid_until: new Date(Date.now() + (proposalData.validityDays || 30) * 24 * 60 * 60 * 1000).toISOString()
+      auto_renewal: proposalData.retainerConfig?.autoRenewal || proposalData.auto_renewal || false,
+      scope_of_work: proposalData.terms || proposalData.scope_of_work || '',
+      valid_until: proposalData.validUntil 
+        ? new Date(proposalData.validUntil).toISOString()
+        : proposalData.valid_until
+        ? new Date(proposalData.valid_until).toISOString()
+        : new Date(Date.now() + (proposalData.validityDays || 30) * 24 * 60 * 60 * 1000).toISOString(),
+      // Campos adicionales para propuestas recurrentes
+      contract_start_date: proposalData.contract_start_date || null,
+      contract_end_date: proposalData.contract_end_date || null,
+      retainer_amount: proposalData.retainerConfig?.retainerAmount || proposalData.retainer_amount || null,
+      included_hours: proposalData.retainerConfig?.includedHours || proposalData.included_hours || null,
+      hourly_rate_extra: proposalData.retainerConfig?.extraHourlyRate || proposalData.hourly_rate_extra || null,
+      billing_day: proposalData.retainerConfig?.billingDay || proposalData.billing_day || 1,
+      notes: proposalData.notes || null
     }
 
     console.log('📋 Datos de propuesta preparados:', proposalInsert)

@@ -20,7 +20,8 @@ import { cn } from '@/lib/utils'
 import { useClients } from '@/hooks/useClients'
 import { useServiceCatalog } from '@/hooks/useServiceCatalog'
 import { useProposalTemplates } from '@/hooks/useProposalTemplates'
-import type { CreateProposalData } from '@/types/proposals'
+import type { CreateProposalData, ProposalLineItem } from '@/types/proposals'
+import { toast } from 'sonner'
 
 interface RecurringProposalFormProps {
   open: boolean
@@ -52,6 +53,7 @@ export function RecurringProposalForm({
   isEditMode = false 
 }: RecurringProposalFormProps) {
   const { clients = [] } = useClients()
+  const { services = [] } = useServiceCatalog()
   const { templates = [] } = useProposalTemplates()
 
   const [formData, setFormData] = useState<CreateProposalData & RecurringFields>(() => {
@@ -123,7 +125,24 @@ export function RecurringProposalForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validaciones mejoradas
     if (!formData.contact_id || !formData.title) {
+      toast.error('Por favor complete los campos obligatorios: Cliente y Título')
+      return
+    }
+
+    if (formData.line_items.length === 0) {
+      toast.error('Debe agregar al menos un servicio a la propuesta')
+      return
+    }
+
+    // Validar que todos los line_items tienen datos válidos
+    const invalidItems = formData.line_items.filter(item => 
+      !item.name || item.unit_price <= 0 || item.quantity <= 0
+    )
+    
+    if (invalidItems.length > 0) {
+      toast.error('Todos los servicios deben tener nombre, precio y cantidad válidos')
       return
     }
 
@@ -133,6 +152,7 @@ export function RecurringProposalForm({
       contract_end_date: contractEndDate?.toISOString().split('T')[0]
     }
 
+    console.log('🚀 Enviando propuesta recurrente:', submitData)
     onSubmit(submitData)
     
     // Reset form
@@ -152,6 +172,63 @@ export function RecurringProposalForm({
     setContractEndDate(undefined)
   }
 
+  // Funciones para manejar line_items
+  const addLineItem = () => {
+    const newItem: Omit<ProposalLineItem, 'id' | 'proposal_id'> = {
+      service_catalog_id: undefined,
+      name: '',
+      description: '',
+      quantity: 1,
+      unit_price: 0,
+      total_price: 0,
+      billing_unit: 'hour',
+      sort_order: formData.line_items.length
+    }
+    setFormData(prev => ({
+      ...prev,
+      line_items: [...prev.line_items, newItem]
+    }))
+  }
+
+  const updateLineItem = (index: number, field: string, value: any) => {
+    const updatedItems = [...formData.line_items]
+    updatedItems[index] = { 
+      ...updatedItems[index], 
+      [field]: value 
+    }
+    
+    // Calcular total_price automáticamente
+    if (field === 'quantity' || field === 'unit_price') {
+      updatedItems[index].total_price = updatedItems[index].quantity * updatedItems[index].unit_price
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      line_items: updatedItems
+    }))
+  }
+
+  const removeLineItem = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      line_items: prev.line_items.filter((_, i) => i !== index)
+    }))
+  }
+
+  const selectService = (index: number, serviceId: string) => {
+    const service = services.find(s => s.id === serviceId)
+    if (service) {
+      updateLineItem(index, 'service_catalog_id', serviceId)
+      updateLineItem(index, 'name', service.name)
+      updateLineItem(index, 'description', service.description || '')
+      updateLineItem(index, 'unit_price', service.default_price || 0)
+      updateLineItem(index, 'billing_unit', service.billing_unit)
+      updateLineItem(index, 'total_price', (service.default_price || 0) * formData.line_items[index].quantity)
+    }
+  }
+
+  const totalAmount = formData.line_items.reduce((sum, item) => sum + item.total_price, 0)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -163,8 +240,9 @@ export function RecurringProposalForm({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basic">Información Básica</TabsTrigger>
+              <TabsTrigger value="services">Servicios</TabsTrigger>
               <TabsTrigger value="recurring">Configuración Recurrente</TabsTrigger>
               <TabsTrigger value="template">Plantillas</TabsTrigger>
             </TabsList>
@@ -222,6 +300,128 @@ export function RecurringProposalForm({
                   placeholder="Descripción de la propuesta"
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="services" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    Servicios y Elementos
+                    <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Agregar Servicio
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {formData.line_items.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Calculator className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                      <p>No hay servicios agregados</p>
+                      <p className="text-sm">Agrega al menos un servicio para continuar</p>
+                    </div>
+                  ) : (
+                    formData.line_items.map((item, index) => (
+                      <Card key={index} className="border-l-4 border-l-primary">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm">Servicio #{index + 1}</CardTitle>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => removeLineItem(index)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-3 gap-4">
+                          <div className="col-span-2 space-y-2">
+                            <Label htmlFor={`service-${index}`}>Servicio del Catálogo</Label>
+                            <Select onValueChange={(value) => selectService(index, value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccionar servicio" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {services.map(service => (
+                                  <SelectItem key={service.id} value={service.id}>
+                                    {service.name} - €{service.default_price || 0}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`quantity-${index}`}>Cantidad</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              id={`quantity-${index}`}
+                              value={item.quantity}
+                              onChange={(e) => updateLineItem(index, 'quantity', Number(e.target.value))}
+                            />
+                          </div>
+
+                          <div className="col-span-2 space-y-2">
+                            <Label htmlFor={`name-${index}`}>Nombre del Servicio</Label>
+                            <Input
+                              id={`name-${index}`}
+                              value={item.name}
+                              onChange={(e) => updateLineItem(index, 'name', e.target.value)}
+                              placeholder="Nombre del servicio"
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`unit_price-${index}`}>Precio Unitario (€)</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              id={`unit_price-${index}`}
+                              value={item.unit_price}
+                              onChange={(e) => updateLineItem(index, 'unit_price', Number(e.target.value))}
+                            />
+                          </div>
+
+                          <div className="col-span-3 space-y-2">
+                            <Label htmlFor={`description-${index}`}>Descripción</Label>
+                            <Textarea
+                              id={`description-${index}`}
+                              value={item.description}
+                              onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                              placeholder="Descripción del servicio"
+                              rows={2}
+                            />
+                          </div>
+
+                          <div className="col-span-3 flex justify-between items-center pt-2 border-t">
+                            <div className="text-sm text-muted-foreground">
+                              {item.quantity} × €{item.unit_price} = 
+                            </div>
+                            <div className="text-lg font-semibold">
+                              €{item.total_price.toLocaleString()}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                  
+                  {formData.line_items.length > 0 && (
+                    <div className="flex justify-between items-center p-4 bg-primary/5 rounded-lg border">
+                      <span className="text-lg font-medium">Total de la Propuesta:</span>
+                      <span className="text-2xl font-bold text-primary">
+                        €{totalAmount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="recurring" className="space-y-4">
