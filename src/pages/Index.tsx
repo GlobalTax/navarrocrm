@@ -3,17 +3,25 @@ import { Navigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 
 const Index = () => {
-  const { session, user, isSetup, authLoading } = useApp()
+  const { session, user, isSetup, authLoading, setupLoading } = useApp()
 
-  console.log('📍 [Index] Estado:', { session: !!session, user: !!user, isSetup, authLoading })
+  console.log('📍 [Index] Estado completo:', { 
+    session: !!session, 
+    user: !!user, 
+    isSetup, 
+    authLoading,
+    setupLoading,
+    sessionUser: session?.user?.email 
+  })
 
   // Mostrar loading solo brevemente
   if (authLoading) {
+    console.log('📍 [Index] Mostrando loading por authLoading=true')
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
+          <p className="text-muted-foreground">Cargando autenticación...</p>
         </div>
       </div>
     )
