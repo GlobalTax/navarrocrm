@@ -14,14 +14,21 @@ const Index = () => {
     sessionUser: session?.user?.email 
   })
 
-  // Mostrar loading solo brevemente
-  if (authLoading) {
-    console.log('📍 [Index] Mostrando loading por authLoading=true')
+  // Loading más inteligente con timeout de emergencia
+  if (authLoading || setupLoading) {
+    console.log('📍 [Index] Mostrando loading:', { authLoading, setupLoading })
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando autenticación...</p>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">
+            {authLoading && setupLoading ? 'Inicializando aplicación...' :
+             authLoading ? 'Verificando autenticación...' :
+             'Verificando configuración...'}
+          </p>
+          <div className="text-xs text-muted-foreground mt-2">
+            Auth: {authLoading ? '⏳' : '✅'} | Setup: {setupLoading ? '⏳' : '✅'}
+          </div>
         </div>
       </div>
     )
@@ -40,7 +47,6 @@ const Index = () => {
   }
 
   // Si hay usuario autenticado, redirigir al dashboard
-  // Esto permite que MainLayout se aplique correctamente
   console.log('📍 [Index] Usuario autenticado, redirigiendo a dashboard')
   return <Navigate to="/dashboard" replace />
 }

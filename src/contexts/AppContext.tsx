@@ -27,9 +27,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const initializationStarted = useRef(false)
   const profileEnrichmentInProgress = useRef(false)
+  const emergencyTimeout = useRef<NodeJS.Timeout | null>(null)
 
-  // Estado combinado de carga inicial - solo para inicialización crítica
-  const isInitializing = authLoading && setupLoading
+  // Estado unificado de preparación de la app
+  const appReady = !authLoading && !setupLoading && isSetup !== null
+  
+  // Estado de inicialización más conservador
+  const isInitializing = authLoading || setupLoading
 
   // Obtener acciones de autenticación del hook
   const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
@@ -40,12 +44,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     console.log('🚀 [AppContext] Inicialización rápida...')
     
+    // Timeout de emergencia global - después de 10s forzar carga
+    emergencyTimeout.current = setTimeout(() => {
+      console.warn('🚨 [AppContext] Timeout de emergencia - forzando carga')
+      setAuthLoading(false)
+      setSetupLoading(false)
+      if (isSetup === null) setIsSetup(true)
+    }, 10000)
+    
     // Inicializar setup de forma no bloqueante
     initializeSystemSetup(setIsSetup, setSetupLoading)
     
     // Configurar listener de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
+      
+      // Limpiar timeout de emergencia al recibir evento de auth
+      if (emergencyTimeout.current) {
+        clearTimeout(emergencyTimeout.current)
+        emergencyTimeout.current = null
+      }
       
       setSession(session)
       
@@ -74,6 +92,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return () => {
       subscription.unsubscribe()
+      if (emergencyTimeout.current) {
+        clearTimeout(emergencyTimeout.current)
+      }
     }
   }, [])
 

@@ -8,6 +8,7 @@ import { OnboardingProvider } from '@/components/onboarding'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { PageLoadingSkeleton } from '@/components/layout/PageLoadingSkeleton'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // Páginas críticas cargadas estáticamente (no lazy)
 import Index from '@/pages/Index'
@@ -63,10 +64,11 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <OnboardingProvider>
-          <Toaster position="top-right" />
-        <Router>
+      <ErrorBoundary>
+        <AppProvider>
+          <OnboardingProvider>
+            <Toaster position="top-right" />
+          <Router>
           <div className="min-h-screen bg-gray-50">
             <Routes>
               {/* Ruta pública para el panel de ocupación - no lazy */}
@@ -340,9 +342,10 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
-        </Router>
-        </OnboardingProvider>
-      </AppProvider>
+          </Router>
+          </OnboardingProvider>
+        </AppProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   )
 }
