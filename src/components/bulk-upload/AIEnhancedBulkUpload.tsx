@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react'
+import { useAbortController } from '@/hooks/performance/useAbortController'
+import { usePerformanceMonitor } from '@/hooks/performance/usePerformanceMonitor'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -42,6 +44,8 @@ export function AIEnhancedBulkUpload({
   dataType, 
   title 
 }: AIEnhancedBulkUploadProps) {
+  const { getSignal, abort } = useAbortController()
+  const { metrics } = usePerformanceMonitor('AIEnhancedBulkUpload')
   const [file, setFile] = useState<File | null>(null)
   const [rawData, setRawData] = useState<any[]>([])
   const [columns, setColumns] = useState<string[]>([])
@@ -66,14 +70,20 @@ export function AIEnhancedBulkUpload({
           setRawData(data)
           setColumns(detectedColumns)
 
-          // Llamar a la IA para validación
-          const { data: aiResult, error } = await supabase.functions.invoke('ai-bulk-validate', {
+          // Llamar a la IA para validación con timeout manual
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout')), 30000)
+          })
+
+          const aiPromise = supabase.functions.invoke('ai-bulk-validate', {
             body: {
               data: data,
               dataType: dataType,
               columns: detectedColumns
             }
           })
+
+          const { data: aiResult, error } = await Promise.race([aiPromise, timeoutPromise]) as any
 
           if (error) throw error
 

@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useCleanupEffect } from '@/hooks/performance/useCleanupEffect'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,8 +29,9 @@ export const ContextualAssistant = () => {
   const location = useLocation()
   const [suggestions, setSuggestions] = useState<ContextualSuggestion[]>([])
 
-  useEffect(() => {
+  useCleanupEffect(() => {
     generateContextualSuggestions()
+    // No cleanup needed for this effect
   }, [location.pathname])
 
   const generateContextualSuggestions = () => {

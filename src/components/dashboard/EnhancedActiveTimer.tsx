@@ -6,7 +6,8 @@ import { Play, Pause, Square, Clock, Timer } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useInterval } from '@/hooks/performance/useInterval'
 import { toast } from 'sonner'
 
 export const EnhancedActiveTimer = () => {
@@ -22,10 +23,12 @@ export const EnhancedActiveTimer = () => {
   const todayHours = dashboardData?.quickStats.todayHours || 0
   const weekHours = dashboardData?.quickStats.weekHours || 0
 
-  // TODO: Implementar timer en tiempo real con time entries
-  useEffect(() => {
-    // Funcionalidad futura para tiempo real
-  }, [hasActiveTimer])
+  // Timer real-time con cleanup automático
+  useInterval(() => {
+    if (hasActiveTimer) {
+      setElapsedTime(prev => prev + 1)
+    }
+  }, hasActiveTimer ? 1000 : null)
 
   // Formatear tiempo elapsed a MM:SS
   const formatElapsedTime = (seconds: number) => {

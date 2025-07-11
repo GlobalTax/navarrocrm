@@ -1,5 +1,6 @@
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
+import { useInterval } from '@/hooks/performance/useInterval'
 import { Clock, Play, Pause, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeaderTimerDialog } from './HeaderTimerDialog'
@@ -10,35 +11,15 @@ export const HeaderClock = () => {
   const [isTimerPaused, setIsTimerPaused] = useState(false)
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [showTimerDialog, setShowTimerDialog] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  // Clock update with memory-safe interval
+  useInterval(() => {
+    setCurrentTime(new Date())
+  }, 1000)
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [])
-
-  // Efecto para manejar el timer
-  useEffect(() => {
-    if (isTimerRunning && !isTimerPaused) {
-      intervalRef.current = setInterval(() => {
-        setTimerSeconds(prev => prev + 1)
-      }, 1000)
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
-    }
-  }, [isTimerRunning, isTimerPaused])
+  // Timer with memory-safe interval
+  useInterval(() => {
+    setTimerSeconds(prev => prev + 1)
+  }, isTimerRunning && !isTimerPaused ? 1000 : null)
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('es-ES', {
