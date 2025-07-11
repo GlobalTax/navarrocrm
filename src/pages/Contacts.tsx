@@ -15,6 +15,8 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
+import { HubSpotMigrationDialog } from '@/components/migration/HubSpotMigrationDialog'
+import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -26,6 +28,8 @@ const Contacts = () => {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [isImprovedOnboardingOpen, setIsImprovedOnboardingOpen] = useState(false)
+  const [isHubSpotMigrationOpen, setIsHubSpotMigrationOpen] = useState(false)
+  const [showMigrationDashboard, setShowMigrationDashboard] = useState(false)
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
@@ -101,15 +105,18 @@ const Contacts = () => {
       <ContactQuickMetrics contacts={contacts} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="persons">
             Personas Físicas
           </TabsTrigger>
           <TabsTrigger value="companies">
             Empresas
           </TabsTrigger>
+          <TabsTrigger value="migration">
+            Migración
+          </TabsTrigger>
           <TabsTrigger value="analytics">
-            Análisis y Métricas
+            Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -122,6 +129,15 @@ const Contacts = () => {
           onEditPerson={handleEditPerson}
           onEditCompany={handleEditCompany}
         />
+
+        {/* Tab de Migración */}
+        {activeTab === 'migration' && (
+          <div className="mt-6">
+            <MigrationDashboard 
+              onStartHubSpotMigration={() => setIsHubSpotMigrationOpen(true)}
+            />
+          </div>
+        )}
       </Tabs>
 
       {/* Diálogos para Personas Físicas */}
@@ -158,6 +174,13 @@ const Contacts = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de Migración HubSpot */}
+      <HubSpotMigrationDialog
+        open={isHubSpotMigrationOpen}
+        onClose={() => setIsHubSpotMigrationOpen(false)}
+        onSuccess={handleBulkUploadSuccess}
+      />
 
     </StandardPageContainer>
   )
