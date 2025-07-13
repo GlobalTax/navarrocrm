@@ -13,6 +13,7 @@ import {
   Mail
 } from 'lucide-react'
 import { useUserInvitations } from '@/hooks/useUserInvitations'
+import { useTimeout } from '@/hooks/performance'
 
 export const InvitationNotifications = () => {
   const { 
@@ -25,14 +26,10 @@ export const InvitationNotifications = () => {
   const [showNotifications, setShowNotifications] = useState(true)
   const expiredInvitations = getExpiredInvitations()
 
-  // Ocultar notificaciones después de 5 segundos
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowNotifications(false)
-    }, 5000)
-
-    return () => clearTimeout(timer)
-  }, [])
+  // Ocultar notificaciones después de 5 segundos con hook optimizado
+  const { clearTimeout } = useTimeout(() => {
+    setShowNotifications(false)
+  }, 5000)
 
   if (!showNotifications || invitations.length === 0) {
     return null

@@ -126,7 +126,8 @@ export const OutlookIntegrationSettings = () => {
     try {
       // Test basic connection with a simple query
       const testUrl = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid_configuration`
-      const response = await fetch(testUrl)
+      const controller = new AbortController()
+      const response = await fetch(testUrl, { signal: controller.signal })
       
       if (response.ok) {
         setConnectionStatus('success')

@@ -15,6 +15,7 @@ import {
   MessageSquare
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAbortController } from '@/hooks/performance'
 
 interface DocumentPreviewProps {
   content: string
@@ -43,10 +44,14 @@ export const DocumentPreview = ({
   const charCount = content.length
   const estimatedReadTime = Math.ceil(wordCount / 200) // 200 words per minute
 
+  const { getController } = useAbortController()
+  
   const handleDownloadPDF = async () => {
     try {
+      const controller = getController()
       const response = await fetch('/functions/v1/generate-document-pdf', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -90,8 +95,10 @@ export const DocumentPreview = ({
         return
       }
 
+      const controller = getController()
       const response = await fetch('/functions/v1/send-document-email', {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
         },
