@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOutlookConnection } from '@/hooks/useOutlookConnection'
+import { useOutlookAuth } from '@/hooks/useOutlookAuth'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
 import { OutlookConnectionStatus } from './OutlookConnectionStatus'
 import { OutlookConnectionDiagnostic } from './OutlookConnectionDiagnostic'
@@ -56,6 +57,9 @@ function EmailDashboardContent() {
     syncEmails 
   } = useOutlookConnection()
   
+  // Hook para manejar errores de autenticación específicos
+  const { error: authError, connectionStatus: authStatus } = useOutlookAuth()
+  
   const { metrics, isLoading: metricsLoading, error: metricsError } = useEmailMetrics()
 
   const handleConfigure = () => {
@@ -110,11 +114,12 @@ function EmailDashboardContent() {
         
         {/* Estado de conexión original (respaldo) */}
         <OutlookConnectionStatus
-          status={connectionStatus}
+          status={authStatus === 'expired' ? 'expired' : connectionStatus}
           lastSync={connectionData?.updated_at ? new Date(connectionData.updated_at) : undefined}
           onSync={handleSync}
           onConfigure={handleConfigure}
           isSyncing={isSyncing}
+          error={authError}
         />
 
         {/* Error de métricas */}

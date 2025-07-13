@@ -155,14 +155,27 @@ export function useOutlookAuth() {
       console.error('❌ [useOutlookAuth] Error en conexión OAuth:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       
+      // Detectar errores de autenticación específicos
+      const isAuthError = errorMessage.includes('autenticación') || 
+                         errorMessage.includes('authorization') ||
+                         errorMessage.includes('inicie sesión')
+      
       setState(prev => ({ 
         ...prev, 
         isConnecting: false, 
         error: errorMessage,
-        connectionStatus: 'error'
+        connectionStatus: isAuthError ? 'expired' : 'error'
       }))
       
-      toast.error(`Error de conexión: ${errorMessage}`)
+      if (isAuthError) {
+        toast.error('Su sesión ha expirado. Por favor, inicie sesión nuevamente.')
+        // Redirigir al login después de un delay
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 2000)
+      } else {
+        toast.error(`Error de conexión: ${errorMessage}`)
+      }
     }
   }, [])
 

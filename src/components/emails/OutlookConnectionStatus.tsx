@@ -13,11 +13,12 @@ import {
 import { ConnectionStatus } from '@/hooks/useOutlookConnection'
 
 interface OutlookConnectionStatusProps {
-  status: ConnectionStatus
+  status: ConnectionStatus | 'expired'
   lastSync?: Date
   onSync?: () => void
   onConfigure?: () => void
   isSyncing?: boolean
+  error?: string | null
 }
 
 export function OutlookConnectionStatus({
@@ -25,7 +26,8 @@ export function OutlookConnectionStatus({
   lastSync,
   onSync,
   onConfigure,
-  isSyncing = false
+  isSyncing = false,
+  error
 }: OutlookConnectionStatusProps) {
   
   const getStatusConfig = () => {
@@ -62,6 +64,17 @@ export function OutlookConnectionStatus({
           badgeVariant: 'destructive' as const,
           title: 'Error de Conexión',
           description: 'Problema con la conexión a Outlook. Revisa la configuración.'
+        }
+      case 'expired':
+        return {
+          icon: AlertCircle,
+          color: 'text-amber-600',
+          bgColor: 'bg-amber-50',
+          borderColor: 'border-amber-200',
+          badge: 'Sesión Expirada',
+          badgeVariant: 'outline' as const,
+          title: 'Sesión Expirada',
+          description: 'Tu sesión ha expirado. Inicia sesión nuevamente para continuar.'
         }
       default:
         return {
@@ -122,6 +135,11 @@ export function OutlookConnectionStatus({
               <p className="text-sm text-muted-foreground">
                 {config.description}
               </p>
+              {error && (status === 'error' || status === 'expired') && (
+                <p className="text-xs text-red-600 mt-1">
+                  {error}
+                </p>
+              )}
               {lastSync && status === 'connected' && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Última sincronización: {lastSync.toLocaleString('es-ES')}
@@ -141,6 +159,18 @@ export function OutlookConnectionStatus({
               >
                 <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+              </Button>
+            )}
+            
+            {status === 'expired' && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => window.location.href = '/login'}
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Iniciar Sesión
               </Button>
             )}
             

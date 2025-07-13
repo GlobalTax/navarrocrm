@@ -214,10 +214,11 @@ export class OutlookAuthService {
       if (error) {
         console.error('❌ [OutlookAuthService] Error obteniendo URL de auth:', error)
         // Si es error 401, intentar renovar token una vez más
-        if (error.message?.includes('401') || error.message?.includes('authorization')) {
-          console.log('🔄 [OutlookAuthService] Reintentando con token renovado...')
+        if (error.message?.includes('401') || error.message?.includes('authorization') || error.message?.includes('Missing authorization header')) {
+          console.log('🔄 [OutlookAuthService] Error de autenticación detectado, verificando sesión...')
           const newValidation = await this.validateAuthToken()
           if (newValidation.isValid) {
+            console.log('🔄 [OutlookAuthService] Reintentando con token renovado...')
             const { data: retryData, error: retryError } = await supabase.functions.invoke('outlook-auth', {
               body: { action: 'get_auth_url' },
               headers: {
@@ -228,6 +229,12 @@ export class OutlookAuthService {
             if (!retryError && retryData?.auth_url) {
               console.log('✅ [OutlookAuthService] URL generada en reintento')
               return { success: true, authUrl: retryData.auth_url }
+            }
+          } else {
+            // Token no válido, devolver error específico de autenticación
+            return { 
+              success: false, 
+              error: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.' 
             }
           }
         }

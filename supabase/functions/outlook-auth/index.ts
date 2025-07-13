@@ -426,13 +426,44 @@ serve(async (req) => {
     console.error('🔍 [outlook-auth] Stack trace:', error.stack)
     console.error('🔍 [outlook-auth] Error type:', typeof error)
     
+    // Determinar el código de estado apropiado
+    let statusCode = 500
+    const errorMessage = error.message || 'Error interno del servidor'
+    
+    // Errores de autenticación específicos
+    if (errorMessage.includes('Header de autorización requerido') ||
+        errorMessage.includes('Formato de header de autorización inválido') ||
+        errorMessage.includes('Token de autorización vacío') ||
+        errorMessage.includes('Token de autenticación inválido o expirado') ||
+        errorMessage.includes('Usuario no autenticado') ||
+        errorMessage.includes('Error de autenticación')) {
+      statusCode = 401
+    }
+    
+    // Errores de autorización
+    if (errorMessage.includes('sin organización') ||
+        errorMessage.includes('sin permisos')) {
+      statusCode = 403
+    }
+    
+    // Errores de validación
+    if (errorMessage.includes('not configured') ||
+        errorMessage.includes('Acción no válida')) {
+      statusCode = 400
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: errorMessage,
         timestamp: new Date().toISOString(),
-        function: 'outlook-auth'
+        function: 'outlook-auth',
+        statusCode,
+        ...(statusCode === 401 && {
+          requiresAuth: true,
+          message: 'Por favor, inicie sesión para continuar'
+        })
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
