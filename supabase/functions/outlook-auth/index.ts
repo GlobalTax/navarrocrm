@@ -43,7 +43,13 @@ serve(async (req) => {
 
     const redirectUri = `https://jzbbbwfnzpwxmuhpbdya.supabase.co/functions/v1/outlook-auth`
     const scope = 'https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/User.Read offline_access'
-    const tenantId = 'common'
+    
+    // Usar tenant específico en lugar de 'common' para evitar error AADSTS50194
+    const tenantId = Deno.env.get('MICROSOFT_TENANT_ID') || 'common'
+    
+    console.log('🏢 [outlook-auth] Usando tenant:', { 
+      tenantId: tenantId === 'common' ? 'COMMON (necesita configuración)' : 'ESPECÍFICO ✅' 
+    })
 
     // Handle GET requests (callback from Microsoft)
     if (req.method === 'GET') {
