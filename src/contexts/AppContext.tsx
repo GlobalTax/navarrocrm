@@ -18,7 +18,7 @@ export const useApp = () => {
   return context
 }
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -130,3 +130,5 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
+
+export const AppProvider = AppProviderComponent
