@@ -184,6 +184,93 @@ export class OutlookAuthService {
   }
 
   /**
+   * Inicia el proceso de autenticación OAuth con Microsoft
+   */
+  static async startOAuthFlow(): Promise<{ success: boolean; authUrl?: string; error?: string }> {
+    try {
+      console.log('🚀 [OutlookAuthService] Iniciando flujo OAuth...')
+      
+      const validation = await this.validateAuthToken()
+      if (!validation.isValid) {
+        console.warn('⚠️ [OutlookAuthService] Token inválido para OAuth:', validation.error)
+        return { success: false, error: validation.error }
+      }
+
+      const { data, error } = await supabase.functions.invoke('outlook-auth', {
+        body: { action: 'get_auth_url' },
+        headers: {
+          Authorization: `Bearer ${validation.token}`
+        }
+      })
+
+      if (error) {
+        console.error('❌ [OutlookAuthService] Error obteniendo URL de auth:', error)
+        return { success: false, error: error.message }
+      }
+
+      if (!data?.auth_url) {
+        console.error('❌ [OutlookAuthService] URL de autorización no recibida')
+        return { success: false, error: 'No se pudo generar la URL de autorización' }
+      }
+
+      console.log('✅ [OutlookAuthService] URL de OAuth generada exitosamente')
+      return { success: true, authUrl: data.auth_url }
+
+    } catch (error) {
+      console.error('❌ [OutlookAuthService] Error inesperado en OAuth:', error)
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Error desconocido' 
+      }
+    }
+  }
+
+  /**
+   * Maneja el código de autorización OAuth y completa la conexión
+   */
+  static async handleOAuthCallback(code: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      console.log('🔄 [OutlookAuthService] Procesando callback OAuth...')
+      
+      const validation = await this.validateAuthToken()
+      if (!validation.isValid) {
+        return { success: false, error: validation.error }
+      }
+
+      const { data, error } = await supabase.functions.invoke('outlook-auth', {
+        body: { 
+          action: 'exchange_code',
+          code: code
+        },
+        headers: {
+          Authorization: `Bearer ${validation.token}`
+        }
+      })
+
+      if (error) {
+        console.error('❌ [OutlookAuthService] Error en exchange_code:', error)
+        return { success: false, error: error.message }
+      }
+
+      if (!data?.success) {
+        console.error('❌ [OutlookAuthService] Exchange code falló:', data)
+        return { success: false, error: 'Error completando la autorización' }
+      }
+
+      console.log('✅ [OutlookAuthService] OAuth completado exitosamente')
+      toast.success('Conexión de Outlook establecida correctamente')
+      return { success: true }
+
+    } catch (error) {
+      console.error('❌ [OutlookAuthService] Error inesperado en callback:', error)
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Error desconocido' 
+      }
+    }
+  }
+
+  /**
    * Maneja la reconexión automática con retry logic
    */
   static async handleReconnection(maxRetries: number = 3): Promise<boolean> {
@@ -191,24 +278,13 @@ export class OutlookAuthService {
       try {
         console.log(`🔄 [OutlookAuthService] Intento de reconexión ${attempt}/${maxRetries}`)
         
-        const validation = await this.validateAuthToken()
-        if (!validation.isValid) {
-          throw new Error(validation.error || 'Token inválido')
-        }
-
-        const { data, error } = await supabase.functions.invoke('outlook-auth', {
-          body: { action: 'get_auth_url' },
-          headers: {
-            Authorization: `Bearer ${validation.token}`
-          }
-        })
-
-        if (error) throw error
-
-        if (data?.auth_url) {
+        const result = await this.startOAuthFlow()
+        if (result.success && result.authUrl) {
           console.log('✅ [OutlookAuthService] Reconexión exitosa')
           return true
         }
+
+        throw new Error(result.error || 'Error en reconexión')
 
       } catch (error) {
         console.error(`❌ [OutlookAuthService] Intento ${attempt} falló:`, error)

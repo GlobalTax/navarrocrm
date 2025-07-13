@@ -4,6 +4,7 @@ import { useOutlookConnection } from '@/hooks/useOutlookConnection'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
 import { OutlookConnectionStatus } from './OutlookConnectionStatus'
 import { OutlookConnectionDiagnostic } from './OutlookConnectionDiagnostic'
+import { EmailConnectionStatus } from './EmailConnectionStatus'
 import { EmailMetricsCards } from './EmailMetricsCards'
 import { RecentEmailsList } from './RecentEmailsList'
 import { EmailErrorBoundary } from './EmailErrorBoundary'
@@ -104,7 +105,10 @@ function EmailDashboardContent() {
           }
         />
 
-        {/* Estado de conexión */}
+        {/* Estado de conexión mejorado */}
+        <EmailConnectionStatus />
+        
+        {/* Estado de conexión original (respaldo) */}
         <OutlookConnectionStatus
           status={connectionStatus}
           lastSync={connectionData?.updated_at ? new Date(connectionData.updated_at) : undefined}

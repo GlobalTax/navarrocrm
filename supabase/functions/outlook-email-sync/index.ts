@@ -68,10 +68,14 @@ serve(async (req) => {
       userToken.access_token_encrypted = refreshedToken.access_token_encrypted
     }
 
-    // 2. Obtener carpetas si no están sincronizadas
-    await syncFolders(supabase, userToken, org_id, user_id)
+    // 2. Descifrar token de acceso
+    const accessToken = atob(userToken.access_token_encrypted)
+    console.log('🔑 Token descifrado exitosamente')
 
-    // 3. Determinar qué carpetas sincronizar
+    // 3. Obtener carpetas si no están sincronizadas
+    await syncFolders(supabase, accessToken, org_id, user_id)
+
+    // 4. Determinar qué carpetas sincronizar
     const { data: foldersToSync } = await supabase
       .from('email_folders')
       .select('*')
@@ -88,7 +92,7 @@ serve(async (req) => {
 
     let totalSynced = 0
 
-    // 4. Sincronizar cada carpeta
+    // 5. Sincronizar cada carpeta
     for (const folder of foldersToSync) {
       if (folder_id && folder.id !== folder_id) continue
 
@@ -96,7 +100,7 @@ serve(async (req) => {
       
       const synced = await syncFolderMessages(
         supabase, 
-        userToken, 
+        accessToken, 
         folder, 
         org_id, 
         full_sync
@@ -125,11 +129,11 @@ serve(async (req) => {
   }
 })
 
-async function syncFolders(supabase: any, userToken: any, org_id: string, user_id: string) {
+async function syncFolders(supabase: any, accessToken: string, org_id: string, user_id: string) {
   const foldersUrl = 'https://graph.microsoft.com/v1.0/me/mailFolders'
   
   const foldersResponse = await fetch(foldersUrl, {
-    headers: { 'Authorization': `Bearer ${userToken.access_token_encrypted}` }
+    headers: { 'Authorization': `Bearer ${accessToken}` }
   })
 
   const foldersData = await foldersResponse.json()
@@ -154,7 +158,7 @@ async function syncFolders(supabase: any, userToken: any, org_id: string, user_i
 
 async function syncFolderMessages(
   supabase: any, 
-  userToken: any, 
+  accessToken: string, 
   folder: any, 
   org_id: string, 
   full_sync: boolean
@@ -180,7 +184,7 @@ async function syncFolderMessages(
     const url = nextLink || messagesUrl
     
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${userToken.access_token_encrypted}` }
+      headers: { 'Authorization': `Bearer ${accessToken}` }
     })
 
     const data = await response.json()
