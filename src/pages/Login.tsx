@@ -197,11 +197,6 @@ export default function Login() {
             >
               Iniciar Sesión
             </SmartLoadingButton>
-            
-            <div className="text-center text-sm text-gray-600">
-              <p>Atajos de teclado:</p>
-              <p>Alt + M: Menú principal | Alt + S: Buscar</p>
-            </div>
           </AccessibleForm>
         </CardContent>
       </Card>
