@@ -26,6 +26,14 @@ export function useOutlookAuth() {
     }))
 
     try {
+      // Validar autenticación antes de continuar
+      console.log('🔍 [useOutlookAuth] Validando estado de autenticación...')
+      const tokenValidation = await OutlookAuthService.validateAuthToken()
+      if (!tokenValidation.isValid) {
+        throw new Error(`Error de autenticación: ${tokenValidation.error}`)
+      }
+
+      console.log('✅ [useOutlookAuth] Token validado, iniciando OAuth...')
       const result = await OutlookAuthService.startOAuthFlow()
       
       if (!result.success) {
@@ -35,6 +43,8 @@ export function useOutlookAuth() {
       if (!result.authUrl) {
         throw new Error('URL de autorización no disponible')
       }
+
+      console.log('🔗 [useOutlookAuth] Abriendo ventana de autorización...')
 
       // Abrir popup para OAuth
       const popup = window.open(
@@ -49,25 +59,36 @@ export function useOutlookAuth() {
 
       // Escuchar mensaje del popup
       const handleMessage = async (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return
-
+        // Permitir mensajes de cualquier origen para el OAuth callback
         if (event.data.type === 'OUTLOOK_AUTH_CODE' && event.data.code) {
+          console.log('📨 [useOutlookAuth] Código de autorización recibido')
           window.removeEventListener('message', handleMessage)
           popup.close()
 
-          // Procesar código de autorización
-          const callbackResult = await OutlookAuthService.handleOAuthCallback(event.data.code)
-          
-          if (callbackResult.success) {
+          try {
+            // Procesar código de autorización
+            const callbackResult = await OutlookAuthService.handleOAuthCallback(event.data.code)
+            
+            if (callbackResult.success) {
+              setState(prev => ({ 
+                ...prev, 
+                isConnecting: false, 
+                isConnected: true, 
+                connectionStatus: 'connected' 
+              }))
+              toast.success('Conexión establecida correctamente')
+            } else {
+              throw new Error(callbackResult.error || 'Error completando autorización')
+            }
+          } catch (callbackError) {
+            console.error('❌ [useOutlookAuth] Error en callback:', callbackError)
             setState(prev => ({ 
               ...prev, 
               isConnecting: false, 
-              isConnected: true, 
-              connectionStatus: 'connected' 
+              error: callbackError instanceof Error ? callbackError.message : 'Error procesando autorización',
+              connectionStatus: 'error'
             }))
-            toast.success('Conexión establecida correctamente')
-          } else {
-            throw new Error(callbackResult.error || 'Error completando autorización')
+            toast.error(`Error de autorización: ${callbackError instanceof Error ? callbackError.message : 'Error desconocido'}`)
           }
         }
       }
@@ -90,7 +111,7 @@ export function useOutlookAuth() {
       }, 300000) // 5 minutos
 
     } catch (error) {
-      console.error('Error en conexión OAuth:', error)
+      console.error('❌ [useOutlookAuth] Error en conexión OAuth:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       
       setState(prev => ({ 

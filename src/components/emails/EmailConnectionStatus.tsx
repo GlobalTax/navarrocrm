@@ -91,7 +91,32 @@ export function EmailConnectionStatus() {
           {error && (
             <Alert className="mb-4 border-hsl(var(--destructive)) bg-hsl(var(--destructive))/10">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="text-hsl(var(--destructive))">{error}</AlertDescription>
+              <AlertDescription className="text-hsl(var(--destructive))">
+                <div>
+                  <p className="font-medium">{error}</p>
+                  {error.includes('authorization') && (
+                    <div className="mt-2 text-sm">
+                      <p className="font-medium">💡 Posibles soluciones:</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Cerrar sesión y volver a iniciar sesión</li>
+                        <li>Verificar que está autenticado correctamente</li>
+                        <li>Intentar de nuevo en unos segundos</li>
+                        <li>Verificar configuración de Azure AD</li>
+                      </ul>
+                    </div>
+                  )}
+                  {error.includes('Missing authorization header') && (
+                    <div className="mt-2 text-sm">
+                      <p className="font-medium">🔧 Error específico: Token de autorización faltante</p>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        <li>Su sesión puede haber expirado</li>
+                        <li>Cierre sesión y vuelva a iniciar sesión</li>
+                        <li>Verifique su conexión a internet</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 

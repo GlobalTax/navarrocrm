@@ -61,7 +61,7 @@ export class OutlookAuthService {
       const timeUntilExpiry = expiresAt - Date.now()
       const fiveMinutes = 5 * 60 * 1000
 
-      if (timeUntilExpiry < fiveMinutes) {
+      if (timeUntilExpiry < fiveMinutes && timeUntilExpiry > 0) {
         console.warn('⚠️ [OutlookAuthService] Token próximo a expirar, renovando...')
         const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
         
@@ -85,7 +85,9 @@ export class OutlookAuthService {
 
       console.log('✅ [OutlookAuthService] Token válido:', {
         userId: session.user?.id,
-        expiresIn: Math.floor(timeUntilExpiry / 1000 / 60) + ' minutos'
+        tokenPresent: !!session.access_token,
+        tokenLength: session.access_token?.length || 0,
+        expiresIn: timeUntilExpiry > 0 ? Math.floor(timeUntilExpiry / 1000 / 60) + ' minutos' : 'expirado'
       })
 
       return {
@@ -196,15 +198,39 @@ export class OutlookAuthService {
         return { success: false, error: validation.error }
       }
 
+      console.log('🔑 [OutlookAuthService] Llamando edge function con token válido:', {
+        tokenLength: validation.token?.length || 0,
+        userId: validation.session?.user?.id
+      })
+
       const { data, error } = await supabase.functions.invoke('outlook-auth', {
         body: { action: 'get_auth_url' },
         headers: {
-          Authorization: `Bearer ${validation.token}`
+          Authorization: `Bearer ${validation.token}`,
+          'Content-Type': 'application/json'
         }
       })
 
       if (error) {
         console.error('❌ [OutlookAuthService] Error obteniendo URL de auth:', error)
+        // Si es error 401, intentar renovar token una vez más
+        if (error.message?.includes('401') || error.message?.includes('authorization')) {
+          console.log('🔄 [OutlookAuthService] Reintentando con token renovado...')
+          const newValidation = await this.validateAuthToken()
+          if (newValidation.isValid) {
+            const { data: retryData, error: retryError } = await supabase.functions.invoke('outlook-auth', {
+              body: { action: 'get_auth_url' },
+              headers: {
+                Authorization: `Bearer ${newValidation.token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+            if (!retryError && retryData?.auth_url) {
+              console.log('✅ [OutlookAuthService] URL generada en reintento')
+              return { success: true, authUrl: retryData.auth_url }
+            }
+          }
+        }
         return { success: false, error: error.message }
       }
 
@@ -237,13 +263,19 @@ export class OutlookAuthService {
         return { success: false, error: validation.error }
       }
 
+      console.log('🔑 [OutlookAuthService] Enviando código de autorización con token válido:', {
+        codeLength: code?.length || 0,
+        tokenLength: validation.token?.length || 0
+      })
+
       const { data, error } = await supabase.functions.invoke('outlook-auth', {
         body: { 
           action: 'exchange_code',
           code: code
         },
         headers: {
-          Authorization: `Bearer ${validation.token}`
+          Authorization: `Bearer ${validation.token}`,
+          'Content-Type': 'application/json'
         }
       })
 
@@ -254,7 +286,7 @@ export class OutlookAuthService {
 
       if (!data?.success) {
         console.error('❌ [OutlookAuthService] Exchange code falló:', data)
-        return { success: false, error: 'Error completando la autorización' }
+        return { success: false, error: data?.error || 'Error completando la autorización' }
       }
 
       console.log('✅ [OutlookAuthService] OAuth completado exitosamente')
