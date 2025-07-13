@@ -8,7 +8,7 @@ import { OnboardingProvider } from '@/components/onboarding'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { PageLoadingSkeleton } from '@/components/layout/PageLoadingSkeleton'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
 
 // Páginas críticas cargadas estáticamente (no lazy)
 import Index from '@/pages/Index'
@@ -63,8 +63,8 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
         <AppProvider>
           <OnboardingProvider>
             <Toaster position="top-right" />
@@ -345,8 +345,8 @@ function App() {
           </Router>
           </OnboardingProvider>
         </AppProvider>
-      </ErrorBoundary>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   )
 }
 

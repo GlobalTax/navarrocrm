@@ -7,46 +7,48 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import { AccessibleForm } from '@/components/common/AccessibleForm'
+import { SmartLoadingButton } from '@/components/common/SmartLoadingButton'
+import { useAccessibility } from '@/hooks/useAccessibility'
+import { useLogger } from '@/hooks/useLogger'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const { session, user, signIn, authLoading } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
+  const { announceRouteChange } = useAccessibility()
+  const logger = useLogger('Login')
 
   const from = location.state?.from?.pathname || '/'
 
   // Redirección más directa
   useEffect(() => {
-    console.log('🔐 [Login] Estado auth:', { session: !!session, user: !!user, authLoading })
+    logger.debug('Auth state check', { session: !!session, user: !!user, authLoading })
     
     if (authLoading) return
 
     if (session || user) {
-      console.log('🔐 [Login] Usuario autenticado, redirigiendo a:', from)
+      logger.info('User authenticated, redirecting', { from })
+      announceRouteChange('Área principal')
       navigate(from, { replace: true })
     }
-  }, [session, user, authLoading, navigate, from])
+  }, [session, user, authLoading, navigate, from, logger, announceRouteChange])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
       toast.error("Por favor, completa todos los campos")
       return
     }
 
-    setLoading(true)
-
     try {
-      console.log('🔐 [Login] Intentando login para:', email)
+      logger.info('Login attempt', { email })
       await signIn(email, password)
       
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
     } catch (error: any) {
-      console.error('❌ [Login] Error:', error)
+      logger.error('Login failed', { error: error.message })
       
       let errorMessage = "Error al iniciar sesión"
       
@@ -57,17 +59,16 @@ export default function Login() {
       }
       
       toast.error(errorMessage)
-    } finally {
-      setLoading(false)
+      throw error // Re-throw for SmartLoadingButton
     }
   }
 
   // Loading simplificado
-  if (authLoading || ((session || user) && !loading)) {
+  if (authLoading || (session || user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" aria-label="Cargando"></div>
           <p className="text-gray-600">Accediendo...</p>
         </div>
       </div>
@@ -84,9 +85,14 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <AccessibleForm
+            title="Formulario de inicio de sesión"
+            description="Ingresa tu email y contraseña para acceder"
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -94,13 +100,13 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                disabled={loading}
                 autoComplete="email"
+                aria-describedby="email-error"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">Contraseña *</Label>
               <Input
                 id="password"
                 type="password"
@@ -108,19 +114,25 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                disabled={loading}
                 autoComplete="current-password"
+                aria-describedby="password-error"
               />
             </div>
             
-            <Button
-              type="submit"
+            <SmartLoadingButton
+              onClick={handleSubmit}
               className="w-full"
-              disabled={loading || !email.trim() || !password.trim()}
+              loadingText="Iniciando sesión..."
+              minLoadingTime={800}
             >
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-            </Button>
-          </form>
+              Iniciar Sesión
+            </SmartLoadingButton>
+            
+            <div className="text-center text-sm text-gray-600">
+              <p>Atajos de teclado:</p>
+              <p>Alt + M: Menú principal | Alt + S: Buscar</p>
+            </div>
+          </AccessibleForm>
         </CardContent>
       </Card>
     </div>

@@ -25,6 +25,21 @@ interface LogContext {
   firstInputDelay?: number
   memory?: any
   metadata?: Record<string, any>
+  
+  // Phase 5 additions
+  title?: string
+  route?: string
+  session?: boolean
+  user?: boolean
+  authLoading?: boolean
+  from?: string
+  email?: string
+  retryCount?: number
+  duration?: number
+  hasMinDuration?: boolean
+  retryLimit?: number
+  invalidFieldsCount?: number
+  autoRetry?: boolean
 }
 
 interface Logger {
