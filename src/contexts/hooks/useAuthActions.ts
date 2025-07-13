@@ -7,6 +7,7 @@ export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('🔑 [signIn] Iniciando proceso de autenticación para:', email)
+      console.log('🔐 [signIn] Password recibido:', { length: password.length, hasValue: !!password })
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -17,7 +18,8 @@ export const useAuthActions = () => {
         hasData: !!data, 
         hasUser: !!data?.user,
         hasSession: !!data?.session,
-        error: error?.message 
+        error: error?.message,
+        userEmail: data?.user?.email 
       })
       
       if (error) {
@@ -33,6 +35,7 @@ export const useAuthActions = () => {
           userMessage = 'Demasiados intentos. Espere unos minutos'
         }
         
+        console.log('🚨 [signIn] Lanzando error con mensaje:', userMessage)
         throw createError(error.message, {
           severity: 'medium',
           retryable: !error.message.includes('credentials'),
@@ -52,17 +55,23 @@ export const useAuthActions = () => {
 
       console.log('✅ [signIn] Usuario logueado exitosamente:', {
         userId: data.user.id,
-        email: data.user.email
+        email: data.user.email,
+        sessionId: data.session.access_token.substring(0, 10) + '...'
       })
       
-      // Esperar un poco para que el context se actualice
+      console.log('⏱️ [signIn] Esperando para que context se actualice...')
       await new Promise(resolve => setTimeout(resolve, 150))
+      console.log('✅ [signIn] Proceso completado')
       
     } catch (error) {
+      console.error('💥 [signIn] Error capturado:', error)
+      
       if (error instanceof Error && error.name === 'AppError') {
+        console.log('🔄 [signIn] Re-lanzando AppError')
         throw error
       }
       
+      console.log('🔧 [signIn] Creando nuevo AppError para error desconocido')
       const appError = createError('Error de conexión durante el login', {
         severity: 'high',
         retryable: true,

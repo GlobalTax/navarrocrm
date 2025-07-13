@@ -64,24 +64,35 @@ export default function Login() {
   }, [session, user, authLoading, navigate, from, announceRouteChange])
 
   const handleSubmit = async () => {
+    console.log('🔥 [Login] handleSubmit iniciado', { 
+      email: email.trim(), 
+      passwordLength: password.length,
+      hasPassword: !!password.trim() 
+    })
+    
     if (!email.trim() || !password.trim()) {
+      console.log('❌ [Login] Validación fallida - campos vacíos')
       toast.error("Por favor, completa todos los campos")
       return
     }
 
+    console.log('✅ [Login] Validación pasada, iniciando signIn...')
+
     try {
       authLogger.info('Login attempt started', { email })
+      console.log('🚀 [Login] Llamando a signIn...', { email })
       
       // Llamar signIn y esperar la respuesta
       await signIn(email, password)
       
+      console.log('✅ [Login] signIn completado sin errores')
       authLogger.info('Login successful, waiting for session update', { email })
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
       
       // No redirigir manualmente aquí - dejar que el useEffect lo maneje
-      // cuando la sesión se actualice correctamente
       
     } catch (error: any) {
+      console.error('💥 [Login] Error en handleSubmit:', error)
       authLogger.error('Login failed', { 
         error: error.message,
         email,
@@ -98,6 +109,7 @@ export default function Login() {
         errorMessage = "Demasiados intentos. Espera unos minutos"
       }
       
+      console.log('📢 [Login] Mostrando error al usuario:', errorMessage)
       toast.error(errorMessage)
       
       // Limpiar campos en caso de error de credenciales
@@ -181,7 +193,7 @@ export default function Login() {
               onClick={handleSubmit}
               className="w-full"
               loadingText="Iniciando sesión..."
-              minLoadingTime={800}
+              minLoadingTime={500}
             >
               Iniciar Sesión
             </SmartLoadingButton>
