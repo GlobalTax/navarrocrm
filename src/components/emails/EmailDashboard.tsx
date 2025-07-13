@@ -19,15 +19,23 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export function EmailDashboard() {
   const navigate = useNavigate()
-  const { user } = useApp()
+  const { user, session, authLoading } = useApp()
   
-  // Verificar si el usuario está listo antes de cargar hooks
-  if (!user?.id || !user?.org_id) {
+  console.log('📧 [EmailDashboard] Estado de autenticación:', {
+    authLoading,
+    hasUser: !!user,
+    hasSession: !!session,
+    userId: user?.id,
+    orgId: user?.org_id
+  })
+  
+  // Mientras se está cargando la autenticación
+  if (authLoading) {
     return (
       <div className="space-y-6">
         <StandardPageHeader
           title="Dashboard de Email"
-          description="Cargando configuración del usuario..."
+          description="Verificando autenticación..."
         />
         <div className="space-y-4">
           <Skeleton className="h-20 w-full" />
@@ -40,6 +48,34 @@ export function EmailDashboard() {
       </div>
     )
   }
+  
+  // Si no hay sesión válida, redirigir al login
+  if (!session || !user) {
+    console.log('⚠️ [EmailDashboard] Sesión no válida, redirigiendo al login')
+    navigate('/login', { 
+      replace: true,
+      state: { from: { pathname: '/emails/dashboard' } }
+    })
+    return null
+  }
+  
+  // Verificar si el usuario tiene datos completos
+  if (!user.id || !user.org_id) {
+    return (
+      <div className="space-y-6">
+        <StandardPageHeader
+          title="Dashboard de Email"
+          description="Completando configuración del usuario..."
+        />
+        <Alert className="border-0.5 border-black rounded-[10px]">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Los datos del usuario están incompletos. Por favor, contacte al administrador.
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
 
   return <EmailDashboardContent />
 }
@@ -47,27 +83,63 @@ export function EmailDashboard() {
 function EmailDashboardContent() {
   const navigate = useNavigate()
   const [showDiagnostic, setShowDiagnostic] = useState(false)
+  const [hasError, setHasError] = useState<string | null>(null)
   
-  const { 
-    connectionStatus, 
-    connectionData, 
-    isConnecting, 
-    isSyncing, 
-    connect, 
-    syncEmails 
-  } = useOutlookConnection()
+  // Usar try-catch para hooks problemáticos
+  let connectionStatus: any = 'disconnected'
+  let connectionData = null
+  let isConnecting = false
+  let isSyncing = false
+  let connect = () => {}
+  let syncEmails = () => {}
   
-  // Hook para manejar errores de autenticación específicos
-  const { error: authError, connectionStatus: authConnectionStatus } = useOutlookAuth()
+  try {
+    const outlookConnection = useOutlookConnection()
+    connectionStatus = outlookConnection.connectionStatus
+    connectionData = outlookConnection.connectionData
+    isConnecting = outlookConnection.isConnecting
+    isSyncing = outlookConnection.isSyncing
+    connect = outlookConnection.connect
+    syncEmails = outlookConnection.syncEmails
+  } catch (error) {
+    console.error('❌ [EmailDashboard] Error en useOutlookConnection:', error)
+    setHasError(`Error de conexión: ${error instanceof Error ? error.message : 'Error desconocido'}`)
+  }
   
-  const { metrics, isLoading: metricsLoading, error: metricsError } = useEmailMetrics()
+  // Hook para manejar errores de autenticación específicos con manejo de errores
+  let authError: string | null = null
+  let authConnectionStatus = 'idle'
+  
+  try {
+    const outlookAuth = useOutlookAuth()
+    authError = outlookAuth.error
+    authConnectionStatus = outlookAuth.connectionStatus
+  } catch (error) {
+    console.error('❌ [EmailDashboard] Error en useOutlookAuth:', error)
+    authError = `Error de autenticación: ${error instanceof Error ? error.message : 'Error desconocido'}`
+  }
+  
+  // Métricas con manejo de errores
+  let metrics = null
+  let metricsLoading = false
+  let metricsError: string | null = null
+  
+  try {
+    const emailMetrics = useEmailMetrics()
+    metrics = emailMetrics.metrics
+    metricsLoading = emailMetrics.isLoading
+    metricsError = emailMetrics.error ? String(emailMetrics.error) : null
+  } catch (error) {
+    console.error('❌ [EmailDashboard] Error en useEmailMetrics:', error)
+    metricsError = `Error cargando métricas: ${error instanceof Error ? error.message : 'Error desconocido'}`
+  }
 
   const handleConfigure = () => {
     connect()
   }
 
   const handleSync = () => {
-    syncEmails(false)
+    syncEmails()
   }
 
   return (
@@ -114,12 +186,12 @@ function EmailDashboardContent() {
         
         {/* Estado de conexión original (respaldo) */}
         <OutlookConnectionStatus
-          status={authConnectionStatus === 'expired' ? 'expired' : connectionStatus}
+          status={authConnectionStatus === 'expired' ? 'expired' : (connectionStatus as any)}
           lastSync={connectionData?.updated_at ? new Date(connectionData.updated_at) : undefined}
           onSync={handleSync}
           onConfigure={handleConfigure}
           isSyncing={isSyncing}
-          error={authError}
+          error={authError || undefined}
         />
 
         {/* Error de métricas */}

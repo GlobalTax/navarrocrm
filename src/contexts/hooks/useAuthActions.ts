@@ -6,12 +6,22 @@ import { createError, handleError } from '@/utils/errorHandler'
 export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('🔑 [signIn] Iniciando proceso de autenticación para:', email)
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
+
+      console.log('📡 [signIn] Respuesta de Supabase:', { 
+        hasData: !!data, 
+        hasUser: !!data?.user,
+        hasSession: !!data?.session,
+        error: error?.message 
+      })
       
       if (error) {
+        console.error('❌ [signIn] Error de Supabase:', error)
         
         // Crear error específico según el tipo
         let userMessage = 'Error al iniciar sesión'
@@ -30,6 +40,24 @@ export const useAuthActions = () => {
           technicalMessage: error.message
         })
       }
+
+      if (!data?.user || !data?.session) {
+        console.error('❌ [signIn] Respuesta incompleta de Supabase')
+        throw createError('Respuesta incompleta del servidor', {
+          severity: 'high',
+          retryable: true,
+          userMessage: 'Error del servidor. Intente de nuevo'
+        })
+      }
+
+      console.log('✅ [signIn] Usuario logueado exitosamente:', {
+        userId: data.user.id,
+        email: data.user.email
+      })
+      
+      // Esperar un poco para que el context se actualice
+      await new Promise(resolve => setTimeout(resolve, 150))
+      
     } catch (error) {
       if (error instanceof Error && error.name === 'AppError') {
         throw error

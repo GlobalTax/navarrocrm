@@ -22,16 +22,44 @@ export default function Login() {
 
   const from = location.state?.from?.pathname || '/'
 
-  // Redirección más directa
+  // Lógica de redirección mejorada con validaciones
   useEffect(() => {
-    authLogger.debug('Auth state check', { session: !!session, user: !!user, authLoading })
+    authLogger.debug('Auth state check', { 
+      session: !!session, 
+      user: !!user, 
+      authLoading,
+      from,
+      userOrgId: user?.org_id,
+      userId: user?.id
+    })
     
-    if (authLoading) return
+    // Esperar a que termine la autenticación
+    if (authLoading) {
+      authLogger.debug('Still loading auth state, waiting...')
+      return
+    }
 
-    if (session || user) {
-      authLogger.info('User authenticated, redirecting', { from })
-      announceRouteChange('Área principal')
-      navigate(from, { replace: true })
+    // Verificar que tenemos una sesión válida Y datos de usuario completos
+    if (session && user && user.id && user.org_id) {
+      authLogger.info('User fully authenticated with complete data, redirecting', { 
+        from,
+        userId: user.id,
+        orgId: user.org_id
+      })
+      
+      // Añadir pequeño delay para evitar condiciones de carrera
+      setTimeout(() => {
+        announceRouteChange('Área principal')
+        navigate(from, { replace: true })
+      }, 100)
+    } else if (session && user && (!user.id || !user.org_id)) {
+      authLogger.warn('User session exists but incomplete user data', {
+        hasSession: !!session,
+        hasUser: !!user,
+        hasUserId: !!user?.id,
+        hasOrgId: !!user?.org_id
+      })
+      // En este caso, no redirigir automáticamente
     }
   }, [session, user, authLoading, navigate, from, announceRouteChange])
 
@@ -42,12 +70,23 @@ export default function Login() {
     }
 
     try {
-      authLogger.info('Login attempt', { email })
+      authLogger.info('Login attempt started', { email })
+      
+      // Llamar signIn y esperar la respuesta
       await signIn(email, password)
       
+      authLogger.info('Login successful, waiting for session update', { email })
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
+      
+      // No redirigir manualmente aquí - dejar que el useEffect lo maneje
+      // cuando la sesión se actualice correctamente
+      
     } catch (error: any) {
-      authLogger.error('Login failed', { error: error.message })
+      authLogger.error('Login failed', { 
+        error: error.message,
+        email,
+        timestamp: new Date().toISOString()
+      })
       
       let errorMessage = "Error al iniciar sesión"
       
@@ -55,20 +94,40 @@ export default function Login() {
         errorMessage = "Email o contraseña incorrectos"
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = "Por favor, confirma tu email"
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = "Demasiados intentos. Espera unos minutos"
       }
       
       toast.error(errorMessage)
+      
+      // Limpiar campos en caso de error de credenciales
+      if (error.message?.includes('Invalid login credentials')) {
+        setPassword('')
+      }
+      
       throw error // Re-throw for SmartLoadingButton
     }
   }
 
-  // Loading simplificado
-  if (authLoading || (session || user)) {
+  // Loading mejorado con más información
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" aria-label="Cargando"></div>
-          <p className="text-gray-600">Accediendo...</p>
+          <p className="text-gray-600">Verificando autenticación...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Si tenemos sesión y usuario completo, mostrar loading de redirección
+  if (session && user && user.id && user.org_id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" aria-label="Cargando"></div>
+          <p className="text-gray-600">Accediendo al dashboard...</p>
         </div>
       </div>
     )
