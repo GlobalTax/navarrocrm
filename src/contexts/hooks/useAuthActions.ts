@@ -5,8 +5,6 @@ import { createError, handleError } from '@/utils/errorHandler'
 
 export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
-    console.log('🔐 [AuthActions] Iniciando sesión para:', email)
-    
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -14,7 +12,6 @@ export const useAuthActions = () => {
       })
       
       if (error) {
-        console.error('❌ [AuthActions] Error en signIn:', error.message)
         
         // Crear error específico según el tipo
         let userMessage = 'Error al iniciar sesión'
@@ -33,8 +30,6 @@ export const useAuthActions = () => {
           technicalMessage: error.message
         })
       }
-      
-      console.log('✅ [AuthActions] Sign in exitoso')
     } catch (error) {
       if (error instanceof Error && error.name === 'AppError') {
         throw error
@@ -52,8 +47,6 @@ export const useAuthActions = () => {
   }
 
   const signUp = async (email: string, password: string, role: UserRole, orgId: string) => {
-    console.log('📝 [AuthActions] Registrando usuario:', email)
-    
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -64,8 +57,6 @@ export const useAuthActions = () => {
       })
       
       if (error) {
-        console.error('❌ [AuthActions] Error en signUp:', error.message)
-        
         let userMessage = 'Error al registrar usuario'
         if (error.message.includes('User already registered')) {
           userMessage = 'Ya existe una cuenta con este email'
@@ -82,8 +73,6 @@ export const useAuthActions = () => {
       }
 
       if (data.user) {
-        console.log('👤 [AuthActions] Creando perfil para:', data.user.id)
-        
         try {
           const { error: profileError } = await supabase
             .from('users')
@@ -95,8 +84,6 @@ export const useAuthActions = () => {
             })
             
           if (profileError) {
-            console.error('❌ [AuthActions] Error creando perfil:', profileError.message)
-            
             throw createError(profileError.message, {
               severity: 'high',
               retryable: true,
@@ -127,12 +114,9 @@ export const useAuthActions = () => {
   }
 
   const signOut = async () => {
-    console.log('🚪 [AuthActions] Cerrando sesión')
-    
     try {
       const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error('❌ [AuthActions] Error en signOut:', error.message)
         
         // Para signOut, no es crítico si falla - limpiamos local de todas formas
         const appError = createError(error.message, {
@@ -145,8 +129,7 @@ export const useAuthActions = () => {
         handleError(appError, 'SignOut')
       }
     } catch (error) {
-      // Signout failure no debe ser blocking
-      console.warn('⚠️ [AuthActions] SignOut falló silenciosamente:', error)
+      // Signout failure no debe ser blocking - falla silenciosamente
     }
   }
 

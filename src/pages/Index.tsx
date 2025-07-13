@@ -1,11 +1,12 @@
 
 import { Navigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
+import { appLogger } from '@/utils/logger'
 
 const Index = () => {
   const { session, user, isSetup, authLoading, setupLoading } = useApp()
 
-  console.log('📍 [Index] Estado completo:', { 
+  appLogger.debug('Estado completo:', { 
     session: !!session, 
     user: !!user, 
     isSetup, 
@@ -16,7 +17,7 @@ const Index = () => {
 
   // Loading más inteligente con timeout de emergencia
   if (authLoading || setupLoading) {
-    console.log('📍 [Index] Mostrando loading:', { authLoading, setupLoading })
+    appLogger.debug('Mostrando loading:', { authLoading, setupLoading })
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -36,18 +37,18 @@ const Index = () => {
 
   // Si el sistema no está configurado, ir a setup
   if (isSetup === false) {
-    console.log('📍 [Index] Sistema no configurado, redirigiendo a setup')
+    appLogger.info('Sistema no configurado, redirigiendo a setup')
     return <Navigate to="/setup" replace />
   }
 
   // Si no hay sesión, ir a login
   if (!session && !user) {
-    console.log('📍 [Index] Sin autenticación, redirigiendo a login')
+    appLogger.info('Sin autenticación, redirigiendo a login')
     return <Navigate to="/login" replace />
   }
 
   // Si hay usuario autenticado, redirigir al dashboard
-  console.log('📍 [Index] Usuario autenticado, redirigiendo a dashboard')
+  appLogger.debug('Usuario autenticado, redirigiendo a dashboard')
   return <Navigate to="/dashboard" replace />
 }
 

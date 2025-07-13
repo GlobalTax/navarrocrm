@@ -1,6 +1,7 @@
 
 import { Navigate, useLocation } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
+import { routeLogger } from '@/utils/logger'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -16,7 +17,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, session, isSetup, authLoading } = useApp()
   const location = useLocation()
 
-  console.log('🔒 [ProtectedRoute] Estado:', { user: !!user, session: !!session, isSetup, authLoading })
+  routeLogger.debug('Estado ProtectedRoute:', { user: !!user, session: !!session, isSetup, authLoading })
 
   // Solo mostrar loading durante carga crítica y por tiempo limitado
   if (authLoading) {
@@ -32,22 +33,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Verificar autenticación
   if (!user && !session) {
-    console.log('🔒 [ProtectedRoute] Sin autenticación, redirigiendo a login')
+    routeLogger.info('Sin autenticación, redirigiendo a login')
     return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
   // Verificar setup solo si definitivamente no está configurado
   if (isSetup === false) {
-    console.log('🔒 [ProtectedRoute] Sistema no configurado, redirigiendo a setup')
+    routeLogger.info('Sistema no configurado, redirigiendo a setup')
     return <Navigate to="/setup" replace />
   }
 
   // Verificar roles si se especificaron
   if (allowedRoles && user?.role && !allowedRoles.includes(user.role)) {
-    console.log('🔒 [ProtectedRoute] Sin permisos, redirigiendo a unauthorized')
+    routeLogger.warn('Sin permisos, redirigiendo a unauthorized')
     return <Navigate to="/unauthorized" replace />
   }
 
-  console.log('🔒 [ProtectedRoute] Acceso permitido')
+  routeLogger.debug('Acceso permitido')
   return <>{children}</>
 }

@@ -42,23 +42,18 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
     if (initializationStarted.current) return
     initializationStarted.current = true
 
-    console.log('🚀 [AppContext] Inicialización rápida...')
-    
-    // Timeout de emergencia global - después de 10s forzar carga
-    emergencyTimeout.current = setTimeout(() => {
-      console.warn('🚨 [AppContext] Timeout de emergencia - forzando carga')
-      setAuthLoading(false)
-      setSetupLoading(false)
-      if (isSetup === null) setIsSetup(true)
-    }, 10000)
+  // Timeout de emergencia global - después de 8s forzar carga
+  emergencyTimeout.current = setTimeout(() => {
+    setAuthLoading(false)
+    setSetupLoading(false)
+    if (isSetup === null) setIsSetup(true)
+  }, 8000)
     
     // Inicializar setup de forma no bloqueante
     initializeSystemSetup(setIsSetup, setSetupLoading)
     
     // Configurar listener de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 [AppContext] Auth event:', event, session ? 'con sesión' : 'sin sesión')
-      
       // Limpiar timeout de emergencia al recibir evento de auth
       if (emergencyTimeout.current) {
         clearTimeout(emergencyTimeout.current)
@@ -100,7 +95,6 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Wrapper para signOut que también limpia el estado local
   const signOut = async () => {
-    console.log('🚪 [AppContext] Cerrando sesión')
     await baseSignOut()
     // Limpiar estado local inmediatamente
     setUser(null)
@@ -119,14 +113,6 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
     signOut,
   }
 
-  console.log('🏗 [AppContext] Renderizando con estado:', { 
-    user: !!user, 
-    session: !!session, 
-    authLoading, 
-    isSetup,
-    setupLoading,
-    isInitializing 
-  })
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

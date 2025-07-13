@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { AccessibleForm } from '@/components/common/AccessibleForm'
 import { SmartLoadingButton } from '@/components/common/SmartLoadingButton'
 import { useAccessibility } from '@/hooks/useAccessibility'
-import { useLogger } from '@/hooks/useLogger'
+import { authLogger } from '@/utils/logger'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -19,22 +19,21 @@ export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const { announceRouteChange } = useAccessibility()
-  const logger = useLogger('Login')
 
   const from = location.state?.from?.pathname || '/'
 
   // Redirección más directa
   useEffect(() => {
-    logger.debug('Auth state check', { session: !!session, user: !!user, authLoading })
+    authLogger.debug('Auth state check', { session: !!session, user: !!user, authLoading })
     
     if (authLoading) return
 
     if (session || user) {
-      logger.info('User authenticated, redirecting', { from })
+      authLogger.info('User authenticated, redirecting', { from })
       announceRouteChange('Área principal')
       navigate(from, { replace: true })
     }
-  }, [session, user, authLoading, navigate, from, logger, announceRouteChange])
+  }, [session, user, authLoading, navigate, from, announceRouteChange])
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
@@ -43,12 +42,12 @@ export default function Login() {
     }
 
     try {
-      logger.info('Login attempt', { email })
+      authLogger.info('Login attempt', { email })
       await signIn(email, password)
       
       toast.success("¡Bienvenido! Has iniciado sesión correctamente")
     } catch (error: any) {
-      logger.error('Login failed', { error: error.message })
+      authLogger.error('Login failed', { error: error.message })
       
       let errorMessage = "Error al iniciar sesión"
       

@@ -33,7 +33,9 @@ export const createError = (message: string, config: ErrorConfig): AppError => {
 }
 
 export const handleError = (error: unknown, context?: string): void => {
-  console.error(`🚨 [ErrorHandler${context ? ` - ${context}` : ''}]`, error)
+  if (import.meta.env.DEV) {
+    console.error(`🚨 [ErrorHandler${context ? ` - ${context}` : ''}]`, error)
+  }
 
   if (error instanceof AppError) {
     if (error.severity === 'critical') {
