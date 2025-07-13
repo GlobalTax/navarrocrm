@@ -58,7 +58,7 @@ function EmailDashboardContent() {
   } = useOutlookConnection()
   
   // Hook para manejar errores de autenticación específicos
-  const { error: authError, connectionStatus: authStatus } = useOutlookAuth()
+  const { error: authError, connectionStatus: authConnectionStatus } = useOutlookAuth()
   
   const { metrics, isLoading: metricsLoading, error: metricsError } = useEmailMetrics()
 
@@ -114,7 +114,7 @@ function EmailDashboardContent() {
         
         {/* Estado de conexión original (respaldo) */}
         <OutlookConnectionStatus
-          status={authStatus === 'expired' ? 'expired' : connectionStatus}
+          status={authConnectionStatus === 'expired' ? 'expired' : connectionStatus}
           lastSync={connectionData?.updated_at ? new Date(connectionData.updated_at) : undefined}
           onSync={handleSync}
           onConfigure={handleConfigure}
