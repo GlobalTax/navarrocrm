@@ -4778,7 +4778,7 @@ export type Database = {
           last_used_at: string | null
           org_id: string
           outlook_email: string | null
-          refresh_token_encrypted: string
+          refresh_token_encrypted: string | null
           scope_permissions: string[] | null
           token_expires_at: string
           updated_at: string
@@ -4792,7 +4792,7 @@ export type Database = {
           last_used_at?: string | null
           org_id: string
           outlook_email?: string | null
-          refresh_token_encrypted: string
+          refresh_token_encrypted?: string | null
           scope_permissions?: string[] | null
           token_expires_at: string
           updated_at?: string
@@ -4806,7 +4806,7 @@ export type Database = {
           last_used_at?: string | null
           org_id?: string
           outlook_email?: string | null
-          refresh_token_encrypted?: string
+          refresh_token_encrypted?: string | null
           scope_permissions?: string[] | null
           token_expires_at?: string
           updated_at?: string

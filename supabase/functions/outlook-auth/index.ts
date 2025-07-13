@@ -158,7 +158,9 @@ serve(async (req) => {
           `response_type=code&` +
           `redirect_uri=${encodeURIComponent(redirectUri)}&` +
           `response_mode=query&` +
-          `scope=${encodeURIComponent(scope)}`
+          `scope=${encodeURIComponent(scope)}&` +
+          `prompt=consent&` +
+          `access_type=offline`
 
         console.log('🔗 [outlook-auth] URL generada exitosamente')
 
@@ -288,6 +290,12 @@ serve(async (req) => {
           throw new Error('No se pudo obtener el email del usuario')
         }
 
+        // Log refresh token status
+        console.log('🔄 [outlook-auth] Refresh token status:', {
+          received: !!tokenData.refresh_token,
+          note: !tokenData.refresh_token ? 'No refresh token - Microsoft might not provide one for this flow' : 'Refresh token received'
+        })
+
         // Guardar tokens en la base de datos
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
         
@@ -376,7 +384,7 @@ serve(async (req) => {
         
         // Encriptar tokens actualizados
         const encryptedAccessToken = btoa(tokenData.access_token)
-        const encryptedRefreshToken = btoa(tokenData.refresh_token)
+        const encryptedRefreshToken = tokenData.refresh_token ? btoa(tokenData.refresh_token) : null
         
         // Obtener el usuario autenticado
         const authHeader = req.headers.get('Authorization')
@@ -386,13 +394,19 @@ serve(async (req) => {
           throw new Error('Usuario no autenticado')
         }
 
+        const updateData: any = {
+          access_token_encrypted: encryptedAccessToken,
+          token_expires_at: expiresAt.toISOString()
+        }
+        
+        // Solo actualizar refresh token si se recibió uno nuevo
+        if (encryptedRefreshToken) {
+          updateData.refresh_token_encrypted = encryptedRefreshToken
+        }
+
         const { data } = await supabase
           .from('user_outlook_tokens')
-          .update({
-            access_token_encrypted: encryptedAccessToken,
-            refresh_token_encrypted: encryptedRefreshToken,
-            token_expires_at: expiresAt.toISOString()
-          })
+          .update(updateData)
           .eq('user_id', authUser.id)
           .select()
           .single()
