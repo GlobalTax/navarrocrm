@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import { AccessibleForm } from '@/components/common/AccessibleForm'
+
 import { SmartLoadingButton } from '@/components/common/SmartLoadingButton'
 import { useAccessibility } from '@/hooks/useAccessibility'
 import { authLogger } from '@/utils/logger'
@@ -63,7 +63,8 @@ export default function Login() {
     }
   }, [session, user, authLoading, navigate, from, announceRouteChange])
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     console.log('🔥 [Login] handleSubmit iniciado', { 
       email: email.trim(), 
       passwordLength: password.length,
@@ -155,12 +156,7 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AccessibleForm
-            title="Formulario de inicio de sesión"
-            description="Ingresa tu email y contraseña para acceder"
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
               <Input
@@ -171,7 +167,6 @@ export default function Login() {
                 required
                 placeholder="tu@email.com"
                 autoComplete="email"
-                aria-describedby="email-error"
               />
             </div>
             
@@ -185,19 +180,25 @@ export default function Login() {
                 required
                 placeholder="••••••••"
                 autoComplete="current-password"
-                aria-describedby="password-error"
               />
             </div>
             
             <SmartLoadingButton
-              onClick={handleSubmit}
+              onClick={async () => {
+                if (!email.trim() || !password.trim()) {
+                  toast.error("Por favor, completa todos los campos")
+                  throw new Error("Campos requeridos")
+                }
+                await signIn(email, password)
+                toast.success("¡Bienvenido! Has iniciado sesión correctamente")
+              }}
               className="w-full"
               loadingText="Iniciando sesión..."
               minLoadingTime={500}
             >
               Iniciar Sesión
             </SmartLoadingButton>
-          </AccessibleForm>
+          </form>
         </CardContent>
       </Card>
     </div>
