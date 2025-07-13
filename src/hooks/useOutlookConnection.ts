@@ -151,6 +151,8 @@ export function useOutlookConnection() {
         
         console.log('📤 [connect] Enviando petición con token validado')
         
+        console.log('🚀 [connect] Enviando petición a outlook-auth...')
+        
         const { data, error } = await supabase.functions.invoke('outlook-auth', {
           body: {
             action: 'get_auth_url'
@@ -160,7 +162,12 @@ export function useOutlookConnection() {
           }
         })
 
-        if (error) throw error
+        console.log('📡 [connect] Respuesta de outlook-auth:', { data, error })
+
+        if (error) {
+          console.error('❌ [connect] Error desde outlook-auth:', error)
+          throw new Error(`Error al obtener URL de autorización: ${error.message || 'Error desconocido'}`)
+        }
 
         // Abrir popup en lugar de redirección directa
         const popup = window.open(
