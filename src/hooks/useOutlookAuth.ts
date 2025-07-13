@@ -44,7 +44,9 @@ export function useOutlookAuth() {
         throw new Error('URL de autorización no disponible')
       }
 
-      console.log('🔗 [useOutlookAuth] Abriendo ventana de autorización...')
+      console.log('🔗 [useOutlookAuth] Abriendo ventana de autorización...', {
+        authUrl: result.authUrl.substring(0, 100) + '...'
+      })
 
       // Abrir popup para OAuth
       const popup = window.open(
@@ -57,17 +59,29 @@ export function useOutlookAuth() {
         throw new Error('No se pudo abrir la ventana de autorización. Verifique que los popups estén habilitados.')
       }
 
+      console.log('✅ [useOutlookAuth] Ventana popup abierta exitosamente')
+
       // Escuchar mensaje del popup
       const handleMessage = async (event: MessageEvent) => {
+        console.log('📨 [useOutlookAuth] Mensaje recibido:', {
+          origin: event.origin,
+          type: event.data?.type,
+          hasCode: !!event.data?.code
+        })
+
         // Permitir mensajes de cualquier origen para el OAuth callback
-        if (event.data.type === 'OUTLOOK_AUTH_CODE' && event.data.code) {
-          console.log('📨 [useOutlookAuth] Código de autorización recibido')
+        if (event.data?.type === 'OUTLOOK_AUTH_CODE' && event.data?.code) {
+          console.log('📨 [useOutlookAuth] Código de autorización recibido, procesando...')
           window.removeEventListener('message', handleMessage)
-          popup.close()
+          
+          // No cerrar el popup inmediatamente para debug
+          setTimeout(() => popup.close(), 2000)
 
           try {
             // Procesar código de autorización
+            console.log('🔄 [useOutlookAuth] Llamando handleOAuthCallback...')
             const callbackResult = await OutlookAuthService.handleOAuthCallback(event.data.code)
+            console.log('📝 [useOutlookAuth] Resultado del callback:', callbackResult)
             
             if (callbackResult.success) {
               setState(prev => ({ 
@@ -77,6 +91,7 @@ export function useOutlookAuth() {
                 connectionStatus: 'connected' 
               }))
               toast.success('Conexión establecida correctamente')
+              console.log('✅ [useOutlookAuth] Estado actualizado a conectado')
             } else {
               throw new Error(callbackResult.error || 'Error completando autorización')
             }
@@ -90,26 +105,52 @@ export function useOutlookAuth() {
             }))
             toast.error(`Error de autorización: ${callbackError instanceof Error ? callbackError.message : 'Error desconocido'}`)
           }
+        } else {
+          console.log('📨 [useOutlookAuth] Mensaje ignorado - tipo no válido o sin código')
         }
       }
 
       window.addEventListener('message', handleMessage)
+      console.log('👂 [useOutlookAuth] Event listener añadido para mensajes')
 
-      // Timeout para cerrar popup si no responde
+      // Verificar periódicamente si la ventana se cerró
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          console.log('🚪 [useOutlookAuth] Ventana popup cerrada')
+          clearInterval(checkClosed)
+          window.removeEventListener('message', handleMessage)
+          
+          // Solo mostrar error si no se completó la conexión
+          setState(prev => {
+            if (!prev.isConnected && prev.connectionStatus === 'connecting') {
+              return {
+                ...prev,
+                isConnecting: false,
+                error: 'Ventana de autorización cerrada sin completar la conexión',
+                connectionStatus: 'error'
+              }
+            }
+            return prev
+          })
+        }
+      }, 1000)
+
+      // Timeout para cerrar popup si no responde (5 minutos)
       setTimeout(() => {
         if (!popup.closed) {
+          console.log('⏰ [useOutlookAuth] Timeout alcanzado, cerrando ventana')
           popup.close()
+          clearInterval(checkClosed)
           window.removeEventListener('message', handleMessage)
           setState(prev => ({ 
             ...prev, 
             isConnecting: false, 
-            error: 'Tiempo de espera agotado',
+            error: 'Tiempo de espera agotado (5 minutos)',
             connectionStatus: 'error'
           }))
           toast.error('Tiempo de espera agotado. Intente nuevamente.')
         }
-      }, 300000) // 5 minutos
-
+      }, 300000)
     } catch (error) {
       console.error('❌ [useOutlookAuth] Error en conexión OAuth:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'

@@ -57,21 +57,65 @@ serve(async (req) => {
           <html>
             <head>
               <title>Outlook Authentication</title>
+              <style>
+                body { 
+                  font-family: Arial, sans-serif; 
+                  padding: 20px; 
+                  text-align: center;
+                  background-color: #f5f5f5;
+                }
+                .success { color: #28a745; }
+                .processing { color: #007bff; }
+              </style>
             </head>
             <body>
+              <div id="status" class="processing">
+                <h2>🔄 Procesando autenticación...</h2>
+                <p>Por favor, espere mientras procesamos su autorización.</p>
+              </div>
+              
               <script>
-                const code = '${code}';
-                if (window.opener) {
-                  window.opener.postMessage({
-                    type: 'OUTLOOK_AUTH_CODE',
-                    code: code
-                  }, '*');
-                  window.close();
-                } else {
-                  window.location.href = '/emails/dashboard';
+                console.log('🔧 [OAuth Callback] Página cargada, código recibido:', '${code}');
+                
+                function sendMessageToParent() {
+                  try {
+                    const message = {
+                      type: 'OUTLOOK_AUTH_CODE',
+                      code: '${code}',
+                      timestamp: Date.now()
+                    };
+                    
+                    console.log('📤 [OAuth Callback] Enviando mensaje:', message);
+                    
+                    // Enviar mensaje al opener
+                    if (window.opener) {
+                      window.opener.postMessage(message, '*');
+                      console.log('✅ [OAuth Callback] Mensaje enviado a opener');
+                      
+                      document.getElementById('status').innerHTML = 
+                        '<h2 class="success">✅ Autorización completada</h2><p>Esta ventana se cerrará automáticamente...</p>';
+                        
+                      setTimeout(() => {
+                        console.log('🚪 [OAuth Callback] Cerrando ventana');
+                        window.close();
+                      }, 2000);
+                    } else {
+                      console.warn('⚠️ [OAuth Callback] No hay window.opener, redirigiendo...');
+                      window.location.href = '/emails/dashboard';
+                    }
+                  } catch (error) {
+                    console.error('❌ [OAuth Callback] Error enviando mensaje:', error);
+                    document.getElementById('status').innerHTML = 
+                      '<h2 style="color: red;">❌ Error</h2><p>Error procesando autorización. Cierre esta ventana e intente de nuevo.</p>';
+                  }
                 }
+                
+                // Enviar mensaje inmediatamente
+                sendMessageToParent();
+                
+                // También enviar después de un pequeño delay por si acaso
+                setTimeout(sendMessageToParent, 500);
               </script>
-              <p>Autenticación completada. Esta ventana se cerrará automáticamente...</p>
             </body>
           </html>
         `
