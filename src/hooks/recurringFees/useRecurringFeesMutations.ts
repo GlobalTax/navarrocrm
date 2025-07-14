@@ -41,6 +41,22 @@ export const useCreateRecurringFee = () => {
           .limit(1)
           .maybeSingle()
 
+        // Buscar al responsable de la cuenta del cliente
+        const { data: contact, error: contactError } = await supabase
+          .from('contacts')
+          .select('*')
+          .eq('id', client_id)
+          .maybeSingle()
+
+        // Buscar casos activos del cliente para encontrar el responsable
+        const { data: activeCase, error: caseError } = await supabase
+          .from('cases')
+          .select('responsible_solicitor_id')
+          .eq('contact_id', client_id)
+          .eq('status', 'open')
+          .limit(1)
+          .maybeSingle()
+
         if (!userError && responsibleUser) {
           // Calcular próxima fecha de vencimiento (1 mes desde hoy)
           const nextDueDate = new Date()
@@ -64,19 +80,24 @@ export const useCreateRecurringFee = () => {
             .maybeSingle()
 
           if (!taskError && task) {
-            // Asignar la tarea tanto al responsable como al creador
+            // Preparar asignaciones: responsable + gestor de cuenta
             const assignments = [
               {
                 task_id: task.id,
                 user_id: responsibleUser.id,
                 assigned_by: user.id
-              },
-              {
-                task_id: task.id,
-                user_id: user.id,
-                assigned_by: user.id
               }
             ]
+
+            // Asignar también al responsable de la cuenta si existe y es diferente
+            if (!caseError && activeCase?.responsible_solicitor_id && 
+                activeCase.responsible_solicitor_id !== responsibleUser.id) {
+              assignments.push({
+                task_id: task.id,
+                user_id: activeCase.responsible_solicitor_id,
+                assigned_by: user.id
+              })
+            }
 
             await supabase
               .from('task_assignments')
@@ -230,6 +251,15 @@ export const useCreateRecurringFeeFromProposal = () => {
           .limit(1)
           .maybeSingle()
 
+        // Buscar casos activos del cliente para encontrar el responsable
+        const { data: activeCase, error: caseError } = await supabase
+          .from('cases')
+          .select('responsible_solicitor_id')
+          .eq('contact_id', recurringFeeData.contact_id)
+          .eq('status', 'open')
+          .limit(1)
+          .maybeSingle()
+
         if (!userError && responsibleUser) {
           // Calcular próxima fecha de vencimiento (1 mes desde hoy)
           const nextDueDate = new Date()
@@ -253,19 +283,24 @@ export const useCreateRecurringFeeFromProposal = () => {
             .maybeSingle()
 
           if (!taskError && task) {
-            // Asignar la tarea tanto al responsable como al creador
+            // Preparar asignaciones: responsable + gestor de cuenta
             const assignments = [
               {
                 task_id: task.id,
                 user_id: responsibleUser.id,
                 assigned_by: user.id
-              },
-              {
-                task_id: task.id,
-                user_id: user.id,
-                assigned_by: user.id
               }
             ]
+
+            // Asignar también al responsable de la cuenta si existe y es diferente
+            if (!caseError && activeCase?.responsible_solicitor_id && 
+                activeCase.responsible_solicitor_id !== responsibleUser.id) {
+              assignments.push({
+                task_id: task.id,
+                user_id: activeCase.responsible_solicitor_id,
+                assigned_by: user.id
+              })
+            }
 
             await supabase
               .from('task_assignments')
