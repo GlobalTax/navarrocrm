@@ -4,7 +4,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Users as UsersIcon, Mail, Upload, Building } from 'lucide-react'
+import { Users as UsersIcon, Mail, Upload, Building, FileText } from 'lucide-react'
 
 // Hooks y componentes refactorizados
 import { useEnhancedUsers } from '@/hooks/useEnhancedUsers'
@@ -18,6 +18,7 @@ import { UserMetrics } from '@/components/users/UserMetrics'
 import { UserTable } from '@/components/users/UserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
 import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboardingManager'
+import { DocumentTemplateManager } from '@/components/employee-onboarding/DocumentTemplateManager'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 
 const Users = () => {
@@ -137,7 +138,7 @@ const Users = () => {
 
       {/* Tabs para diferentes vistas */}
       <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-3 border-0.5 border-black rounded-[10px]">
+        <TabsList className="grid w-full grid-cols-4 border-0.5 border-black rounded-[10px]">
           <TabsTrigger value="users" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UsersIcon className="h-4 w-4" />
             Usuarios ({users.length})
@@ -154,6 +155,10 @@ const Users = () => {
           <TabsTrigger value="onboarding" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Building className="h-4 w-4" />
             Onboarding
+          </TabsTrigger>
+          <TabsTrigger value="document-templates" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
+            <FileText className="h-4 w-4" />
+            Templates
           </TabsTrigger>
         </TabsList>
 
@@ -178,6 +183,9 @@ const Users = () => {
 
         <TabsContent value="onboarding" className="mt-6">
           <EmployeeOnboardingManager />
+        </TabsContent>
+        <TabsContent value="document-templates" className="mt-6">
+          <DocumentTemplateManager />
         </TabsContent>
       </Tabs>
 

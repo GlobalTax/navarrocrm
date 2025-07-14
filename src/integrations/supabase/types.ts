@@ -2111,6 +2111,68 @@ export type Database = {
           },
         ]
       }
+      employee_document_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          document_type: string
+          id: string
+          is_active: boolean | null
+          is_mandatory: boolean | null
+          name: string
+          org_id: string
+          requires_signature: boolean | null
+          signature_fields: Json | null
+          sort_order: number | null
+          template_content: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          document_type: string
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          name: string
+          org_id: string
+          requires_signature?: boolean | null
+          signature_fields?: Json | null
+          sort_order?: number | null
+          template_content: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          document_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_mandatory?: boolean | null
+          name?: string
+          org_id?: string
+          requires_signature?: boolean | null
+          signature_fields?: Json | null
+          sort_order?: number | null
+          template_content?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_document_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_onboarding: {
         Row: {
           banking_data: Json | null
@@ -2188,6 +2250,79 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_onboarding_documents: {
+        Row: {
+          content: string
+          created_at: string
+          document_name: string
+          generated_at: string | null
+          id: string
+          onboarding_id: string
+          org_id: string
+          pdf_url: string | null
+          requires_signature: boolean | null
+          signature_data: Json | null
+          signed_at: string | null
+          status: string | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_name: string
+          generated_at?: string | null
+          id?: string
+          onboarding_id: string
+          org_id: string
+          pdf_url?: string | null
+          requires_signature?: boolean | null
+          signature_data?: Json | null
+          signed_at?: string | null
+          status?: string | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_name?: string
+          generated_at?: string | null
+          id?: string
+          onboarding_id?: string
+          org_id?: string
+          pdf_url?: string | null
+          requires_signature?: boolean | null
+          signature_data?: Json | null
+          signed_at?: string | null
+          status?: string | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_onboarding_documents_onboarding_id_fkey"
+            columns: ["onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "employee_onboarding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_onboarding_documents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_onboarding_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "employee_document_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -5279,6 +5414,10 @@ export type Database = {
       generate_recurring_invoices: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      generate_signature_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_current_user_org_id: {
         Args: Record<PropertyKey, never>

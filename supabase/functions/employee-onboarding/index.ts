@@ -91,6 +91,8 @@ const handler = async (req: Request): Promise<Response> => {
             break;
           case 4:
             updateFields.documents = data.documents || [];
+            // Generar documentos automáticamente al completar el paso 4
+            await generateOnboardingDocuments(supabase, onboarding);
             break;
           case 5:
             updateFields.job_data = { ...onboarding.job_data, ...data };
@@ -181,5 +183,67 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+// Función auxiliar para generar documentos de onboarding
+async function generateOnboardingDocuments(supabase: any, onboardingData: any) {
+  try {
+    // Obtener templates activos para la organización
+    const { data: templates, error: templatesError } = await supabase
+      .from('employee_document_templates')
+      .select('*')
+      .eq('org_id', onboardingData.org_id)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (templatesError || !templates || templates.length === 0) {
+      console.log('No document templates found for organization');
+      return;
+    }
+
+    // Preparar datos para reemplazar variables
+    const variables = {
+      first_name: onboardingData.personal_data?.first_name || '',
+      last_name: onboardingData.personal_data?.last_name || '',
+      dni: onboardingData.personal_data?.dni || '',
+      email: onboardingData.email,
+      position_title: onboardingData.position_title,
+      start_date: new Date().toLocaleDateString('es-ES'),
+      phone: onboardingData.contact_data?.phone || '',
+      address: onboardingData.contact_data?.address || '',
+      bank_name: onboardingData.banking_data?.bank_name || '',
+      iban: onboardingData.banking_data?.iban || ''
+    };
+
+    // Generar documentos para cada template
+    for (const template of templates) {
+      let content = template.template_content;
+      
+      // Reemplazar variables en el contenido
+      Object.entries(variables).forEach(([key, value]) => {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        content = content.replace(regex, String(value));
+      });
+
+      // Crear documento en la base de datos
+      const { error: docError } = await supabase
+        .from('employee_onboarding_documents')
+        .insert({
+          onboarding_id: onboardingData.id,
+          template_id: template.id,
+          org_id: onboardingData.org_id,
+          document_name: template.name,
+          content: content,
+          requires_signature: template.requires_signature,
+          status: template.requires_signature ? 'pending' : 'completed'
+        });
+
+      if (docError) {
+        console.error('Error creating document:', docError);
+      }
+    }
+  } catch (error) {
+    console.error('Error generating onboarding documents:', error);
+  }
+}
 
 serve(handler);

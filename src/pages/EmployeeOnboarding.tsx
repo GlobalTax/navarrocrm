@@ -22,6 +22,7 @@ import {
   Upload,
   Building
 } from 'lucide-react'
+import { DocumentSigningStep } from '@/components/employee-onboarding/DocumentSigningStep'
 
 interface OnboardingData {
   id: string
@@ -416,54 +417,13 @@ export default function EmployeeOnboarding() {
 
       case 5:
         return (
-          <div className="space-y-6">
-            <div className="bg-muted/30 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">Resumen de tus datos</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Nombre:</span>
-                  <span className="ml-2">{formData.first_name} {formData.last_name}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Email:</span>
-                  <span className="ml-2">{onboardingData.email}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Puesto:</span>
-                  <span className="ml-2">{onboardingData.position_title}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">DNI:</span>
-                  <span className="ml-2">{formData.dni}</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="signature">Firma Digital *</Label>
-              <Input
-                id="signature"
-                value={formData.signature || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, signature: e.target.value }))}
-                placeholder="Escribe tu nombre completo como firma"
-                required
-              />
-            </div>
-
-            <div className="flex items-start space-x-2">
-              <input
-                type="checkbox"
-                id="terms_accepted"
-                checked={formData.terms_accepted || false}
-                onChange={(e) => setFormData(prev => ({ ...prev, terms_accepted: e.target.checked }))}
-                className="mt-1"
-                required
-              />
-              <Label htmlFor="terms_accepted" className="text-sm">
-                Acepto los términos y condiciones del contrato de trabajo y autorizo el tratamiento de mis datos personales según la política de privacidad de la empresa.
-              </Label>
-            </div>
-          </div>
+          <DocumentSigningStep 
+            onboardingId={onboardingData.id}
+            onAllDocumentsSigned={() => {
+              // Cuando todos los documentos estén firmados, permitir completar el onboarding
+              setFormData(prev => ({ ...prev, all_documents_signed: true }))
+            }}
+          />
         )
 
       default:
