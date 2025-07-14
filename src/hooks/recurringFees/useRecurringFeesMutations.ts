@@ -29,6 +29,55 @@ export const useCreateRecurringFee = () => {
         .maybeSingle()
 
       if (error) throw error
+
+      // Crear tarea mensual automática para el responsable si hay horas incluidas
+      if (result && data.included_hours > 0) {
+        // Buscar un usuario responsable (área manager o partner)
+        const { data: responsibleUser, error: userError } = await supabase
+          .from('users')
+          .select('id, email')
+          .eq('org_id', user.org_id)
+          .in('role', ['area_manager', 'partner'])
+          .limit(1)
+          .maybeSingle()
+
+        if (!userError && responsibleUser) {
+          // Calcular próxima fecha de vencimiento (1 mes desde hoy)
+          const nextDueDate = new Date()
+          nextDueDate.setMonth(nextDueDate.getMonth() + 1)
+          
+          // Crear tarea mensual recurrente
+          const { data: task, error: taskError } = await supabase
+            .from('tasks')
+            .insert({
+              title: `Gestión cuota recurrente - ${data.name}`,
+              description: `Gestión mensual de la cuota recurrente "${data.name}" de ${data.included_hours} horas. Revisar consumo y facturación.`,
+              org_id: user.org_id,
+              contact_id: client_id,
+              priority: 'medium',
+              status: 'pending',
+              estimated_hours: data.included_hours,
+              due_date: nextDueDate.toISOString().split('T')[0],
+              created_by: user.id
+            })
+            .select()
+            .maybeSingle()
+
+          if (!taskError && task) {
+            // Asignar la tarea al responsable
+            await supabase
+              .from('task_assignments')
+              .insert({
+                task_id: task.id,
+                user_id: responsibleUser.id,
+                assigned_by: user.id
+              })
+          } else if (taskError) {
+            console.error('Error creando tarea automática:', taskError)
+          }
+        }
+      }
+
       return result
     },
     onSuccess: () => {
@@ -160,6 +209,55 @@ export const useCreateRecurringFeeFromProposal = () => {
         .maybeSingle()
 
       if (error) throw error
+
+      // Crear tarea mensual automática para el responsable si hay horas incluidas
+      if (result && recurringFeeData.included_hours > 0) {
+        // Buscar un usuario responsable (área manager o partner)
+        const { data: responsibleUser, error: userError } = await supabase
+          .from('users')
+          .select('id, email')
+          .eq('org_id', user.org_id)
+          .in('role', ['area_manager', 'partner'])
+          .limit(1)
+          .maybeSingle()
+
+        if (!userError && responsibleUser) {
+          // Calcular próxima fecha de vencimiento (1 mes desde hoy)
+          const nextDueDate = new Date()
+          nextDueDate.setMonth(nextDueDate.getMonth() + 1)
+          
+          // Crear tarea mensual recurrente
+          const { data: task, error: taskError } = await supabase
+            .from('tasks')
+            .insert({
+              title: `Gestión cuota recurrente - ${recurringFeeData.name}`,
+              description: `Gestión mensual de la cuota recurrente "${recurringFeeData.name}" de ${recurringFeeData.included_hours} horas. Revisar consumo y facturación.`,
+              org_id: user.org_id,
+              contact_id: recurringFeeData.contact_id,
+              priority: 'medium',
+              status: 'pending',
+              estimated_hours: recurringFeeData.included_hours,
+              due_date: nextDueDate.toISOString().split('T')[0],
+              created_by: user.id
+            })
+            .select()
+            .maybeSingle()
+
+          if (!taskError && task) {
+            // Asignar la tarea al responsable
+            await supabase
+              .from('task_assignments')
+              .insert({
+                task_id: task.id,
+                user_id: responsibleUser.id,
+                assigned_by: user.id
+              })
+          } else if (taskError) {
+            console.error('Error creando tarea automática:', taskError)
+          }
+        }
+      }
+
       return result
     },
     onSuccess: () => {
