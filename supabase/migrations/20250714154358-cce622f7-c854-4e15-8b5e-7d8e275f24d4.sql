@@ -14,12 +14,12 @@ DECLARE
   registros_procesados INT := 0;
 BEGIN
   -- 1. OBTENER SECRETOS DEL VAULT usando consulta directa
-  SELECT decrypted_secret INTO quantum_token
+  SELECT secret INTO quantum_token
   FROM vault.secrets 
   WHERE name = 'quantum_api_token' 
   LIMIT 1;
   
-  SELECT decrypted_secret INTO company_id
+  SELECT secret INTO company_id
   FROM vault.secrets 
   WHERE name = 'quantum_company_id' 
   LIMIT 1;
