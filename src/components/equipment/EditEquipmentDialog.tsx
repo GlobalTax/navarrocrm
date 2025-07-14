@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { QrCode, Loader2, Trash2 } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
@@ -90,10 +90,10 @@ export function EditEquipmentDialog({ equipment, open, onOpenChange, onSuccess }
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('id, email')
         .eq('org_id', userData.org_id)
         .eq('is_active', true)
-        .order('name')
+        .order('email')
 
       if (error) throw error
       return data || []
@@ -147,18 +147,11 @@ export function EditEquipmentDialog({ equipment, open, onOpenChange, onSuccess }
 
       if (error) throw error
 
-      toast({
-        title: "Equipo actualizado",
-        description: "Los cambios han sido guardados exitosamente.",
-      })
+      toast.success("Los cambios han sido guardados exitosamente.")
 
       onSuccess()
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo actualizar el equipo",
-        variant: "destructive",
-      })
+        toast.error(error.message || "No se pudo actualizar el equipo")
     } finally {
       setIsSubmitting(false)
     }
@@ -176,11 +169,7 @@ export function EditEquipmentDialog({ equipment, open, onOpenChange, onSuccess }
         .eq('status', 'active')
 
       if (assignments && assignments.length > 0) {
-        toast({
-          title: "No se puede eliminar",
-          description: "El equipo tiene asignaciones activas. Primero debe desasignarlo.",
-          variant: "destructive",
-        })
+        toast.error("El equipo tiene asignaciones activas. Primero debe desasignarlo.")
         return
       }
 
@@ -191,18 +180,11 @@ export function EditEquipmentDialog({ equipment, open, onOpenChange, onSuccess }
 
       if (error) throw error
 
-      toast({
-        title: "Equipo eliminado",
-        description: "El equipo ha sido eliminado exitosamente.",
-      })
+      toast.success("El equipo ha sido eliminado exitosamente.")
 
       onSuccess()
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo eliminar el equipo",
-        variant: "destructive",
-      })
+      toast.error(error.message || "No se pudo eliminar el equipo")
     } finally {
       setIsDeleting(false)
     }

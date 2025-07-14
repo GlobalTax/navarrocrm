@@ -32,8 +32,7 @@ export function EquipmentMaintenance() {
         .from('equipment_maintenance')
         .select(`
           *,
-          equipment:equipment_inventory(name, brand, model, category),
-          technician:users(name, email)
+          equipment:equipment_inventory(name, brand, model, category)
         `)
         .eq('org_id', userData.org_id)
 
@@ -185,13 +184,6 @@ export function EquipmentMaintenance() {
                 </div>
               )}
 
-              {item.technician && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Wrench className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Técnico:</span>
-                  <span>{item.technician.name}</span>
-                </div>
-              )}
 
               {item.description && (
                 <p className="text-sm text-muted-foreground">

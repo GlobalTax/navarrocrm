@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 const maintenanceSchema = z.object({
@@ -85,10 +85,10 @@ export function CreateMaintenanceDialog({ open, onOpenChange, onSuccess }: Creat
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('id, email')
         .eq('org_id', userData.org_id)
         .eq('is_active', true)
-        .order('name')
+        .order('email')
 
       if (error) throw error
       return data || []
@@ -111,7 +111,11 @@ export function CreateMaintenanceDialog({ open, onOpenChange, onSuccess }: Creat
       if (!userData?.org_id) throw new Error('User not in organization')
 
       const maintenanceData = {
-        ...data,
+        equipment_id: data.equipment_id,
+        maintenance_type: data.maintenance_type,
+        priority: data.priority,
+        scheduled_date: data.scheduled_date,
+        description: data.description,
         org_id: userData.org_id,
         technician_id: data.technician_id || null,
         estimated_cost: data.estimated_cost ? parseFloat(data.estimated_cost) : null,
@@ -125,19 +129,12 @@ export function CreateMaintenanceDialog({ open, onOpenChange, onSuccess }: Creat
 
       if (error) throw error
 
-      toast({
-        title: "Mantenimiento programado",
-        description: "El mantenimiento ha sido programado exitosamente.",
-      })
+      toast.success("El mantenimiento ha sido programado exitosamente.")
 
       form.reset()
       onSuccess()
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo programar el mantenimiento",
-        variant: "destructive",
-      })
+      toast.error(error.message || "No se pudo programar el mantenimiento")
     } finally {
       setIsSubmitting(false)
     }
@@ -254,7 +251,7 @@ export function CreateMaintenanceDialog({ open, onOpenChange, onSuccess }: Creat
                         <SelectItem value="">Sin asignar</SelectItem>
                         {technicians.map((tech) => (
                           <SelectItem key={tech.id} value={tech.id}>
-                            {tech.name} ({tech.email})
+                            {tech.email}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { QrCode, Loader2 } from 'lucide-react'
 
 const equipmentSchema = z.object({
@@ -82,7 +82,7 @@ export function CreateEquipmentDialog({ open, onOpenChange, onSuccess }: CreateE
     setTimeout(() => setGeneratingQR(false), 500)
   }
 
-  const { toast } = useToast()
+  
 
   const onSubmit = async (data: EquipmentFormData) => {
     try {
@@ -123,19 +123,12 @@ export function CreateEquipmentDialog({ open, onOpenChange, onSuccess }: CreateE
 
       if (error) throw error
 
-      toast({
-        title: "Equipo creado",
-        description: "El equipo ha sido registrado exitosamente.",
-      })
+      toast.success("El equipo ha sido registrado exitosamente.")
 
       form.reset()
       onSuccess()
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo crear el equipo",
-        variant: "destructive",
-      })
+      toast.error(error.message || "No se pudo crear el equipo")
     } finally {
       setIsSubmitting(false)
     }

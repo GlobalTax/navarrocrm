@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
 const assignmentSchema = z.object({
@@ -85,7 +85,7 @@ export function CreateAssignmentDialog({ open, onOpenChange, onSuccess }: Create
 
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email')
+        .select('id, email')
         .eq('org_id', userData.org_id)
         .eq('is_active', true)
         .order('name')
@@ -112,10 +112,16 @@ export function CreateAssignmentDialog({ open, onOpenChange, onSuccess }: Create
 
       // Create assignment
       const assignmentData = {
-        ...data,
+        equipment_id: data.equipment_id,
+        assigned_to: data.assigned_to,
+        assignment_type: data.assignment_type,
+        start_date: data.start_date,
+        end_date: data.end_date || null,
+        location: data.location || null,
+        purpose: data.purpose || null,
+        notes: data.notes || null,
         org_id: userData.org_id,
         assigned_by: user.user.id,
-        end_date: data.end_date || null,
         status: 'active',
       }
 
@@ -136,19 +142,12 @@ export function CreateAssignmentDialog({ open, onOpenChange, onSuccess }: Create
 
       if (equipmentError) throw equipmentError
 
-      toast({
-        title: "Asignación creada",
-        description: "El equipo ha sido asignado exitosamente.",
-      })
+      toast.success("El equipo ha sido asignado exitosamente.")
 
       form.reset()
       onSuccess()
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo crear la asignación",
-        variant: "destructive",
-      })
+      toast.error(error.message || "No se pudo crear la asignación")
     } finally {
       setIsSubmitting(false)
     }
@@ -204,7 +203,7 @@ export function CreateAssignmentDialog({ open, onOpenChange, onSuccess }: Create
                       <SelectContent>
                         {users.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
-                            {user.name} ({user.email})
+                            {user.email}
                           </SelectItem>
                         ))}
                       </SelectContent>

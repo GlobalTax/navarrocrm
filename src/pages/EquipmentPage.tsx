@@ -5,7 +5,7 @@ import { EquipmentAssignments } from '@/components/equipment/EquipmentAssignment
 import { EquipmentMaintenance } from '@/components/equipment/EquipmentMaintenance'
 import { EquipmentStats } from '@/components/equipment/EquipmentStats'
 
-export function EquipmentPage() {
+export default function EquipmentPage() {
   return (
     <div className="space-y-6 p-6">
       <div>

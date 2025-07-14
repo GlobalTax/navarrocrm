@@ -41,28 +41,30 @@ export function EquipmentStats() {
     )
   }
 
+  const statsData = stats as any
+
   const cards = [
     {
       title: "Total Equipos",
-      value: stats?.totalEquipment || 0,
+      value: statsData?.totalEquipment || 0,
       icon: Package,
       description: "Equipos registrados"
     },
     {
       title: "Disponibles",
-      value: stats?.availableEquipment || 0,
+      value: statsData?.availableEquipment || 0,
       icon: Users,
       description: "Equipos disponibles"
     },
     {
       title: "Asignados",
-      value: (stats?.totalEquipment || 0) - (stats?.availableEquipment || 0),
+      value: (statsData?.totalEquipment || 0) - (statsData?.availableEquipment || 0),
       icon: Users,
       description: "Equipos en uso"
     },
     {
       title: "Mantenimiento",
-      value: stats?.pendingMaintenance || 0,
+      value: statsData?.pendingMaintenance || 0,
       icon: AlertTriangle,
       description: "Pendientes"
     }

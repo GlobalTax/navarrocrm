@@ -33,13 +33,13 @@ export function EquipmentAssignments() {
         .select(`
           *,
           equipment:equipment_inventory(name, brand, model, category),
-          assigned_to_user:users!equipment_assignments_assigned_to_fkey(name, email),
-          assigned_by_user:users!equipment_assignments_assigned_by_fkey(name)
+          assigned_to_user:users!equipment_assignments_assigned_to_fkey(email),
+          assigned_by_user:users!equipment_assignments_assigned_by_fkey(email)
         `)
         .eq('org_id', userData.org_id)
 
       if (searchTerm) {
-        query = query.or(`equipment.name.ilike.%${searchTerm}%,assigned_to_user.name.ilike.%${searchTerm}%`)
+        query = query.or(`equipment.name.ilike.%${searchTerm}%,assigned_to_user.email.ilike.%${searchTerm}%`)
       }
 
       const { data, error } = await query.order('created_at', { ascending: false })
@@ -128,7 +128,7 @@ export function EquipmentAssignments() {
               <div className="flex items-center gap-2 text-sm">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">Asignado a:</span>
-                <span>{assignment.assigned_to_user?.name || 'Usuario no disponible'}</span>
+                <span>{assignment.assigned_to_user?.email || 'Usuario no disponible'}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
@@ -166,7 +166,7 @@ export function EquipmentAssignments() {
               )}
 
               <div className="text-xs text-muted-foreground pt-2 border-t">
-                Asignado por {assignment.assigned_by_user?.name} • {format(new Date(assignment.created_at), 'dd/MM/yyyy', { locale: es })}
+                Asignado por {assignment.assigned_by_user?.email} • {format(new Date(assignment.created_at), 'dd/MM/yyyy', { locale: es })}
               </div>
             </CardContent>
           </Card>

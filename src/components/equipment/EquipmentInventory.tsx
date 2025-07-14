@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Search, QrCode } from 'lucide-react'
+import { Plus, Search, QrCode, Package } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { CreateEquipmentDialog } from './CreateEquipmentDialog'
 import { EditEquipmentDialog } from './EditEquipmentDialog'
@@ -32,7 +32,7 @@ export function EquipmentInventory() {
         .from('equipment_inventory')
         .select(`
           *,
-          assigned_to_user:users(name),
+          assigned_to_user:users(email),
           room:office_rooms(name)
         `)
         .eq('org_id', userData.org_id)
@@ -151,7 +151,7 @@ export function EquipmentInventory() {
               )}
               {item.assigned_to_user && (
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Asignado a:</span> {item.assigned_to_user.name}
+                  <span className="font-medium">Asignado a:</span> {item.assigned_to_user.email}
                 </p>
               )}
               {item.room && (
