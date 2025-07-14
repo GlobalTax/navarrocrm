@@ -20,9 +20,9 @@ serve(async (req) => {
 
     console.log('Iniciando sincronización con Quantum...');
 
-    // Llamar a la función de sincronización final (que tiene las credenciales hardcodeadas)
+    // Llamar a la función de sincronización que usa secretos del Vault
     const { data: syncResult, error: syncError } = await supabase
-      .rpc('sincronizar_cuentas_quantum_final');
+      .rpc('sincronizar_cuentas_quantum');
 
     if (syncError) {
       console.error('Error en sincronización:', syncError);
