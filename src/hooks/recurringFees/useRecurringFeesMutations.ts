@@ -64,14 +64,23 @@ export const useCreateRecurringFee = () => {
             .maybeSingle()
 
           if (!taskError && task) {
-            // Asignar la tarea al responsable
-            await supabase
-              .from('task_assignments')
-              .insert({
+            // Asignar la tarea tanto al responsable como al creador
+            const assignments = [
+              {
                 task_id: task.id,
                 user_id: responsibleUser.id,
                 assigned_by: user.id
-              })
+              },
+              {
+                task_id: task.id,
+                user_id: user.id,
+                assigned_by: user.id
+              }
+            ]
+
+            await supabase
+              .from('task_assignments')
+              .insert(assignments)
           } else if (taskError) {
             console.error('Error creando tarea automática:', taskError)
           }
@@ -244,14 +253,23 @@ export const useCreateRecurringFeeFromProposal = () => {
             .maybeSingle()
 
           if (!taskError && task) {
-            // Asignar la tarea al responsable
-            await supabase
-              .from('task_assignments')
-              .insert({
+            // Asignar la tarea tanto al responsable como al creador
+            const assignments = [
+              {
                 task_id: task.id,
                 user_id: responsibleUser.id,
                 assigned_by: user.id
-              })
+              },
+              {
+                task_id: task.id,
+                user_id: user.id,
+                assigned_by: user.id
+              }
+            ]
+
+            await supabase
+              .from('task_assignments')
+              .insert(assignments)
           } else if (taskError) {
             console.error('Error creando tarea automática:', taskError)
           }
