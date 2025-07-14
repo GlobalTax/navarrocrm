@@ -33,6 +33,13 @@ const IntegrationSettings = () => {
       lastSync: null
     },
     {
+      name: 'Quantum Economics',
+      status: 'active',
+      description: 'Sincronización de cuentas contables desde Quantum',
+      icon: Database,
+      lastSync: '2025-06-30 19:15:00'
+    },
+    {
       name: 'Webhooks',
       status: 'active',
       description: 'Notificaciones automáticas a sistemas externos',

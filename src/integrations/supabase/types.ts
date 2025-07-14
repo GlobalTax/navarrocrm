@@ -1179,6 +1179,39 @@ export type Database = {
           },
         ]
       }
+      cuentas: {
+        Row: {
+          balance_actual: number | null
+          created_at: string | null
+          credito: number | null
+          datos_completos: Json | null
+          debito: number | null
+          id: string
+          nombre: string
+          updated_at: string | null
+        }
+        Insert: {
+          balance_actual?: number | null
+          created_at?: string | null
+          credito?: number | null
+          datos_completos?: Json | null
+          debito?: number | null
+          id: string
+          nombre: string
+          updated_at?: string | null
+        }
+        Update: {
+          balance_actual?: number | null
+          created_at?: string | null
+          credito?: number | null
+          datos_completos?: Json | null
+          debito?: number | null
+          id?: string
+          nombre?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       custom_reports: {
         Row: {
           created_at: string
@@ -3493,6 +3526,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quantum_sync_history: {
+        Row: {
+          error_details: Json | null
+          id: string
+          message: string | null
+          records_processed: number | null
+          status: string
+          sync_date: string | null
+        }
+        Insert: {
+          error_details?: Json | null
+          id?: string
+          message?: string | null
+          records_processed?: number | null
+          status: string
+          sync_date?: string | null
+        }
+        Update: {
+          error_details?: Json | null
+          id?: string
+          message?: string | null
+          records_processed?: number | null
+          status?: string
+          sync_date?: string | null
+        }
+        Relationships: []
       }
       recurring_fee_hours: {
         Row: {
