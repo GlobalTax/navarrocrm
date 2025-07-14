@@ -45,6 +45,7 @@ const Clients = lazy(() => import('@/pages/Clients'))
 const AcademiaAdmin = lazy(() => import('@/pages/AcademiaAdmin'))
 const Rooms = lazy(() => import('@/pages/Rooms'))
 const RoomDisplay = lazy(() => import('@/pages/RoomDisplay'))
+const Equipment = lazy(() => import('@/pages/EquipmentPage'))
 const EmployeeOnboarding = lazy(() => import('@/pages/EmployeeOnboarding'))
 const EmployeeOnboardingSuccess = lazy(() => import('@/pages/EmployeeOnboardingSuccess'))
 const OutlookCallback = lazy(() => import('@/pages/OutlookCallback'))
@@ -236,6 +237,14 @@ function App() {
                     element={
                       <Suspense fallback={<PageLoadingSkeleton />}>
                         <RoomDisplay />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/equipment" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <Equipment />
                       </Suspense>
                     } 
                   />
