@@ -13,34 +13,47 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🚀 Iniciando Edge Function sync-quantum-accounts');
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Iniciando sincronización con Quantum...');
+    console.log('✅ Cliente Supabase creado correctamente');
+    console.log('📡 Llamando a función sincronizar_cuentas_quantum...');
 
     // Llamar a la función de sincronización que usa secretos del Vault
     const { data: syncResult, error: syncError } = await supabase
       .rpc('sincronizar_cuentas_quantum');
 
+    console.log('📊 Resultado de RPC:', { syncResult, syncError });
+
     if (syncError) {
-      console.error('Error en sincronización:', syncError);
+      console.error('❌ Error en sincronización RPC:', syncError);
+      console.error('❌ Detalles del error:', JSON.stringify(syncError, null, 2));
       
       // Registrar el error en el historial
-      await supabase
-        .from('quantum_sync_history')
-        .insert({
-          status: 'error',
-          message: 'Error al ejecutar la sincronización',
-          records_processed: 0,
-          error_details: syncError
-        });
+      try {
+        await supabase
+          .from('quantum_sync_history')
+          .insert({
+            status: 'error',
+            message: `Error RPC: ${syncError.message}`,
+            records_processed: 0,
+            error_details: syncError
+          });
+        console.log('✅ Error registrado en historial');
+      } catch (logError) {
+        console.error('❌ Error al registrar en historial:', logError);
+      }
 
       return new Response(
         JSON.stringify({ 
+          success: false,
           error: 'Error en la sincronización', 
-          details: syncError.message 
+          details: syncError.message,
+          code: syncError.code || 'UNKNOWN_ERROR'
         }),
         { 
           status: 500, 
