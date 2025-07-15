@@ -71,57 +71,74 @@ serve(async (req) => {
       );
     }
 
-    // Construir URL de la API para clientes
-    const apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/client?companyId=${companyId}`;
-    console.log('📡 Llamando a API Quantum para clientes:', apiUrl);
+    // Intentar múltiples endpoints de la API
+    const endpoints = [
+      `https://app.quantumeconomics.es/contabilidad/ws/client?companyId=${companyId}`,
+      `https://app.quantumeconomics.es/contabilidad/ws/clients?companyId=${companyId}`,
+      `https://app.quantumeconomics.es/contabilidad/ws/getclient?companyId=${companyId}`,
+      `https://app.quantumeconomics.es/contabilidad/ws/getclients?companyId=${companyId}`
+    ];
 
-    // Intentar múltiples formatos de autorización
     let response: Response;
     let authMethod = '';
+    let usedEndpoint = '';
     
-    try {
-      // Primer intento: Bearer
-      console.log('🔐 Intentando autenticación Bearer...');
-      response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${quantumToken}`,
-          'Accept': 'application/json',
-          'User-Agent': 'Supabase-Edge-Function/1.0'
-        }
-      });
-      authMethod = 'Bearer';
+    for (const endpoint of endpoints) {
+      console.log('📡 Probando endpoint:', endpoint);
       
-      if (!response.ok) {
-        console.log('⚠️ Bearer falló, intentando API-KEY...');
-        // Segundo intento: API-KEY
-        response = await fetch(apiUrl, {
+      try {
+        // Primer intento: Bearer
+        console.log('🔐 Intentando autenticación Bearer...');
+        response = await fetch(endpoint, {
           method: 'GET',
           headers: {
-            'Authorization': `API-KEY ${quantumToken}`,
+            'Authorization': `Bearer ${quantumToken}`,
             'Accept': 'application/json',
             'User-Agent': 'Supabase-Edge-Function/1.0'
           }
         });
-        authMethod = 'API-KEY';
+        authMethod = 'Bearer';
+        usedEndpoint = endpoint;
+        
+        if (!response.ok) {
+          console.log('⚠️ Bearer falló, intentando API-KEY...');
+          // Segundo intento: API-KEY
+          response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              'Authorization': `API-KEY ${quantumToken}`,
+              'Accept': 'application/json',
+              'User-Agent': 'Supabase-Edge-Function/1.0'
+            }
+          });
+          authMethod = 'API-KEY';
+        }
+        
+        if (response.ok) {
+          console.log('✅ Endpoint exitoso:', endpoint, 'con método:', authMethod);
+          break;
+        } else {
+          console.log('❌ Endpoint falló:', endpoint, 'Status:', response.status);
+        }
+        
+      } catch (fetchError) {
+        console.error('❌ Error en fetch para endpoint:', endpoint, fetchError);
+        continue;
       }
-    } catch (fetchError) {
-      console.error('❌ Error en fetch:', fetchError);
-      throw new Error(`Error de conexión con Quantum: ${fetchError.message}`);
     }
 
-    console.log('📊 Respuesta API status:', response.status, 'con método:', authMethod);
+    if (!response || !response.ok) {
+      throw new Error(`Todos los endpoints de Quantum fallaron. Último status: ${response?.status || 'Sin respuesta'}`);
+    }
 
-    if (!response.ok) {
-      let responseText = '';
-      try {
-        responseText = await response.text();
-      } catch (e) {
-        responseText = 'No se pudo leer la respuesta';
-      }
-      
-      const errorMsg = `Error en API Quantum: ${response.status} ${response.statusText}`;
-      console.error('❌', errorMsg, 'Respuesta:', responseText);
+    console.log('📊 Respuesta API status:', response.status, 'con método:', authMethod, 'endpoint:', usedEndpoint);
+
+    let data: QuantumResponse;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      const errorMsg = 'Error: La respuesta de la API no es JSON válido.';
+      console.error('❌', errorMsg, jsonError);
       
       return new Response(
         JSON.stringify({ 
@@ -135,19 +152,22 @@ serve(async (req) => {
       );
     }
 
-    const data: QuantumResponse = await response.json();
     console.log('📋 Estructura de respuesta:', Object.keys(data));
 
-    // Verificar estructura de respuesta - probamos ambos formatos
-    const clients = data.clients || data.getclients;
-    if (!clients || !Array.isArray(clients)) {
+    // Verificar estructura de respuesta - probamos múltiples formatos
+    const clients = data.clients || data.getclients || data.client || data.getclient;
+    if (!clients) {
       const errorMsg = 'Error: La respuesta de la API no contiene clientes válidos.';
-      console.error('❌', errorMsg);
+      console.error('❌', errorMsg, 'Respuesta completa:', data);
       
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: errorMsg
+          error: errorMsg,
+          debug: {
+            responseKeys: Object.keys(data),
+            response: data
+          }
         }),
         { 
           status: 500, 
@@ -156,15 +176,30 @@ serve(async (req) => {
       );
     }
 
-    console.log(`📋 Obtenidos ${clients.length} clientes de Quantum Economics`);
+    // Normalizar la respuesta a array
+    const clientsArray = Array.isArray(clients) ? clients : [clients];
+    console.log(`📋 Obtenidos ${clientsArray.length} clientes de Quantum Economics`);
+
+    // Registrar sincronización en el historial
+    try {
+      await supabase.from('quantum_sync_history').insert({
+        status: 'success',
+        message: `Obtenidos ${clientsArray.length} clientes exitosamente`,
+        records_processed: clientsArray.length,
+        sync_date: new Date().toISOString()
+      });
+    } catch (historyError) {
+      console.error('⚠️ Error al registrar historial:', historyError);
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true,
         data: {
-          clients: clients,
-          total: clients.length,
-          authMethod
+          clients: clientsArray,
+          total: clientsArray.length,
+          authMethod,
+          endpoint: usedEndpoint
         }
       }),
       { 
@@ -174,6 +209,19 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Error general al obtener clientes:', error);
+    
+    // Registrar error en el historial
+    try {
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: `Error al obtener clientes: ${error.message}`,
+        records_processed: 0,
+        error_details: { error: error.message, stack: error.stack },
+        sync_date: new Date().toISOString()
+      });
+    } catch (historyError) {
+      console.error('⚠️ Error al registrar historial de error:', historyError);
+    }
     
     return new Response(
       JSON.stringify({ 

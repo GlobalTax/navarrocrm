@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { QuantumClientImporter } from '@/components/quantum/QuantumClientImporter'
+import { QuantumImportHistory } from '@/components/quantum/QuantumImportHistory'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Database, Users, Building } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -50,13 +51,7 @@ export default function QuantumImport() {
         </TabsContent>
         
         <TabsContent value="history" className="space-y-4">
-          <div className="text-center py-8">
-            <Database className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Historial de Importación</h3>
-            <p className="text-muted-foreground">
-              Próximamente: Historial de importaciones realizadas
-            </p>
-          </div>
+          <QuantumImportHistory />
         </TabsContent>
       </Tabs>
     </StandardPageContainer>

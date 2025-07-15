@@ -61,10 +61,18 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     queryKey: ['quantum-clients'],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('quantum-clients')
-      if (error) throw error
+      if (error) {
+        console.error('Error en Edge Function:', error)
+        throw new Error(`Error al conectar con Quantum: ${error.message}`)
+      }
+      if (!data?.success) {
+        console.error('Error en API Quantum:', data?.error)
+        throw new Error(data?.error || 'Error desconocido en la API de Quantum')
+      }
       return data
     },
-    retry: 1
+    retry: 2,
+    retryDelay: 1000
   })
 
   const clients: QuantumClient[] = clientsData?.data?.clients || []
@@ -174,11 +182,22 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
         <CardContent className="flex flex-col items-center justify-center py-8">
           <AlertCircle className="w-12 h-12 text-destructive mb-4" />
           <h3 className="text-lg font-semibold mb-2">Error al cargar datos</h3>
-          <p className="text-muted-foreground mb-4">No se pudieron obtener los datos de Quantum Economics</p>
-          <Button onClick={() => refetch()} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Reintentar
-          </Button>
+          <p className="text-muted-foreground mb-4 text-center">
+            {error.message || 'No se pudieron obtener los datos de Quantum Economics'}
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => refetch()} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reintentar
+            </Button>
+            <Button 
+              onClick={() => window.open('https://supabase.com/dashboard/project/jzbbbwfnzpwxmuhpbdya/functions/quantum-clients/logs', '_blank')}
+              variant="ghost"
+              size="sm"
+            >
+              Ver logs
+            </Button>
+          </div>
         </CardContent>
       </Card>
     )
