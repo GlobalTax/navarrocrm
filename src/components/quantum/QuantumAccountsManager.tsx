@@ -76,17 +76,93 @@ export function QuantumAccountsManager() {
   const syncQuantumAccounts = async () => {
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-quantum-accounts');
+      console.log('🚀 Iniciando sincronización directa con Quantum Economics');
       
-      if (error) throw error;
+      // Credenciales directas (en producción usar variables seguras)
+      const quantumToken = 'VTdIaHpoWEhrcFVmQlhXQ2lzVUpycUZmeUNjcTBDY1M=';
+      const companyId = '28171';
+      
+      // Construir URL de la API
+      const apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/account?companyId=${companyId}&year=2024&accountType=C`;
+      
+      console.log('📡 Llamando a API Quantum:', apiUrl);
 
-      toast.success(data?.message || "Las cuentas se han sincronizado correctamente");
+      // Llamada directa a la API con proxy CORS
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+      
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${quantumToken}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error en API Quantum: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📋 Respuesta de API:', data);
+
+      // Verificar estructura de respuesta
+      const accounts = data.accounts || data.getaccounts;
+      if (!accounts || !Array.isArray(accounts)) {
+        throw new Error('Respuesta inválida de la API: no contiene cuentas válidas');
+      }
+
+      console.log(`💾 Procesando ${accounts.length} cuentas...`);
+
+      // Procesar y guardar cada cuenta
+      let registrosProcesados = 0;
+      for (const cuenta of accounts) {
+        try {
+          const { error } = await supabase
+            .from('cuentas')
+            .upsert({
+              id: cuenta.id,
+              nombre: cuenta.name,
+              balance_actual: cuenta.currentBalance || 0,
+              debito: cuenta.debit || 0,
+              credito: cuenta.credit || 0,
+              datos_completos: cuenta
+            });
+
+          if (error) {
+            console.error('❌ Error al guardar cuenta:', cuenta.id, error);
+          } else {
+            registrosProcesados++;
+            console.log('✅ Cuenta guardada:', cuenta.id, cuenta.name);
+          }
+        } catch (err) {
+          console.error('❌ Error al procesar cuenta:', cuenta.id, err);
+        }
+      }
+
+      // Registrar en historial
+      await supabase.from('quantum_sync_history').insert({
+        status: 'success',
+        message: `Sincronización completada exitosamente. Registros procesados: ${registrosProcesados}`,
+        records_processed: registrosProcesados,
+        error_details: null
+      });
+
+      toast.success(`Sincronización exitosa: ${registrosProcesados} cuentas procesadas`);
 
       // Refrescar los datos
       await Promise.all([fetchCuentas(), fetchSyncHistory()]);
     } catch (error) {
-      console.error('Error syncing accounts:', error);
-      toast.error("No se pudieron sincronizar las cuentas de Quantum");
+      console.error('❌ Error general:', error);
+      
+      // Registrar error en historial
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: 'Error en la sincronización',
+        records_processed: 0,
+        error_details: { error: error.message }
+      });
+
+      toast.error(`Error en sincronización: ${error.message}`);
     } finally {
       setSyncing(false);
     }
