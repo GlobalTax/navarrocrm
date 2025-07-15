@@ -1071,6 +1071,7 @@ export type Database = {
           address_country: string | null
           address_postal_code: string | null
           address_street: string | null
+          auto_imported_at: string | null
           business_sector: string | null
           client_type: string | null
           company_id: string | null
@@ -1092,7 +1093,9 @@ export type Database = {
           phone: string | null
           preferred_language: string | null
           preferred_meeting_time: string | null
+          quantum_customer_id: string | null
           relationship_type: string
+          source: string | null
           status: string | null
           tags: string[] | null
           timezone: string | null
@@ -1103,6 +1106,7 @@ export type Database = {
           address_country?: string | null
           address_postal_code?: string | null
           address_street?: string | null
+          auto_imported_at?: string | null
           business_sector?: string | null
           client_type?: string | null
           company_id?: string | null
@@ -1124,7 +1128,9 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           preferred_meeting_time?: string | null
+          quantum_customer_id?: string | null
           relationship_type?: string
+          source?: string | null
           status?: string | null
           tags?: string[] | null
           timezone?: string | null
@@ -1135,6 +1141,7 @@ export type Database = {
           address_country?: string | null
           address_postal_code?: string | null
           address_street?: string | null
+          auto_imported_at?: string | null
           business_sector?: string | null
           client_type?: string | null
           company_id?: string | null
@@ -1156,7 +1163,9 @@ export type Database = {
           phone?: string | null
           preferred_language?: string | null
           preferred_meeting_time?: string | null
+          quantum_customer_id?: string | null
           relationship_type?: string
+          source?: string | null
           status?: string | null
           tags?: string[] | null
           timezone?: string | null
@@ -3551,6 +3560,39 @@ export type Database = {
           records_processed?: number | null
           status?: string
           sync_date?: string | null
+        }
+        Relationships: []
+      }
+      quantum_sync_notifications: {
+        Row: {
+          contacts_imported: number
+          contacts_skipped: number
+          created_at: string
+          error_message: string | null
+          id: string
+          org_id: string
+          status: string
+          sync_date: string
+        }
+        Insert: {
+          contacts_imported?: number
+          contacts_skipped?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          org_id: string
+          status?: string
+          sync_date?: string
+        }
+        Update: {
+          contacts_imported?: number
+          contacts_skipped?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          org_id?: string
+          status?: string
+          sync_date?: string
         }
         Relationships: []
       }

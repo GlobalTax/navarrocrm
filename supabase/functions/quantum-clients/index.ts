@@ -40,6 +40,160 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Función para procesar sincronización automática
+async function processAutomaticSync(supabase: any, customers: QuantumCustomer[], authMethod: string, endpoint: string) {
+  console.log('🤖 Procesando sincronización automática...');
+  
+  try {
+    // Obtener todas las organizaciones activas
+    const { data: orgs, error: orgsError } = await supabase
+      .from('organizations')
+      .select('id')
+      .limit(1);
+    
+    if (orgsError || !orgs || orgs.length === 0) {
+      throw new Error('No se pudo obtener la organización');
+    }
+    
+    const orgId = orgs[0].id;
+    
+    // Obtener contactos existentes para detectar duplicados
+    const { data: existingContacts, error: contactsError } = await supabase
+      .from('contacts')
+      .select('email, dni_nif, name, phone, quantum_customer_id')
+      .eq('org_id', orgId);
+    
+    if (contactsError) {
+      throw new Error(`Error al obtener contactos existentes: ${contactsError.message}`);
+    }
+    
+    // Detectar contactos nuevos (no duplicados)
+    const newContacts = [];
+    const skippedContacts = [];
+    
+    for (const customer of customers) {
+      const isDuplicate = existingContacts.some(contact => {
+        // Verificar por quantum_customer_id primero
+        if (contact.quantum_customer_id === customer.customerId) return true;
+        
+        // Verificar por email
+        if (customer.email && contact.email && 
+            customer.email.toLowerCase() === contact.email.toLowerCase()) return true;
+        
+        // Verificar por DNI/NIF
+        if (customer.nif && contact.dni_nif && 
+            customer.nif.replace(/\D/g, '') === contact.dni_nif.replace(/\D/g, '')) return true;
+        
+        // Verificar por nombre y teléfono
+        if (customer.name && contact.name && customer.phone && contact.phone &&
+            customer.name.toLowerCase() === contact.name.toLowerCase() &&
+            customer.phone.replace(/\D/g, '') === contact.phone.replace(/\D/g, '')) return true;
+        
+        return false;
+      });
+      
+      if (isDuplicate) {
+        skippedContacts.push(customer);
+      } else {
+        newContacts.push(customer);
+      }
+    }
+    
+    console.log(`📊 Análisis: ${newContacts.length} nuevos, ${skippedContacts.length} duplicados`);
+    
+    // Importar solo contactos nuevos
+    const importedContacts = [];
+    for (const customer of newContacts) {
+      const contactData = {
+        org_id: orgId,
+        name: customer.name,
+        email: customer.email || null,
+        phone: customer.phone || null,
+        dni_nif: customer.nif || null,
+        address_street: [customer.streetType, customer.streetName, customer.streetNumber]
+          .filter(Boolean).join(' ') || null,
+        address_postal_code: customer.postCode || null,
+        relationship_type: 'prospecto',
+        source: 'quantum_auto',
+        auto_imported_at: new Date().toISOString(),
+        quantum_customer_id: customer.customerId,
+        status: 'activo'
+      };
+      
+      const { data: insertedContact, error: insertError } = await supabase
+        .from('contacts')
+        .insert(contactData)
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('❌ Error al importar contacto:', customer.name, insertError);
+      } else {
+        importedContacts.push(insertedContact);
+        console.log('✅ Contacto importado:', customer.name);
+      }
+    }
+    
+    // Registrar notificación de sincronización
+    await supabase.from('quantum_sync_notifications').insert({
+      org_id: orgId,
+      contacts_imported: importedContacts.length,
+      contacts_skipped: skippedContacts.length,
+      status: 'success',
+      sync_date: new Date().toISOString()
+    });
+    
+    // Registrar en historial
+    await supabase.from('quantum_sync_history').insert({
+      status: 'success',
+      message: `Sincronización automática: ${importedContacts.length} importados, ${skippedContacts.length} omitidos`,
+      records_processed: customers.length,
+      sync_date: new Date().toISOString()
+    });
+    
+    console.log('🎉 Sincronización automática completada');
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        data: {
+          total_customers: customers.length,
+          imported: importedContacts.length,
+          skipped: skippedContacts.length,
+          authMethod,
+          endpoint,
+          auto_sync: true
+        }
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+    
+  } catch (error) {
+    console.error('❌ Error en sincronización automática:', error);
+    
+    // Registrar error en notificaciones
+    try {
+      const { data: orgs } = await supabase.from('organizations').select('id').limit(1);
+      if (orgs && orgs.length > 0) {
+        await supabase.from('quantum_sync_notifications').insert({
+          org_id: orgs[0].id,
+          contacts_imported: 0,
+          contacts_skipped: 0,
+          status: 'error',
+          error_message: error.message,
+          sync_date: new Date().toISOString()
+        });
+      }
+    } catch (notifError) {
+      console.error('❌ Error al registrar notificación de error:', notifError);
+    }
+    
+    throw error;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -47,7 +201,18 @@ serve(async (req) => {
   }
 
   try {
-    console.log('🚀 Obteniendo clientes de Quantum Economics');
+    // Comprobar si es sincronización automática
+    let autoSync = false;
+    if (req.method === 'POST') {
+      try {
+        const body = await req.json();
+        autoSync = body.auto_sync === true;
+      } catch (e) {
+        // Si no se puede parsear el body, continuar como manual
+      }
+    }
+
+    console.log(autoSync ? '🤖 Sincronización automática de Quantum Economics' : '🚀 Obteniendo clientes de Quantum Economics');
     
     // Inicializar cliente Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -203,6 +368,11 @@ serve(async (req) => {
     }
 
     console.log(`📋 Obtenidos ${customers.length} customers de Quantum Economics`);
+
+    // Si es sincronización automática, procesar e importar contactos nuevos
+    if (autoSync) {
+      return await processAutomaticSync(supabase, customers, authMethod, endpoint);
+    }
 
     // Registrar sincronización en el historial
     try {

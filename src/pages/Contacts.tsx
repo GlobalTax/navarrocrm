@@ -11,6 +11,7 @@ import { ContactsDialogManager } from '@/components/contacts/ContactsDialogManag
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
 import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
+import { QuantumSyncStatus } from '@/components/contacts/QuantumSyncStatus'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOnboarding } from '@/components/onboarding'
@@ -115,8 +116,11 @@ const Contacts = () => {
         </Button>
       </div>
 
-      {/* Métricas rápidas */}
-      <ContactQuickMetrics contacts={contacts} />
+      {/* Métricas rápidas y estado de sincronización */}
+      <div className="space-y-6 mb-6">
+        <ContactQuickMetrics contacts={contacts} />
+        <QuantumSyncStatus />
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
