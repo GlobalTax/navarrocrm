@@ -157,8 +157,8 @@ serve(async (req) => {
 
     console.log('📋 Estructura de respuesta:', Object.keys(data));
 
-    // Verificar si hay error en la respuesta
-    if (data.error && data.error.errorCode !== "0") {
+    // Verificar si hay error en la respuesta - errorCode "0" significa éxito
+    if (data.error && data.error.errorCode && data.error.errorCode !== "0") {
       const errorMsg = `Error de Quantum API: ${data.error.message} (Código: ${data.error.errorCode})`;
       console.error('❌', errorMsg);
       
@@ -172,6 +172,11 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
+    }
+
+    // Log para debug: mostrar error con código 0 (éxito)
+    if (data.error && data.error.errorCode === "0") {
+      console.log('✅ Respuesta exitosa de Quantum API:', data.error.message, '(Código:', data.error.errorCode + ')');
     }
 
     // Verificar estructura de respuesta según la documentación
