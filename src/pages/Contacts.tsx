@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Database } from 'lucide-react'
 import { Contact, useContacts } from '@/hooks/useContacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
@@ -98,6 +98,14 @@ const Contacts = () => {
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Onboarding Inteligente
+        </Button>
+        <Button 
+          onClick={() => window.location.href = '/quantum-import'}
+          variant="outline"
+          className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
+        >
+          <Database className="h-4 w-4 mr-2" />
+          Importar Quantum
         </Button>
       </div>
 
