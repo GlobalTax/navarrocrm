@@ -49,10 +49,10 @@ export const useContacts = () => {
   const { data: contacts = [], isLoading, error, refetch } = useQuery({
     queryKey: ['contacts', user?.org_id],
     queryFn: async (): Promise<Contact[]> => {
-      console.log('🔄 Fetching contacts for org:', user?.org_id)
+      console.log('🔄 [useContacts] Fetching contacts for org:', user?.org_id)
       
       if (!user?.org_id) {
-        console.log('❌ No org_id available')
+        console.log('❌ [useContacts] No org_id available')
         return []
       }
 
@@ -63,20 +63,42 @@ export const useContacts = () => {
         .order('name', { ascending: true })
 
       if (error) {
-        console.error('❌ Error fetching contacts:', error)
+        console.error('❌ [useContacts] Error fetching contacts:', error)
         throw error
       }
       
-      console.log('✅ Contacts fetched:', data?.length || 0)
+      console.log('✅ [useContacts] Contacts fetched:', {
+        total: data?.length || 0,
+        byType: data?.reduce((acc: Record<string, number>, contact) => {
+          const type = contact.client_type || 'unknown'
+          acc[type] = (acc[type] || 0) + 1
+          return acc
+        }, {}) || {},
+        sampleContacts: data?.slice(0, 3).map(c => ({ 
+          id: c.id, 
+          name: c.name, 
+          client_type: c.client_type 
+        })) || []
+      })
       
       // Asegurar que relationship_type tenga el tipo correcto y parsear email_preferences
-      return (data || []).map(contact => ({
+      const processedContacts = (data || []).map(contact => ({
         ...contact,
         relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
         email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
       }))
+      
+      console.log('🔄 [useContacts] Processed contacts:', {
+        companies: processedContacts.filter(c => c.client_type === 'empresa').length,
+        particulares: processedContacts.filter(c => c.client_type === 'particular').length,
+        autonomos: processedContacts.filter(c => c.client_type === 'autonomo').length
+      })
+      
+      return processedContacts
     },
     enabled: !!user?.org_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
   })
 
   const filteredContacts = contacts.filter(contact => {

@@ -4,7 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Building2, Plus, X } from 'lucide-react'
+import { Building2, Plus, X, Loader2, AlertCircle } from 'lucide-react'
 import { useContacts } from '@/hooks/useContacts'
 import type { ContactFormData } from './ContactFormTabs'
 
@@ -16,51 +16,146 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   const clientType = form.watch('client_type')
   const selectedCompanyId = form.watch('company_id')
   
-  const { contacts = [], isLoading } = useContacts()
+  const { contacts = [], isLoading, error } = useContacts()
   
-  // Debug logging
+  // Enhanced debugging
   useEffect(() => {
-    console.log('🏢 SmartCompanySelector - Debug Info:', {
+    console.log('🏢 [SmartCompanySelector] COMPONENT RENDER:', {
+      timestamp: new Date().toISOString(),
       clientType,
       selectedCompanyId,
       contactsCount: contacts.length,
       isLoading,
-      shouldShow: clientType !== 'empresa'
+      error: error?.message,
+      shouldShow: clientType !== 'empresa',
+      formValues: form.getValues(),
+      contactTypes: contacts.map(c => ({ id: c.id, name: c.name, client_type: c.client_type }))
     })
-  }, [clientType, selectedCompanyId, contacts.length, isLoading])
+  }, [clientType, selectedCompanyId, contacts.length, isLoading, error, form])
   
-  // Filtrar solo empresas con debugging
+  // Filtrar solo empresas con debugging mejorado
   const companies = useMemo(() => {
-    const filtered = contacts.filter(contact => contact.client_type === 'empresa')
-    console.log('🏢 Companies filtered:', {
+    const filtered = contacts.filter(contact => {
+      const isCompany = contact.client_type === 'empresa'
+      console.log(`🏢 [Filter] Contact ${contact.name} (${contact.id}):`, {
+        client_type: contact.client_type,
+        isCompany
+      })
+      return isCompany
+    })
+    
+    console.log('🏢 [Companies] Filtered result:', {
       totalContacts: contacts.length,
       companiesFound: filtered.length,
-      companies: filtered.map(c => ({ id: c.id, name: c.name, client_type: c.client_type }))
+      companies: filtered.map(c => ({ 
+        id: c.id, 
+        name: c.name, 
+        client_type: c.client_type,
+        dni_nif: c.dni_nif 
+      }))
     })
     return filtered
   }, [contacts])
   
   const selectedCompany = useMemo(() => {
+    if (!selectedCompanyId) {
+      console.log('🏢 [Selection] No company selected')
+      return null
+    }
+    
     const found = companies.find(company => company.id === selectedCompanyId)
-    console.log('🏢 Selected company:', { selectedCompanyId, found: !!found, companyName: found?.name })
+    console.log('🏢 [Selection] Company lookup:', { 
+      selectedCompanyId, 
+      found: !!found, 
+      companyName: found?.name,
+      availableCompanies: companies.length
+    })
     return found
   }, [companies, selectedCompanyId])
   
-  // Determinar si debe mostrarse
+  // Determinar si debe mostrarse con debugging detallado
   const shouldShow = useMemo(() => {
     const show = clientType !== 'empresa'
-    console.log('🏢 Should show selector:', { clientType, shouldShow: show })
+    console.log('🏢 [Visibility] Should show selector:', { 
+      clientType, 
+      shouldShow: show,
+      reason: show ? 'Client is not a company' : 'Client is a company - hiding selector'
+    })
     return show
   }, [clientType])
   
-  // No mostrar para empresas
+  // Early return con logging
   if (!shouldShow) {
-    console.log('🏢 Selector hidden for client_type:', clientType)
+    console.log('🏢 [Render] Selector hidden for client_type:', clientType)
     return null
   }
   
+  // Loading state
+  if (isLoading) {
+    console.log('🏢 [Render] Showing loading state')
+    return (
+      <div className="space-y-3">
+        <FormField
+          control={form.control}
+          name="company_id"
+          render={() => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Empresa Asociada
+                <Badge variant="outline" className="text-xs">
+                  Opcional
+                </Badge>
+              </FormLabel>
+              <div className="flex items-center gap-2 p-3 border rounded-md bg-muted">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Cargando empresas...</span>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
+    )
+  }
+  
+  // Error state
+  if (error) {
+    console.log('🏢 [Render] Showing error state:', error)
+    return (
+      <div className="space-y-3">
+        <FormField
+          control={form.control}
+          name="company_id"
+          render={() => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Empresa Asociada
+                <Badge variant="outline" className="text-xs">
+                  Opcional
+                </Badge>
+              </FormLabel>
+              <div className="flex items-center gap-2 p-3 border rounded-md bg-destructive/10 border-destructive">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <span className="text-sm text-destructive">Error al cargar empresas</span>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
+    )
+  }
+  
+  console.log('🏢 [Render] Showing full selector with', companies.length, 'companies')
+  
   const clearSelection = () => {
+    console.log('🏢 [Action] Clearing company selection')
     form.setValue('company_id', '')
+  }
+  
+  const handleCompanySelect = (value: string) => {
+    console.log('🏢 [Action] Company selected:', value)
+    form.setValue('company_id', value)
   }
   
   return (
@@ -77,27 +172,40 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
                 Opcional
               </Badge>
             </FormLabel>
-            <Select onValueChange={field.onChange} value={field.value || ''}>
+            <Select onValueChange={handleCompanySelect} value={field.value || ''}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Buscar empresa..." />
+                  <SelectValue placeholder={
+                    companies.length === 0 
+                      ? "No hay empresas disponibles" 
+                      : "Buscar empresa..."
+                  } />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
                 <SelectItem value="">Sin empresa asociada</SelectItem>
-                {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.id}>
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-primary" />
-                      <span>{company.name}</span>
-                      {company.dni_nif && (
-                        <Badge variant="secondary" className="text-xs">
-                          {company.dni_nif}
-                        </Badge>
-                      )}
+                {companies.length === 0 ? (
+                  <SelectItem value="" disabled>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>No hay empresas registradas</span>
                     </div>
                   </SelectItem>
-                ))}
+                ) : (
+                  companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-primary" />
+                        <span>{company.name}</span>
+                        {company.dni_nif && (
+                          <Badge variant="secondary" className="text-xs">
+                            {company.dni_nif}
+                          </Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -150,6 +258,11 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
             : 'Vincula este autónomo a una empresa colaboradora'
           }
         </p>
+        {companies.length === 0 && (
+          <p className="text-xs text-amber-600 mt-1">
+            💡 Primero registra empresas para poder asociarlas aquí
+          </p>
+        )}
       </div>
     </div>
   )
