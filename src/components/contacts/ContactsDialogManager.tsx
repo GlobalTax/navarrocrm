@@ -3,6 +3,7 @@ import { Contact } from '@/hooks/useContacts'
 import { ContactFormDialog } from './ContactFormDialog'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { ClientExportDialog } from '@/components/clients/ClientExportDialog'
+import { QuantumImportDialog } from './QuantumImportDialog'
 
 interface ContactsDialogManagerProps {
   selectedContact: Contact | null
@@ -10,10 +11,12 @@ interface ContactsDialogManagerProps {
   isEditDialogOpen: boolean
   isBulkUploadOpen: boolean
   isExportDialogOpen: boolean
+  isQuantumImportOpen: boolean
   contacts: Contact[]
   onClose: () => void
   onBulkUploadClose: () => void
   onExportClose: () => void
+  onQuantumImportClose: () => void
   onBulkUploadSuccess: () => void
 }
 
@@ -23,10 +26,12 @@ export function ContactsDialogManager({
   isEditDialogOpen,
   isBulkUploadOpen,
   isExportDialogOpen,
+  isQuantumImportOpen,
   contacts,
   onClose,
   onBulkUploadClose,
   onExportClose,
+  onQuantumImportClose,
   onBulkUploadSuccess
 }: ContactsDialogManagerProps) {
   return (
@@ -55,6 +60,11 @@ export function ContactsDialogManager({
         open={isExportDialogOpen}
         onClose={onExportClose}
         clients={contacts}
+      />
+
+      <QuantumImportDialog
+        open={isQuantumImportOpen}
+        onClose={onQuantumImportClose}
       />
     </>
   )

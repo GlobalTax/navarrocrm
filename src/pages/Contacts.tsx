@@ -29,6 +29,7 @@ const Contacts = () => {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [isImprovedOnboardingOpen, setIsImprovedOnboardingOpen] = useState(false)
   const [isHubSpotMigrationOpen, setIsHubSpotMigrationOpen] = useState(false)
+  const [isQuantumImportOpen, setIsQuantumImportOpen] = useState(false)
   const [showMigrationDashboard, setShowMigrationDashboard] = useState(false)
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
@@ -83,6 +84,11 @@ const Contacts = () => {
     refetch() // Refrescar datos después del onboarding
   }
 
+  const handleQuantumImportClose = () => {
+    setIsQuantumImportOpen(false)
+    refetch() // Refrescar datos después de la importación
+  }
+
   return (
     <StandardPageContainer>
       <StandardPageHeader
@@ -100,7 +106,7 @@ const Contacts = () => {
           Onboarding Inteligente
         </Button>
         <Button 
-          onClick={() => window.location.href = '/quantum-import'}
+          onClick={() => setIsQuantumImportOpen(true)}
           variant="outline"
           className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
         >
@@ -162,10 +168,12 @@ const Contacts = () => {
         isEditDialogOpen={isEditCompanyDialogOpen}
         isBulkUploadOpen={isBulkUploadOpen}
         isExportDialogOpen={isExportDialogOpen}
+        isQuantumImportOpen={isQuantumImportOpen}
         contacts={contacts}
         onClose={handleDialogClose}
         onBulkUploadClose={() => setIsBulkUploadOpen(false)}
         onExportClose={() => setIsExportDialogOpen(false)}
+        onQuantumImportClose={handleQuantumImportClose}
         onBulkUploadSuccess={handleBulkUploadSuccess}
       />
 
