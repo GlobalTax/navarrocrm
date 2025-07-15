@@ -1,21 +1,38 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-interface QuantumClient {
-  id: string;
+interface QuantumCustomer {
+  regid: string;
+  nif: string;
   name: string;
+  countryISO?: string;
+  customerId: string;
   email?: string;
   phone?: string;
-  address?: string;
-  nif?: string;
-  type?: string;
-  status?: string;
+  streetType?: string;
+  streetName?: string;
+  streetNumber?: string;
+  staircase?: string;
+  floor?: string;
+  room?: string;
+  postCode?: string;
+  cityCode?: string;
+  iban?: string;
+  swift?: string;
+  paymentMethod?: string;
+  family?: number;
+  mandateReference?: string;
+  mandateDate?: string;
   [key: string]: any;
 }
 
 interface QuantumResponse {
-  clients?: QuantumClient[];
-  getclients?: QuantumClient[];
+  error?: {
+    message: string;
+    errorCode: string;
+  };
+  apiVersion?: string;
+  customers?: QuantumCustomer[];
 }
 
 const corsHeaders = {
@@ -71,67 +88,53 @@ serve(async (req) => {
       );
     }
 
-    // Intentar múltiples endpoints de la API
-    const endpoints = [
-      `https://app.quantumeconomics.es/contabilidad/ws/client?companyId=${companyId}`,
-      `https://app.quantumeconomics.es/contabilidad/ws/clients?companyId=${companyId}`,
-      `https://app.quantumeconomics.es/contabilidad/ws/getclient?companyId=${companyId}`,
-      `https://app.quantumeconomics.es/contabilidad/ws/getclients?companyId=${companyId}`
-    ];
+    // Usar el endpoint correcto según la documentación de Quantum Economics
+    const endpoint = `https://app.quantumeconomics.es/contabilidad/ws/customer?companyId=${companyId}`;
 
+    console.log('📡 Llamando endpoint:', endpoint);
+    
     let response: Response;
     let authMethod = '';
-    let usedEndpoint = '';
     
-    for (const endpoint of endpoints) {
-      console.log('📡 Probando endpoint:', endpoint);
+    try {
+      // Primer intento: Bearer
+      console.log('🔐 Intentando autenticación Bearer...');
+      response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${quantumToken}`,
+          'Accept': 'application/json',
+          'User-Agent': 'Supabase-Edge-Function/1.0'
+        }
+      });
+      authMethod = 'Bearer';
       
-      try {
-        // Primer intento: Bearer
-        console.log('🔐 Intentando autenticación Bearer...');
+      if (!response.ok) {
+        console.log('⚠️ Bearer falló, intentando API-KEY...');
+        // Segundo intento: API-KEY
         response = await fetch(endpoint, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${quantumToken}`,
+            'Authorization': `API-KEY ${quantumToken}`,
             'Accept': 'application/json',
             'User-Agent': 'Supabase-Edge-Function/1.0'
           }
         });
-        authMethod = 'Bearer';
-        usedEndpoint = endpoint;
-        
-        if (!response.ok) {
-          console.log('⚠️ Bearer falló, intentando API-KEY...');
-          // Segundo intento: API-KEY
-          response = await fetch(endpoint, {
-            method: 'GET',
-            headers: {
-              'Authorization': `API-KEY ${quantumToken}`,
-              'Accept': 'application/json',
-              'User-Agent': 'Supabase-Edge-Function/1.0'
-            }
-          });
-          authMethod = 'API-KEY';
-        }
-        
-        if (response.ok) {
-          console.log('✅ Endpoint exitoso:', endpoint, 'con método:', authMethod);
-          break;
-        } else {
-          console.log('❌ Endpoint falló:', endpoint, 'Status:', response.status);
-        }
-        
-      } catch (fetchError) {
-        console.error('❌ Error en fetch para endpoint:', endpoint, fetchError);
-        continue;
+        authMethod = 'API-KEY';
       }
+      
+      if (!response.ok) {
+        throw new Error(`API de Quantum falló con status: ${response.status}`);
+      }
+      
+      console.log('✅ Endpoint exitoso con método:', authMethod);
+      
+    } catch (fetchError) {
+      console.error('❌ Error en fetch:', fetchError);
+      throw new Error(`Error al conectar con Quantum Economics: ${fetchError.message}`);
     }
 
-    if (!response || !response.ok) {
-      throw new Error(`Todos los endpoints de Quantum fallaron. Último status: ${response?.status || 'Sin respuesta'}`);
-    }
-
-    console.log('📊 Respuesta API status:', response.status, 'con método:', authMethod, 'endpoint:', usedEndpoint);
+    console.log('📊 Respuesta API status:', response.status, 'con método:', authMethod);
 
     let data: QuantumResponse;
     try {
@@ -154,10 +157,27 @@ serve(async (req) => {
 
     console.log('📋 Estructura de respuesta:', Object.keys(data));
 
-    // Verificar estructura de respuesta - probamos múltiples formatos
-    const clients = data.clients || data.getclients || data.client || data.getclient;
-    if (!clients) {
-      const errorMsg = 'Error: La respuesta de la API no contiene clientes válidos.';
+    // Verificar si hay error en la respuesta
+    if (data.error && data.error.errorCode !== "0") {
+      const errorMsg = `Error de Quantum API: ${data.error.message} (Código: ${data.error.errorCode})`;
+      console.error('❌', errorMsg);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: errorMsg
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Verificar estructura de respuesta según la documentación
+    const customers = data.customers;
+    if (!customers || !Array.isArray(customers)) {
+      const errorMsg = 'Error: La respuesta de la API no contiene customers válidos.';
       console.error('❌', errorMsg, 'Respuesta completa:', data);
       
       return new Response(
@@ -166,7 +186,8 @@ serve(async (req) => {
           error: errorMsg,
           debug: {
             responseKeys: Object.keys(data),
-            response: data
+            hasCustomers: !!data.customers,
+            isArray: Array.isArray(data.customers)
           }
         }),
         { 
@@ -176,16 +197,14 @@ serve(async (req) => {
       );
     }
 
-    // Normalizar la respuesta a array
-    const clientsArray = Array.isArray(clients) ? clients : [clients];
-    console.log(`📋 Obtenidos ${clientsArray.length} clientes de Quantum Economics`);
+    console.log(`📋 Obtenidos ${customers.length} customers de Quantum Economics`);
 
     // Registrar sincronización en el historial
     try {
       await supabase.from('quantum_sync_history').insert({
         status: 'success',
-        message: `Obtenidos ${clientsArray.length} clientes exitosamente`,
-        records_processed: clientsArray.length,
+        message: `Obtenidos ${customers.length} customers exitosamente`,
+        records_processed: customers.length,
         sync_date: new Date().toISOString()
       });
     } catch (historyError) {
@@ -196,10 +215,10 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true,
         data: {
-          clients: clientsArray,
-          total: clientsArray.length,
+          customers: customers,
+          total: customers.length,
           authMethod,
-          endpoint: usedEndpoint
+          endpoint: endpoint
         }
       }),
       { 

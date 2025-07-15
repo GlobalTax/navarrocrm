@@ -25,15 +25,28 @@ import {
   AlertCircle
 } from 'lucide-react'
 
-interface QuantumClient {
-  id: string;
+interface QuantumCustomer {
+  regid: string;
+  nif: string;
   name: string;
+  countryISO?: string;
+  customerId: string;
   email?: string;
   phone?: string;
-  address?: string;
-  nif?: string;
-  type?: string;
-  status?: string;
+  streetType?: string;
+  streetName?: string;
+  streetNumber?: string;
+  staircase?: string;
+  floor?: string;
+  room?: string;
+  postCode?: string;
+  cityCode?: string;
+  iban?: string;
+  swift?: string;
+  paymentMethod?: string;
+  family?: number;
+  mandateReference?: string;
+  mandateDate?: string;
   [key: string]: any;
 }
 
@@ -75,34 +88,31 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     retryDelay: 1000
   })
 
-  const clients: QuantumClient[] = clientsData?.data?.clients || []
+  const customers: QuantumCustomer[] = clientsData?.data?.customers || []
 
-  const filteredClients = clients.filter(client => {
-    const matchesSearch = client.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.nif?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.nif?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    // Filtrar por tipo si es necesario
-    if (type === 'companies') {
-      return matchesSearch && (client.type === 'empresa' || client.type === 'company')
-    } else {
-      return matchesSearch && (client.type !== 'empresa' && client.type !== 'company')
-    }
+    // Todos los customers de Quantum se consideran como clientes válidos
+    // Se determinará el tipo en la importación basándose en el NIF (empresas empiezan con letra)
+    return matchesSearch
   })
 
   const handleSelectAll = () => {
-    if (selectedClients.length === filteredClients.length) {
+    if (selectedClients.length === filteredCustomers.length) {
       setSelectedClients([])
     } else {
-      setSelectedClients(filteredClients.map(client => client.id))
+      setSelectedClients(filteredCustomers.map(customer => customer.customerId))
     }
   }
 
-  const handleClientToggle = (clientId: string) => {
+  const handleClientToggle = (customerId: string) => {
     setSelectedClients(prev => 
-      prev.includes(clientId) 
-        ? prev.filter(id => id !== clientId)
-        : [...prev, clientId]
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
     )
   }
 
@@ -115,7 +125,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     setIsImporting(true)
     
     try {
-      const clientsToImport = clients.filter(client => selectedClients.includes(client.id))
+      const customersToImport = customers.filter(customer => selectedClients.includes(customer.customerId))
       
       // Obtener el org_id del usuario actual
       const { data: userData } = await supabase.auth.getUser()
@@ -134,19 +144,38 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
       }
 
       // Preparar datos para inserción
-      const contactsData = clientsToImport.map(client => ({
-        name: client.name,
-        email: client.email || null,
-        phone: client.phone || null,
-        dni_nif: client.nif || null,
-        client_type: mapping.client_type,
-        relationship_type: mapping.relationship_type,
-        status: mapping.status,
-        address_street: client.address || null,
-        internal_notes: `Importado desde Quantum Economics - ID: ${client.id}`,
-        tags: ['quantum-import'],
-        org_id: userProfile.org_id
-      }))
+      const contactsData = customersToImport.map(customer => {
+        // Determinar el tipo de cliente basado en el NIF (empresas suelen empezar con letras)
+        const isCompany = customer.nif && /^[A-Z]/.test(customer.nif.trim())
+        
+        // Construir dirección completa
+        const addressParts = [
+          customer.streetType,
+          customer.streetName,
+          customer.streetNumber,
+          customer.floor && `Piso ${customer.floor}`,
+          customer.room && `Puerta ${customer.room}`
+        ].filter(Boolean)
+        
+        const fullAddress = addressParts.length > 0 ? addressParts.join(' ') : null
+        
+        return {
+          name: customer.name,
+          email: customer.email || null,
+          phone: customer.phone || null,
+          dni_nif: customer.nif || null,
+          client_type: isCompany ? 'empresa' : mapping.client_type,
+          relationship_type: mapping.relationship_type,
+          status: mapping.status,
+          address_street: fullAddress,
+          address_city: customer.cityCode || null,
+          address_postal_code: customer.postCode || null,
+          address_country: customer.countryISO === 'ES' ? 'España' : customer.countryISO || null,
+          internal_notes: `Importado desde Quantum Economics - ID: ${customer.customerId} (RegID: ${customer.regid})`,
+          tags: ['quantum-import'],
+          org_id: userProfile.org_id
+        }
+      })
 
       const { error } = await supabase
         .from('contacts')
@@ -154,7 +183,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
 
       if (error) throw error
 
-      toast.success(`${clientsToImport.length} contactos importados correctamente`)
+      toast.success(`${customersToImport.length} contactos importados correctamente`)
       setSelectedClients([])
       
     } catch (error) {
@@ -281,7 +310,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
             <CardTitle className="flex items-center gap-2">
               <Download className="w-5 h-5" />
               {type === 'companies' ? 'Empresas' : 'Clientes'} de Quantum Economics
-              <Badge variant="secondary">{filteredClients.length}</Badge>
+              <Badge variant="secondary">{filteredCustomers.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button 
@@ -325,94 +354,108 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
               size="sm"
               onClick={handleSelectAll}
             >
-              {selectedClients.length === filteredClients.length ? 'Deseleccionar' : 'Seleccionar'} Todo
+              {selectedClients.length === filteredCustomers.length ? 'Deseleccionar' : 'Seleccionar'} Todo
             </Button>
           </div>
 
           {/* Lista de clientes */}
           <ScrollArea className="h-[400px]">
             <div className="space-y-2">
-              {filteredClients.map((client) => (
-                <div 
-                  key={client.id} 
-                  className="flex items-center space-x-4 p-3 border rounded-lg hover:bg-muted/50"
-                >
-                  <Checkbox 
-                    checked={selectedClients.includes(client.id)}
-                    onCheckedChange={() => handleClientToggle(client.id)}
-                  />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {type === 'companies' ? (
-                        <Building className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <User className="w-4 h-4 text-muted-foreground" />
-                      )}
-                      <span className="font-medium truncate">{client.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        ID: {client.id}
-                      </Badge>
+              {filteredCustomers.map((customer) => {
+                const isCompany = customer.nif && /^[A-Z]/.test(customer.nif.trim())
+                const addressParts = [
+                  customer.streetType,
+                  customer.streetName,
+                  customer.streetNumber
+                ].filter(Boolean).join(' ')
+                
+                return (
+                  <div 
+                    key={customer.customerId} 
+                    className="flex items-center space-x-4 p-3 border rounded-lg hover:bg-muted/50"
+                  >
+                    <Checkbox 
+                      checked={selectedClients.includes(customer.customerId)}
+                      onCheckedChange={() => handleClientToggle(customer.customerId)}
+                    />
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        {isCompany ? (
+                          <Building className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <User className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        <span className="font-medium truncate">{customer.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          ID: {customer.customerId}
+                        </Badge>
+                        {isCompany && (
+                          <Badge variant="secondary" className="text-xs">
+                            Empresa
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                        {customer.email && (
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-3 h-3" />
+                            {customer.email}
+                          </div>
+                        )}
+                        {customer.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {customer.phone}
+                          </div>
+                        )}
+                        {customer.nif && (
+                          <div className="flex items-center gap-1">
+                            <Hash className="w-3 h-3" />
+                            {customer.nif}
+                          </div>
+                        )}
+                        {addressParts && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {addressParts}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                      {client.email && (
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
-                          {client.email}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          Ver Detalles
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Detalles del Cliente</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Nombre</Label>
+                            <p className="text-sm text-muted-foreground">{customer.name}</p>
+                          </div>
+                          <div>
+                            <Label>Datos Completos</Label>
+                            <ScrollArea className="h-48 mt-2">
+                              <pre className="text-xs bg-muted p-2 rounded">
+                                {JSON.stringify(customer, null, 2)}
+                              </pre>
+                            </ScrollArea>
+                          </div>
                         </div>
-                      )}
-                      {client.phone && (
-                        <div className="flex items-center gap-1">
-                          <Phone className="w-3 h-3" />
-                          {client.phone}
-                        </div>
-                      )}
-                      {client.nif && (
-                        <div className="flex items-center gap-1">
-                          <Hash className="w-3 h-3" />
-                          {client.nif}
-                        </div>
-                      )}
-                      {client.address && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {client.address}
-                        </div>
-                      )}
-                    </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        Ver Detalles
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Detalles del Cliente</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Nombre</Label>
-                          <p className="text-sm text-muted-foreground">{client.name}</p>
-                        </div>
-                        <div>
-                          <Label>Datos Completos</Label>
-                          <ScrollArea className="h-48 mt-2">
-                            <pre className="text-xs bg-muted p-2 rounded">
-                              {JSON.stringify(client, null, 2)}
-                            </pre>
-                          </ScrollArea>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              ))}
+                )
+              })}
               
-              {filteredClients.length === 0 && (
+              {filteredCustomers.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                   {searchTerm ? 'No se encontraron resultados' : 'No hay datos disponibles'}
                 </div>
