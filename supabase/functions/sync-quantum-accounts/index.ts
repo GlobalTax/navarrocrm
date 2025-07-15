@@ -15,45 +15,83 @@ serve(async (req) => {
   try {
     console.log('🚀 Iniciando Edge Function sync-quantum-accounts');
     
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // 1. OBTENER SECRETOS DIRECTAMENTE
+    const quantumToken = Deno.env.get('quantum_api_token');
+    const companyId = Deno.env.get('quantum_company_id');
+    
+    console.log('🔑 Verificando secretos...');
+    console.log('Token presente:', quantumToken ? 'SÍ' : 'NO');
+    console.log('Company ID presente:', companyId ? 'SÍ' : 'NO');
 
-    console.log('✅ Cliente Supabase creado correctamente');
-    console.log('📡 Llamando a función sincronizar_cuentas_quantum...');
-
-    // Llamar a la función de sincronización que usa secretos del Vault
-    const { data: syncResult, error: syncError } = await supabase
-      .rpc('sincronizar_cuentas_quantum');
-
-    console.log('📊 Resultado de RPC:', { syncResult, syncError });
-
-    if (syncError) {
-      console.error('❌ Error en sincronización RPC:', syncError);
-      console.error('❌ Detalles del error:', JSON.stringify(syncError, null, 2));
+    if (!quantumToken || !companyId) {
+      const errorMsg = 'Error: No se encontraron los secretos. Verifique que "quantum_api_token" y "quantum_company_id" estén configurados en Supabase Edge Functions.';
+      console.error('❌', errorMsg);
       
-      // Registrar el error en el historial
-      try {
-        await supabase
-          .from('quantum_sync_history')
-          .insert({
-            status: 'error',
-            message: `Error RPC: ${syncError.message}`,
-            records_processed: 0,
-            error_details: syncError
-          });
-        console.log('✅ Error registrado en historial');
-      } catch (logError) {
-        console.error('❌ Error al registrar en historial:', logError);
-      }
+      // Registrar error en historial
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: errorMsg,
+        records_processed: 0,
+        error_details: { 
+          quantum_token_present: !!quantumToken,
+          company_id_present: !!companyId 
+        }
+      });
 
       return new Response(
         JSON.stringify({ 
           success: false,
-          error: 'Error en la sincronización', 
-          details: syncError.message,
-          code: syncError.code || 'UNKNOWN_ERROR'
+          error: errorMsg
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // 2. CONSTRUIR URL Y LLAMAR A LA API
+    const apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/account?companyId=${companyId}&year=2024&accountType=C`;
+    console.log('📡 Llamando a API Quantum:', apiUrl);
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `API-KEY ${quantumToken}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    console.log('📊 Respuesta API status:', response.status);
+
+    if (!response.ok) {
+      const errorMsg = `Error en API Quantum: ${response.status} ${response.statusText}`;
+      console.error('❌', errorMsg);
+      
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: errorMsg,
+        records_processed: 0,
+        error_details: { 
+          status: response.status,
+          statusText: response.statusText 
+        }
+      });
+
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: errorMsg
         }),
         { 
           status: 500, 
@@ -62,28 +100,89 @@ serve(async (req) => {
       );
     }
 
-    console.log('Resultado de sincronización:', syncResult);
+    const data = await response.json();
+    console.log('📋 Estructura de respuesta:', Object.keys(data));
 
-    // Extraer el número de registros procesados del mensaje
-    const message = syncResult || 'Sincronización completada';
-    const recordsMatch = message.match(/(\d+)/);
-    const recordsProcessed = recordsMatch ? parseInt(recordsMatch[1]) : 0;
-
-    // Registrar el éxito en el historial
-    await supabase
-      .from('quantum_sync_history')
-      .insert({
-        status: 'success',
-        message: message,
-        records_processed: recordsProcessed,
-        error_details: null
+    // 3. VERIFICAR ESTRUCTURA DE RESPUESTA
+    const accounts = data.accounts || data.getaccounts;
+    if (!accounts) {
+      const errorMsg = 'Error: La respuesta de la API no contiene cuentas. Estructura recibida: ' + JSON.stringify(Object.keys(data));
+      console.error('❌', errorMsg);
+      
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: errorMsg,
+        records_processed: 0,
+        error_details: { response_structure: Object.keys(data) }
       });
+
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: errorMsg
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // 4. PROCESAR Y GUARDAR CUENTAS
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    let registrosProcesados = 0;
+    console.log(`💾 Procesando ${accounts.length} cuentas...`);
+
+    for (const cuenta of accounts) {
+      try {
+        const { error } = await supabase
+          .from('cuentas')
+          .upsert({
+            id: cuenta.id,
+            nombre: cuenta.name,
+            balance_actual: cuenta.currentBalance,
+            debito: cuenta.debit,
+            credito: cuenta.credit,
+            datos_completos: cuenta
+          });
+
+        if (error) {
+          console.error('❌ Error al guardar cuenta:', cuenta.id, error);
+        } else {
+          registrosProcesados++;
+          console.log('✅ Cuenta guardada:', cuenta.id, cuenta.name);
+        }
+      } catch (err) {
+        console.error('❌ Error al procesar cuenta:', cuenta.id, err);
+      }
+    }
+
+    // 5. REGISTRAR ÉXITO EN HISTORIAL
+    const successMessage = `Sincronización completada exitosamente. Registros procesados: ${registrosProcesados}`;
+    
+    await supabase.from('quantum_sync_history').insert({
+      status: 'success',
+      message: successMessage,
+      records_processed: registrosProcesados,
+      error_details: null
+    });
+
+    console.log('🎉', successMessage);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: message,
-        records_processed: recordsProcessed
+        message: successMessage,
+        records_processed: registrosProcesados
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -91,29 +190,28 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error general:', error);
+    console.error('❌ Error general:', error);
     
-    // Intentar registrar el error en el historial
+    // Registrar error general
     try {
       const supabase = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
       
-      await supabase
-        .from('quantum_sync_history')
-        .insert({
-          status: 'error',
-          message: 'Error general en la sincronización',
-          records_processed: 0,
-          error_details: { error: error.message }
-        });
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: 'Error general en la sincronización',
+        records_processed: 0,
+        error_details: { error: error.message, stack: error.stack }
+      });
     } catch (logError) {
-      console.error('Error al registrar en historial:', logError);
+      console.error('❌ Error al registrar en historial:', logError);
     }
 
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: 'Error interno del servidor', 
         details: error.message 
       }),
