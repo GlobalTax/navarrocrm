@@ -37,6 +37,7 @@ export const usePerformanceMonitor = (componentName: string) => {
         
         const avgRenderTime = renderTimes.current.reduce((a, b) => a + b, 0) / renderTimes.current.length
         
+        // Use functional update to avoid dependency issues
         setMetrics(prev => ({
           renderCount: prev.renderCount + 1,
           lastRenderTime: renderTime,
@@ -55,7 +56,7 @@ export const usePerformanceMonitor = (componentName: string) => {
         }
       }
     }
-  })
+  }, [componentName, isDevMode]) // Add dependencies to prevent infinite loop
 
   const logMetrics = () => {
     if (!isDevMode) return
