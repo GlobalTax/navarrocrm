@@ -27,11 +27,31 @@ export const useSharedFormState = <T extends Record<string, any>, D>({
   })
 
   useEffect(() => {
+    console.log('🔄 useSharedFormState - Form reset triggered:', {
+      hasEntity: !!entity,
+      entityId: (entity as any)?.id,
+      entityName: (entity as any)?.name,
+      entityClientType: (entity as any)?.client_type,
+      entityCompanyId: (entity as any)?.company_id
+    })
+
     if (entity) {
       const formData = mapEntityToFormData(entity)
+      console.log('🔄 Form data mapped:', formData)
       form.reset(formData as any)
       setIsCompanyDataLoaded((entity as any).client_type === 'empresa')
+      
+      // Verify form values after reset
+      setTimeout(() => {
+        const currentValues = form.getValues()
+        console.log('✅ Form values after reset:', {
+          client_type: currentValues.client_type,
+          company_id: currentValues.company_id,
+          name: currentValues.name
+        })
+      }, 100)
     } else {
+      console.log('🔄 Resetting to default values:', defaultValues)
       form.reset(defaultValues as any)
       setIsCompanyDataLoaded(false)
     }

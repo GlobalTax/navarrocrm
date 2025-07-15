@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -16,18 +16,46 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   const clientType = form.watch('client_type')
   const selectedCompanyId = form.watch('company_id')
   
-  const { contacts = [] } = useContacts()
+  const { contacts = [], isLoading } = useContacts()
   
-  // Filtrar solo empresas
-  const companies = useMemo(() => 
-    contacts.filter(contact => contact.client_type === 'empresa'),
-    [contacts]
-  )
+  // Debug logging
+  useEffect(() => {
+    console.log('🏢 SmartCompanySelector - Debug Info:', {
+      clientType,
+      selectedCompanyId,
+      contactsCount: contacts.length,
+      isLoading,
+      shouldShow: clientType !== 'empresa'
+    })
+  }, [clientType, selectedCompanyId, contacts.length, isLoading])
   
-  const selectedCompany = companies.find(company => company.id === selectedCompanyId)
+  // Filtrar solo empresas con debugging
+  const companies = useMemo(() => {
+    const filtered = contacts.filter(contact => contact.client_type === 'empresa')
+    console.log('🏢 Companies filtered:', {
+      totalContacts: contacts.length,
+      companiesFound: filtered.length,
+      companies: filtered.map(c => ({ id: c.id, name: c.name, client_type: c.client_type }))
+    })
+    return filtered
+  }, [contacts])
+  
+  const selectedCompany = useMemo(() => {
+    const found = companies.find(company => company.id === selectedCompanyId)
+    console.log('🏢 Selected company:', { selectedCompanyId, found: !!found, companyName: found?.name })
+    return found
+  }, [companies, selectedCompanyId])
+  
+  // Determinar si debe mostrarse
+  const shouldShow = useMemo(() => {
+    const show = clientType !== 'empresa'
+    console.log('🏢 Should show selector:', { clientType, shouldShow: show })
+    return show
+  }, [clientType])
   
   // No mostrar para empresas
-  if (clientType === 'empresa') {
+  if (!shouldShow) {
+    console.log('🏢 Selector hidden for client_type:', clientType)
     return null
   }
   

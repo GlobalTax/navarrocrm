@@ -1,5 +1,6 @@
 
 import { UseFormReturn } from 'react-hook-form'
+import { useEffect } from 'react'
 import type { ContactFormData } from '@/components/contacts/ContactFormTabs'
 import { ContactTypeField } from './components/ContactTypeField'
 import { BasicContactFields } from './components/BasicContactFields'
@@ -14,6 +15,16 @@ interface BasicInfoTabProps {
 
 export const BasicInfoTab = ({ form, isCompanyDataLoaded = false }: BasicInfoTabProps) => {
   const clientType = form.watch('client_type')
+
+  // Debug logging
+  useEffect(() => {
+    console.log('📋 BasicInfoTab - Debug Info:', {
+      clientType,
+      isCompanyDataLoaded,
+      shouldShowCompanySelector: clientType !== 'empresa',
+      shouldShowCompanyFields: clientType === 'empresa'
+    })
+  }, [clientType, isCompanyDataLoaded])
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
