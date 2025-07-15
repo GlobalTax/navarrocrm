@@ -27,6 +27,7 @@ export interface ClientFormData {
   status: 'activo' | 'inactivo' | 'prospecto' | 'bloqueado'
   tags: string[]
   internal_notes: string
+  company_id?: string
 }
 
 interface ClientFormTabsProps {

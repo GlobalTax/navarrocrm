@@ -30,7 +30,7 @@ export interface Contact {
   created_at: string
   updated_at: string
   last_contact_date: string | null
-  company_id?: string | null
+  company_id: string | null
   timezone: string | null
   preferred_meeting_time: string | null
   email_preferences: {

@@ -14,4 +14,5 @@ export interface ContactFormDataExtended extends BaseFormData {
 export const defaultContactFormValues: ContactFormData = {
   ...createBaseDefaultValues(),
   relationship_type: 'prospecto',
+  company_id: '',
 }

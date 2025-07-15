@@ -5,6 +5,7 @@ import { ContactTypeField } from './components/ContactTypeField'
 import { BasicContactFields } from './components/BasicContactFields'
 import { ContactStatusFields } from './components/ContactStatusFields'
 import { CompanySpecificFields } from './components/CompanySpecificFields'
+import { SmartCompanySelector } from '../SmartCompanySelector'
 
 interface BasicInfoTabProps {
   form: UseFormReturn<ContactFormData>
@@ -22,6 +23,14 @@ export const BasicInfoTab = ({ form, isCompanyDataLoaded = false }: BasicInfoTab
       
       <ContactStatusFields form={form} />
 
+      {/* Selector inteligente de empresa - solo para particulares y autónomos */}
+      {clientType !== 'empresa' && (
+        <div className="md:col-span-2">
+          <SmartCompanySelector form={form} />
+        </div>
+      )}
+
+      {/* Campos específicos de empresa */}
       {clientType === 'empresa' && (
         <div className="md:col-span-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

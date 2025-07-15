@@ -20,6 +20,7 @@ export interface BaseFormData {
   status: 'activo' | 'inactivo' | 'prospecto' | 'bloqueado'
   tags: string[]
   internal_notes: string
+  company_id?: string
 }
 
 export interface BaseEntity {
@@ -43,6 +44,7 @@ export interface BaseEntity {
   status: string | null
   tags: string[] | null
   internal_notes: string | null
+  company_id: string | null
 }
 
 export const createBaseDefaultValues = (): BaseFormData => ({
@@ -65,6 +67,7 @@ export const createBaseDefaultValues = (): BaseFormData => ({
   status: 'prospecto',
   tags: [],
   internal_notes: '',
+  company_id: '',
 })
 
 export const mapBaseEntityToFormData = <T extends BaseEntity>(entity: T): Partial<BaseFormData> => ({
@@ -87,6 +90,7 @@ export const mapBaseEntityToFormData = <T extends BaseEntity>(entity: T): Partia
   status: (entity.status as BaseFormData['status']) || 'prospecto',
   tags: entity.tags || [],
   internal_notes: entity.internal_notes || '',
+  company_id: entity.company_id || '',
 })
 
 export const mapBaseFormDataToEntity = (data: BaseFormData, orgId: string) => ({
@@ -109,5 +113,6 @@ export const mapBaseFormDataToEntity = (data: BaseFormData, orgId: string) => ({
   status: data.status,
   tags: data.tags || null,
   internal_notes: data.internal_notes || null,
+  company_id: data.company_id || null,
   org_id: orgId,
 })

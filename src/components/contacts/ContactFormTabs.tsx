@@ -28,6 +28,7 @@ export interface ContactFormData {
   relationship_type: 'prospecto' | 'cliente' | 'ex_cliente'
   tags: string[]
   internal_notes: string
+  company_id?: string
 }
 
 interface ContactFormTabsProps {
