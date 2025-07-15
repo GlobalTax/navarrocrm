@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { useExistingContacts, detectDuplicate, type ExistingContact } from '@/hooks/useExistingContacts'
 import { 
   RefreshCw, 
   Download, 
@@ -22,7 +24,10 @@ import {
   Hash,
   Search,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Filter,
+  Info,
+  X
 } from 'lucide-react'
 
 interface QuantumCustomer {
@@ -69,6 +74,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     status: 'activo'
   })
   const [isImporting, setIsImporting] = useState(false)
+  const [filterMode, setFilterMode] = useState<'all' | 'new' | 'duplicates'>('all')
 
   const { data: clientsData, isLoading, error, refetch } = useQuery({
     queryKey: ['quantum-clients'],
@@ -88,27 +94,56 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     retryDelay: 1000
   })
 
+  const { data: existingContacts = [], isLoading: isLoadingContacts } = useExistingContacts()
   const customers: QuantumCustomer[] = clientsData?.data?.customers || []
 
-  const filteredCustomers = customers.filter(customer => {
+  // Calcular duplicados y aplicar filtros
+  const customersWithDuplicates = useMemo(() => {
+    return customers.map(customer => ({
+      ...customer,
+      duplicateInfo: detectDuplicate(customer, existingContacts)
+    }))
+  }, [customers, existingContacts])
+
+  const filteredCustomers = customersWithDuplicates.filter(customer => {
     const matchesSearch = customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customer.nif?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    // Todos los customers de Quantum se consideran como clientes válidos
-    // Se determinará el tipo en la importación basándose en el NIF (empresas empiezan con letra)
-    return matchesSearch
+    if (!matchesSearch) return false
+
+    // Aplicar filtro de duplicados
+    if (filterMode === 'new' && customer.duplicateInfo.isDuplicate) return false
+    if (filterMode === 'duplicates' && !customer.duplicateInfo.isDuplicate) return false
+    
+    return true
   })
 
+  // Estadísticas
+  const stats = useMemo(() => {
+    const total = customersWithDuplicates.length
+    const duplicates = customersWithDuplicates.filter(c => c.duplicateInfo.isDuplicate).length
+    const newContacts = total - duplicates
+    
+    return { total, duplicates, newContacts }
+  }, [customersWithDuplicates])
+
   const handleSelectAll = () => {
-    if (selectedClients.length === filteredCustomers.length) {
+    // Solo seleccionar contactos que no son duplicados
+    const selectableCustomers = filteredCustomers.filter(c => !c.duplicateInfo.isDuplicate)
+    
+    if (selectedClients.length === selectableCustomers.length) {
       setSelectedClients([])
     } else {
-      setSelectedClients(filteredCustomers.map(customer => customer.customerId))
+      setSelectedClients(selectableCustomers.map(customer => customer.customerId))
     }
   }
 
   const handleClientToggle = (customerId: string) => {
+    // Verificar si es un duplicado antes de permitir la selección
+    const customer = customersWithDuplicates.find(c => c.customerId === customerId)
+    if (customer?.duplicateInfo.isDuplicate) return
+    
     setSelectedClients(prev => 
       prev.includes(customerId) 
         ? prev.filter(id => id !== customerId)
@@ -125,7 +160,9 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     setIsImporting(true)
     
     try {
-      const customersToImport = customers.filter(customer => selectedClients.includes(customer.customerId))
+      const customersToImport = customersWithDuplicates.filter(customer => 
+        selectedClients.includes(customer.customerId) && !customer.duplicateInfo.isDuplicate
+      )
       
       // Obtener el org_id del usuario actual
       const { data: userData } = await supabase.auth.getUser()
@@ -194,12 +231,14 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingContacts) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Cargando datos de Quantum Economics...</span>
+          <span className="ml-2 text-muted-foreground">
+            {isLoading ? 'Cargando datos de Quantum Economics...' : 'Cargando contactos existentes...'}
+          </span>
         </CardContent>
       </Card>
     )
@@ -310,7 +349,6 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
             <CardTitle className="flex items-center gap-2">
               <Download className="w-5 h-5" />
               {type === 'companies' ? 'Empresas' : 'Clientes'} de Quantum Economics
-              <Badge variant="secondary">{filteredCustomers.length}</Badge>
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button 
@@ -336,9 +374,34 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
               </Button>
             </div>
           </div>
+          
+          {/* Estadísticas de importación */}
+          <div className="flex items-center gap-4 mt-4 p-3 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-white">
+                Total: {stats.total}
+              </Badge>
+              <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                Nuevos: {stats.newContacts}
+              </Badge>
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                Duplicados: {stats.duplicates}
+              </Badge>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Los duplicados se detectan por email, DNI/NIF o nombre similar</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </CardHeader>
         <CardContent>
-          {/* Búsqueda */}
+          {/* Búsqueda y filtros */}
           <div className="flex items-center gap-4 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -349,12 +412,27 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            
+            {/* Filtro de duplicados */}
+            <Select value={filterMode} onValueChange={(value: 'all' | 'new' | 'duplicates') => setFilterMode(value)}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos ({stats.total})</SelectItem>
+                <SelectItem value="new">Solo nuevos ({stats.newContacts})</SelectItem>
+                <SelectItem value="duplicates">Solo duplicados ({stats.duplicates})</SelectItem>
+              </SelectContent>
+            </Select>
+            
             <Button 
               variant="outline" 
               size="sm"
               onClick={handleSelectAll}
+              disabled={filteredCustomers.filter(c => !c.duplicateInfo.isDuplicate).length === 0}
             >
-              {selectedClients.length === filteredCustomers.length ? 'Deseleccionar' : 'Seleccionar'} Todo
+              {selectedClients.length === filteredCustomers.filter(c => !c.duplicateInfo.isDuplicate).length ? 'Deseleccionar' : 'Seleccionar'} Nuevos
             </Button>
           </div>
 
@@ -369,15 +447,41 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                   customer.streetNumber
                 ].filter(Boolean).join(' ')
                 
+                const isDuplicate = customer.duplicateInfo.isDuplicate
+                
                 return (
                   <div 
                     key={customer.customerId} 
-                    className="flex items-center space-x-4 p-3 border rounded-lg hover:bg-muted/50"
+                    className={`flex items-center space-x-4 p-3 border rounded-lg transition-colors ${
+                      isDuplicate 
+                        ? 'bg-yellow-50 border-yellow-200 opacity-60' 
+                        : 'hover:bg-muted/50'
+                    }`}
                   >
-                    <Checkbox 
-                      checked={selectedClients.includes(customer.customerId)}
-                      onCheckedChange={() => handleClientToggle(customer.customerId)}
-                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Checkbox 
+                              checked={selectedClients.includes(customer.customerId)}
+                              onCheckedChange={() => handleClientToggle(customer.customerId)}
+                              disabled={isDuplicate}
+                              className={isDuplicate ? 'opacity-50' : ''}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        {isDuplicate && (
+                          <TooltipContent>
+                            <p>Ya existe: {customer.duplicateInfo.reason}</p>
+                            {customer.duplicateInfo.existingContact && (
+                              <p className="text-xs mt-1">
+                                Contacto: {customer.duplicateInfo.existingContact.name}
+                              </p>
+                            )}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -386,13 +490,20 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                         ) : (
                           <User className="w-4 h-4 text-muted-foreground" />
                         )}
-                        <span className="font-medium truncate">{customer.name}</span>
+                        <span className={`font-medium truncate ${isDuplicate ? 'line-through text-muted-foreground' : ''}`}>
+                          {customer.name}
+                        </span>
                         <Badge variant="outline" className="text-xs">
                           ID: {customer.customerId}
                         </Badge>
                         {isCompany && (
                           <Badge variant="secondary" className="text-xs">
                             Empresa
+                          </Badge>
+                        )}
+                        {isDuplicate && (
+                          <Badge variant="destructive" className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300">
+                            Ya existe
                           </Badge>
                         )}
                       </div>
@@ -431,13 +542,40 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                           Ver Detalles
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>Detalles del Cliente</DialogTitle>
+                          <DialogTitle className="flex items-center gap-2">
+                            Detalles del Cliente
+                            {isDuplicate && (
+                              <Badge variant="destructive" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                                Duplicado
+                              </Badge>
+                            )}
+                          </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
+                          {isDuplicate && customer.duplicateInfo.existingContact && (
+                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <h4 className="font-medium text-yellow-800 mb-2">Contacto Existente</h4>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <Label>Nombre existente</Label>
+                                  <p className="text-muted-foreground">{customer.duplicateInfo.existingContact.name}</p>
+                                </div>
+                                <div>
+                                  <Label>Email existente</Label>
+                                  <p className="text-muted-foreground">{customer.duplicateInfo.existingContact.email || 'No disponible'}</p>
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>Motivo de duplicado</Label>
+                                  <p className="text-yellow-800 font-medium">{customer.duplicateInfo.reason}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           <div>
-                            <Label>Nombre</Label>
+                            <Label>Nombre (Quantum)</Label>
                             <p className="text-sm text-muted-foreground">{customer.name}</p>
                           </div>
                           <div>
