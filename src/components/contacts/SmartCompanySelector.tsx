@@ -150,13 +150,13 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   
   const clearSelection = () => {
     console.log('🏢 [Action] Clearing company selection')
-    form.setValue('company_id', '')
+    form.setValue('company_id', '', { shouldValidate: true, shouldDirty: true })
   }
   
   const handleCompanySelect = (value: string) => {
     console.log('🏢 [Action] Company selected:', value)
     const finalValue = value === 'none' ? '' : value
-    form.setValue('company_id', finalValue)
+    form.setValue('company_id', finalValue, { shouldValidate: true, shouldDirty: true })
   }
   
   return (
