@@ -155,7 +155,8 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   
   const handleCompanySelect = (value: string) => {
     console.log('🏢 [Action] Company selected:', value)
-    form.setValue('company_id', value)
+    const finalValue = value === 'none' ? '' : value
+    form.setValue('company_id', finalValue)
   }
   
   return (
@@ -172,7 +173,7 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
                 Opcional
               </Badge>
             </FormLabel>
-            <Select onValueChange={handleCompanySelect} value={field.value || ''}>
+            <Select onValueChange={handleCompanySelect} value={field.value || 'none'}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder={
@@ -183,9 +184,9 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="">Sin empresa asociada</SelectItem>
+                <SelectItem value="none">Sin empresa asociada</SelectItem>
                 {companies.length === 0 ? (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="no-companies" disabled>
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <AlertCircle className="h-4 w-4" />
                       <span>No hay empresas registradas</span>
