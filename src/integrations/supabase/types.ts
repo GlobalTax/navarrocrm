@@ -3536,6 +3536,107 @@ export type Database = {
           },
         ]
       }
+      quantum_invoice_sync_history: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          error_details: Json | null
+          id: string
+          invoices_created: number | null
+          invoices_processed: number | null
+          invoices_updated: number | null
+          org_id: string
+          start_date: string | null
+          sync_status: string
+          sync_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          error_details?: Json | null
+          id?: string
+          invoices_created?: number | null
+          invoices_processed?: number | null
+          invoices_updated?: number | null
+          org_id: string
+          start_date?: string | null
+          sync_status: string
+          sync_type?: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          error_details?: Json | null
+          id?: string
+          invoices_created?: number | null
+          invoices_processed?: number | null
+          invoices_updated?: number | null
+          org_id?: string
+          start_date?: string | null
+          sync_status?: string
+          sync_type?: string
+        }
+        Relationships: []
+      }
+      quantum_invoices: {
+        Row: {
+          client_name: string
+          contact_id: string | null
+          created_at: string | null
+          id: string
+          invoice_date: string
+          invoice_lines: Json | null
+          org_id: string
+          quantum_customer_id: string | null
+          quantum_data: Json
+          quantum_invoice_id: string
+          series_and_number: string
+          total_amount: number
+          total_amount_without_taxes: number
+          updated_at: string | null
+        }
+        Insert: {
+          client_name: string
+          contact_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoice_date: string
+          invoice_lines?: Json | null
+          org_id: string
+          quantum_customer_id?: string | null
+          quantum_data?: Json
+          quantum_invoice_id: string
+          series_and_number: string
+          total_amount?: number
+          total_amount_without_taxes?: number
+          updated_at?: string | null
+        }
+        Update: {
+          client_name?: string
+          contact_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoice_date?: string
+          invoice_lines?: Json | null
+          org_id?: string
+          quantum_customer_id?: string | null
+          quantum_data?: Json
+          quantum_invoice_id?: string
+          series_and_number?: string
+          total_amount?: number
+          total_amount_without_taxes?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quantum_invoices_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quantum_sync_history: {
         Row: {
           error_details: Json | null
