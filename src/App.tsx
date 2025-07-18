@@ -51,6 +51,7 @@ const EmployeeOnboardingSuccess = lazy(() => import('@/pages/EmployeeOnboardingS
 const OutlookCallback = lazy(() => import('@/pages/OutlookCallback'))
 const QuantumPage = lazy(() => import('@/pages/QuantumPage'))
 const QuantumImport = lazy(() => import('@/pages/QuantumImport'))
+const QuantumBilling = lazy(() => import('@/pages/QuantumBilling'))
 
 // Página pública - no necesita lazy loading por su naturaleza crítica
 import RoomOccupancyPanel from '@/pages/RoomOccupancyPanel'
@@ -359,6 +360,14 @@ function App() {
                     element={
                       <Suspense fallback={<PageLoadingSkeleton />}>
                         <QuantumImport />
+                      </Suspense>
+                    } 
+                  />
+                  <Route 
+                    path="/quantum-billing" 
+                    element={
+                      <Suspense fallback={<PageLoadingSkeleton />}>
+                        <QuantumBilling />
                       </Suspense>
                     } 
                   />
