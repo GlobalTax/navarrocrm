@@ -55,11 +55,19 @@ Deno.serve(async (req) => {
     const quantumToken = Deno.env.get('quantum_api_token');
     const quantumCompanyId = Deno.env.get('quantum_company_id');
 
+    console.log('🔍 [Config] Verificando credenciales...');
+    console.log(`🏢 [Config] Company ID: ${quantumCompanyId ? `***${quantumCompanyId.slice(-4)}` : 'NO CONFIGURADO'}`);
+    console.log(`🔑 [Config] Token: ${quantumToken ? `***${quantumToken.slice(-8)}` : 'NO CONFIGURADO'}`);
+
     if (!quantumToken || !quantumCompanyId) {
       console.error('❌ [Error] Credenciales de Quantum no configuradas');
       return new Response(
         JSON.stringify({ 
-          error: 'Credenciales de Quantum no configuradas. Verifica quantum_api_token y quantum_company_id.' 
+          error: 'Credenciales de Quantum no configuradas. Verifica quantum_api_token y quantum_company_id.',
+          config_status: {
+            token_configured: !!quantumToken,
+            company_id_configured: !!quantumCompanyId
+          }
         }),
         { 
           status: 500, 
@@ -118,32 +126,73 @@ Deno.serve(async (req) => {
     }
 
     console.log('🌐 [API] Llamando a Quantum API:', apiUrl);
+    console.log('🔑 [Auth] Probando autenticación con token...');
 
-    // Llamar a la API de Quantum
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${quantumToken}`,
-        'Accept': 'application/json'
+    // Probar diferentes formatos de autenticación
+    const authFormats = [
+      { name: 'API-KEY', header: `API-KEY ${quantumToken}` },
+      { name: 'Bearer', header: `Bearer ${quantumToken}` },
+      { name: 'Token directo', header: quantumToken }
+    ];
+
+    let response;
+    let authUsed = '';
+    let lastError = '';
+
+    for (const authFormat of authFormats) {
+      try {
+        console.log(`🔐 [Auth] Probando formato: ${authFormat.name}`);
+        
+        response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': authFormat.header,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log(`📡 [Response] Status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
+        
+        if (response.ok) {
+          authUsed = authFormat.name;
+          console.log(`✅ [Auth] Éxito con formato: ${authFormat.name}`);
+          break;
+        } else {
+          // Leer el error pero continuar probando
+          const errorText = await response.text();
+          lastError = `${authFormat.name}: ${response.status} - ${errorText.substring(0, 200)}`;
+          console.log(`❌ [Auth] Fallo con ${authFormat.name}: ${response.status}`);
+        }
+      } catch (error) {
+        lastError = `${authFormat.name}: ${error.message}`;
+        console.log(`❌ [Auth] Error con ${authFormat.name}: ${error.message}`);
       }
-    });
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ [Quantum API] Error:', response.status, errorText);
+    if (!response || !response.ok) {
+      console.error('❌ [Quantum API] Todos los formatos de autenticación fallaron');
+      console.error('❌ [Details] Último error:', lastError);
       
       await supabase
         .from('quantum_invoice_sync_history')
         .update({
           sync_status: 'error',
-          error_details: { api_error: errorText, status: response.status }
+          error_details: { 
+            api_error: lastError, 
+            url: apiUrl,
+            company_id: quantumCompanyId,
+            auth_formats_tried: authFormats.map(f => f.name)
+          }
         })
         .eq('id', syncRecord.id);
 
       return new Response(
         JSON.stringify({ 
-          error: `Error en API de Quantum: ${response.status}`,
-          details: errorText 
+          error: 'Todos los formatos de autenticación fallaron',
+          details: lastError,
+          url: apiUrl,
+          company_id: quantumCompanyId
         }),
         { 
           status: 500, 
@@ -152,7 +201,49 @@ Deno.serve(async (req) => {
       );
     }
 
-    const quantumData: QuantumResponse = await response.json();
+    console.log(`🎯 [Success] Autenticación exitosa con: ${authUsed}`);
+
+    // Validar que la respuesta sea JSON válido
+    let quantumData: QuantumResponse;
+    try {
+      const responseText = await response.text();
+      console.log('📄 [Response] Primeros 500 caracteres:', responseText.substring(0, 500));
+      
+      // Verificar si es HTML (error común)
+      if (responseText.trim().startsWith('<')) {
+        throw new Error('La API devolvió HTML en lugar de JSON. Posible página de error.');
+      }
+      
+      quantumData = JSON.parse(responseText);
+      console.log('📊 [JSON] Respuesta parseada exitosamente');
+      
+    } catch (parseError) {
+      console.error('❌ [JSON] Error parseando respuesta:', parseError.message);
+      
+      await supabase
+        .from('quantum_invoice_sync_history')
+        .update({
+          sync_status: 'error',
+          error_details: { 
+            parse_error: parseError.message,
+            auth_used: authUsed,
+            url: apiUrl
+          }
+        })
+        .eq('id', syncRecord.id);
+
+      return new Response(
+        JSON.stringify({ 
+          error: 'Respuesta inválida de la API de Quantum',
+          details: parseError.message,
+          auth_used: authUsed
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     if (quantumData.error?.errorCode !== '0') {
       console.error('❌ [Quantum API] Error en respuesta:', quantumData.error);
