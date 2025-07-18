@@ -11,7 +11,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import { UserPlus, Mail, Clock, CheckCircle, XCircle, Copy, Eye } from 'lucide-react'
+import { UserPlus, Mail, Clock, CheckCircle, XCircle, Copy, Eye, BarChart3 } from 'lucide-react'
+import { OnboardingDashboard } from './OnboardingDashboard'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -57,9 +59,9 @@ const getStatusLabel = (status: string) => {
 
 export const EmployeeOnboardingManager = () => {
   const { user } = useApp()
-  // Using toast from sonner
   const queryClient = useQueryClient()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [currentTab, setCurrentTab] = useState<'dashboard' | 'onboardings'>('dashboard')
   const [formData, setFormData] = useState<EmployeeOnboardingForm>({
     email: '',
     position_title: '',
@@ -330,7 +332,25 @@ export const EmployeeOnboardingManager = () => {
         </CardHeader>
       </Card>
 
-      {/* Lista de onboardings */}
+      {/* Tabs */}
+      <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'dashboard' | 'onboardings')}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="onboardings" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Gestión
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          <OnboardingDashboard />
+        </TabsContent>
+
+        <TabsContent value="onboardings" className="space-y-6">
+          {/* Lista de onboardings */}
       <Card>
         <CardHeader>
           <CardTitle>Procesos de Onboarding</CardTitle>
@@ -397,6 +417,8 @@ export const EmployeeOnboardingManager = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
