@@ -8,6 +8,7 @@ import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
 import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { MainLayout } from '@/components/layout/MainLayout'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -76,79 +77,52 @@ export default function Dashboard() {
   }
 
   return (
-    <StandardPageContainer>
-      <StandardPageHeader
-        title={`Bienvenido, ${welcomeMessage}`}
-        description="Panel de control inteligente con métricas en tiempo real"
-        badges={[
-          {
-            label: `Rol: ${user.role}`,
-            variant: 'outline',
-            color: 'text-blue-600 border-blue-200 bg-blue-50'
+    <MainLayout>
+      <StandardPageContainer>
+        <StandardPageHeader
+          title={`Bienvenido, ${welcomeMessage}`}
+          description="Panel de control inteligente con métricas en tiempo real"
+          badges={[
+            {
+              label: `Rol: ${user.role}`,
+              variant: 'outline',
+              color: 'text-blue-600 border-blue-200 bg-blue-50'
+            }
+          ]}
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Actualizar
+            </Button>
           }
-        ]}
-        actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-        }
-      />
+        />
 
-      {/* Timer de trabajo activo */}
-      <div className="mb-6">
-        <EnhancedActiveTimer />
-      </div>
+        {/* Timer de trabajo activo */}
+        <div className="mb-6">
+          <EnhancedActiveTimer />
+        </div>
 
-      {/* Indicador de última actualización */}
-      <div className="text-sm text-gray-500 mb-4">
-        Última actualización: {formatTime(lastRefresh)}
-      </div>
-      
-      {/* Métricas principales con diseño compacto */}
-      <EnhancedDashboardMetrics stats={enhancedStats} />
-      
-      {/* Layout principal */}
-      {!isLoading && <EnhancedDashboardLayout />}
-      
-      {error && (
-        <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
-      )}
-    </StandardPageContainer>
+        {/* Indicador de última actualización */}
+        <div className="text-sm text-gray-500 mb-4">
+          Última actualización: {formatTime(lastRefresh)}
+        </div>
+        
+        {/* Métricas principales con diseño compacto */}
+        <EnhancedDashboardMetrics stats={enhancedStats} />
+        
+        {/* Layout principal */}
+        {!isLoading && <EnhancedDashboardLayout />}
+        
+        {error && (
+          <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
+        )}
+      </StandardPageContainer>
+    </MainLayout>
   )
 }
-
-// Componente de skeleton para loading
-const DashboardLoadingSkeleton = () => (
-  <div className="space-y-6">
-    {/* Active Timer Skeleton */}
-    <Skeleton className="h-16 w-full" />
-    
-    {/* Métricas principales skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-32" />
-      ))}
-    </div>
-    
-    {/* Métricas adicionales skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-32" />
-      ))}
-    </div>
-    
-    {/* Layout skeleton */}
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <Skeleton className="lg:col-span-4 h-64" />
-      <Skeleton className="lg:col-span-5 h-64" />
-      <Skeleton className="lg:col-span-3 h-64" />
-    </div>
-  </div>
-)

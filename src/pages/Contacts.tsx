@@ -8,17 +8,15 @@ import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
 import { ContactsDialogManager } from '@/components/contacts/ContactsDialogManager'
-import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
 import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
 import { QuantumSyncStatus } from '@/components/contacts/QuantumSyncStatus'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { MainLayout } from '@/components/layout/MainLayout'
 import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
-
 import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const Contacts = () => {
@@ -90,110 +88,110 @@ const Contacts = () => {
   }
 
   return (
-    <StandardPageContainer>
-      <StandardPageHeader
-        title="Contactos"
-        description="Gestiona personas físicas y empresas de tu cartera"
-      />
-      
-      {/* Botones de Onboarding */}
-      <div className="mb-6 flex gap-3">
-        <Button 
-          onClick={handleStartImprovedOnboarding}
-          className="border-0.5 border-black rounded-[10px] bg-primary text-white hover:bg-primary/90"
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Onboarding Inteligente
-        </Button>
-        <Button 
-          onClick={() => setIsQuantumImportOpen(true)}
-          variant="outline"
-          className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
-        >
-          <Database className="h-4 w-4 mr-2" />
-          Importar Quantum
-        </Button>
-      </div>
+    <MainLayout>
+      <StandardPageContainer>
+        <StandardPageHeader
+          title="Contactos"
+          description="Gestiona personas físicas y empresas de tu cartera"
+        />
+        
+        {/* Botones de Onboarding */}
+        <div className="mb-6 flex gap-3">
+          <Button 
+            onClick={handleStartImprovedOnboarding}
+            className="border-0.5 border-black rounded-[10px] bg-primary text-white hover:bg-primary/90"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Onboarding Inteligente
+          </Button>
+          <Button 
+            onClick={() => setIsQuantumImportOpen(true)}
+            variant="outline"
+            className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
+          >
+            <Database className="h-4 w-4 mr-2" />
+            Importar Quantum
+          </Button>
+        </div>
 
-      {/* Métricas rápidas y estado de sincronización */}
-      <div className="space-y-6 mb-6">
-        <ContactQuickMetrics contacts={contacts} />
-        <QuantumSyncStatus />
-      </div>
+        {/* Métricas rápidas y estado de sincronización */}
+        <div className="space-y-6 mb-6">
+          <ContactQuickMetrics contacts={contacts} />
+          <QuantumSyncStatus />
+        </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="persons">
-            Personas Físicas
-          </TabsTrigger>
-          <TabsTrigger value="companies">
-            Empresas
-          </TabsTrigger>
-          <TabsTrigger value="migration">
-            Migración
-          </TabsTrigger>
-          <TabsTrigger value="analytics">
-            Analytics
-          </TabsTrigger>
-        </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="persons">
+              Personas Físicas
+            </TabsTrigger>
+            <TabsTrigger value="companies">
+              Empresas
+            </TabsTrigger>
+            <TabsTrigger value="migration">
+              Migración
+            </TabsTrigger>
+            <TabsTrigger value="analytics">
+              Analytics
+            </TabsTrigger>
+          </TabsList>
 
-        <ContactsTabsContent
-          contacts={contacts}
-          onBulkUpload={() => setIsBulkUploadOpen(true)}
-          onExport={() => setIsExportDialogOpen(true)}
-          onCreatePerson={handleCreatePerson}
-          onCreateCompany={handleCreateCompany}
-          onEditPerson={handleEditPerson}
-          onEditCompany={handleEditCompany}
+          <ContactsTabsContent
+            contacts={contacts}
+            onBulkUpload={() => setIsBulkUploadOpen(true)}
+            onExport={() => setIsExportDialogOpen(true)}
+            onCreatePerson={handleCreatePerson}
+            onCreateCompany={handleCreateCompany}
+            onEditPerson={handleEditPerson}
+            onEditCompany={handleEditCompany}
+          />
+
+          {/* Tab de Migración */}
+          {activeTab === 'migration' && (
+            <div className="mt-6">
+              <MigrationDashboard />
+            </div>
+          )}
+        </Tabs>
+
+        {/* Diálogos para Personas Físicas */}
+        <PersonFormDialog
+          person={selectedPerson}
+          open={isCreatePersonDialogOpen || isEditPersonDialogOpen}
+          onClose={handleDialogClose}
         />
 
-        {/* Tab de Migración */}
-        {activeTab === 'migration' && (
-          <div className="mt-6">
-            <MigrationDashboard />
-          </div>
-        )}
-      </Tabs>
+        {/* Diálogos para Empresas */}
+        <ContactsDialogManager
+          selectedContact={selectedContact}
+          isCreateDialogOpen={isCreateCompanyDialogOpen}
+          isEditDialogOpen={isEditCompanyDialogOpen}
+          isBulkUploadOpen={isBulkUploadOpen}
+          isExportDialogOpen={isExportDialogOpen}
+          isQuantumImportOpen={isQuantumImportOpen}
+          contacts={contacts}
+          onClose={handleDialogClose}
+          onBulkUploadClose={() => setIsBulkUploadOpen(false)}
+          onExportClose={() => setIsExportDialogOpen(false)}
+          onQuantumImportClose={handleQuantumImportClose}
+          onBulkUploadSuccess={handleBulkUploadSuccess}
+        />
 
-      {/* Diálogos para Personas Físicas */}
-      <PersonFormDialog
-        person={selectedPerson}
-        open={isCreatePersonDialogOpen || isEditPersonDialogOpen}
-        onClose={handleDialogClose}
-      />
-
-      {/* Diálogos para Empresas */}
-      <ContactsDialogManager
-        selectedContact={selectedContact}
-        isCreateDialogOpen={isCreateCompanyDialogOpen}
-        isEditDialogOpen={isEditCompanyDialogOpen}
-        isBulkUploadOpen={isBulkUploadOpen}
-        isExportDialogOpen={isExportDialogOpen}
-        isQuantumImportOpen={isQuantumImportOpen}
-        contacts={contacts}
-        onClose={handleDialogClose}
-        onBulkUploadClose={() => setIsBulkUploadOpen(false)}
-        onExportClose={() => setIsExportDialogOpen(false)}
-        onQuantumImportClose={handleQuantumImportClose}
-        onBulkUploadSuccess={handleBulkUploadSuccess}
-      />
-
-      {/* Diálogo de Onboarding Mejorado */}
-      <Dialog open={isImprovedOnboardingOpen} onOpenChange={setIsImprovedOnboardingOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden border-0.5 border-black rounded-[10px]">
-          <DialogHeader className="px-6 py-4 border-b border-gray-200">
-            <DialogTitle className="text-xl font-semibold">
-              Onboarding Inteligente de Clientes
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-            <ImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-
-    </StandardPageContainer>
+        {/* Diálogo de Onboarding Mejorado */}
+        <Dialog open={isImprovedOnboardingOpen} onOpenChange={setIsImprovedOnboardingOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden border-0.5 border-black rounded-[10px]">
+            <DialogHeader className="px-6 py-4 border-b border-gray-200">
+              <DialogTitle className="text-xl font-semibold">
+                Onboarding Inteligente de Clientes
+              </DialogTitle>
+            </DialogHeader>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <ImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </StandardPageContainer>
+    </MainLayout>
   )
 }
 
