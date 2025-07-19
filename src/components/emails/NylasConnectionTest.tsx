@@ -54,7 +54,7 @@ export function NylasConnectionTest() {
     try {
       addTestResult('Email Sync', 'pending', 'Iniciando sincronización de emails...')
       await new Promise<void>((resolve, reject) => {
-        syncEmails()
+        syncEmails(false)
         // Simular verificación después de un delay
         setTimeout(() => {
           if (isSyncing) {
@@ -177,7 +177,7 @@ export function NylasConnectionTest() {
               </Button>
               
               <Button
-                onClick={() => syncEmails()}
+                onClick={() => syncEmails(false)}
                 disabled={isSyncing}
                 variant="outline"
                 className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
