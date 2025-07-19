@@ -7,9 +7,12 @@ export type NylasConnectionStatus = 'not_connected' | 'connecting' | 'connected'
 
 export interface NylasConnection {
   grant_id: string
+  application_id?: string
+  account_id?: string
   email_address: string
   provider: string
   status: string
+  scopes?: string[]
   last_sync?: string
 }
 

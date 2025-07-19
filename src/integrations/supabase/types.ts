@@ -2982,43 +2982,43 @@ export type Database = {
       }
       nylas_connections: {
         Row: {
-          access_token: string
+          account_id: string | null
+          application_id: string | null
           created_at: string
           email_address: string
-          expires_at: string | null
           grant_id: string
           id: string
           org_id: string
           provider: string
-          refresh_token: string | null
+          scopes: string[] | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          access_token: string
+          account_id?: string | null
+          application_id?: string | null
           created_at?: string
           email_address: string
-          expires_at?: string | null
           grant_id: string
           id?: string
           org_id: string
           provider?: string
-          refresh_token?: string | null
+          scopes?: string[] | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          access_token?: string
+          account_id?: string | null
+          application_id?: string | null
           created_at?: string
           email_address?: string
-          expires_at?: string | null
           grant_id?: string
           id?: string
           org_id?: string
           provider?: string
-          refresh_token?: string | null
+          scopes?: string[] | null
           status?: string
           updated_at?: string
           user_id?: string

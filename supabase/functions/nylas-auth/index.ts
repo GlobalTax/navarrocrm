@@ -22,21 +22,23 @@ serve(async (req) => {
     const nylasApiKey = Deno.env.get('NYLAS_API_KEY')
     const nylasClientId = Deno.env.get('NYLAS_CLIENT_ID')
     const nylasClientSecret = Deno.env.get('NYLAS_CLIENT_SECRET')
+    const nylasApplicationId = Deno.env.get('NYLAS_APPLICATION_ID')
     const redirectUri = Deno.env.get('NYLAS_REDIRECT_URI') || 'http://localhost:5173/emails/callback'
 
-    if (!nylasApiKey || !nylasClientId || !nylasClientSecret) {
-      throw new Error('Variables de entorno de Nylas no configuradas')
+    if (!nylasApiKey || !nylasClientId || !nylasClientSecret || !nylasApplicationId) {
+      throw new Error('Variables de entorno de Nylas no configuradas completamente')
     }
 
     if (action === 'get_auth_url') {
-      // Generar URL de autorización de Nylas
+      // Generar URL de autorización para Nylas v3
       const authUrl = `https://api.us.nylas.com/v3/connect/auth?` +
-        `client_id=${nylasClientId}&` +
+        `client_id=${nylasApplicationId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `response_type=code&` +
-        `scope=email.read,email.send&` +
+        `scope=https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send&` +
         `access_type=offline&` +
-        `state=${user_id}`
+        `state=${user_id}&` +
+        `prompt=consent`
 
       return new Response(
         JSON.stringify({ auth_url: authUrl }),
@@ -48,7 +50,7 @@ serve(async (req) => {
     }
 
     if (action === 'exchange_code') {
-      // Intercambiar código por access token
+      // Intercambiar código por grant usando Nylas v3
       const tokenResponse = await fetch('https://api.us.nylas.com/v3/connect/token', {
         method: 'POST',
         headers: {
@@ -56,7 +58,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${nylasApiKey}`,
         },
         body: JSON.stringify({
-          client_id: nylasClientId,
+          client_id: nylasApplicationId,
           client_secret: nylasClientSecret,
           redirect_uri: redirectUri,
           code: code,
@@ -66,28 +68,40 @@ serve(async (req) => {
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text()
+        console.error('Error response from Nylas:', errorText)
         throw new Error(`Error intercambiando código: ${errorText}`)
       }
 
       const tokenData = await tokenResponse.json()
+      console.log('Token data from Nylas:', tokenData)
 
-      // Guardar conexión en base de datos
+      // Obtener información del grant
+      const grantResponse = await fetch(`https://api.us.nylas.com/v3/grants/${tokenData.grant_id}`, {
+        headers: {
+          'Authorization': `Bearer ${nylasApiKey}`,
+          'Accept': 'application/json',
+        }
+      })
+
+      const grantData = grantResponse.ok ? await grantResponse.json() : null
+
+      // Guardar conexión en base de datos con el nuevo esquema v3
       const { error } = await supabase
         .from('nylas_connections')
         .upsert({
           user_id,
           org_id,
           grant_id: tokenData.grant_id,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
-          expires_at: tokenData.expires_in ? 
-            new Date(Date.now() + tokenData.expires_in * 1000).toISOString() : null,
-          email_address: tokenData.email,
-          provider: 'gmail', // o detectar automáticamente
+          application_id: nylasApplicationId,
+          account_id: grantData?.account_id || null,
+          email_address: grantData?.email || 'unknown@email.com',
+          provider: grantData?.provider || 'gmail',
+          scopes: grantData?.scopes || [],
           status: 'connected'
         })
 
       if (error) {
+        console.error('Database error:', error)
         throw new Error(`Error guardando conexión: ${error.message}`)
       }
 
@@ -95,7 +109,7 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           grant_id: tokenData.grant_id,
-          email: tokenData.email 
+          email: grantData?.email || 'unknown@email.com'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -123,8 +137,8 @@ serve(async (req) => {
         )
       }
 
-      // Verificar si el token sigue siendo válido
-      const testResponse = await fetch(`https://api.us.nylas.com/v3/grants/${connection.grant_id}/messages?limit=1`, {
+      // Verificar si el grant sigue siendo válido usando Nylas v3
+      const testResponse = await fetch(`https://api.us.nylas.com/v3/grants/${connection.grant_id}`, {
         headers: {
           'Authorization': `Bearer ${nylasApiKey}`,
           'Accept': 'application/json',
