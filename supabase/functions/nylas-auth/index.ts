@@ -25,7 +25,7 @@ serve(async (req) => {
     const nylasClientSecret = Deno.env.get('NYLAS_CLIENT_SECRET')
     const nylasApplicationId = Deno.env.get('NYLAS_APPLICATION_ID')
     
-    // Usar URL absoluta para redirect_uri
+    // CORRECCIÓN: Usar nuestra propia URL como redirect_uri
     const redirectUri = Deno.env.get('NYLAS_REDIRECT_URI') || 'https://jzbbbwfnzpwxmuhpbdya.supabase.co/nylas/callback'
 
     if (!nylasApiKey || !nylasClientId || !nylasClientSecret || !nylasApplicationId) {
@@ -41,12 +41,12 @@ serve(async (req) => {
     })
 
     if (action === 'get_auth_url') {
-      // Generar URL de autorización para Nylas v3 con URLs absolutas
-      const authUrl = `https://api.us.nylas.com/v3/connect/auth?` +
-        `client_id=${nylasApplicationId}&` +
+      // CORRECCIÓN: Usar Google OAuth directamente en lugar de Nylas Connect
+      const authUrl = `https://accounts.google.com/oauth/authorize?` +
+        `client_id=${nylasClientId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `response_type=code&` +
-        `scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send')}&` +
+        `scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email')}&` +
         `access_type=offline&` +
         `state=${user_id}&` +
         `prompt=consent`
@@ -65,15 +65,14 @@ serve(async (req) => {
     if (action === 'exchange_code') {
       console.log('Intercambiando código por token:', { code, user_id, org_id })
       
-      // Intercambiar código por grant usando Nylas v3
-      const tokenResponse = await fetch('https://api.us.nylas.com/v3/connect/token', {
+      // CORRECCIÓN: Usar Google OAuth para obtener tokens
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${nylasApiKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          client_id: nylasApplicationId,
+        body: new URLSearchParams({
+          client_id: nylasClientId,
           client_secret: nylasClientSecret,
           redirect_uri: redirectUri,
           code: code,
@@ -83,23 +82,48 @@ serve(async (req) => {
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text()
-        console.error('Error response from Nylas:', errorText)
+        console.error('Error response from Google OAuth:', errorText)
         throw new Error(`Error intercambiando código: ${errorText}`)
       }
 
       const tokenData = await tokenResponse.json()
-      console.log('Token data from Nylas:', tokenData)
+      console.log('Token data from Google:', tokenData)
 
-      // Obtener información del grant
-      const grantResponse = await fetch(`https://api.us.nylas.com/v3/grants/${tokenData.grant_id}`, {
+      // Crear grant en Nylas v3 usando el access token de Google
+      const nylasGrantResponse = await fetch('https://api.us.nylas.com/v3/grants', {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${nylasApiKey}`,
-          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          provider: 'gmail',
+          settings: {
+            google_client_id: nylasClientId,
+            google_client_secret: nylasClientSecret,
+            google_refresh_token: tokenData.refresh_token,
+          },
+          scope: ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send']
+        }),
+      })
+
+      if (!nylasGrantResponse.ok) {
+        const errorText = await nylasGrantResponse.text()
+        console.error('Error creating Nylas grant:', errorText)
+        throw new Error(`Error creando grant en Nylas: ${errorText}`)
+      }
+
+      const grantData = await nylasGrantResponse.json()
+      console.log('Grant data from Nylas:', grantData)
+
+      // Obtener información del usuario desde Google
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
         }
       })
 
-      const grantData = grantResponse.ok ? await grantResponse.json() : null
-      console.log('Grant data from Nylas:', grantData)
+      const userInfo = userInfoResponse.ok ? await userInfoResponse.json() : {}
 
       // Guardar conexión en base de datos con el nuevo esquema v3
       const { error } = await supabase
@@ -107,12 +131,12 @@ serve(async (req) => {
         .upsert({
           user_id,
           org_id,
-          grant_id: tokenData.grant_id,
+          grant_id: grantData.id,
           application_id: nylasApplicationId,
-          account_id: grantData?.account_id || null,
-          email_address: grantData?.email || 'unknown@email.com',
-          provider: grantData?.provider || 'gmail',
-          scopes: grantData?.scopes || [],
+          account_id: grantData.account_id || null,
+          email_address: userInfo.email || 'unknown@email.com',
+          provider: 'gmail',
+          scopes: grantData.scope || [],
           status: 'connected'
         })
 
@@ -124,8 +148,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          grant_id: tokenData.grant_id,
-          email: grantData?.email || 'unknown@email.com'
+          grant_id: grantData.id,
+          email: userInfo.email || 'unknown@email.com'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
