@@ -15,21 +15,21 @@ function App() {
   return (
     <QueryClientProvider client={new QueryClient()}>
       <AppProvider>
-        <OnboardingProvider>
-          <Router>
-          <div className="min-h-screen bg-background font-sans antialiased">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/setup" element={<Setup />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/emails/*" element={<Emails />} />
-              <Route path="/nylas/callback" element={<NylasCallback />} />
-            </Routes>
-          </div>
+        <Router>
+          <OnboardingProvider>
+            <div className="min-h-screen bg-background font-sans antialiased">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/setup" element={<Setup />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path="/emails/*" element={<Emails />} />
+                <Route path="/nylas/callback" element={<NylasCallback />} />
+              </Routes>
+            </div>
+          </OnboardingProvider>
         </Router>
-        </OnboardingProvider>
       </AppProvider>
     </QueryClientProvider>
   )
