@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AppProvider } from '@/contexts/AppContext'
+import { OnboardingProvider } from '@/components/onboarding'
 import Index from '@/pages/Index'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
@@ -14,7 +15,8 @@ function App() {
   return (
     <QueryClientProvider client={new QueryClient()}>
       <AppProvider>
-        <Router>
+        <OnboardingProvider>
+          <Router>
           <div className="min-h-screen bg-background font-sans antialiased">
             <Routes>
               <Route path="/" element={<Index />} />
@@ -27,6 +29,7 @@ function App() {
             </Routes>
           </div>
         </Router>
+        </OnboardingProvider>
       </AppProvider>
     </QueryClientProvider>
   )
