@@ -41,6 +41,42 @@ const corsHeaders = {
 };
 
 // Función para procesar sincronización automática
+// Función para detectar tipo de entidad (empresa o persona física)
+function detectEntityType(customer: QuantumCustomer): 'empresa' | 'particular' {
+  const name = customer.name?.toLowerCase() || '';
+  const nif = customer.nif || '';
+  
+  // Detectar por palabras clave en el nombre
+  const companyKeywords = [
+    's.l.', 'sl.', 'sl', 's.l', 'sociedad limitada',
+    's.a.', 'sa.', 'sa', 's.a', 'sociedad anónima', 
+    's.l.u.', 'slu.', 'slu', 's.l.u', 'sociedad limitada unipersonal',
+    'c.b.', 'cb.', 'cb', 'c.b', 'comunidad de bienes',
+    's.c.', 'sc.', 'sc', 's.c', 'sociedad colectiva',
+    's.coop.', 'scoop.', 'cooperativa',
+    'fundacion', 'fundación', 'asociacion', 'asociación',
+    'ayuntamiento', 'diputacion', 'diputación', 'junta',
+    'empresa', 'sociedad', 'comercial', 'industrial',
+    'consulting', 'consultoria', 'consultoría', 'servicios',
+    'construcciones', 'inmobiliaria', 'promociones'
+  ];
+  
+  // Verificar si el nombre contiene palabras clave de empresa
+  const hasCompanyKeyword = companyKeywords.some(keyword => 
+    name.includes(keyword)
+  );
+  
+  // Detectar por NIF/CIF - las empresas suelen empezar con letras específicas
+  const companyCifLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'N', 'P', 'Q', 'R', 'S', 'U', 'V', 'W'];
+  const firstChar = nif.charAt(0).toUpperCase();
+  const hasCompanyCif = companyCifLetters.includes(firstChar);
+  
+  // Logging para debug
+  console.log(`🔍 Analizando entidad: "${customer.name}" | NIF: "${nif}" | Keyword: ${hasCompanyKeyword} | CIF: ${hasCompanyCif}`);
+  
+  return (hasCompanyKeyword || hasCompanyCif) ? 'empresa' : 'particular';
+}
+
 async function processAutomaticSync(supabase: any, customers: QuantumCustomer[], authMethod: string, endpoint: string) {
   console.log('🤖 Procesando sincronización automática...');
   
@@ -57,7 +93,7 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
     
     const orgId = orgs[0].id;
     
-    // Obtener contactos existentes para detectar duplicados
+    // Obtener contactos existentes para detectar duplicados (mejorado)
     const { data: existingContacts, error: contactsError } = await supabase
       .from('contacts')
       .select('email, dni_nif, name, phone, quantum_customer_id')
@@ -67,43 +103,70 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
       throw new Error(`Error al obtener contactos existentes: ${contactsError.message}`);
     }
     
-    // Detectar contactos nuevos (no duplicados)
+    // Detectar contactos nuevos (no duplicados) con mejor lógica
     const newContacts = [];
     const skippedContacts = [];
+    const entityTypeStats = { empresas: 0, particulares: 0 };
     
     for (const customer of customers) {
+      // Verificar duplicados con lógica mejorada
       const isDuplicate = existingContacts.some(contact => {
-        // Verificar por quantum_customer_id primero
-        if (contact.quantum_customer_id === customer.customerId) return true;
+        // Prioridad 1: quantum_customer_id (más confiable)
+        if (customer.customerId && contact.quantum_customer_id === customer.customerId) {
+          return true;
+        }
         
-        // Verificar por email
-        if (customer.email && contact.email && 
-            customer.email.toLowerCase() === contact.email.toLowerCase()) return true;
+        // Prioridad 2: DNI/NIF exacto (sin espacios ni guiones)
+        if (customer.nif && contact.dni_nif) {
+          const customerNif = customer.nif.replace(/[\s-]/g, '').toUpperCase();
+          const contactNif = contact.dni_nif.replace(/[\s-]/g, '').toUpperCase();
+          if (customerNif === contactNif && customerNif.length > 0) {
+            return true;
+          }
+        }
         
-        // Verificar por DNI/NIF
-        if (customer.nif && contact.dni_nif && 
-            customer.nif.replace(/\D/g, '') === contact.dni_nif.replace(/\D/g, '')) return true;
+        // Prioridad 3: Email exacto
+        if (customer.email && contact.email) {
+          if (customer.email.toLowerCase().trim() === contact.email.toLowerCase().trim()) {
+            return true;
+          }
+        }
         
-        // Verificar por nombre y teléfono
-        if (customer.name && contact.name && customer.phone && contact.phone &&
-            customer.name.toLowerCase() === contact.name.toLowerCase() &&
-            customer.phone.replace(/\D/g, '') === contact.phone.replace(/\D/g, '')) return true;
+        // Prioridad 4: Nombre exacto + teléfono (más estricto)
+        if (customer.name && contact.name && customer.phone && contact.phone) {
+          const customerName = customer.name.toLowerCase().trim();
+          const contactName = contact.name.toLowerCase().trim();
+          const customerPhone = customer.phone.replace(/\D/g, '');
+          const contactPhone = contact.phone.replace(/\D/g, '');
+          
+          if (customerName === contactName && customerPhone === contactPhone && 
+              customerName.length > 3 && customerPhone.length >= 9) {
+            return true;
+          }
+        }
         
         return false;
       });
       
       if (isDuplicate) {
         skippedContacts.push(customer);
+        console.log(`⏭️ Omitiendo duplicado: ${customer.name}`);
       } else {
         newContacts.push(customer);
+        // Contar tipos de entidad
+        const entityType = detectEntityType(customer);
+        entityTypeStats[entityType === 'empresa' ? 'empresas' : 'particulares']++;
       }
     }
     
     console.log(`📊 Análisis: ${newContacts.length} nuevos, ${skippedContacts.length} duplicados`);
+    console.log(`🏢 Tipos detectados: ${entityTypeStats.empresas} empresas, ${entityTypeStats.particulares} particulares`);
     
-    // Importar solo contactos nuevos
+    // Importar solo contactos nuevos con clasificación correcta
     const importedContacts = [];
     for (const customer of newContacts) {
+      const entityType = detectEntityType(customer);
+      
       const contactData = {
         org_id: orgId,
         name: customer.name,
@@ -113,6 +176,7 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
         address_street: [customer.streetType, customer.streetName, customer.streetNumber]
           .filter(Boolean).join(' ') || null,
         address_postal_code: customer.postCode || null,
+        client_type: entityType, // Usar detección automática de tipo
         relationship_type: 'prospecto',
         source: 'quantum_auto',
         auto_imported_at: new Date().toISOString(),
