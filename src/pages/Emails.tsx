@@ -8,7 +8,6 @@ import { EmailInbox } from '@/components/emails/EmailInbox'
 import { EmailCompose } from '@/components/emails/EmailCompose'
 import { EmailThread } from '@/components/emails/EmailThread'
 import { EmailSettings } from '@/components/emails/EmailSettings'
-import NylasCallback from './NylasCallback'
 
 export default function Emails() {
   return (
@@ -23,7 +22,6 @@ export default function Emails() {
           <Route path="compose" element={<EmailCompose />} />
           <Route path="thread/:threadId" element={<EmailThread />} />
           <Route path="settings" element={<EmailSettings />} />
-          <Route path="callback" element={<NylasCallback />} />
         </Routes>
       </Suspense>
     </StandardPageContainer>

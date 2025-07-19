@@ -1,13 +1,12 @@
+
 import { Suspense } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { useNylasConnection } from '@/hooks/useNylasConnection'
+import { useOutlookConnection } from '@/hooks/useOutlookConnection'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
-import { NylasConnectionStatus } from '@/components/emails/NylasConnectionStatus'
-import { EmailConnectionStatus } from '@/components/emails/EmailConnectionStatus'
+import { OutlookConnectionStatus } from '@/components/emails/OutlookConnectionStatus'
 import { EmailMetricsCards } from '@/components/emails/EmailMetricsCards'
 import { RecentEmailsList } from '@/components/emails/RecentEmailsList'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Mail, PenTool, Send, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -86,21 +85,20 @@ export function EmailDashboard() {
 function EmailDashboardContent() {
   const navigate = useNavigate()
   
-  // Hook para conexión de Nylas con manejo de errores
-  let nylasConnection, emailMetrics
+  // Hook para conexión de Outlook con manejo de errores
+  let outlookConnection, emailMetrics
   
   try {
-    nylasConnection = useNylasConnection()
+    outlookConnection = useOutlookConnection()
   } catch (error) {
-    console.error('Error en useNylasConnection:', error)
-    nylasConnection = { 
+    console.error('Error en useOutlookConnection:', error)
+    outlookConnection = { 
       connectionStatus: 'error' as const, 
-      connection: null, 
+      connectionData: null, 
       connect: () => {}, 
       syncEmails: () => {},
-      isLoading: false,
       isConnecting: false,
-      isSyncing: false,
+      isSyncingEmails: false,
       error: error as Error
     }
   }
@@ -117,11 +115,21 @@ function EmailDashboardContent() {
   }
 
   const handleConfigure = () => {
-    nylasConnection.connect()
+    navigate('/emails/settings')
   }
 
   const handleSync = () => {
-    nylasConnection.syncEmails()
+    if (outlookConnection.syncEmails) {
+      outlookConnection.syncEmails(false)
+    }
+  }
+
+  // Determinar el estado para OutlookConnectionStatus
+  const getConnectionStatus = () => {
+    if (outlookConnection.isConnecting) return 'connecting'
+    if (outlookConnection.error) return 'error'
+    if (outlookConnection.connectionStatus === 'connected') return 'connected'
+    return 'not_connected'
   }
 
   return (
@@ -130,21 +138,19 @@ function EmailDashboardContent() {
         <div className="mb-8">
           <StandardPageHeader
             title="Dashboard de Emails"
-            description="Gestión y análisis de comunicaciones por email con Nylas"
+            description="Gestión y análisis de comunicaciones por email con Microsoft Exchange"
           />
         </div>
 
-        {/* Estado de conexión */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <EmailConnectionStatus />
-          <NylasConnectionStatus
-            status={nylasConnection.connectionStatus}
-            connection={nylasConnection.connection}
+        {/* Estado de conexión con Outlook */}
+        <div className="mb-8">
+          <OutlookConnectionStatus
+            status={getConnectionStatus()}
+            lastSync={outlookConnection.connectionData?.updated_at ? new Date(outlookConnection.connectionData.updated_at) : undefined}
             onSync={handleSync}
-            onConnect={handleConfigure}
-            isSyncing={nylasConnection.isSyncing}
-            isConnecting={nylasConnection.isConnecting}
-            error={nylasConnection.error}
+            onConfigure={handleConfigure}
+            isSyncing={outlookConnection.isSyncingEmails}
+            error={outlookConnection.error?.message}
           />
         </div>
 
