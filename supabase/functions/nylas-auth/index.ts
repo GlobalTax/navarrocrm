@@ -48,32 +48,28 @@ serve(async (req) => {
     }
 
     if (action === 'get_auth_url') {
-      // Scopes completos según especificaciones de Nylas v3
+      // Scopes básicos para Nylas v3 - solo los necesarios
       const scopes = [
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.modify',
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/calendar',
-        'https://www.googleapis.com/auth/calendar.events',
-        'https://www.googleapis.com/auth/contacts'
+        'https://www.googleapis.com/auth/gmail.send'
       ].join(' ')
 
-      // Generar URL de autorización para Nylas v3 según especificaciones
+      // URL de autorización simplificada para Nylas v3 - SOLO parámetros soportados
       const authUrl = `${nylasApiUri}/v3/connect/auth?` +
         `client_id=${nylasApplicationId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `response_type=code&` +
         `scope=${encodeURIComponent(scopes)}&` +
-        `access_type=offline&` +
-        `state=${user_id}&` +
-        `prompt=consent`
+        `state=${user_id}`
 
-      console.log('✅ [Nylas Auth] Generated auth URL successfully:', {
+      console.log('✅ [Nylas Auth] Generated simplified auth URL:', {
         applicationId: nylasApplicationId,
         redirectUri,
         scopes: scopes.split(' ').length,
-        userId: user_id
+        userId: user_id,
+        fullUrl: authUrl
       })
 
       return new Response(

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useNylasConnection } from '@/hooks/useNylasConnection'
 import { CheckCircle, AlertTriangle, Loader2, Mail, RefreshCw, TestTube } from 'lucide-react'
-import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
 
 export function NylasConnectionTest() {
   const { 
@@ -78,21 +78,23 @@ export function NylasConnectionTest() {
   const runConfigurationTest = async () => {
     setTestResults([])
     
-    // Test configuration
+    // Test configuration usando Supabase edge function
     addTestResult('Configuration Check', 'pending', 'Verificando configuración de Nylas...')
     
     try {
-      const response = await fetch('/api/nylas/config-check', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      })
+      const { data, error } = await supabase.functions.invoke('nylas-config-check')
       
-      if (response.ok) {
-        const config = await response.json()
-        addTestResult('Configuration Check', 'success', 
-          `Configuración OK - API Key: ${config.hasApiKey ? '✓' : '✗'}, App ID: ${config.hasAppId ? '✓' : '✗'}`)
+      if (error) {
+        addTestResult('Configuration Check', 'error', `Error verificando configuración: ${error.message}`)
       } else {
-        addTestResult('Configuration Check', 'error', 'Error verificando configuración')
+        addTestResult('Configuration Check', 'success', 
+          `Configuración OK - API Key: ${data.hasApiKey ? '✓' : '✗'}, App ID: ${data.hasAppId ? '✓' : '✗'}`)
+        
+        if (data.errors && data.errors.length > 0) {
+          data.errors.forEach((err: string) => {
+            addTestResult('Configuration Check', 'error', err)
+          })
+        }
       }
     } catch (error) {
       addTestResult('Configuration Check', 'error', 'No se pudo verificar la configuración')
@@ -238,7 +240,7 @@ export function NylasConnectionTest() {
             <p>• <strong>NYLAS_APPLICATION_ID:</strong> ID de tu aplicación en Nylas Dashboard</p>
             <p>• <strong>NYLAS_API_URI:</strong> https://api.us.nylas.com (o .eu según tu región)</p>
             <p>• <strong>Redirect URI:</strong> Debe estar configurada en Nylas Dashboard</p>
-            <p>• <strong>Scopes requeridos:</strong> Gmail (lectura/escritura), Calendar, Contacts</p>
+            <p>• <strong>Scopes requeridos:</strong> Gmail (lectura/escritura) básicos</p>
           </div>
           <div className="mt-3 p-2 bg-blue-100 rounded border">
             <p className="text-xs text-blue-700">
