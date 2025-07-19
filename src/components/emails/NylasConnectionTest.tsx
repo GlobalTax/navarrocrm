@@ -27,7 +27,7 @@ export function NylasConnectionTest() {
     timestamp: string
   }>>([])
 
-  const addTestResult = (step: string, status: 'success' | 'error', message: string) => {
+  const addTestResult = (step: string, status: 'pending' | 'success' | 'error', message: string) => {
     setTestResults(prev => [...prev, {
       step,
       status,
@@ -53,26 +53,50 @@ export function NylasConnectionTest() {
     // Test 2: Sync emails
     try {
       addTestResult('Email Sync', 'pending', 'Iniciando sincronización de emails...')
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         syncEmails()
-        // Simular éxito después de un delay
+        // Simular verificación después de un delay
         setTimeout(() => {
           if (isSyncing) {
             reject(new Error('Timeout en sincronización'))
           } else {
-            resolve(true)
+            resolve()
           }
         }, 5000)
       })
       addTestResult('Email Sync', 'success', 'Sincronización completada')
     } catch (error) {
-      addTestResult('Email Sync', 'error', `Error en sincronización: ${error.message}`)
+      addTestResult('Email Sync', 'error', `Error en sincronización: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   const handleConnect = () => {
     addTestResult('OAuth Flow', 'pending', 'Iniciando flujo de autenticación...')
     connect()
+  }
+
+  const runConfigurationTest = async () => {
+    setTestResults([])
+    
+    // Test configuration
+    addTestResult('Configuration Check', 'pending', 'Verificando configuración de Nylas...')
+    
+    try {
+      const response = await fetch('/api/nylas/config-check', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (response.ok) {
+        const config = await response.json()
+        addTestResult('Configuration Check', 'success', 
+          `Configuración OK - API Key: ${config.hasApiKey ? '✓' : '✗'}, App ID: ${config.hasAppId ? '✓' : '✗'}`)
+      } else {
+        addTestResult('Configuration Check', 'error', 'Error verificando configuración')
+      }
+    } catch (error) {
+      addTestResult('Configuration Check', 'error', 'No se pudo verificar la configuración')
+    }
   }
 
   return (
@@ -85,7 +109,7 @@ export function NylasConnectionTest() {
               Prueba de Conexión Nylas v3
             </CardTitle>
             <CardDescription>
-              Panel de pruebas para validar la integración con Nylas
+              Panel de pruebas para validar la integración con Nylas API v3
             </CardDescription>
           </div>
         </div>
@@ -114,6 +138,15 @@ export function NylasConnectionTest() {
 
         {/* Botones de acción */}
         <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={runConfigurationTest}
+            variant="outline"
+            className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
+          >
+            <TestTube className="h-4 w-4 mr-2" />
+            Verificar Configuración
+          </Button>
+
           {connectionStatus === 'not_connected' ? (
             <Button
               onClick={handleConnect}
@@ -140,7 +173,7 @@ export function NylasConnectionTest() {
                 className="border-0.5 border-black rounded-[10px] bg-blue-600 text-white hover:bg-blue-700"
               >
                 <TestTube className="h-4 w-4 mr-2" />
-                Ejecutar Prueba Completa
+                Prueba Completa
               </Button>
               
               <Button
@@ -197,23 +230,46 @@ export function NylasConnectionTest() {
           </div>
         )}
 
-        {/* Información de configuración */}
+        {/* Información de configuración mejorada */}
         <div className="space-y-3 p-4 bg-blue-50 rounded-[10px] border-0.5 border-blue-200">
           <h4 className="font-medium text-blue-900">Configuración Requerida</h4>
           <div className="space-y-2 text-sm text-blue-800">
-            <p>• <strong>NYLAS_API_KEY:</strong> Configurado en Supabase Secrets</p>
-            <p>• <strong>NYLAS_APPLICATION_ID:</strong> ID de la aplicación en Nylas Dashboard</p>
-            <p>• <strong>Redirect URI:</strong> Debe estar añadida en Nylas Dashboard</p>
-            <p>• <strong>Scopes:</strong> Gmail, Calendar, Contacts configurados</p>
+            <p>• <strong>NYLAS_API_KEY:</strong> Tu API key de Nylas (configurado en Supabase Secrets)</p>
+            <p>• <strong>NYLAS_APPLICATION_ID:</strong> ID de tu aplicación en Nylas Dashboard</p>
+            <p>• <strong>NYLAS_API_URI:</strong> https://api.us.nylas.com (o .eu según tu región)</p>
+            <p>• <strong>Redirect URI:</strong> Debe estar configurada en Nylas Dashboard</p>
+            <p>• <strong>Scopes requeridos:</strong> Gmail (lectura/escritura), Calendar, Contacts</p>
+          </div>
+          <div className="mt-3 p-2 bg-blue-100 rounded border">
+            <p className="text-xs text-blue-700">
+              <strong>Nota:</strong> La Redirect URI actual es: <code className="bg-white px-1 rounded">{window.location.origin}/nylas/callback</code>
+            </p>
           </div>
         </div>
 
-        {/* Error display */}
+        {/* Guía de configuración paso a paso */}
+        <div className="space-y-3 p-4 bg-amber-50 rounded-[10px] border-0.5 border-amber-200">
+          <h4 className="font-medium text-amber-900">Pasos de Configuración</h4>
+          <ol className="text-sm text-amber-800 space-y-1 list-decimal list-inside">
+            <li>Ve al <a href="https://dashboard.nylas.com" target="_blank" rel="noopener noreferrer" className="underline">Dashboard de Nylas</a></li>
+            <li>Selecciona tu aplicación o crea una nueva</li>
+            <li>En "Hosted Authentication" → "Callback URIs", añade: <code className="bg-white px-1 rounded">{window.location.origin}/nylas/callback</code></li>
+            <li>Copia tu Application ID y configúralo en Supabase Secrets como NYLAS_APPLICATION_ID</li>
+            <li>Copia tu API Key y configúralo en Supabase Secrets como NYLAS_API_KEY</li>
+          </ol>
+        </div>
+
+        {/* Error display mejorado */}
         {error && (
           <Alert className="border-red-200 bg-red-50">
             <AlertTriangle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-700">
               <strong>Error:</strong> {error.message}
+              {error.message.includes('redirect_uri') && (
+                <div className="mt-2 text-xs">
+                  <p>Posible solución: Verifica que la redirect URI esté configurada en el Dashboard de Nylas.</p>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}
