@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Obtener credenciales de Quantum
+    // Obtener credenciales de Quantum (usar valor fijo como en contactos)
     const quantumToken = Deno.env.get('quantum_api_token');
-    const quantumCompanyId = Deno.env.get('quantum_company_id');
+    const quantumCompanyId = '28171';
 
     console.log('🔍 [Config] Verificando credenciales...');
     console.log(`🏢 [Config] Company ID: ${quantumCompanyId ? `***${quantumCompanyId.slice(-4)}` : 'NO CONFIGURADO'}`);
@@ -115,24 +115,26 @@ Deno.serve(async (req) => {
 
     console.log('📝 [Sync] Registro de sincronización creado:', syncRecord.id);
 
-    // Construir URL de la API de Quantum
+    // Construir URL de la API de Quantum (formato corregido)
     let apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/invoice?type=C&companyId=${quantumCompanyId}`;
     
+    // Solo agregar fechas si están presentes
     if (start_date) {
+      // Mantener formato ISO para start_date
       apiUrl += `&startDate=${start_date}`;
     }
     if (end_date) {
+      // Mantener formato ISO para end_date
       apiUrl += `&endDate=${end_date}`;
     }
 
     console.log('🌐 [API] Llamando a Quantum API:', apiUrl);
     console.log('🔑 [Auth] Probando autenticación con token...');
 
-    // Probar diferentes formatos de autenticación
+    // Usar el mismo orden de autenticación que funciona en contactos
     const authFormats = [
-      { name: 'API-KEY', header: `API-KEY ${quantumToken}` },
       { name: 'Bearer', header: `Bearer ${quantumToken}` },
-      { name: 'Token directo', header: quantumToken }
+      { name: 'API-KEY', header: `API-KEY ${quantumToken}` }
     ];
 
     let response;
@@ -148,7 +150,7 @@ Deno.serve(async (req) => {
           headers: {
             'Authorization': authFormat.header,
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'User-Agent': 'Supabase-Edge-Function/1.0'
           }
         });
 
@@ -245,7 +247,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (quantumData.error?.errorCode !== '0') {
+    // Verificar si hay error en la respuesta - errorCode "0" significa éxito (como en contactos)
+    if (quantumData.error && quantumData.error.errorCode && quantumData.error.errorCode !== '0') {
       console.error('❌ [Quantum API] Error en respuesta:', quantumData.error);
       
       await supabase
@@ -266,6 +269,11 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
+    }
+
+    // Log para debug: mostrar error con código 0 (éxito)
+    if (quantumData.error && quantumData.error.errorCode === '0') {
+      console.log('✅ [Success] Respuesta exitosa de Quantum API:', quantumData.error.message, '(Código:', quantumData.error.errorCode + ')');
     }
 
     console.log(`📊 [Data] Facturas recibidas: ${quantumData.invoices?.length || 0}`);
