@@ -1806,6 +1806,7 @@ export type Database = {
           received_datetime: string | null
           sent_datetime: string | null
           subject: string | null
+          sync_source: string | null
           sync_status: string | null
           thread_id: string | null
           to_addresses: string[] | null
@@ -1829,6 +1830,7 @@ export type Database = {
           received_datetime?: string | null
           sent_datetime?: string | null
           subject?: string | null
+          sync_source?: string | null
           sync_status?: string | null
           thread_id?: string | null
           to_addresses?: string[] | null
@@ -1852,6 +1854,7 @@ export type Database = {
           received_datetime?: string | null
           sent_datetime?: string | null
           subject?: string | null
+          sync_source?: string | null
           sync_status?: string | null
           thread_id?: string | null
           to_addresses?: string[] | null
@@ -2976,6 +2979,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nylas_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          email_address: string
+          expires_at: string | null
+          grant_id: string
+          id: string
+          org_id: string
+          provider: string
+          refresh_token: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          email_address: string
+          expires_at?: string | null
+          grant_id: string
+          id?: string
+          org_id: string
+          provider?: string
+          refresh_token?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          email_address?: string
+          expires_at?: string | null
+          grant_id?: string
+          id?: string
+          org_id?: string
+          provider?: string
+          refresh_token?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nylas_sync_status: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          last_sync_at: string | null
+          messages_synced: number | null
+          org_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          messages_synced?: number | null
+          org_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_sync_at?: string | null
+          messages_synced?: number | null
+          org_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       office_rooms: {
         Row: {
