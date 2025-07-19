@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -23,22 +24,34 @@ serve(async (req) => {
     const nylasClientId = Deno.env.get('NYLAS_CLIENT_ID')
     const nylasClientSecret = Deno.env.get('NYLAS_CLIENT_SECRET')
     const nylasApplicationId = Deno.env.get('NYLAS_APPLICATION_ID')
-    const redirectUri = Deno.env.get('NYLAS_REDIRECT_URI') || 'http://localhost:5173/emails/callback'
+    
+    // Usar URL absoluta para redirect_uri
+    const redirectUri = Deno.env.get('NYLAS_REDIRECT_URI') || 'https://jzbbbwfnzpwxmuhpbdya.supabase.co/nylas/callback'
 
     if (!nylasApiKey || !nylasClientId || !nylasClientSecret || !nylasApplicationId) {
       throw new Error('Variables de entorno de Nylas no configuradas completamente')
     }
 
+    console.log('Nylas config:', {
+      hasApiKey: !!nylasApiKey,
+      hasClientId: !!nylasClientId,
+      hasClientSecret: !!nylasClientSecret,
+      hasApplicationId: !!nylasApplicationId,
+      redirectUri
+    })
+
     if (action === 'get_auth_url') {
-      // Generar URL de autorización para Nylas v3
+      // Generar URL de autorización para Nylas v3 con URLs absolutas
       const authUrl = `https://api.us.nylas.com/v3/connect/auth?` +
         `client_id=${nylasApplicationId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `response_type=code&` +
-        `scope=https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send&` +
+        `scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send')}&` +
         `access_type=offline&` +
         `state=${user_id}&` +
         `prompt=consent`
+
+      console.log('Generated auth URL:', authUrl)
 
       return new Response(
         JSON.stringify({ auth_url: authUrl }),
@@ -50,6 +63,8 @@ serve(async (req) => {
     }
 
     if (action === 'exchange_code') {
+      console.log('Intercambiando código por token:', { code, user_id, org_id })
+      
       // Intercambiar código por grant usando Nylas v3
       const tokenResponse = await fetch('https://api.us.nylas.com/v3/connect/token', {
         method: 'POST',
@@ -84,6 +99,7 @@ serve(async (req) => {
       })
 
       const grantData = grantResponse.ok ? await grantResponse.json() : null
+      console.log('Grant data from Nylas:', grantData)
 
       // Guardar conexión en base de datos con el nuevo esquema v3
       const { error } = await supabase
@@ -150,6 +166,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           connected: isValid,
+          grant_id: connection.grant_id,
           email: connection.email_address,
           provider: connection.provider,
           last_sync: connection.updated_at

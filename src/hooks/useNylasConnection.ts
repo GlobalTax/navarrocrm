@@ -48,7 +48,7 @@ export function useNylasConnection() {
         last_sync: data.last_sync
       } : null
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!user?.org_id,
     staleTime: 1000 * 60 * 5,
     refetchInterval: 1000 * 60 * 10,
     retry: 1
@@ -64,7 +64,9 @@ export function useNylasConnection() {
   // Mutación para conectar
   const connectMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error('Usuario no encontrado')
+      if (!user?.id || !user?.org_id) throw new Error('Usuario no encontrado o sin organización')
+
+      console.log('Iniciando conexión con Nylas para usuario:', user.id, 'org:', user.org_id)
 
       // Obtener URL de autorización
       const { data, error } = await supabase.functions.invoke('nylas-auth', {
@@ -75,29 +77,49 @@ export function useNylasConnection() {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error obteniendo URL de autorización:', error)
+        throw error
+      }
 
+      console.log('URL de autorización obtenida:', data.auth_url)
       return data.auth_url
     },
     onSuccess: (authUrl) => {
+      console.log('Abriendo popup de autenticación con URL:', authUrl)
+      
       // Abrir ventana popup para autenticación
       const popup = window.open(
         authUrl,
         'nylas-auth',
-        'width=600,height=700,scrollbars=yes,resizable=yes'
+        'width=600,height=700,scrollbars=yes,resizable=yes,location=yes'
       )
+
+      if (!popup) {
+        throw new Error('No se pudo abrir la ventana de autenticación. Verifique que no esté bloqueada por el navegador.')
+      }
 
       setIsCallbackOpen(true)
 
       // Monitorear la ventana popup
       const checkClosed = setInterval(() => {
-        if (popup?.closed) {
+        if (popup.closed) {
           clearInterval(checkClosed)
           setIsCallbackOpen(false)
+          console.log('Popup cerrado, verificando conexión...')
           // Verificar conexión después de cerrar popup
-          setTimeout(() => refetchConnection(), 1000)
+          setTimeout(() => refetchConnection(), 2000)
         }
       }, 1000)
+
+      // Timeout para cerrar el popup si tarda mucho
+      setTimeout(() => {
+        if (!popup.closed) {
+          popup.close()
+          clearInterval(checkClosed)
+          setIsCallbackOpen(false)
+        }
+      }, 5 * 60 * 1000) // 5 minutos
     },
     onError: (error) => {
       console.error('Error en conexión con Nylas:', error)
@@ -108,12 +130,20 @@ export function useNylasConnection() {
   // Escuchar mensajes del popup de autenticación
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return
+      // Verificar origen por seguridad
+      if (event.origin !== window.location.origin) {
+        console.warn('Mensaje de origen no autorizado:', event.origin)
+        return
+      }
+
+      console.log('Mensaje recibido del popup:', event.data)
 
       if (event.data.type === 'nylas-auth-success' && event.data.code) {
         setIsCallbackOpen(false)
         
         try {
+          console.log('Intercambiando código de autorización:', event.data.code)
+          
           // Intercambiar código por token
           const { error } = await supabase.functions.invoke('nylas-auth', {
             body: {
@@ -124,13 +154,21 @@ export function useNylasConnection() {
             }
           })
 
-          if (error) throw error
+          if (error) {
+            console.error('Error intercambiando código:', error)
+            throw error
+          }
 
+          console.log('Código intercambiado exitosamente')
+          
           // Actualizar estado de conexión
           await refetchConnection()
         } catch (error) {
-          console.error('Error intercambiando código:', error)
+          console.error('Error en intercambio de código:', error)
         }
+      } else if (event.data.type === 'nylas-auth-error') {
+        console.error('Error de autenticación:', event.data.error, event.data.description)
+        setIsCallbackOpen(false)
       }
     }
 
