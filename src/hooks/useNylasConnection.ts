@@ -1,7 +1,9 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { useState, useEffect, useMemo } from 'react'
+import { toast } from 'sonner'
 
 export type NylasConnectionStatus = 'not_connected' | 'connecting' | 'connected' | 'error'
 
@@ -22,7 +24,7 @@ export function useNylasConnection() {
   const [isCallbackOpen, setIsCallbackOpen] = useState(false)
 
   // Estado de conexión
-  const { data: connection, isLoading: connectionLoading, refetch: refetchConnection } = useQuery({
+  const { data: connection, isLoading: connectionLoading, refetch: refetchConnection, error: connectionError } = useQuery({
     queryKey: ['nylas-connection', user?.id],
     queryFn: async (): Promise<NylasConnection | null> => {
       if (!user?.id) return null
@@ -37,7 +39,7 @@ export function useNylasConnection() {
 
       if (error) {
         console.error('Error verificando conexión Nylas:', error)
-        return null
+        throw new Error(`Error verificando conexión: ${error.message}`)
       }
 
       return data.connected ? {
@@ -57,9 +59,10 @@ export function useNylasConnection() {
   // Estado calculado
   const connectionStatus: NylasConnectionStatus = useMemo(() => {
     if (connectionLoading) return 'connecting'
+    if (connectionError) return 'error'
     if (connection) return 'connected'
     return 'not_connected'
-  }, [connectionLoading, connection])
+  }, [connectionLoading, connectionError, connection])
 
   // Mutación para conectar
   const connectMutation = useMutation({
@@ -79,14 +82,14 @@ export function useNylasConnection() {
 
       if (error) {
         console.error('Error obteniendo URL de autorización:', error)
-        throw error
+        throw new Error(`Error obteniendo URL de autorización: ${error.message}`)
       }
 
-      console.log('URL de autorización obtenida:', data.auth_url)
+      console.log('URL de autorización obtenida')
       return data.auth_url
     },
     onSuccess: (authUrl) => {
-      console.log('Abriendo popup de autenticación con URL:', authUrl)
+      console.log('Abriendo popup de autenticación')
       
       // Abrir ventana popup para autenticación
       const popup = window.open(
@@ -96,7 +99,10 @@ export function useNylasConnection() {
       )
 
       if (!popup) {
-        throw new Error('No se pudo abrir la ventana de autenticación. Verifique que no esté bloqueada por el navegador.')
+        toast.error('Error de Popup', {
+          description: 'No se pudo abrir la ventana de autenticación. Verifique que no esté bloqueada por el navegador.'
+        })
+        throw new Error('No se pudo abrir la ventana de autenticación')
       }
 
       setIsCallbackOpen(true)
@@ -118,12 +124,18 @@ export function useNylasConnection() {
           popup.close()
           clearInterval(checkClosed)
           setIsCallbackOpen(false)
+          toast.error('Timeout', {
+            description: 'La autenticación tomó demasiado tiempo'
+          })
         }
       }, 5 * 60 * 1000) // 5 minutos
     },
     onError: (error) => {
       console.error('Error en conexión con Nylas:', error)
       setIsCallbackOpen(false)
+      toast.error('Error de Conexión', {
+        description: error.message || 'No se pudo conectar con Nylas'
+      })
     }
   })
 
@@ -142,10 +154,10 @@ export function useNylasConnection() {
         setIsCallbackOpen(false)
         
         try {
-          console.log('Intercambiando código de autorización:', event.data.code)
+          console.log('Intercambiando código de autorización')
           
           // Intercambiar código por token
-          const { error } = await supabase.functions.invoke('nylas-auth', {
+          const { data, error } = await supabase.functions.invoke('nylas-auth', {
             body: {
               action: 'exchange_code',
               code: event.data.code,
@@ -156,10 +168,16 @@ export function useNylasConnection() {
 
           if (error) {
             console.error('Error intercambiando código:', error)
+            toast.error('Error de Autenticación', {
+              description: 'No se pudo completar la autenticación'
+            })
             throw error
           }
 
           console.log('Código intercambiado exitosamente')
+          toast.success('¡Conectado!', {
+            description: `Cuenta conectada: ${data.email}`
+          })
           
           // Actualizar estado de conexión
           await refetchConnection()
@@ -169,6 +187,9 @@ export function useNylasConnection() {
       } else if (event.data.type === 'nylas-auth-error') {
         console.error('Error de autenticación:', event.data.error, event.data.description)
         setIsCallbackOpen(false)
+        toast.error('Error de Autenticación', {
+          description: event.data.description || 'Error durante la autenticación'
+        })
       }
     }
 
@@ -189,17 +210,24 @@ export function useNylasConnection() {
         }
       })
 
-      if (error) throw error
+      if (error) throw new Error(`Error de sincronización: ${error.message}`)
       return data
     },
     onSuccess: (data) => {
       console.log('Sincronización completada:', data)
+      toast.success('Sincronización Completa', {
+        description: `Se sincronizaron ${data.synced_messages || 0} mensajes`
+      })
+      
       // Invalidar queries relacionadas con emails
       queryClient.invalidateQueries({ queryKey: ['email-metrics'] })
       queryClient.invalidateQueries({ queryKey: ['email-messages'] })
     },
     onError: (error) => {
       console.error('Error en sincronización:', error)
+      toast.error('Error de Sincronización', {
+        description: error.message || 'No se pudieron sincronizar los emails'
+      })
     }
   })
 
@@ -212,7 +240,7 @@ export function useNylasConnection() {
     isConnecting: connectMutation.isPending,
     syncEmails: syncMutation.mutate,
     isSyncing: syncMutation.isPending,
-    error: connectMutation.error || syncMutation.error,
+    error: connectMutation.error || syncMutation.error || connectionError,
     refetchConnection
   }
 }

@@ -21,27 +21,25 @@ serve(async (req) => {
     const { action, user_id, org_id, code } = await req.json()
 
     const nylasApiKey = Deno.env.get('NYLAS_API_KEY')
-    const nylasClientId = Deno.env.get('NYLAS_CLIENT_ID')
-    const nylasClientSecret = Deno.env.get('NYLAS_CLIENT_SECRET')
     const nylasApplicationId = Deno.env.get('NYLAS_APPLICATION_ID')
     
-    // Usar URL absoluta para redirect_uri
-    const redirectUri = Deno.env.get('NYLAS_REDIRECT_URI') || 'https://jzbbbwfnzpwxmuhpbdya.supabase.co/nylas/callback'
+    // Construir la redirect_uri correcta usando la URL base de la aplicación
+    const baseUrl = req.headers.get('origin') || 'https://9142507d-4b1f-4f46-bca7-16102ac6aa30.lovableproject.com'
+    const redirectUri = `${baseUrl}/nylas/callback`
 
-    if (!nylasApiKey || !nylasClientId || !nylasClientSecret || !nylasApplicationId) {
+    if (!nylasApiKey || !nylasApplicationId) {
       throw new Error('Variables de entorno de Nylas no configuradas completamente')
     }
 
     console.log('Nylas config:', {
       hasApiKey: !!nylasApiKey,
-      hasClientId: !!nylasClientId,
-      hasClientSecret: !!nylasClientSecret,
       hasApplicationId: !!nylasApplicationId,
-      redirectUri
+      redirectUri,
+      baseUrl
     })
 
     if (action === 'get_auth_url') {
-      // Generar URL de autorización para Nylas v3 con URLs absolutas
+      // Generar URL de autorización para Nylas v3 con la redirect_uri correcta
       const authUrl = `https://api.us.nylas.com/v3/connect/auth?` +
         `client_id=${nylasApplicationId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
@@ -74,7 +72,6 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           client_id: nylasApplicationId,
-          client_secret: nylasClientSecret,
           redirect_uri: redirectUri,
           code: code,
           grant_type: 'authorization_code',
