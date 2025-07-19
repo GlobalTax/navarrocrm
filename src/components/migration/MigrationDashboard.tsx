@@ -31,11 +31,7 @@ interface MigrationStats {
   }
 }
 
-interface MigrationDashboardProps {
-  onStartHubSpotMigration: () => void
-}
-
-export function MigrationDashboard({ onStartHubSpotMigration }: MigrationDashboardProps) {
+export function MigrationDashboard() {
   const [stats, setStats] = useState<MigrationStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -87,13 +83,11 @@ export function MigrationDashboard({ onStartHubSpotMigration }: MigrationDashboa
       const lastMigration = hubspotContactsSorted?.[0]?.created_at || null
 
       // Fuentes de migración (simulado por ahora)
-      const migrationSources = [
-        {
-          source: 'HubSpot',
-          count: hubspotContacts,
-          lastImport: lastMigration || new Date().toISOString()
-        }
-      ]
+      const migrationSources: Array<{
+        source: string
+        count: number
+        lastImport: string
+      }> = []
 
       const migrationStats: MigrationStats = {
         totalContacts,
@@ -174,23 +168,14 @@ export function MigrationDashboard({ onStartHubSpotMigration }: MigrationDashboa
             Gestiona y monitorea las migraciones de datos de CRM externos
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={loadMigrationStats}
-            className="border-0.5 border-black rounded-[10px]"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualizar
-          </Button>
-          <Button 
-            onClick={onStartHubSpotMigration}
-            className="border-0.5 border-black rounded-[10px] bg-orange-600 text-white hover:bg-orange-700"
-          >
-            <Database className="h-4 w-4 mr-2" />
-            Migrar desde HubSpot
-          </Button>
-        </div>
+        <Button 
+          variant="outline" 
+          onClick={loadMigrationStats}
+          className="border-0.5 border-black rounded-[10px]"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Actualizar
+        </Button>
       </div>
 
       {/* Estadísticas principales */}
@@ -212,8 +197,8 @@ export function MigrationDashboard({ onStartHubSpotMigration }: MigrationDashboa
             <div className="flex items-center">
               <Database className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-2xl font-bold text-orange-900">{stats.hubspotContacts}</p>
-                <p className="text-sm font-medium text-orange-700">Desde HubSpot</p>
+                <p className="text-2xl font-bold text-orange-900">0</p>
+                <p className="text-sm font-medium text-orange-700">Desde Quantum</p>
               </div>
             </div>
           </CardContent>
@@ -346,28 +331,11 @@ export function MigrationDashboard({ onStartHubSpotMigration }: MigrationDashboa
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <Button 
-                    variant="outline" 
-                    onClick={onStartHubSpotMigration}
-                    className="border-0.5 border-orange-300 text-orange-700 rounded-[10px]"
-                  >
-                    <Database className="h-4 w-4 mr-2" />
-                    Nueva Migración HubSpot
-                  </Button>
-                </div>
               </div>
             ) : (
               <div className="text-center py-8">
                 <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-muted-foreground mb-4">No hay migraciones registradas</p>
-                <Button 
-                  onClick={onStartHubSpotMigration}
-                  className="border-0.5 border-black rounded-[10px] bg-orange-600 text-white hover:bg-orange-700"
-                >
-                  <Database className="h-4 w-4 mr-2" />
-                  Primera Migración HubSpot
-                </Button>
+                <p className="text-muted-foreground">No hay migraciones registradas</p>
               </div>
             )}
           </CardContent>

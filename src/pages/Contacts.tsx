@@ -16,7 +16,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
-import { HubSpotMigrationDialog } from '@/components/migration/HubSpotMigrationDialog'
+
 import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -29,7 +29,6 @@ const Contacts = () => {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [isImprovedOnboardingOpen, setIsImprovedOnboardingOpen] = useState(false)
-  const [isHubSpotMigrationOpen, setIsHubSpotMigrationOpen] = useState(false)
   const [isQuantumImportOpen, setIsQuantumImportOpen] = useState(false)
   const [showMigrationDashboard, setShowMigrationDashboard] = useState(false)
   
@@ -151,9 +150,7 @@ const Contacts = () => {
         {/* Tab de Migración */}
         {activeTab === 'migration' && (
           <div className="mt-6">
-            <MigrationDashboard 
-              onStartHubSpotMigration={() => setIsHubSpotMigrationOpen(true)}
-            />
+            <MigrationDashboard />
           </div>
         )}
       </Tabs>
@@ -195,12 +192,6 @@ const Contacts = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de Migración HubSpot */}
-      <HubSpotMigrationDialog
-        open={isHubSpotMigrationOpen}
-        onClose={() => setIsHubSpotMigrationOpen(false)}
-        onSuccess={handleBulkUploadSuccess}
-      />
 
     </StandardPageContainer>
   )
