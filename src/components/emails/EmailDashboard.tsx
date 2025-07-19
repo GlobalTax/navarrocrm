@@ -1,15 +1,18 @@
+
 import { Suspense } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useNylasConnection } from '@/hooks/useNylasConnection'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
 import { NylasConnectionStatus } from '@/components/emails/NylasConnectionStatus'
+import { NylasConnectionTest } from '@/components/emails/NylasConnectionTest'
 import { EmailConnectionStatus } from '@/components/emails/EmailConnectionStatus'
 import { EmailMetricsCards } from '@/components/emails/EmailMetricsCards'
 import { RecentEmailsList } from '@/components/emails/RecentEmailsList'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Mail, PenTool, Send, Settings } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Mail, PenTool, Send, Settings, TestTube } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -130,75 +133,88 @@ function EmailDashboardContent() {
         <div className="mb-8">
           <StandardPageHeader
             title="Dashboard de Emails"
-            description="Gestión y análisis de comunicaciones por email con Nylas"
+            description="Gestión y análisis de comunicaciones por email con Nylas v3"
           />
         </div>
 
-        {/* Estado de conexión */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <EmailConnectionStatus />
-          <NylasConnectionStatus
-            status={nylasConnection.connectionStatus}
-            connection={nylasConnection.connection}
-            onSync={handleSync}
-            onConnect={handleConfigure}
-            isSyncing={nylasConnection.isSyncing}
-            isConnecting={nylasConnection.isConnecting}
-            error={nylasConnection.error}
-          />
-        </div>
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="testing">Pruebas Nylas</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard" className="space-y-6">
+            {/* Estado de conexión */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <EmailConnectionStatus />
+              <NylasConnectionStatus
+                status={nylasConnection.connectionStatus}
+                connection={nylasConnection.connection}
+                onSync={handleSync}
+                onConnect={handleConfigure}
+                isSyncing={nylasConnection.isSyncing}
+                isConnecting={nylasConnection.isConnecting}
+                error={nylasConnection.error}
+              />
+            </div>
 
-        {/* Navegación rápida */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Button 
-            variant="outline" 
-            className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
-            onClick={() => navigate('/emails/inbox')}
-          >
-            <Mail className="h-6 w-6" />
-            <span>Bandeja de Entrada</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
-            onClick={() => navigate('/emails/compose')}
-          >
-            <PenTool className="h-6 w-6" />
-            <span>Nuevo Email</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
-            onClick={() => navigate('/emails/sent')}
-          >
-            <Send className="h-6 w-6" />
-            <span>Enviados</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
-            onClick={() => navigate('/emails/settings')}
-          >
-            <Settings className="h-6 w-6" />
-            <span>Configuración</span>
-          </Button>
-        </div>
+            {/* Navegación rápida */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
+                onClick={() => navigate('/emails/inbox')}
+              >
+                <Mail className="h-6 w-6" />
+                <span>Bandeja de Entrada</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
+                onClick={() => navigate('/emails/compose')}
+              >
+                <PenTool className="h-6 w-6" />
+                <span>Nuevo Email</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
+                onClick={() => navigate('/emails/sent')}
+              >
+                <Send className="h-6 w-6" />
+                <span>Enviados</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex flex-col space-y-2 hover:bg-gray-50 border-0.5 border-black rounded-[10px]"
+                onClick={() => navigate('/emails/settings')}
+              >
+                <Settings className="h-6 w-6" />
+                <span>Configuración</span>
+              </Button>
+            </div>
 
-        {/* Métricas y lista de emails recientes */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <EmailMetricsCards 
-              metrics={emailMetrics.metrics} 
-              isLoading={emailMetrics.isLoading}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <RecentEmailsList />
-          </div>
-        </div>
+            {/* Métricas y lista de emails recientes */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <EmailMetricsCards 
+                  metrics={emailMetrics.metrics} 
+                  isLoading={emailMetrics.isLoading}
+                />
+              </div>
+              <div className="lg:col-span-2">
+                <RecentEmailsList />
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="testing" className="space-y-6">
+            <NylasConnectionTest />
+          </TabsContent>
+        </Tabs>
       </div>
     </StandardPageContainer>
   )

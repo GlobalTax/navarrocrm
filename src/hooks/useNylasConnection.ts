@@ -23,11 +23,19 @@ export function useNylasConnection() {
   const queryClient = useQueryClient()
   const [isCallbackOpen, setIsCallbackOpen] = useState(false)
 
-  // Estado de conexión
+  // Estado de conexión con mejor logging
   const { data: connection, isLoading: connectionLoading, refetch: refetchConnection, error: connectionError } = useQuery({
     queryKey: ['nylas-connection', user?.id],
     queryFn: async (): Promise<NylasConnection | null> => {
-      if (!user?.id) return null
+      if (!user?.id) {
+        console.log('🔍 [useNylasConnection] No user ID available')
+        return null
+      }
+
+      console.log('🔍 [useNylasConnection] Checking connection for user:', {
+        userId: user.id,
+        orgId: user.org_id
+      })
 
       const { data, error } = await supabase.functions.invoke('nylas-auth', {
         body: {
@@ -38,16 +46,23 @@ export function useNylasConnection() {
       })
 
       if (error) {
-        console.error('Error verificando conexión Nylas:', error)
+        console.error('❌ [useNylasConnection] Error verificando conexión:', error)
         throw new Error(`Error verificando conexión: ${error.message}`)
       }
+
+      console.log('✅ [useNylasConnection] Connection check result:', {
+        connected: data.connected,
+        email: data.email,
+        provider: data.provider
+      })
 
       return data.connected ? {
         grant_id: data.grant_id || '',
         email_address: data.email || '',
         provider: data.provider || 'gmail',
         status: 'connected',
-        last_sync: data.last_sync
+        last_sync: data.last_sync,
+        account_id: data.account_id
       } : null
     },
     enabled: !!user?.id && !!user?.org_id,
@@ -56,22 +71,29 @@ export function useNylasConnection() {
     retry: 1
   })
 
-  // Estado calculado
+  // Estado calculado con mejor granularidad
   const connectionStatus: NylasConnectionStatus = useMemo(() => {
     if (connectionLoading) return 'connecting'
-    if (connectionError) return 'error'
+    if (connectionError) {
+      console.error('🔴 [useNylasConnection] Connection error:', connectionError)
+      return 'error'
+    }
     if (connection) return 'connected'
     return 'not_connected'
   }, [connectionLoading, connectionError, connection])
 
-  // Mutación para conectar
+  // Mutación para conectar con mejor logging
   const connectMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id || !user?.org_id) throw new Error('Usuario no encontrado o sin organización')
+      if (!user?.id || !user?.org_id) {
+        throw new Error('Usuario no encontrado o sin organización')
+      }
 
-      console.log('Iniciando conexión con Nylas para usuario:', user.id, 'org:', user.org_id)
+      console.log('🚀 [useNylasConnection] Iniciando conexión:', {
+        userId: user.id,
+        orgId: user.org_id
+      })
 
-      // Obtener URL de autorización
       const { data, error } = await supabase.functions.invoke('nylas-auth', {
         body: {
           action: 'get_auth_url',
@@ -81,17 +103,16 @@ export function useNylasConnection() {
       })
 
       if (error) {
-        console.error('Error obteniendo URL de autorización:', error)
+        console.error('❌ [useNylasConnection] Error obteniendo URL:', error)
         throw new Error(`Error obteniendo URL de autorización: ${error.message}`)
       }
 
-      console.log('URL de autorización obtenida')
+      console.log('✅ [useNylasConnection] Auth URL obtenida')
       return data.auth_url
     },
     onSuccess: (authUrl) => {
-      console.log('Abriendo popup de autenticación')
+      console.log('🪟 [useNylasConnection] Abriendo popup de auth')
       
-      // Abrir ventana popup para autenticación
       const popup = window.open(
         authUrl,
         'nylas-auth',
@@ -100,25 +121,24 @@ export function useNylasConnection() {
 
       if (!popup) {
         toast.error('Error de Popup', {
-          description: 'No se pudo abrir la ventana de autenticación. Verifique que no esté bloqueada por el navegador.'
+          description: 'No se pudo abrir la ventana de autenticación. Verifique los bloqueos del navegador.'
         })
         throw new Error('No se pudo abrir la ventana de autenticación')
       }
 
       setIsCallbackOpen(true)
 
-      // Monitorear la ventana popup
+      // Monitorear popup
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkClosed)
           setIsCallbackOpen(false)
-          console.log('Popup cerrado, verificando conexión...')
-          // Verificar conexión después de cerrar popup
+          console.log('🪟 [useNylasConnection] Popup cerrado, verificando conexión...')
           setTimeout(() => refetchConnection(), 2000)
         }
       }, 1000)
 
-      // Timeout para cerrar el popup si tarda mucho
+      // Timeout de seguridad
       setTimeout(() => {
         if (!popup.closed) {
           popup.close()
@@ -128,10 +148,10 @@ export function useNylasConnection() {
             description: 'La autenticación tomó demasiado tiempo'
           })
         }
-      }, 5 * 60 * 1000) // 5 minutos
+      }, 5 * 60 * 1000)
     },
     onError: (error) => {
-      console.error('Error en conexión con Nylas:', error)
+      console.error('❌ [useNylasConnection] Connect error:', error)
       setIsCallbackOpen(false)
       toast.error('Error de Conexión', {
         description: error.message || 'No se pudo conectar con Nylas'
@@ -139,24 +159,22 @@ export function useNylasConnection() {
     }
   })
 
-  // Escuchar mensajes del popup de autenticación
+  // Escuchar mensajes del popup
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      // Verificar origen por seguridad
       if (event.origin !== window.location.origin) {
-        console.warn('Mensaje de origen no autorizado:', event.origin)
+        console.warn('⚠️ [useNylasConnection] Mensaje de origen no autorizado:', event.origin)
         return
       }
 
-      console.log('Mensaje recibido del popup:', event.data)
+      console.log('📨 [useNylasConnection] Mensaje del popup:', event.data)
 
       if (event.data.type === 'nylas-auth-success' && event.data.code) {
         setIsCallbackOpen(false)
         
         try {
-          console.log('Intercambiando código de autorización')
+          console.log('🔄 [useNylasConnection] Intercambiando código')
           
-          // Intercambiar código por token
           const { data, error } = await supabase.functions.invoke('nylas-auth', {
             body: {
               action: 'exchange_code',
@@ -167,25 +185,24 @@ export function useNylasConnection() {
           })
 
           if (error) {
-            console.error('Error intercambiando código:', error)
+            console.error('❌ [useNylasConnection] Error intercambiando código:', error)
             toast.error('Error de Autenticación', {
               description: 'No se pudo completar la autenticación'
             })
             throw error
           }
 
-          console.log('Código intercambiado exitosamente')
+          console.log('✅ [useNylasConnection] Autenticación exitosa')
           toast.success('¡Conectado!', {
             description: `Cuenta conectada: ${data.email}`
           })
           
-          // Actualizar estado de conexión
           await refetchConnection()
         } catch (error) {
-          console.error('Error en intercambio de código:', error)
+          console.error('❌ [useNylasConnection] Error en intercambio:', error)
         }
       } else if (event.data.type === 'nylas-auth-error') {
-        console.error('Error de autenticación:', event.data.error, event.data.description)
+        console.error('❌ [useNylasConnection] Auth error:', event.data)
         setIsCallbackOpen(false)
         toast.error('Error de Autenticación', {
           description: event.data.description || 'Error durante la autenticación'
@@ -202,6 +219,8 @@ export function useNylasConnection() {
     mutationFn: async (fullSync: boolean = false) => {
       if (!user?.id) throw new Error('Usuario no encontrado')
 
+      console.log('🔄 [useNylasConnection] Iniciando sincronización:', { fullSync })
+
       const { data, error } = await supabase.functions.invoke('nylas-email-sync', {
         body: {
           user_id: user.id,
@@ -210,21 +229,24 @@ export function useNylasConnection() {
         }
       })
 
-      if (error) throw new Error(`Error de sincronización: ${error.message}`)
+      if (error) {
+        console.error('❌ [useNylasConnection] Sync error:', error)
+        throw new Error(`Error de sincronización: ${error.message}`)
+      }
+
+      console.log('✅ [useNylasConnection] Sync completed:', data)
       return data
     },
     onSuccess: (data) => {
-      console.log('Sincronización completada:', data)
       toast.success('Sincronización Completa', {
         description: `Se sincronizaron ${data.synced_messages || 0} mensajes`
       })
       
-      // Invalidar queries relacionadas con emails
       queryClient.invalidateQueries({ queryKey: ['email-metrics'] })
       queryClient.invalidateQueries({ queryKey: ['email-messages'] })
     },
     onError: (error) => {
-      console.error('Error en sincronización:', error)
+      console.error('❌ [useNylasConnection] Sync failed:', error)
       toast.error('Error de Sincronización', {
         description: error.message || 'No se pudieron sincronizar los emails'
       })
