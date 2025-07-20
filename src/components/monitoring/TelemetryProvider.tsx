@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react'
 import { useWebVitals } from '@/hooks/performance/useWebVitals'
 import { useLogger } from '@/hooks/useLogger'
 
@@ -55,15 +55,27 @@ export const TelemetryProvider: React.FC<TelemetryProviderProps> = ({
   }))
 
   const shouldTrack = process.env.NODE_ENV === 'development' || enableInProduction
+  const initialPageTracked = useRef(false)
+  const lastWebVitalsRef = useRef(webVitals)
+  const lastOverallScoreRef = useRef(overallScore)
 
+  // Memoized update of web vitals
   useEffect(() => {
     if (!shouldTrack) return
 
-    // Update web vitals in telemetry data
-    setData(prev => ({
-      ...prev,
-      webVitals: { ...webVitals, overallScore }
-    }))
+    // Only update if web vitals have actually changed
+    const vitalsChanged = JSON.stringify(webVitals) !== JSON.stringify(lastWebVitalsRef.current)
+    const scoreChanged = overallScore !== lastOverallScoreRef.current
+
+    if (vitalsChanged || scoreChanged) {
+      setData(prev => ({
+        ...prev,
+        webVitals: { ...webVitals, overallScore }
+      }))
+
+      lastWebVitalsRef.current = webVitals
+      lastOverallScoreRef.current = overallScore
+    }
   }, [webVitals, overallScore, shouldTrack])
 
   const trackPageView = useCallback((path: string) => {
@@ -164,7 +176,10 @@ export const TelemetryProvider: React.FC<TelemetryProviderProps> = ({
     if (!shouldTrack) return
 
     // Track initial page load - solo una vez
-    trackPageView(window.location.pathname)
+    if (!initialPageTracked.current) {
+      trackPageView(window.location.pathname)
+      initialPageTracked.current = true
+    }
 
     // Monitor network changes
     const handleOnline = () => trackCustomEvent('network_online')
@@ -184,6 +199,7 @@ export const TelemetryProvider: React.FC<TelemetryProviderProps> = ({
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Monitor memory warnings
+    let memoryInterval: NodeJS.Timeout | undefined
     if ('memory' in performance) {
       const checkMemory = () => {
         const memory = (performance as any).memory
@@ -200,20 +216,16 @@ export const TelemetryProvider: React.FC<TelemetryProviderProps> = ({
         }
       }
 
-      const memoryInterval = setInterval(checkMemory, 30000) // Check every 30s
-      
-      return () => {
-        clearInterval(memoryInterval)
-        window.removeEventListener('online', handleOnline)
-        window.removeEventListener('offline', handleOffline)
-        document.removeEventListener('visibilitychange', handleVisibilityChange)
-      }
+      memoryInterval = setInterval(checkMemory, 30000) // Check every 30s
     }
 
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      if (memoryInterval) {
+        clearInterval(memoryInterval)
+      }
     }
   }, [shouldTrack, trackPageView, trackCustomEvent])
 

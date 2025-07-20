@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -30,25 +30,38 @@ export const PerformanceAlert: React.FC = () => {
   const { data: telemetryData, trackCustomEvent } = useTelemetry()
   const [issues, setIssues] = useState<PerformanceIssue[]>([])
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  
+  // Use refs to prevent dependency issues
+  const lastMetricsRef = useRef(metrics)
+  const lastScoresRef = useRef(scores)
+  const lastTelemetryRef = useRef(telemetryData)
+  const checkTimeoutRef = useRef<NodeJS.Timeout>()
 
-  // Check for performance issues
-  useEffect(() => {
+  // Memoize issue detection logic
+  const checkForIssues = useCallback(() => {
     const newIssues: PerformanceIssue[] = []
 
-    // Web Vitals issues
-    Object.entries(scores).forEach(([metric, score]) => {
-      if (score === 'poor') {
-        const value = metrics[metric as keyof typeof metrics]
-        newIssues.push({
-          id: `vitals-${metric}`,
-          type: 'vitals',
-          severity: 'high',
-          message: `${metric.toUpperCase()} score is poor (${Math.round(value || 0)}ms)`,
-          action: 'optimize-loading',
-          timestamp: Date.now()
-        })
-      }
-    })
+    // Web Vitals issues - only check if scores have changed
+    if (scores && Object.keys(scores).length > 0) {
+      Object.entries(scores).forEach(([metric, score]) => {
+        if (score === 'poor' && metrics[metric as keyof typeof metrics]) {
+          const value = metrics[metric as keyof typeof metrics]
+          const issueId = `vitals-${metric}`
+          
+          // Only add if not already present
+          if (!issues.some(issue => issue.id === issueId)) {
+            newIssues.push({
+              id: issueId,
+              type: 'vitals',
+              severity: 'high',
+              message: `${metric.toUpperCase()} score is poor (${Math.round(value || 0)}ms)`,
+              action: 'optimize-loading',
+              timestamp: Date.now()
+            })
+          }
+        }
+      })
+    }
 
     // Memory issues
     if ('memory' in performance) {
@@ -57,7 +70,7 @@ export const PerformanceAlert: React.FC = () => {
       const limitMB = memory.jsHeapSizeLimit / 1024 / 1024
       const usage = (usedMB / limitMB) * 100
 
-      if (usage > 90) {
+      if (usage > 90 && !issues.some(issue => issue.id === 'memory-critical')) {
         newIssues.push({
           id: 'memory-critical',
           type: 'memory',
@@ -66,7 +79,7 @@ export const PerformanceAlert: React.FC = () => {
           action: 'cleanup-memory',
           timestamp: Date.now()
         })
-      } else if (usage > 70) {
+      } else if (usage > 70 && !issues.some(issue => issue.id === 'memory-high')) {
         newIssues.push({
           id: 'memory-high',
           type: 'memory',
@@ -79,7 +92,7 @@ export const PerformanceAlert: React.FC = () => {
     }
 
     // Network issues
-    if (!navigator.onLine) {
+    if (!navigator.onLine && !issues.some(issue => issue.id === 'network-offline')) {
       newIssues.push({
         id: 'network-offline',
         type: 'network',
@@ -91,8 +104,8 @@ export const PerformanceAlert: React.FC = () => {
       })
     }
 
-    // High error rate
-    if (telemetryData.errors > 5) {
+    // High error rate - only check if telemetry data has changed
+    if (telemetryData && telemetryData.errors > 5 && !issues.some(issue => issue.id === 'errors-high')) {
       newIssues.push({
         id: 'errors-high',
         type: 'errors',
@@ -103,20 +116,56 @@ export const PerformanceAlert: React.FC = () => {
       })
     }
 
-    // Update issues state
-    setIssues(prev => {
-      const existingIds = new Set(prev.map(issue => issue.id))
-      const filteredNew = newIssues.filter(issue => !existingIds.has(issue.id))
-      return [...prev, ...filteredNew]
-    })
+    // Only update state if there are actual new issues
+    if (newIssues.length > 0) {
+      setIssues(prev => {
+        const existingIds = new Set(prev.map(issue => issue.id))
+        const filteredNew = newIssues.filter(issue => !existingIds.has(issue.id))
+        return filteredNew.length > 0 ? [...prev, ...filteredNew] : prev
+      })
+    }
 
     // Auto-resolve network issues when back online
     if (navigator.onLine) {
-      setIssues(prev => prev.filter(issue => issue.id !== 'network-offline'))
+      setIssues(prev => {
+        const filtered = prev.filter(issue => issue.id !== 'network-offline')
+        return filtered.length !== prev.length ? filtered : prev
+      })
     }
-  }, [metrics, scores, telemetryData])
+  }, [metrics, scores, telemetryData, issues])
 
-  const executeAction = (issue: PerformanceIssue) => {
+  // Throttled issue checking
+  useEffect(() => {
+    // Clear existing timeout
+    if (checkTimeoutRef.current) {
+      clearTimeout(checkTimeoutRef.current)
+    }
+
+    // Only check if data has actually changed
+    const metricsChanged = JSON.stringify(metrics) !== JSON.stringify(lastMetricsRef.current)
+    const scoresChanged = JSON.stringify(scores) !== JSON.stringify(lastScoresRef.current)
+    const telemetryChanged = JSON.stringify(telemetryData) !== JSON.stringify(lastTelemetryRef.current)
+
+    if (metricsChanged || scoresChanged || telemetryChanged) {
+      // Throttle checks to prevent excessive updates
+      checkTimeoutRef.current = setTimeout(() => {
+        checkForIssues()
+        
+        // Update refs
+        lastMetricsRef.current = metrics
+        lastScoresRef.current = scores
+        lastTelemetryRef.current = telemetryData
+      }, 1000) // 1 second throttle
+    }
+
+    return () => {
+      if (checkTimeoutRef.current) {
+        clearTimeout(checkTimeoutRef.current)
+      }
+    }
+  }, [checkForIssues]) // Only depend on the memoized function
+
+  const executeAction = useCallback((issue: PerformanceIssue) => {
     trackCustomEvent('performance_action', {
       action: issue.action,
       issueType: issue.type,
@@ -125,64 +174,61 @@ export const PerformanceAlert: React.FC = () => {
 
     switch (issue.action) {
       case 'optimize-loading':
-        // Trigger code splitting or lazy loading
         console.info('🚀 Optimizing loading performance...')
         break
 
       case 'cleanup-memory':
-        // Force garbage collection if available
         if ('gc' in window && typeof (window as any).gc === 'function') {
           (window as any).gc()
         }
-        // Clear unused caches
         caches.keys().then(names => {
           names.forEach(name => caches.delete(name))
         })
         break
 
       case 'check-connection':
-        // Test network connectivity
         fetch('/favicon.ico', { cache: 'no-cache' })
           .then(() => console.info('✅ Network connection restored'))
           .catch(() => console.warn('❌ Network still unavailable'))
         break
 
       case 'check-logs':
-        // Open developer tools or show logs
         console.group('🔍 Recent Error Logs')
         console.info('Current telemetry:', telemetryData)
         console.groupEnd()
         break
     }
 
-    // Dismiss the issue after action
     dismissIssue(issue.id)
-  }
+  }, [trackCustomEvent, telemetryData])
 
-  const dismissIssue = (id: string) => {
+  const dismissIssue = useCallback((id: string) => {
     setDismissed(prev => new Set([...prev, id]))
     setIssues(prev => prev.filter(issue => issue.id !== id))
-  }
+  }, [])
 
-  const getSeverityIcon = (severity: string) => {
+  const getSeverityIcon = useMemo(() => (severity: string) => {
     switch (severity) {
       case 'critical': return <AlertTriangle className="h-4 w-4 text-red-600" />
       case 'high': return <TrendingDown className="h-4 w-4 text-orange-600" />
       case 'medium': return <Zap className="h-4 w-4 text-yellow-600" />
       default: return <MemoryStick className="h-4 w-4 text-blue-600" />
     }
-  }
+  }, [])
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = useMemo(() => (severity: string) => {
     switch (severity) {
       case 'critical': return 'border-red-200 bg-red-50'
       case 'high': return 'border-orange-200 bg-orange-50'
       case 'medium': return 'border-yellow-200 bg-yellow-50'
       default: return 'border-blue-200 bg-blue-50'
     }
-  }
+  }, [])
 
-  const visibleIssues = issues.filter(issue => !dismissed.has(issue.id))
+  const visibleIssues = useMemo(() => 
+    issues.filter(issue => !dismissed.has(issue.id)),
+    [issues, dismissed]
+  )
 
   if (visibleIssues.length === 0) return null
 
