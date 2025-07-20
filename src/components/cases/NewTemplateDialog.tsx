@@ -32,7 +32,7 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
     default_billing_method: 'hourly'
   })
 
-  const { data: practiceAreas, isLoading: isLoadingAreas } = usePracticeAreas()
+  const { practiceAreas, isLoading: isLoadingAreas } = usePracticeAreas()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
