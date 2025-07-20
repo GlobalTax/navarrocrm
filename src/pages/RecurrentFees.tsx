@@ -1,13 +1,12 @@
+
 import React, { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { format, isAfter } from 'date-fns'
-import { es } from 'date-fns/locale'
 
 import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/hooks/useRecurringFees'
 import { RecurringFeeForm } from '@/components/recurring-fees/RecurringFeeForm'
-import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesMetrics'
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'
 import { RecurringFeesFilters } from '@/components/recurring-fees/RecurringFeesFilters'
 import { RecurringFeesList } from '@/components/recurring-fees/RecurringFeesList'
@@ -54,7 +53,6 @@ const RecurrentFees = () => {
       }, 0)
   }
 
-  // Verificar si hay filtros activos
   const hasFilters = filters.search !== '' || 
                     filters.status !== 'all' || 
                     filters.frequency !== 'all' || 
@@ -85,7 +83,6 @@ const RecurrentFees = () => {
   }
 
   const handleViewDetails = (fee) => {
-    // TODO: Implementar vista de detalles
     toast.success('Próximamente: La vista de detalles estará disponible pronto')
   }
 

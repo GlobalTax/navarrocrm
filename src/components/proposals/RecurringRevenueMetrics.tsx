@@ -6,6 +6,15 @@ import { TrendingUp, Users, Calendar, DollarSign } from 'lucide-react'
 export function RecurringRevenueMetrics() {
   const { currentMetrics, isLoading } = useRecurringRevenue()
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount)
+  }
+
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -23,15 +32,6 @@ export function RecurringRevenueMetrics() {
         ))}
       </div>
     )
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount)
   }
 
   return (
