@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    target: 'es2022',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -69,6 +70,10 @@ export default defineConfig(({ mode }) => ({
         }
       }
     })
+  },
+  // Set modern target for top-level await support
+  esbuild: {
+    target: 'es2022'
   },
   // Enable experimental features
   optimizeDeps: {
