@@ -1,220 +1,231 @@
-import { useEffect, useCallback, useRef } from 'react'
-import { useNetworkStatus } from './useNetworkStatus'
-import { useLogger } from '@/hooks/useLogger'
 
-interface CriticalResource {
-  url: string
-  type: 'font' | 'css' | 'script' | 'image' | 'prefetch'
-  priority: 'critical' | 'high' | 'medium' | 'low'
-  crossOrigin?: 'anonymous' | 'use-credentials'
-  media?: string
-  condition?: () => boolean
-}
+import { useEffect, useState } from 'react'
+import { useNetworkStatus } from './useNetworkStatus'
+import type { FilterState } from '@/types/states'
 
 interface PreloadOptions {
-  enableNetworkAware?: boolean
-  enableIntersectionObserver?: boolean
-  prefetchOnHover?: boolean
-  respectDataSaver?: boolean
+  priority: 'high' | 'medium' | 'low'
+  condition?: () => boolean
+  retries?: number
 }
 
-export function useCriticalResourcePreload(
-  resources: CriticalResource[],
-  options: PreloadOptions = {}
-) {
-  const logger = useLogger('CriticalPreload')
-  const { isOnline, isSlowConnection, saveData } = useNetworkStatus()
-  const preloadedRefs = useRef(new Set<string>())
-  const hoverTimeoutRefs = useRef(new Map<string, NodeJS.Timeout>())
+interface PreloadedResource {
+  url: string
+  status: 'pending' | 'loaded' | 'error'
+  timestamp: number
+  retries: number
+}
 
-  const {
-    enableNetworkAware = true,
-    enableIntersectionObserver = true,
-    prefetchOnHover = true,
-    respectDataSaver = true
-  } = options
+interface CriticalResourcePreload {
+  preloadResource: (url: string, options?: PreloadOptions) => Promise<void>
+  preloadedResources: Record<string, PreloadedResource>
+  isPreloading: boolean
+  preloadComponentData: (componentName: string) => Promise<void>
+  preloadUserData: () => Promise<void>
+}
 
-  // Check if we should preload based on network conditions
-  const shouldPreload = useCallback((resource: CriticalResource): boolean => {
-    // Respect data saver mode
-    if (respectDataSaver && saveData) {
-      return resource.priority === 'critical'
-    }
+export const useCriticalResourcePreload = (): CriticalResourcePreload => {
+  const { networkInfo } = useNetworkStatus()
+  const [preloadedResources, setPreloadedResources] = useState<Record<string, PreloadedResource>>({})
+  const [isPreloading, setIsPreloading] = useState<boolean>(false)
 
-    // Network-aware preloading
-    if (enableNetworkAware && isSlowConnection) {
-      return resource.priority === 'critical' || resource.priority === 'high'
-    }
+  const shouldPreload = (): boolean => {
+    return networkInfo.isOnline && !networkInfo.saveData
+  }
 
-    // Custom condition check
-    if (resource.condition && !resource.condition()) {
-      return false
-    }
+  const preloadResource = async (url: string, options: PreloadOptions = { priority: 'medium' }): Promise<void> => {
+    if (!shouldPreload()) return
 
-    return true
-  }, [respectDataSaver, saveData, enableNetworkAware, isSlowConnection])
-
-  // Preload single resource
-  const preloadResource = useCallback((resource: CriticalResource) => {
-    if (preloadedRefs.current.has(resource.url)) {
+    // Check if resource is already preloaded or in progress
+    const existing = preloadedResources[url]
+    if (existing && (existing.status === 'loaded' || existing.status === 'pending')) {
       return
     }
 
-    if (!shouldPreload(resource)) {
-      logger.debug('⏭️ Omitiendo preload', { 
-        url: resource.url.substring(0, 50),
-        priority: resource.priority,
-        reason: 'network conditions'
-      })
-      return
-    }
+    setIsPreloading(true)
+    setPreloadedResources(prev => ({
+      ...prev,
+      [url]: {
+        url,
+        status: 'pending',
+        timestamp: Date.now(),
+        retries: 0
+      }
+    }))
 
     try {
-      const link = document.createElement('link')
-      
-      // Set preload attributes based on resource type
-      switch (resource.type) {
-        case 'font':
-          link.rel = 'preload'
-          link.as = 'font'
-          link.type = 'font/woff2'
-          link.crossOrigin = resource.crossOrigin || 'anonymous'
-          break
-          
-        case 'css':
-          link.rel = 'preload'
-          link.as = 'style'
-          if (resource.media) link.media = resource.media
-          break
-          
-        case 'script':
-          link.rel = 'preload'
-          link.as = 'script'
-          break
-          
-        case 'image':
-          link.rel = 'preload'
-          link.as = 'image'
-          break
-          
-        case 'prefetch':
-          link.rel = 'prefetch'
-          break
+      if (options.condition && !options.condition()) {
+        return
       }
 
-      link.href = resource.url
-      
-      // Add priority hint if supported
-      if ('fetchPriority' in link) {
-        (link as any).fetchPriority = resource.priority === 'critical' ? 'high' : 
-                                      resource.priority === 'high' ? 'high' : 'low'
+      // Determine preload method based on resource type
+      if (url.endsWith('.js') || url.endsWith('.ts')) {
+        await preloadScript(url)
+      } else if (url.endsWith('.css')) {
+        await preloadStylesheet(url)
+      } else if (url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+        await preloadImage(url)
+      } else {
+        await preloadGeneric(url)
       }
 
-      // Add to document head
-      document.head.appendChild(link)
-      preloadedRefs.current.add(resource.url)
-
-      logger.info('⚡ Recurso precargado', {
-        url: resource.url.substring(0, 50),
-        type: resource.type,
-        priority: resource.priority
-      })
-
+      setPreloadedResources(prev => ({
+        ...prev,
+        [url]: {
+          ...prev[url],
+          status: 'loaded',
+          timestamp: Date.now()
+        }
+      }))
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Error de preload'
-      logger.error('❌ Error precargando recurso', { 
-        url: resource.url.substring(0, 50),
-        error: errorMsg 
-      })
-    }
-  }, [shouldPreload, logger])
+      const maxRetries = options.retries || 2
+      const currentRetries = preloadedResources[url]?.retries || 0
 
-  // Preload all critical resources
-  const preloadCriticalResources = useCallback(() => {
-    if (!isOnline) return
-
-    const criticalResources = resources
-      .filter(r => r.priority === 'critical')
-      .sort((a, b) => {
-        const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 }
-        return priorityOrder[b.priority] - priorityOrder[a.priority]
-      })
-
-    criticalResources.forEach(preloadResource)
-
-    logger.info('🚀 Recursos críticos precargados', {
-      count: criticalResources.length,
-      isSlowConnection: isSlowConnection(),
-      saveData
-    })
-  }, [isOnline, resources, preloadResource, isSlowConnection, saveData, logger])
-
-  // Preload on hover for prefetch resources
-  const preloadOnHover = useCallback((url: string) => {
-    if (!prefetchOnHover || preloadedRefs.current.has(url)) return
-
-    const resource = resources.find(r => r.url === url && r.type === 'prefetch')
-    if (!resource) return
-
-    // Debounce hover preloading
-    const timeoutId = setTimeout(() => {
-      preloadResource(resource)
-    }, 100)
-
-    hoverTimeoutRefs.current.set(url, timeoutId)
-  }, [prefetchOnHover, resources, preloadResource])
-
-  // Cancel hover preload
-  const cancelHoverPreload = useCallback((url: string) => {
-    const timeoutId = hoverTimeoutRefs.current.get(url)
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-      hoverTimeoutRefs.current.delete(url)
-    }
-  }, [])
-
-  // Intersection Observer for lazy preloading
-  const observeElement = useCallback((element: HTMLElement, resource: CriticalResource) => {
-    if (!enableIntersectionObserver || preloadedRefs.current.has(resource.url)) {
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            preloadResource(resource)
-            observer.disconnect()
+      if (currentRetries < maxRetries) {
+        setPreloadedResources(prev => ({
+          ...prev,
+          [url]: {
+            ...prev[url],
+            retries: currentRetries + 1
           }
-        })
-      },
-      { rootMargin: '50px' }
+        }))
+
+        // Retry with exponential backoff
+        setTimeout(() => {
+          preloadResource(url, options)
+        }, Math.pow(2, currentRetries) * 1000)
+      } else {
+        setPreloadedResources(prev => ({
+          ...prev,
+          [url]: {
+            ...prev[url],
+            status: 'error',
+            timestamp: Date.now()
+          }
+        }))
+      }
+    } finally {
+      setIsPreloading(false)
+    }
+  }
+
+  const preloadScript = async (url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'modulepreload'
+      link.href = url
+      link.onload = () => resolve()
+      link.onerror = () => reject(new Error(`Failed to preload script: ${url}`))
+      document.head.appendChild(link)
+    })
+  }
+
+  const preloadStylesheet = async (url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'preload'
+      link.as = 'style'
+      link.href = url
+      link.onload = () => resolve()
+      link.onerror = () => reject(new Error(`Failed to preload stylesheet: ${url}`))
+      document.head.appendChild(link)
+    })
+  }
+
+  const preloadImage = async (url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve()
+      img.onerror = () => reject(new Error(`Failed to preload image: ${url}`))
+      img.src = url
+    })
+  }
+
+  const preloadGeneric = async (url: string): Promise<void> => {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      mode: 'no-cors'
+    })
+    
+    if (!response.ok && response.status !== 0) {
+      throw new Error(`Failed to preload resource: ${url}`)
+    }
+  }
+
+  const preloadComponentData = async (componentName: string): Promise<void> => {
+    const componentRoutes: Record<string, string[]> = {
+      contacts: ['/api/contacts', '/api/companies'],
+      cases: ['/api/cases', '/api/tasks'],  
+      calendar: ['/api/calendar-events'],
+      dashboard: ['/api/analytics/summary'],
+      proposals: ['/api/proposals']
+    }
+
+    const routes = componentRoutes[componentName.toLowerCase()]
+    if (!routes) return
+
+    const preloadPromises = routes.map(route => 
+      preloadResource(route, { priority: 'high' })
     )
 
-    observer.observe(element)
+    await Promise.allSettled(preloadPromises)
+  }
 
-    return () => observer.disconnect()
-  }, [enableIntersectionObserver, preloadResource])
+  const preloadUserData = async (): Promise<void> => {
+    const userDataEndpoints = [
+      '/api/user/profile',
+      '/api/user/preferences', 
+      '/api/user/notifications'
+    ]
+
+    const preloadPromises = userDataEndpoints.map(endpoint =>
+      preloadResource(endpoint, { priority: 'high' })
+    )
+
+    await Promise.allSettled(preloadPromises)
+  }
 
   // Auto-preload critical resources on mount
   useEffect(() => {
-    preloadCriticalResources()
-  }, [preloadCriticalResources])
+    if (shouldPreload()) {
+      // Preload common resources
+      const criticalResources = [
+        '/api/user/profile',
+        '/api/organizations/current'
+      ]
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      hoverTimeoutRefs.current.forEach(clearTimeout)
-      hoverTimeoutRefs.current.clear()
+      criticalResources.forEach(resource => {
+        preloadResource(resource, { priority: 'high' })
+      })
     }
+  }, [networkInfo.isOnline, networkInfo.saveData])
+
+  // Cleanup old preloaded resources
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      const now = Date.now()
+      const maxAge = 10 * 60 * 1000 // 10 minutes
+
+      setPreloadedResources(prev => {
+        const filtered = Object.entries(prev).reduce((acc, [url, resource]) => {
+          if (now - resource.timestamp < maxAge) {
+            acc[url] = resource
+          }
+          return acc
+        }, {} as Record<string, PreloadedResource>)
+
+        return filtered
+      })
+    }, 5 * 60 * 1000) // Check every 5 minutes
+
+    return () => clearInterval(cleanup)
   }, [])
 
   return {
     preloadResource,
-    preloadOnHover,
-    cancelHoverPreload,
-    observeElement,
-    preloadedCount: preloadedRefs.current.size,
-    isNetworkOptimal: isOnline && !isSlowConnection() && !saveData
+    preloadedResources,
+    isPreloading,
+    preloadComponentData,
+    preloadUserData
   }
 }

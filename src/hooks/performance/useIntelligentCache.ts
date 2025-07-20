@@ -1,224 +1,253 @@
-import { useCallback, useEffect, useRef } from 'react'
+
+import { useState, useEffect, useCallback } from 'react'
 import { useNetworkStatus } from './useNetworkStatus'
-import { useOfflineStorage } from './useOfflineStorage'
-import { useLogger } from '@/hooks/useLogger'
 
-interface CacheConfig {
-  key: string
-  ttlOnline?: number // TTL when online (shorter)
-  ttlOffline?: number // TTL when offline (longer)
-  syncOnReconnect?: boolean
-  priority?: 'low' | 'medium' | 'high' | 'critical'
-  maxRetries?: number
-  retryDelay?: number
-}
-
-interface CacheEntry<T> {
+interface CacheEntry<T = any> {
   data: T
   timestamp: number
-  source: 'cache' | 'network'
-  priority: string
-  retryCount: number
+  ttl: number
+  accessCount: number
+  lastAccessed: number
 }
 
-interface IntelligentCacheReturn<T> {
-  data: T | null
-  isLoading: boolean
-  isStale: boolean
-  error: string | null
-  refetch: () => Promise<void>
-  invalidate: () => Promise<void>
-  updateCache: (data: T) => Promise<void>
+interface CacheConfig {
+  defaultTTL: number
+  maxSize: number
+  strategy: 'lru' | 'lfu' | 'ttl'
 }
 
-export function useIntelligentCache<T>(
-  fetcher: () => Promise<T>,
-  config: CacheConfig
-): IntelligentCacheReturn<T> {
-  const logger = useLogger('IntelligentCache')
-  const { isOnline, isSlowConnection } = useNetworkStatus()
+interface IntelligentCache {
+  get: <T>(key: string) => T | null
+  set: <T>(key: string, data: T, ttl?: number) => void
+  remove: (key: string) => void  
+  clear: () => void
+  getStats: () => CacheStats
+  prefetch: <T>(key: string, fetcher: () => Promise<T>, ttl?: number) => Promise<T>
+}
+
+interface CacheStats {
+  size: number
+  maxSize: number
+  hitRate: number
+  totalRequests: number
+  totalHits: number
+}
+
+const DEFAULT_CONFIG: CacheConfig = {
+  defaultTTL: 5 * 60 * 1000, // 5 minutes
+  maxSize: 100,
+  strategy: 'lru'
+}
+
+export const useIntelligentCache = (config: Partial<CacheConfig> = {}): IntelligentCache => {
+  const { networkInfo } = useNetworkStatus()
+  const finalConfig = { ...DEFAULT_CONFIG, ...config }
   
-  const {
-    key,
-    ttlOnline = 5 * 60 * 1000, // 5 minutes online
-    ttlOffline = 24 * 60 * 60 * 1000, // 24 hours offline
-    syncOnReconnect = true,
-    priority = 'medium',
-    maxRetries = 3,
-    retryDelay = 1000
-  } = config
-
-  const retryCountRef = useRef(0)
-  const lastFetchAttempt = useRef<number>(0)
-  const abortControllerRef = useRef<AbortController | null>(null)
-
-  // Use appropriate TTL based on network status
-  const currentTtl = isOnline ? ttlOnline : ttlOffline
-
-  const {
-    data: cachedData,
-    setData: setCachedData,
-    removeData,
-    isLoading: storageLoading,
-    error: storageError
-  } = useOfflineStorage<CacheEntry<T>>({
-    key: `cache_${key}`,
-    ttl: currentTtl,
-    compress: true,
-    sync: syncOnReconnect
+  const [cache, setCache] = useState<Map<string, CacheEntry>>(new Map())
+  const [stats, setStats] = useState({
+    totalRequests: 0,
+    totalHits: 0
   })
 
-  // Check if data is stale
-  const isStale = cachedData ? 
-    Date.now() - cachedData.timestamp > currentTtl : 
-    true
+  const updateStats = useCallback((hit: boolean) => {
+    setStats(prev => ({
+      totalRequests: prev.totalRequests + 1,
+      totalHits: prev.totalHits + (hit ? 1 : 0)
+    }))
+  }, [])
 
-  const shouldFetch = isOnline && (
-    !cachedData || 
-    isStale || 
-    (syncOnReconnect && cachedData.source === 'cache')
-  )
+  const isExpired = useCallback((entry: CacheEntry): boolean => {
+    return Date.now() - entry.timestamp > entry.ttl
+  }, [])
 
-  // Fetch data with retry logic
-  const fetchData = useCallback(async (): Promise<T | null> => {
-    if (!isOnline) {
-      logger.info('📶 Offline, usando cache', { key, priority })
-      return cachedData?.data || null
+  const evictIfNeeded = useCallback(() => {
+    if (cache.size < finalConfig.maxSize) return
+
+    const entries = Array.from(cache.entries())
+    let toEvict: string | null = null
+
+    switch (finalConfig.strategy) {
+      case 'lru':
+        // Evict least recently used
+        toEvict = entries.reduce((oldest, [key, entry]) => {
+          const [oldestKey, oldestEntry] = oldest
+          return entry.lastAccessed < oldestEntry.lastAccessed ? [key, entry] : oldest
+        })[0]
+        break
+
+      case 'lfu':
+        // Evict least frequently used
+        toEvict = entries.reduce((least, [key, entry]) => {
+          const [leastKey, leastEntry] = least
+          return entry.accessCount < leastEntry.accessCount ? [key, entry] : least
+        })[0]
+        break
+
+      case 'ttl':
+        // Evict oldest by timestamp
+        toEvict = entries.reduce((oldest, [key, entry]) => {
+          const [oldestKey, oldestEntry] = oldest
+          return entry.timestamp < oldestEntry.timestamp ? [key, entry] : oldest
+        })[0]
+        break
     }
 
-    // Prevent too frequent requests
-    const timeSinceLastAttempt = Date.now() - lastFetchAttempt.current
-    if (timeSinceLastAttempt < 1000) {
-      logger.debug('🚫 Petición muy frecuente, ignorando', { key })
-      return cachedData?.data || null
-    }
-
-    // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-
-    abortControllerRef.current = new AbortController()
-    lastFetchAttempt.current = Date.now()
-
-    try {
-      logger.info('🔄 Obteniendo datos', { 
-        key, 
-        priority, 
-        isSlowConnection: isSlowConnection(),
-        retryCount: retryCountRef.current 
+    if (toEvict) {
+      setCache(prev => {
+        const newCache = new Map(prev)
+        newCache.delete(toEvict)
+        return newCache
       })
+    }
+  }, [cache.size, finalConfig.maxSize, finalConfig.strategy])
 
-      const startTime = performance.now()
-      const result = await fetcher()
-      const fetchTime = performance.now() - startTime
+  const get = useCallback(<T>(key: string): T | null => {
+    updateStats(false) // Will be updated to true if hit
 
-      // Create cache entry
-      const entry: CacheEntry<T> = {
-        data: result,
-        timestamp: Date.now(),
-        source: 'network',
-        priority,
-        retryCount: retryCountRef.current
-      }
+    const entry = cache.get(key)
+    if (!entry) {
+      return null
+    }
 
-      await setCachedData(entry)
-      retryCountRef.current = 0
-
-      logger.info('✅ Datos obtenidos y cacheados', { 
-        key, 
-        fetchTime: `${fetchTime.toFixed(2)}ms`,
-        priority 
+    if (isExpired(entry)) {
+      setCache(prev => {
+        const newCache = new Map(prev)
+        newCache.delete(key)
+        return newCache
       })
+      return null
+    }
 
-      return result
-
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        logger.debug('🚫 Petición cancelada', { key })
-        return cachedData?.data || null
+    // Update access statistics
+    setCache(prev => {
+      const newCache = new Map(prev)
+      const updatedEntry = {
+        ...entry,
+        accessCount: entry.accessCount + 1,
+        lastAccessed: Date.now()
       }
+      newCache.set(key, updatedEntry)
+      return newCache
+    })
 
-      retryCountRef.current++
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
+    updateStats(true)
+    return entry.data as T
+  }, [cache, isExpired, updateStats])
 
-      logger.error('❌ Error obteniendo datos', { 
-        key, 
-        error: errorMsg,
-        retryCount: retryCountRef.current,
-        maxRetries_: maxRetries
-      })
-
-      // Retry logic
-      if (retryCountRef.current < maxRetries) {
-        const delay = retryDelay * Math.pow(2, retryCountRef.current - 1)
-        
-        logger.info('🔄 Reintentando en...', { 
-          key, 
-          delay: delay,
-          attempts: retryCountRef.current 
-        })
-
-        await new Promise(resolve => setTimeout(resolve, delay))
-        return fetchData()
-      }
-
-      // Return cached data if available, otherwise throw
-      if (cachedData?.data) {
-        logger.warn('⚠️ Usando datos en cache por error', { key })
-        return cachedData.data
-      }
-
-      throw error
-    }
-  }, [isOnline, cachedData, key, priority, isSlowConnection, fetcher, maxRetries, retryDelay, setCachedData, logger])
-
-  // Auto-fetch when conditions are met
-  useEffect(() => {
-    if (shouldFetch && !storageLoading) {
-      fetchData()
-    }
-  }, [shouldFetch, storageLoading, fetchData])
-
-  // Sync on reconnect
-  useEffect(() => {
-    if (isOnline && syncOnReconnect && cachedData?.source === 'cache') {
-      logger.info('🔄 Sincronizando al reconectar', { key })
-      fetchData()
-    }
-  }, [isOnline, syncOnReconnect, cachedData?.source, key, fetchData, logger])
-
-  const refetch = useCallback(async () => {
-    retryCountRef.current = 0
-    await fetchData()
-  }, [fetchData])
-
-  const invalidate = useCallback(async () => {
-    await removeData()
-    retryCountRef.current = 0
-    if (isOnline) {
-      await fetchData()
-    }
-  }, [removeData, isOnline, fetchData])
-
-  const updateCache = useCallback(async (data: T) => {
+  const set = useCallback(<T>(key: string, data: T, ttl?: number): void => {
     const entry: CacheEntry<T> = {
       data,
       timestamp: Date.now(),
-      source: 'cache',
-      priority,
-      retryCount: 0
+      ttl: ttl || finalConfig.defaultTTL,
+      accessCount: 0,
+      lastAccessed: Date.now()
     }
-    await setCachedData(entry)
-  }, [setCachedData, priority])
+
+    setCache(prev => {
+      const newCache = new Map(prev)
+      newCache.set(key, entry)
+      return newCache
+    })
+
+    // Schedule cleanup if needed
+    setTimeout(() => evictIfNeeded(), 0)
+  }, [finalConfig.defaultTTL, evictIfNeeded])
+
+  const remove = useCallback((key: string): void => {
+    setCache(prev => {
+      const newCache = new Map(prev)
+      newCache.delete(key)
+      return newCache
+    })
+  }, [])
+
+  const clear = useCallback((): void => {
+    setCache(new Map())
+    setStats({ totalRequests: 0, totalHits: 0 })
+  }, [])
+
+  const getStats = useCallback((): CacheStats => {
+    const hitRate = stats.totalRequests > 0 ? stats.totalHits / stats.totalRequests : 0
+    
+    return {
+      size: cache.size,
+      maxSize: finalConfig.maxSize,
+      hitRate: hitRate * 100,
+      totalRequests: stats.totalRequests,
+      totalHits: stats.totalHits
+    }
+  }, [cache.size, finalConfig.maxSize, stats])
+
+  const prefetch = useCallback(async <T>(
+    key: string, 
+    fetcher: () => Promise<T>, 
+    ttl?: number
+  ): Promise<T> => {
+    // Check if already cached and valid
+    const cached = get<T>(key)
+    if (cached !== null) {
+      return cached
+    }
+
+    // Only prefetch if online to avoid unnecessary requests
+    if (!networkInfo.isOnline) {
+      throw new Error('Cannot prefetch while offline')
+    }
+
+    try {
+      const data = await fetcher()
+      set(key, data, ttl)
+      return data
+    } catch (error) {
+      console.error(`Failed to prefetch data for key: ${key}`, error)
+      throw error
+    }
+  }, [get, set, networkInfo.isOnline])
+
+  // Auto-cleanup expired entries periodically
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      setCache(prev => {
+        const newCache = new Map()
+        
+        for (const [key, entry] of prev.entries()) {
+          if (!isExpired(entry)) {
+            newCache.set(key, entry)
+          }
+        }
+        
+        return newCache
+      })
+    }, 60000) // Check every minute
+
+    return () => clearInterval(cleanup)
+  }, [isExpired])
+
+  // Adjust TTL based on network conditions
+  useEffect(() => {
+    if (!networkInfo.isOnline) {
+      // Extend TTL for offline mode to preserve data longer
+      setCache(prev => {
+        const newCache = new Map()
+        
+        for (const [key, entry] of prev.entries()) {
+          newCache.set(key, {
+            ...entry,
+            ttl: entry.ttl * 2 // Double the TTL when offline
+          })
+        }
+        
+        return newCache
+      })
+    }
+  }, [networkInfo.isOnline])
 
   return {
-    data: cachedData?.data || null,
-    isLoading: storageLoading,
-    isStale,
-    error: storageError,
-    refetch,
-    invalidate,
-    updateCache
+    get,
+    set,
+    remove,
+    clear,
+    getStats,
+    prefetch
   }
 }

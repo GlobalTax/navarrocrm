@@ -1,201 +1,177 @@
+
 import React from 'react'
-import { useNetworkStatus } from '@/hooks/performance/useNetworkStatus'
-import { useOfflineSync } from '@/hooks/performance/useOfflineSync'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Wifi, 
   WifiOff, 
   Signal, 
-  SignalHigh, 
-  SignalLow, 
+  AlertTriangle, 
   RefreshCw,
-  AlertTriangle,
-  CheckCircle
+  Clock
 } from 'lucide-react'
+import { useNetworkStatus } from '@/hooks/performance/useNetworkStatus'
 
 interface OfflineIndicatorProps {
-  syncHandler?: (operations: any[]) => Promise<any[]>
   className?: string
-  compact?: boolean
 }
 
-const defaultSyncHandler = async (operations: any[]) => {
-  // Default no-op sync handler
-  return []
-}
-
-export function OfflineIndicator({ 
-  syncHandler = defaultSyncHandler,
-  className = '',
-  compact = false 
-}: OfflineIndicatorProps) {
+const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({ className = '' }) => {
   const { 
-    isOnline, 
+    networkInfo, 
     isSlowConnection, 
-    effectiveType, 
-    downlink,
-    reconnectAttempts,
-    timeSinceLastOnline 
+    getConnectionQuality, 
+    updateNetworkInfo 
   } = useNetworkStatus()
 
-  const { 
-    queueSize, 
-    isSync, 
-    syncProgress, 
-    forcSync,
-    getQueueStatus 
-  } = useOfflineSync(syncHandler)
+  const connectionQuality = getConnectionQuality()
+  const isSlowConn = isSlowConnection()
 
-  const syncStats = getQueueStatus()
-
-  // Get connection quality icon
-  const getConnectionIcon = () => {
-    if (!isOnline) return <WifiOff className="h-4 w-4" />
-    if (isSlowConnection) return <SignalLow className="h-4 w-4" />
-    if (downlink > 5) return <SignalHigh className="h-4 w-4" />
-    return <Signal className="h-4 w-4" />
-  }
-
-  // Get connection status text
-  const getStatusText = () => {
-    if (!isOnline) {
-      if (timeSinceLastOnline && timeSinceLastOnline > 60000) {
-        const minutes = Math.floor(timeSinceLastOnline / 60000)
-        return `Offline hace ${minutes}m`
-      }
-      return 'Sin conexión'
+  const getQualityColor = (quality: string): string => {
+    const colorMap: Record<string, string> = {
+      excellent: 'bg-green-500',
+      good: 'bg-blue-500', 
+      fair: 'bg-yellow-500',
+      poor: 'bg-red-500'
     }
+    return colorMap[quality] || 'bg-gray-500'
+  }
+
+  const getQualityLabel = (quality: string): string => {
+    const labelMap: Record<string, string> = {
+      excellent: 'Excelente',
+      good: 'Buena',
+      fair: 'Regular', 
+      poor: 'Pobre'
+    }
+    return labelMap[quality] || 'Desconocida'
+  }
+
+  const formatTimeSinceLastOnline = (timestamp: number | null): string => {
+    if (!timestamp) return 'Nunca'
     
-    if (isSlowConnection) return 'Conexión lenta'
-    return 'Conectado'
+    const now = Date.now()
+    const diff = now - timestamp
+    const minutes = Math.floor(diff / (1000 * 60))
+    
+    if (minutes < 1) return 'Menos de 1 minuto'
+    if (minutes < 60) return `${minutes} minuto${minutes > 1 ? 's' : ''}`
+    
+    const hours = Math.floor(minutes / 60)
+    return `${hours} hora${hours > 1 ? 's' : ''}`
   }
 
-  // Get status color
-  const getStatusVariant = () => {
-    if (!isOnline) return 'destructive'
-    if (isSlowConnection) return 'secondary'
-    return 'default'
-  }
-
-  if (compact) {
-    return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <Badge variant={getStatusVariant()} className="border-0.5 border-black rounded-[10px]">
-          {getConnectionIcon()}
-          <span className="ml-1">{getStatusText()}</span>
-        </Badge>
-        
-        {queueSize > 0 && (
-          <Badge variant="outline" className="border-0.5 border-black rounded-[10px]">
-            <RefreshCw className="h-3 w-3 mr-1" />
-            {queueSize}
-          </Badge>
-        )}
-      </div>
-    )
+  // Don't render if online and connection is good
+  if (networkInfo.isOnline && !isSlowConn && connectionQuality !== 'poor') {
+    return null
   }
 
   return (
-    <Card className={`border-0.5 border-black rounded-[10px] ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          {getConnectionIcon()}
-          Estado de Conexión
-        </CardTitle>
-        <CardDescription>
-          {getStatusText()}
-          {effectiveType !== 'unknown' && isOnline && (
-            <span className="ml-2 text-xs">({effectiveType})</span>
-          )}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Connection Details */}
-        {isOnline && (
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span className="text-muted-foreground">Velocidad:</span>
-              <span className="ml-1">{downlink.toFixed(1)} Mbps</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Tipo:</span>
-              <span className="ml-1">{effectiveType}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Offline Info */}
-        {!isOnline && (
-          <div className="space-y-2">
-            {reconnectAttempts > 0 && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <AlertTriangle className="h-3 w-3" />
-                Intentos de reconexión: {reconnectAttempts}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Sync Status */}
-        {queueSize > 0 && (
-          <div className="space-y-2">
+    <div className={`space-y-3 ${className}`}>
+      {/* Offline Alert */}
+      {!networkInfo.isOnline && (
+        <Alert className="border-red-200 bg-red-50">
+          <WifiOff className="h-4 w-4 text-red-600" />
+          <AlertDescription>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Cola de Sincronización</span>
-              <Badge variant="outline" className="border-0.5 border-black rounded-[10px]">
-                {queueSize} pendientes
-              </Badge>
+              <div>
+                <p className="font-medium text-red-800">Sin conexión a internet</p>
+                <p className="text-sm text-red-600">
+                  Trabajando en modo offline. Los cambios se sincronizarán automáticamente.
+                </p>
+                {networkInfo.timeSinceLastOnline && (
+                  <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+                    <Clock className="h-3 w-3" />
+                    <span>Desconectado hace: {formatTimeSinceLastOnline(networkInfo.timeSinceLastOnline)}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant="destructive">
+                  Offline
+                </Badge>
+                {networkInfo.reconnectAttempts > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    Intentos: {networkInfo.reconnectAttempts}
+                  </Badge>
+                )}
+              </div>
             </div>
-            
-            {isSync && (
-              <div className="space-y-1">
-                <Progress value={syncProgress} className="h-2" />
-                <div className="text-xs text-muted-foreground text-center">
-                  Sincronizando... {Math.round(syncProgress)}%
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Slow Connection Alert */}
+      {networkInfo.isOnline && isSlowConn && (
+        <Alert className="border-yellow-200 bg-yellow-50">
+          <Signal className="h-4 w-4 text-yellow-600" />
+          <AlertDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-yellow-800">Conexión lenta detectada</p>
+                <p className="text-sm text-yellow-600">
+                  La aplicación puede funcionar más lentamente de lo normal.
+                </p>
+                <div className="flex items-center gap-4 mt-2 text-xs text-yellow-700">
+                  <span>Tipo: {networkInfo.effectiveType}</span>
+                  <span>Velocidad: {networkInfo.downlink} Mbps</span>
+                  <span>Latencia: {networkInfo.rtt}ms</span>
                 </div>
               </div>
-            )}
-
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="text-center">
-                <div className="text-muted-foreground">Pendientes</div>
-                <div className="font-medium">{syncStats.pending}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-muted-foreground">Fallidas</div>
-                <div className="font-medium text-destructive">{syncStats.failed}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-muted-foreground">Completadas</div>
-                <div className="font-medium text-green-600">{syncStats.completed}</div>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${getQualityColor(connectionQuality)}`}></div>
+                  <Badge variant="secondary">
+                    {getQualityLabel(connectionQuality)}
+                  </Badge>
+                </div>
+                {networkInfo.saveData && (
+                  <Badge variant="outline" className="text-xs">
+                    Ahorro de datos
+                  </Badge>
+                )}
               </div>
             </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
-            {isOnline && !isSync && (
-              <Button 
-                onClick={forcSync}
-                size="sm"
-                variant="outline"
-                className="w-full border-0.5 border-black rounded-[10px]"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                Sincronizar Ahora
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* No pending operations */}
-        {queueSize === 0 && isOnline && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CheckCircle className="h-3 w-3 text-green-600" />
-            Todas las operaciones sincronizadas
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Poor Connection Warning */}
+      {networkInfo.isOnline && connectionQuality === 'poor' && (
+        <Alert className="border-orange-200 bg-orange-50">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <AlertDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-orange-800">Calidad de conexión pobre</p>
+                <p className="text-sm text-orange-600">
+                  Se recomienda esperar a una mejor conexión para operaciones importantes.
+                </p>
+                <div className="mt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={updateNetworkInfo}
+                    className="text-orange-700 border-orange-300 hover:bg-orange-100"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Verificar conexión
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Wifi className="h-4 w-4 text-orange-600" />
+                <Badge variant="destructive">
+                  Conexión Pobre
+                </Badge>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
   )
 }
+
+export default OfflineIndicator
