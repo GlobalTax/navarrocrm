@@ -5,6 +5,7 @@ import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import { Message } from './types'
 import { useLogger } from '@/hooks/useLogger'
+import { AIAction } from '@/types/interfaces'
 
 export const useAIChat = () => {
   const { user } = useApp()
@@ -24,9 +25,9 @@ export const useAIChat = () => {
       ]
     }
   ])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string): Promise<void> => {
     logger.info('Enviando mensaje', { metadata: { content } })
     
     if (!content.trim() || isLoading) {
@@ -105,8 +106,25 @@ export const useAIChat = () => {
     }
   }
 
-  const handleAIAction = (action: any) => {
+  const handleAIAction = (action: AIAction): void => {
     logger.info('Ejecutando acción IA', { action })
+    
+    // Tipado seguro de las acciones
+    switch (action.type) {
+      case 'navigate':
+        if (typeof action.payload === 'string') {
+          window.location.href = action.payload
+        }
+        break
+      case 'create_client':
+        // Implementar lógica de creación de cliente
+        break
+      case 'search_cases':
+        // Implementar lógica de búsqueda
+        break
+      default:
+        logger.warn('Acción no reconocida', { actionType: action.type })
+    }
   }
 
   return {
