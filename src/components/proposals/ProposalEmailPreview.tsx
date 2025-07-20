@@ -1,10 +1,10 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Eye, Send, FileText, Euro } from 'lucide-react'
+import { sanitizeEmailHTML } from '@/lib/security'
 
 interface ProposalEmailPreviewProps {
   proposalTitle: string
@@ -142,7 +142,9 @@ export const ProposalEmailPreview = ({
                   </DialogHeader>
                   <div 
                     className="border rounded-lg p-4 bg-white"
-                    dangerouslySetInnerHTML={{ __html: generateEmailPreview() }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: sanitizeEmailHTML(generateEmailPreview())
+                    }}
                   />
                 </DialogContent>
               </Dialog>

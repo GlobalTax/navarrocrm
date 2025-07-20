@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAbortController } from '@/hooks/performance'
+import { sanitizeDocumentHTML } from '@/lib/security'
 
 interface DocumentPreviewProps {
   content: string
@@ -206,7 +208,9 @@ export const DocumentPreview = ({
             {viewMode === 'formatted' ? (
               <div 
                 className="prose prose-sm max-w-none font-serif leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: formatContent(content) }}
+                dangerouslySetInnerHTML={{ 
+                  __html: sanitizeDocumentHTML(formatContent(content))
+                }}
               />
             ) : (
               <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">
