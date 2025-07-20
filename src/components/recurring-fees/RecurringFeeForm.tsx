@@ -1,5 +1,4 @@
 
-import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -149,7 +148,6 @@ export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: Recurrin
             setValue={setValue}
           />
 
-          {/* Botones */}
           <div className="flex justify-end space-x-2">
             {onCancel && (
               <Button type="button" variant="outline" onClick={onCancel}>

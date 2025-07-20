@@ -1,7 +1,7 @@
-import React from 'react'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Euro, Calendar, AlertCircle, TrendingUp, Clock, FileText } from 'lucide-react'
+import { Euro, Calendar, AlertCircle, Clock, FileText } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { RecurringFee } from '@/hooks/useRecurringFees'
@@ -46,7 +46,6 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
 
   return (
     <div className="space-y-6">
-      {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -117,7 +116,6 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
         </Card>
       </div>
 
-      {/* Cuotas próximas */}
       {upcomingFees.length > 0 && (
         <Card>
           <CardHeader>
@@ -154,7 +152,6 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
         </Card>
       )}
 
-      {/* Alertas de vencidas */}
       {overdueFeesCount > 0 && (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>

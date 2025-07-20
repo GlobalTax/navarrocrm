@@ -38,7 +38,6 @@ export const useRecurringFees = (filters?: RecurringFeeFilters) => {
 
       if (error) throw error
       
-      // Obtener información de propuestas en una segunda query si existen proposal_ids
       const dataWithProposals = await Promise.all(
         (data || []).map(async (item) => {
           let proposalData = null
@@ -53,7 +52,7 @@ export const useRecurringFees = (filters?: RecurringFeeFilters) => {
           
           return {
             ...item,
-            client_id: item.contact_id, // Map for backward compatibility
+            client_id: item.contact_id,
             client: item.contacts ? { 
               name: item.contacts.name || '', 
               email: item.contacts.email 
@@ -89,7 +88,6 @@ export const useRecurringFee = (id: string) => {
 
       if (error) throw error
       
-      // Obtener información de propuesta si existe
       let proposalData = null
       if (data.proposal_id) {
         const { data: proposal } = await supabase
@@ -102,7 +100,7 @@ export const useRecurringFee = (id: string) => {
       
       return {
         ...data,
-        client_id: data.contact_id, // Map for backward compatibility
+        client_id: data.contact_id,
         client: data.contacts ? {
           name: data.contacts.name || '',
           email: data.contacts.email,
