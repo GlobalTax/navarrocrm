@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAbortController } from '@/hooks/performance'
-import { sanitizeDocumentHTML } from '@/lib/security'
+import { sanitizeDocumentHTML, validateAndSanitizeEmail } from '@/lib/security'
 
 interface DocumentPreviewProps {
   content: string
@@ -92,8 +92,9 @@ export const DocumentPreview = ({
       const email = prompt('Ingrese el email de destino:')
       if (!email) return
 
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        toast.error('Email inválido')
+      const emailValidation = validateAndSanitizeEmail(email)
+      if (!emailValidation.isValid) {
+        toast.error(emailValidation.error || 'Email inválido')
         return
       }
 
