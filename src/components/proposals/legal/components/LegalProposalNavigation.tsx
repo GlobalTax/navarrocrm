@@ -2,7 +2,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react'
-import { PROPOSAL_STEPS } from '../types/legalProposal.types'
+import { PROPOSAL_STEPS } from '@/types/proposals'
 
 interface LegalProposalNavigationProps {
   currentStep: number

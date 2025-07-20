@@ -58,6 +58,20 @@ export interface ProposalFormState {
   showSuccess: boolean
 }
 
+export interface ProposalStep {
+  id: number
+  name: string
+  description: string
+}
+
+export const PROPOSAL_STEPS: ProposalStep[] = [
+  { id: 1, name: 'Cliente', description: 'Seleccionar cliente o prospecto' },
+  { id: 2, name: 'Servicios', description: 'Selección y configuración' },
+  { id: 3, name: 'Honorarios', description: 'Configuración económica' },
+  { id: 4, name: 'Contenido', description: 'Textos de la propuesta' },
+  { id: 5, name: 'Revisión', description: 'Vista previa y envío' }
+]
+
 // Interfaces para propuestas generales
 export interface Proposal {
   id: string
@@ -66,6 +80,11 @@ export interface Proposal {
   proposal_number: string
   title: string
   description: string | null
+  introduction?: string
+  scope_of_work?: string
+  timeline?: string
+  notes?: string
+  auto_renewal?: boolean
   total_amount: number
   currency: string
   status: 'draft' | 'sent' | 'under_review' | 'accepted' | 'rejected' | 'expired' | 'won' | 'lost'
@@ -75,7 +94,7 @@ export interface Proposal {
   created_by: string
   created_at: string
   updated_at: string
-  proposal_type: 'standard' | 'recurring'
+  proposal_type: 'standard' | 'recurring' | 'service' | 'retainer' | 'project'
   is_recurring: boolean
   recurring_frequency: 'monthly' | 'quarterly' | 'yearly' | null
   contract_start_date: string | null
@@ -85,18 +104,22 @@ export interface Proposal {
   retainer_amount: number | null
   included_hours: number | null
   hourly_rate_extra: number | null
+  client?: { name: string; email?: string }
 }
 
 export interface ProposalLineItem {
   id: string
   proposal_id: string
   service_name: string
+  name: string
   description: string | null
   quantity: number
   unit_price: number
   total_price: number
   billing_unit: string
   estimated_hours: number | null
+  service_catalog_id?: string
+  sort_order?: number
   created_at: string
   updated_at: string
 }
@@ -105,7 +128,7 @@ export interface CreateProposalData {
   contact_id: string
   title: string
   description?: string
-  proposal_type: 'standard' | 'recurring'
+  proposal_type: 'standard' | 'recurring' | 'service' | 'retainer' | 'project'
   is_recurring: boolean
   valid_until?: string
   recurring_frequency?: 'monthly' | 'quarterly' | 'yearly'
@@ -115,5 +138,6 @@ export interface CreateProposalData {
   retainer_amount?: number
   included_hours?: number
   hourly_rate_extra?: number
+  notes?: string
   line_items: Omit<ProposalLineItem, 'id' | 'proposal_id' | 'created_at' | 'updated_at'>[]
 }

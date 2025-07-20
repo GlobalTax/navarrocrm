@@ -37,6 +37,7 @@ export const createServiceFromCatalog = (catalogService: any): ServiceData => {
     id: catalogService.id,
     name: catalogService.name,
     description: catalogService.description || '',
+    price: catalogService.default_price || 0,
     basePrice: catalogService.default_price || 0,
     billingUnit: catalogService.billing_unit || 'hour',
     estimatedHours: Math.ceil((catalogService.default_price || 0) / 50),
