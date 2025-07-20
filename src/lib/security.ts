@@ -70,7 +70,7 @@ export const sanitizeHTML = (html: string, mode: SanitizeMode = 'basic'): string
 
   try {
     // Configurar DOMPurify
-    return DOMPurify.sanitize(html, {
+    return String(DOMPurify.sanitize(html, {
       ...config,
       // Mantener comentarios seguros
       KEEP_CONTENT: false,
@@ -80,7 +80,7 @@ export const sanitizeHTML = (html: string, mode: SanitizeMode = 'basic'): string
       FORCE_BODY: true,
       // Transformar URLs relativas
       SANITIZE_DOM: true
-    })
+    }))
   } catch (error) {
     console.error('Error sanitizing HTML:', error)
     // En caso de error, devolver texto sin HTML
