@@ -16,18 +16,20 @@ const mapContactToFormData = (contact: Contact): ContactFormData => {
   } as ContactFormData
   
   logger.info('Contact mapping', {
-    contactId: contact.id,
-    contactName: contact.name,
-    clientType: contact.client_type,
-    originalCompanyId: contact.company_id,
-    mappedCompanyId: formData.company_id,
-    relationshipType: formData.relationship_type,
-    shouldShowSelector: contact.client_type !== 'empresa',
-    fullFormData: {
-      name: formData.name,
-      client_type: formData.client_type,
-      company_id: formData.company_id,
-      relationship_type: formData.relationship_type
+    metadata: {
+      contactId: contact.id,
+      contactName: contact.name,
+      clientType: contact.client_type,
+      originalCompanyId: contact.company_id,
+      mappedCompanyId: formData.company_id,
+      relationshipType: formData.relationship_type,
+      shouldShowSelector: contact.client_type !== 'empresa',
+      fullFormData: {
+        name: formData.name,
+        client_type: formData.client_type,
+        company_id: formData.company_id,
+        relationship_type: formData.relationship_type
+      }
     }
   })
   

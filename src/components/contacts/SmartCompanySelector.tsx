@@ -24,13 +24,15 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   // Enhanced debugging
   useEffect(() => {
     logger.debug('Component render', {
-      clientType,
-      selectedCompanyId,
-      contactsCount: contacts.length,
-      isLoading,
-      error: error?.message,
-      shouldShow: clientType !== 'empresa',
-      contactTypes: contacts.map(c => ({ id: c.id, name: c.name, client_type: c.client_type }))
+      metadata: {
+        clientType,
+        selectedCompanyId,
+        contactsCount: contacts.length,
+        isLoading,
+        errorMessage: error?.message,
+        shouldShow: clientType !== 'empresa',
+        contactTypes: contacts.map(c => ({ id: c.id, name: c.name, client_type: c.client_type }))
+      }
     })
   }, [clientType, selectedCompanyId, contacts.length, isLoading, error, form, logger])
   
@@ -39,22 +41,26 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
     const filtered = contacts.filter(contact => {
       const isCompany = contact.client_type === 'empresa'
       logger.debug(`Filter contact ${contact.name}`, {
-        id: contact.id,
-        client_type: contact.client_type,
-        isCompany
+        metadata: {
+          contactId: contact.id,
+          client_type: contact.client_type,
+          isCompany
+        }
       })
       return isCompany
     })
     
     logger.info('Companies filtered', {
-      totalContacts: contacts.length,
-      companiesFound: filtered.length,
-      companies: filtered.map(c => ({ 
-        id: c.id, 
-        name: c.name, 
-        client_type: c.client_type,
-        dni_nif: c.dni_nif 
-      }))
+      metadata: {
+        totalContacts: contacts.length,
+        companiesFound: filtered.length,
+        companies: filtered.map(c => ({ 
+          id: c.id, 
+          name: c.name, 
+          client_type: c.client_type,
+          dni_nif: c.dni_nif 
+        }))
+      }
     })
     return filtered
   }, [contacts, logger])
@@ -67,10 +73,12 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
     
     const found = companies.find(company => company.id === selectedCompanyId)
     logger.debug('Company lookup', { 
-      selectedCompanyId, 
-      found: !!found, 
-      companyName: found?.name,
-      availableCompanies: companies.length
+      metadata: {
+        selectedCompanyId, 
+        found: !!found, 
+        companyName: found?.name,
+        availableCompanies: companies.length
+      }
     })
     return found
   }, [companies, selectedCompanyId, logger])
@@ -79,16 +87,18 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   const shouldShow = useMemo(() => {
     const show = clientType !== 'empresa'
     logger.debug('Visibility check', { 
-      clientType, 
-      shouldShow: show,
-      reason: show ? 'Client is not a company' : 'Client is a company - hiding selector'
+      metadata: {
+        clientType, 
+        shouldShow: show,
+        reason: show ? 'Client is not a company' : 'Client is a company - hiding selector'
+      }
     })
     return show
   }, [clientType, logger])
   
   // Early return con logging
   if (!shouldShow) {
-    logger.debug('Selector hidden', { clientType })
+    logger.debug('Selector hidden', { metadata: { clientType } })
     return null
   }
   
@@ -148,7 +158,7 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
     )
   }
   
-  logger.debug('Showing full selector', { companiesCount: companies.length })
+  logger.debug('Showing full selector', { metadata: { companiesCount: companies.length } })
   
   const clearSelection = () => {
     logger.info('Clearing company selection')
@@ -156,7 +166,7 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   }
   
   const handleCompanySelect = (value: string) => {
-    logger.info('Company selected', { value })
+    logger.info('Company selected', { metadata: { selectedValue: value } })
     const finalValue = value === 'none' ? '' : value
     form.setValue('company_id', finalValue, { shouldValidate: true, shouldDirty: true })
   }

@@ -7,7 +7,7 @@ export const useAIAssistant = () => {
   const [isMinimized, setIsMinimized] = useState(false)
   const logger = useLogger('useAIAssistant')
 
-  logger.debug('Estado actual', { isOpen, isMinimized })
+  logger.debug('Estado actual', { metadata: { isOpen, isMinimized } })
 
   const toggle = () => {
     logger.debug('Toggle llamado')

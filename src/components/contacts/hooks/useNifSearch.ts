@@ -18,16 +18,16 @@ export const useNifSearch = () => {
     setSearchError(null)
     setLastSearchResult(null)
 
-    logger.info('Iniciando búsqueda', { nif })
+    logger.info('Iniciando búsqueda', { metadata: { nif } })
 
     const result = await lookupCompany(nif)
     if (result) {
-      logger.info('Empresa encontrada', { result })
+      logger.info('Empresa encontrada', { metadata: { result } })
       setLastSearchResult(result as CompanyData & { isSimulated?: boolean, warning?: string })
       setSearchError(null)
       onCompanyFound(result)
     } else {
-      logger.warn('No se encontró empresa', { nif })
+      logger.warn('No se encontró empresa', { metadata: { nif } })
       setSearchError('No se pudo encontrar la empresa')
     }
   }

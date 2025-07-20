@@ -27,12 +27,14 @@ export const useAIChat = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const sendMessage = async (content: string) => {
-    logger.info('Enviando mensaje', { content })
+    logger.info('Enviando mensaje', { metadata: { content } })
     
     if (!content.trim() || isLoading) {
       logger.warn('Mensaje bloqueado', { 
-        reason: content.trim() ? 'loading' : 'empty_content',
-        isLoading 
+        metadata: {
+          reason: content.trim() ? 'loading' : 'empty_content',
+          isLoading 
+        }
       })
       return
     }
@@ -63,8 +65,10 @@ export const useAIChat = () => {
       })
 
       logger.info('Respuesta recibida', { 
-        hasError: !!response.error,
-        hasData: !!response.data 
+        metadata: {
+          hasError: !!response.error,
+          hasData: !!response.data 
+        }
       })
 
       if (response.error) {
