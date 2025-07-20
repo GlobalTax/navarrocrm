@@ -1,5 +1,5 @@
 
-import { forwardRef } from 'react'
+import { forwardRef, memo, useCallback, useMemo } from 'react'
 import { FixedSizeList as List } from 'react-window'
 import InfiniteLoader from 'react-window-infinite-loader'
 import { Person } from '@/hooks/usePersons'
@@ -14,10 +14,19 @@ interface VirtualizedPersonsTableProps {
   fetchNextPage?: () => void
 }
 
-export const VirtualizedPersonsTable = forwardRef<any, VirtualizedPersonsTableProps>(
+export const VirtualizedPersonsTable = memo(forwardRef<any, VirtualizedPersonsTableProps>(
   ({ persons, onEditPerson, hasNextPage, isFetchingNextPage, fetchNextPage }, ref) => {
-    const itemCount = hasNextPage ? persons.length + 1 : persons.length
-    const isItemLoaded = (index: number) => !!persons[index]
+    const itemCount = useMemo(() => 
+      hasNextPage ? persons.length + 1 : persons.length, 
+      [hasNextPage, persons.length]
+    )
+    
+    const isItemLoaded = useCallback((index: number) => !!persons[index], [persons])
+    
+    const itemData = useMemo(() => 
+      ({ persons, onEditPerson }), 
+      [persons, onEditPerson]
+    )
 
     return (
       <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
@@ -45,7 +54,7 @@ export const VirtualizedPersonsTable = forwardRef<any, VirtualizedPersonsTablePr
               width="100%"
               itemCount={itemCount}
               itemSize={80}
-              itemData={{ persons, onEditPerson }}
+              itemData={itemData}
               onItemsRendered={onItemsRendered}
             >
               {PersonRow}
@@ -64,6 +73,6 @@ export const VirtualizedPersonsTable = forwardRef<any, VirtualizedPersonsTablePr
       </div>
     )
   }
-)
+))
 
 VirtualizedPersonsTable.displayName = 'VirtualizedPersonsTable'

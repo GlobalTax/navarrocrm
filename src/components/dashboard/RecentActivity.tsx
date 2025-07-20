@@ -1,4 +1,5 @@
 
+import { useMemo, memo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -7,8 +8,11 @@ import { Badge } from '@/components/ui/badge'
 import { Clock, User, FileText } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { createLogger } from '@/utils/logger'
 
-export const RecentActivity = () => {
+const logger = createLogger('RecentActivity')
+
+export const RecentActivity = memo(() => {
   const { user } = useApp()
 
   const { data: recentContacts = [] } = useQuery({
@@ -23,13 +27,15 @@ export const RecentActivity = () => {
         .limit(3)
 
       if (error) {
-        console.error('Error fetching recent contacts:', error)
+        logger.error('Error fetching recent contacts:', error)
         return []
       }
       
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
   })
 
   const { data: recentCases = [] } = useQuery({
@@ -49,13 +55,15 @@ export const RecentActivity = () => {
         .limit(3)
 
       if (error) {
-        console.error('Error fetching recent cases:', error)
+        logger.error('Error fetching recent cases:', error)
         return []
       }
       
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
   })
 
   const { data: recentTimeEntries = [] } = useQuery({
@@ -79,16 +87,18 @@ export const RecentActivity = () => {
         .limit(5)
 
       if (error) {
-        console.error('Error fetching recent time entries:', error)
+        logger.error('Error fetching recent time entries:', error)
         return []
       }
       
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 10, // 10 minutos
   })
 
-  const allActivity = [
+  const allActivity = useMemo(() => [
     ...recentContacts.map(contact => ({
       type: 'contact' as const,
       id: contact.id,
@@ -115,7 +125,7 @@ export const RecentActivity = () => {
       icon: Clock
     }))
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 10)
+    .slice(0, 10), [recentContacts, recentCases, recentTimeEntries])
 
   return (
     <Card>
@@ -165,4 +175,6 @@ export const RecentActivity = () => {
       </CardContent>
     </Card>
   )
-}
+})
+
+RecentActivity.displayName = 'RecentActivity'
