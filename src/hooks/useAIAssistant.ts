@@ -1,14 +1,16 @@
 
 import { useState } from 'react'
+import { useLogger } from './useLogger'
 
 export const useAIAssistant = () => {
   const [isOpen, setIsOpen] = useState(false) // Cambiado a false por defecto
   const [isMinimized, setIsMinimized] = useState(false)
+  const logger = useLogger('useAIAssistant')
 
-  console.log('🪝 useAIAssistant - Estado actual:', { isOpen, isMinimized })
+  logger.debug('Estado actual', { isOpen, isMinimized })
 
   const toggle = () => {
-    console.log('🔄 useAIAssistant - Toggle llamado')
+    logger.debug('Toggle llamado')
     setIsOpen(!isOpen)
     if (!isOpen) {
       setIsMinimized(false)
@@ -16,19 +18,19 @@ export const useAIAssistant = () => {
   }
 
   const minimize = () => {
-    console.log('📦 useAIAssistant - Minimize llamado')
+    logger.debug('Minimize llamado')
     setIsOpen(false)
     setIsMinimized(false)
   }
 
   const close = () => {
-    console.log('❌ useAIAssistant - Close llamado')
+    logger.debug('Close llamado')
     setIsOpen(false)
     setIsMinimized(false)
   }
 
   const maximize = () => {
-    console.log('📖 useAIAssistant - Maximize llamado')
+    logger.debug('Maximize llamado')
     setIsOpen(true)
     setIsMinimized(false)
   }

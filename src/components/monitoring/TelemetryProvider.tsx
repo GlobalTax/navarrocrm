@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { useWebVitals } from '@/hooks/performance/useWebVitals'
 import { useLogger } from '@/hooks/useLogger'
 
@@ -66,10 +66,104 @@ export const TelemetryProvider: React.FC<TelemetryProviderProps> = ({
     }))
   }, [webVitals, overallScore, shouldTrack])
 
+  const trackPageView = useCallback((path: string) => {
+    if (!shouldTrack) return
+
+    setData(prev => ({
+      ...prev,
+      pageViews: prev.pageViews + 1
+    }))
+
+    logger.info('Page view tracked', {
+      path,
+      sessionId: data.sessionId,
+      pageViews: data.pageViews + 1
+    })
+
+    // Send to analytics if available
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('config', 'GA_MEASUREMENT_ID', {
+        page_path: path,
+        custom_map: { dimension1: data.sessionId }
+      })
+    }
+  }, [shouldTrack, logger, data.sessionId, data.pageViews])
+
+  const trackError = useCallback((error: Error, context?: any) => {
+    if (!shouldTrack) return
+
+    setData(prev => ({
+      ...prev,
+      errors: prev.errors + 1
+    }))
+
+    logger.error('Error tracked', {
+      error: error.message,
+      stack: error.stack,
+      context,
+      sessionId: data.sessionId,
+      totalErrors: data.errors + 1
+    })
+
+    // Send to error tracking service
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', 'exception', {
+        description: error.message,
+        fatal: false,
+        session_id: data.sessionId,
+        ...context
+      })
+    }
+  }, [shouldTrack, logger, data.sessionId, data.errors])
+
+  const trackInteraction = useCallback((action: string, target: string) => {
+    if (!shouldTrack) return
+
+    setData(prev => ({
+      ...prev,
+      interactions: prev.interactions + 1
+    }))
+
+    logger.info('Interaction tracked', {
+      action,
+      target,
+      sessionId: data.sessionId,
+      totalInteractions: data.interactions + 1
+    })
+
+    // Send to analytics
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', action, {
+        event_category: 'interaction',
+        event_label: target,
+        session_id: data.sessionId
+      })
+    }
+  }, [shouldTrack, logger, data.sessionId, data.interactions])
+
+  const trackCustomEvent = useCallback((event: string, eventData?: any) => {
+    if (!shouldTrack) return
+
+    logger.info(`Custom event: ${event}`, {
+      ...eventData,
+      sessionId: data.sessionId,
+      timestamp: Date.now()
+    })
+
+    // Send to analytics
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', event, {
+        event_category: 'custom',
+        session_id: data.sessionId,
+        ...eventData
+      })
+    }
+  }, [shouldTrack, logger, data.sessionId])
+
   useEffect(() => {
     if (!shouldTrack) return
 
-    // Track initial page load
+    // Track initial page load - solo una vez
     trackPageView(window.location.pathname)
 
     // Monitor network changes
@@ -115,101 +209,13 @@ export const TelemetryProvider: React.FC<TelemetryProviderProps> = ({
         document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
     }
-  }, [shouldTrack])
 
-  const trackPageView = (path: string) => {
-    if (!shouldTrack) return
-
-    setData(prev => ({
-      ...prev,
-      pageViews: prev.pageViews + 1
-    }))
-
-    logger.info('📄 Page view tracked', {
-      path,
-      sessionId: data.sessionId,
-      pageViews: data.pageViews + 1
-    })
-
-    // Send to analytics if available
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag('config', 'GA_MEASUREMENT_ID', {
-        page_path: path,
-        custom_map: { dimension1: data.sessionId }
-      })
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }
-
-  const trackError = (error: Error, context?: any) => {
-    if (!shouldTrack) return
-
-    setData(prev => ({
-      ...prev,
-      errors: prev.errors + 1
-    }))
-
-    logger.error('🚨 Error tracked', {
-      error: error.message,
-      stack: error.stack,
-      context,
-      sessionId: data.sessionId,
-      totalErrors: data.errors + 1
-    })
-
-    // Send to error tracking service
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag('event', 'exception', {
-        description: error.message,
-        fatal: false,
-        session_id: data.sessionId,
-        ...context
-      })
-    }
-  }
-
-  const trackInteraction = (action: string, target: string) => {
-    if (!shouldTrack) return
-
-    setData(prev => ({
-      ...prev,
-      interactions: prev.interactions + 1
-    }))
-
-    logger.info('👆 Interaction tracked', {
-      action,
-      target,
-      sessionId: data.sessionId,
-      totalInteractions: data.interactions + 1
-    })
-
-    // Send to analytics
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag('event', action, {
-        event_category: 'interaction',
-        event_label: target,
-        session_id: data.sessionId
-      })
-    }
-  }
-
-  const trackCustomEvent = (event: string, eventData?: any) => {
-    if (!shouldTrack) return
-
-    logger.info(`📊 Custom event: ${event}`, {
-      ...eventData,
-      sessionId: data.sessionId,
-      timestamp: Date.now()
-    })
-
-    // Send to analytics
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag('event', event, {
-        event_category: 'custom',
-        session_id: data.sessionId,
-        ...eventData
-      })
-    }
-  }
+  }, [shouldTrack, trackPageView, trackCustomEvent])
 
   const contextValue: TelemetryContextType = {
     data,

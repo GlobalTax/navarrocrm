@@ -4,9 +4,11 @@ import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import { Message } from './types'
+import { useLogger } from '@/hooks/useLogger'
 
 export const useAIChat = () => {
   const { user } = useApp()
+  const logger = useLogger('useAIChat')
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -25,10 +27,13 @@ export const useAIChat = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const sendMessage = async (content: string) => {
-    console.log('📤 AIChat - Enviando mensaje:', content)
+    logger.info('Enviando mensaje', { content })
     
     if (!content.trim() || isLoading) {
-      console.log('⚠️ AIChat - Mensaje bloqueado. Contenido vacío o cargando')
+      logger.warn('Mensaje bloqueado', { 
+        reason: content.trim() ? 'loading' : 'empty_content',
+        isLoading 
+      })
       return
     }
 
@@ -43,7 +48,7 @@ export const useAIChat = () => {
     setIsLoading(true)
 
     try {
-      console.log('🚀 AIChat - Llamando a función Edge...')
+      logger.info('Llamando a función Edge')
       
       const response = await supabase.functions.invoke('ai-assistant', {
         body: {
@@ -57,10 +62,13 @@ export const useAIChat = () => {
         }
       })
 
-      console.log('📥 AIChat - Respuesta recibida:', response)
+      logger.info('Respuesta recibida', { 
+        hasError: !!response.error,
+        hasData: !!response.data 
+      })
 
       if (response.error) {
-        console.error('❌ AIChat - Error en respuesta:', response.error)
+        logger.error('Error en respuesta', { error: response.error })
         throw new Error(response.error.message)
       }
 
@@ -79,7 +87,7 @@ export const useAIChat = () => {
       }
 
     } catch (error) {
-      console.error('💥 AIChat - Error al enviar mensaje:', error)
+      logger.error('Error al enviar mensaje', { error })
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -94,7 +102,7 @@ export const useAIChat = () => {
   }
 
   const handleAIAction = (action: any) => {
-    console.log('🎬 AIChat - Ejecutando acción IA:', action)
+    logger.info('Ejecutando acción IA', { action })
   }
 
   return {
