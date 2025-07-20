@@ -1,3 +1,4 @@
+
 /**
  * Sistema de logging centralizado y optimizado
  * Solo funciona en desarrollo - en producción es completamente silencioso

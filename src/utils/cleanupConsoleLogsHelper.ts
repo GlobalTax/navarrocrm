@@ -1,3 +1,4 @@
+
 /**
  * Helper script para limpiar console.logs automáticamente
  * Este archivo sirve como documentación de los tipos de logs que se eliminaron

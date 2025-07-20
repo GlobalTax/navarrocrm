@@ -1,5 +1,8 @@
 
 import { useContacts, type Contact } from './useContacts'
+import { createLogger } from '@/utils/logger'
+
+const logger = createLogger('useClients')
 
 // Client type que extiende Contact pero hace email opcional
 export interface Client extends Contact {
@@ -32,12 +35,14 @@ export const useClients = () => {
     .filter(contact => contact.relationship_type === 'cliente')
     .map(contact => contact as Client)
 
-  console.log('useClients - Total contacts:', contacts.length)
-  console.log('useClients - Filtered clients:', clients.length)
-  console.log('useClients - Contacts by relationship type:', contacts.reduce((acc, c) => {
-    acc[c.relationship_type] = (acc[c.relationship_type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>))
+  logger.debug('useClients - Filtered clients:', {
+    totalContacts: contacts.length,
+    filteredClients: clients.length,
+    contactsByRelationshipType: contacts.reduce((acc, c) => {
+      acc[c.relationship_type] = (acc[c.relationship_type] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+  })
 
   return {
     clients,

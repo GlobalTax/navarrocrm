@@ -1,3 +1,4 @@
+
 // Performance optimization utilities
 
 // Debounce function with cleanup

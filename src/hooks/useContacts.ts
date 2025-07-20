@@ -1,8 +1,12 @@
+
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
+import { createLogger } from '@/utils/logger'
+
+const logger = createLogger('useContacts')
 
 export interface Contact {
   id: string
@@ -49,10 +53,10 @@ export const useContacts = () => {
   const { data: contacts = [], isLoading, error, refetch } = useQuery({
     queryKey: ['contacts', user?.org_id],
     queryFn: async (): Promise<Contact[]> => {
-      console.log('🔄 [useContacts] Fetching contacts for org:', user?.org_id)
+      logger.debug('Fetching contacts for org:', user?.org_id)
       
       if (!user?.org_id) {
-        console.log('❌ [useContacts] No org_id available')
+        logger.warn('No org_id available')
         return []
       }
 
@@ -63,22 +67,17 @@ export const useContacts = () => {
         .order('name', { ascending: true })
 
       if (error) {
-        console.error('❌ [useContacts] Error fetching contacts:', error)
+        logger.error('Error fetching contacts:', error)
         throw error
       }
       
-      console.log('✅ [useContacts] Contacts fetched:', {
+      logger.info('Contacts fetched successfully:', {
         total: data?.length || 0,
         byType: data?.reduce((acc: Record<string, number>, contact) => {
           const type = contact.client_type || 'unknown'
           acc[type] = (acc[type] || 0) + 1
           return acc
-        }, {}) || {},
-        sampleContacts: data?.slice(0, 3).map(c => ({ 
-          id: c.id, 
-          name: c.name, 
-          client_type: c.client_type 
-        })) || []
+        }, {}) || {}
       })
       
       // Asegurar que relationship_type tenga el tipo correcto y parsear email_preferences
@@ -87,12 +86,6 @@ export const useContacts = () => {
         relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
         email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
       }))
-      
-      console.log('🔄 [useContacts] Processed contacts:', {
-        companies: processedContacts.filter(c => c.client_type === 'empresa').length,
-        particulares: processedContacts.filter(c => c.client_type === 'particular').length,
-        autonomos: processedContacts.filter(c => c.client_type === 'autonomo').length
-      })
       
       return processedContacts
     },
@@ -108,7 +101,6 @@ export const useContacts = () => {
       (contact.phone && contact.phone.includes(searchTerm))
 
     const matchesStatus = statusFilter === 'all' || contact.status === statusFilter
-
     const matchesRelationship = relationshipFilter === 'all' || contact.relationship_type === relationshipFilter
 
     return matchesSearch && matchesStatus && matchesRelationship
