@@ -88,16 +88,16 @@ export const useBundleAnalyzer = (options: BundleAnalyzerOptions = {}) => {
 
       // Warn about large bundles
       if (info.totalSize > sizeThreshold) {
-        logger.warn('⚠️ Bundle size exceeded threshold', {
-          size: `${(info.totalSize / 1024).toFixed(1)}KB`,
-          threshold: `${(sizeThreshold / 1024).toFixed(1)}KB`
-        })
+      logger.warn('⚠️ Bundle size exceeded threshold', {
+        totalSize: `${(info.totalSize / 1024).toFixed(1)}KB`,
+        limit: `${(sizeThreshold / 1024).toFixed(1)}KB`
+      })
       }
 
       // Alert about duplicates
       if (info.duplicateModules.length > 0) {
         logger.warn('🔄 Potential duplicate modules detected', {
-          duplicates: info.duplicateModules
+          duplicates: info.duplicateModules.length
         })
       }
 

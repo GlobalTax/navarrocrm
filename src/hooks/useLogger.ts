@@ -123,6 +123,39 @@ interface LogContext {
   families?: number
   media?: string
   sizeInfo?: string
+  
+  // Phase 8: Micro-optimizations
+  totalSize?: string
+  duplicates?: number | string[]
+  chunkName?: string
+  loadTime?: string
+  nodeCount?: number
+  optimizations?: number
+  nodes?: number
+  delegated?: number
+  ruleKey?: string
+  containerSelector?: string
+  container?: string
+  tag?: string
+  alerts?: number | string[]
+  recommendations?: number | string[]
+  unusedCode?: string
+  amount?: string
+  name?: string
+  chunkCount?: number
+  limit?: string
+  depth?: number
+  time?: string
+  direct?: number
+  event?: string
+  shakeabilityScore?: string
+  largestChunk?: string
+  leafNodes?: number
+  cpuUsage?: string
+  unusedElements?: number
+  memoryHeap?: string
+  analysisTime?: string
+  frameRate?: string
 }
 
 interface Logger {

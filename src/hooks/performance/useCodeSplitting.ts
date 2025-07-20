@@ -44,11 +44,11 @@ export const useCodeSplitting = (options: CodeSplittingOptions = {}) => {
         })
 
         if (size > chunkSizeLimit) {
-          logger.warn('📦 Large chunk detected', {
-            name,
-            size: `${(size / 1024).toFixed(1)}KB`,
-            limit: `${(chunkSizeLimit / 1024).toFixed(1)}KB`
-          })
+        logger.warn('📦 Large chunk detected', {
+          name,
+          totalSize: `${(size / 1024).toFixed(1)}KB`,
+          limit: `${(chunkSizeLimit / 1024).toFixed(1)}KB`
+        })
         }
       }
     })
