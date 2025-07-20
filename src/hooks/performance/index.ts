@@ -22,6 +22,11 @@ export { useNetworkStatus } from './useNetworkStatus'
 export { useIntelligentCache } from './useIntelligentCache'
 export { useOfflineSync } from './useOfflineSync'
 
+// Phase 7: Assets and Network
+export { useImageOptimization } from './useImageOptimization'
+export { useCriticalResourcePreload } from './useCriticalResourcePreload'
+export { useFontAndCSSOptimization } from './useFontAndCSSOptimization'
+
 // Re-export utilities
 export { 
   createDebounce, 
