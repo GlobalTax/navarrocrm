@@ -1,4 +1,5 @@
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -40,7 +41,7 @@ interface RecurringFeeFormProps {
 export function RecurringFeeForm({ recurringFee, onSuccess, onCancel }: RecurringFeeFormProps) {
   const createMutation = useCreateRecurringFee()
   const updateMutation = useUpdateRecurringFee()
-  const [selectedTags, setSelectedTags] = React.useState<string[]>(recurringFee?.tags || [])
+  const [selectedTags, setSelectedTags] = useState<string[]>(recurringFee?.tags || [])
 
   const {
     register,
