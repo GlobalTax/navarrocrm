@@ -1,5 +1,4 @@
-
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Database } from 'lucide-react'
@@ -10,14 +9,17 @@ import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
 import { ContactsDialogManager } from '@/components/contacts/ContactsDialogManager'
 import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
 import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
-import { QuantumSyncStatus } from '@/components/contacts/QuantumSyncStatus'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { useOnboarding } from '@/components/onboarding'
-import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
-import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { 
+  LazyMigrationDashboard,
+  LazyImprovedClientOnboarding,
+  LazyQuantumSyncStatus,
+  LazyComponentWrapper 
+} from '@/components/optimization/LazyComponents'
 
 const Contacts = () => {
   const [isCreatePersonDialogOpen, setIsCreatePersonDialogOpen] = useState(false)
@@ -79,12 +81,12 @@ const Contacts = () => {
 
   const handleCloseImprovedOnboarding = () => {
     setIsImprovedOnboardingOpen(false)
-    refetch() // Refrescar datos después del onboarding
+    refetch()
   }
 
   const handleQuantumImportClose = () => {
     setIsQuantumImportOpen(false)
-    refetch() // Refrescar datos después de la importación
+    refetch()
   }
 
   return (
@@ -95,7 +97,6 @@ const Contacts = () => {
           description="Gestiona personas físicas y empresas de tu cartera"
         />
         
-        {/* Botones de Onboarding */}
         <div className="mb-6 flex gap-3">
           <Button 
             onClick={handleStartImprovedOnboarding}
@@ -114,26 +115,19 @@ const Contacts = () => {
           </Button>
         </div>
 
-        {/* Métricas rápidas y estado de sincronización */}
         <div className="space-y-6 mb-6">
           <ContactQuickMetrics contacts={contacts} />
-          <QuantumSyncStatus />
+          <LazyComponentWrapper componentName="QuantumSyncStatus">
+            <LazyQuantumSyncStatus />
+          </LazyComponentWrapper>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="persons">
-              Personas Físicas
-            </TabsTrigger>
-            <TabsTrigger value="companies">
-              Empresas
-            </TabsTrigger>
-            <TabsTrigger value="migration">
-              Migración
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              Analytics
-            </TabsTrigger>
+            <TabsTrigger value="persons">Personas Físicas</TabsTrigger>
+            <TabsTrigger value="companies">Empresas</TabsTrigger>
+            <TabsTrigger value="migration">Migración</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <ContactsTabsContent
@@ -146,22 +140,21 @@ const Contacts = () => {
             onEditCompany={handleEditCompany}
           />
 
-          {/* Tab de Migración */}
           {activeTab === 'migration' && (
             <div className="mt-6">
-              <MigrationDashboard />
+              <LazyComponentWrapper componentName="MigrationDashboard">
+                <LazyMigrationDashboard />
+              </LazyComponentWrapper>
             </div>
           )}
         </Tabs>
 
-        {/* Diálogos para Personas Físicas */}
         <PersonFormDialog
           person={selectedPerson}
           open={isCreatePersonDialogOpen || isEditPersonDialogOpen}
           onClose={handleDialogClose}
         />
 
-        {/* Diálogos para Empresas */}
         <ContactsDialogManager
           selectedContact={selectedContact}
           isCreateDialogOpen={isCreateCompanyDialogOpen}
@@ -177,7 +170,6 @@ const Contacts = () => {
           onBulkUploadSuccess={handleBulkUploadSuccess}
         />
 
-        {/* Diálogo de Onboarding Mejorado */}
         <Dialog open={isImprovedOnboardingOpen} onOpenChange={setIsImprovedOnboardingOpen}>
           <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden border-0.5 border-black rounded-[10px]">
             <DialogHeader className="px-6 py-4 border-b border-gray-200">
@@ -186,7 +178,9 @@ const Contacts = () => {
               </DialogTitle>
             </DialogHeader>
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <ImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
+              <LazyComponentWrapper componentName="ImprovedClientOnboarding">
+                <LazyImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
+              </LazyComponentWrapper>
             </div>
           </DialogContent>
         </Dialog>

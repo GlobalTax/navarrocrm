@@ -1,15 +1,19 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 import { AppProvider } from '@/contexts/AppContext'
 import { OnboardingProvider } from '@/components/onboarding'
+import { LazyRouteWrapper } from '@/components/optimization/LazyRouteWrapper'
 import Index from '@/pages/Index'
 import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
-import Setup from '@/pages/Setup'
-import Contacts from '@/pages/Contacts'
-import Emails from '@/pages/Emails'
-import NylasCallback from './pages/NylasCallback'
+
+// Lazy load non-critical routes
+const Contacts = lazy(() => import('@/pages/Contacts'))
+const Setup = lazy(() => import('@/pages/Setup'))
+const Emails = lazy(() => import('@/pages/Emails'))
+const NylasCallback = lazy(() => import('@/pages/NylasCallback'))
 
 function App() {
   return (
@@ -22,10 +26,38 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/setup" element={<Setup />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/emails/*" element={<Emails />} />
-                <Route path="/nylas/callback" element={<NylasCallback />} />
+                <Route 
+                  path="/setup" 
+                  element={
+                    <LazyRouteWrapper routeName="Setup">
+                      <Setup />
+                    </LazyRouteWrapper>
+                  } 
+                />
+                <Route 
+                  path="/contacts" 
+                  element={
+                    <LazyRouteWrapper routeName="Contacts">
+                      <Contacts />
+                    </LazyRouteWrapper>
+                  } 
+                />
+                <Route 
+                  path="/emails/*" 
+                  element={
+                    <LazyRouteWrapper routeName="Emails">
+                      <Emails />
+                    </LazyRouteWrapper>
+                  } 
+                />
+                <Route 
+                  path="/nylas/callback" 
+                  element={
+                    <LazyRouteWrapper routeName="NylasCallback">
+                      <NylasCallback />
+                    </LazyRouteWrapper>
+                  } 
+                />
               </Routes>
             </div>
           </OnboardingProvider>
