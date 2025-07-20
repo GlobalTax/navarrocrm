@@ -105,6 +105,24 @@ interface LogContext {
   retryLimit?: number
   invalidFieldsCount?: number
   autoRetry?: boolean
+  // Phase 7: Assets and network optimization
+  url?: string
+  loaded?: number
+  display?: string
+  href?: string
+  originalSize?: string
+  optimizedSize?: string
+  compressionRatio?: string
+  format?: string
+  dimensions?: string
+  processingTime?: string
+  file?: string
+  successful?: number
+  reason?: string
+  loadRate?: string
+  families?: number
+  media?: string
+  sizeInfo?: string
 }
 
 interface Logger {

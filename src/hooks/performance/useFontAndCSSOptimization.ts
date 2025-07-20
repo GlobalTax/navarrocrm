@@ -119,8 +119,8 @@ export function useFontAndCSSOptimization(
         inlineCriticalCSS(criticalRules)
         
         logger.info('🎨 CSS crítico optimizado', {
-          rules: criticalRules.length,
-          size: `${(criticalRules.join('').length / 1024).toFixed(1)}KB`
+          count: criticalRules.length,
+          sizeInfo: `${(criticalRules.join('').length / 1024).toFixed(1)}KB`
         })
       }
     } catch (error) {
