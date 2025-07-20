@@ -110,3 +110,66 @@ export const sanitizeEmailHTML = (html: string): string => {
 export const sanitizeBasicHTML = (html: string): string => {
   return sanitizeHTML(html, 'basic')
 }
+
+/**
+ * Sanitiza input de texto básico removiendo caracteres peligrosos
+ * @param input - Texto a sanitizar
+ * @returns Texto sanitizado
+ */
+export const sanitizeInput = (input: string): string => {
+  if (!input || typeof input !== 'string') {
+    return ''
+  }
+  
+  // Remover caracteres de control y normalizar espacios
+  return input
+    .replace(/[\x00-\x1F\x7F]/g, '') // Remover caracteres de control
+    .replace(/\s+/g, ' ') // Normalizar espacios múltiples
+    .trim()
+}
+
+/**
+ * Valida y sanitiza una dirección de email
+ * @param email - Email a validar y sanitizar
+ * @returns Objeto con resultado de validación, email sanitizado y error si aplica
+ */
+export const validateAndSanitizeEmail = (email: string): { 
+  isValid: boolean; 
+  sanitizedEmail: string; 
+  error?: string 
+} => {
+  // Sanitizar el input primero
+  const sanitizedEmail = sanitizeInput(email?.trim() || '').toLowerCase()
+  
+  if (!sanitizedEmail) {
+    return { isValid: false, sanitizedEmail: '', error: 'Email es requerido' }
+  }
+
+  // Validación robusta siguiendo RFC 5322 (simplificada pero segura)
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+  
+  if (!emailRegex.test(sanitizedEmail)) {
+    return { isValid: false, sanitizedEmail, error: 'Formato de email inválido' }
+  }
+  
+  // Validaciones adicionales de seguridad
+  if (sanitizedEmail.length > 254) {
+    return { isValid: false, sanitizedEmail, error: 'Email demasiado largo (máx. 254 caracteres)' }
+  }
+  
+  const localPart = sanitizedEmail.split('@')[0]
+  if (localPart.length > 64) {
+    return { isValid: false, sanitizedEmail, error: 'Parte local del email demasiado larga (máx. 64 caracteres)' }
+  }
+  
+  return { isValid: true, sanitizedEmail }
+}
+
+/**
+ * Función de conveniencia para validación simple de email
+ * @param email - Email a validar
+ * @returns true si el email es válido
+ */
+export const isValidEmail = (email: string): boolean => {
+  return validateAndSanitizeEmail(email).isValid
+}

@@ -6,6 +6,7 @@ import { ChevronRight, ChevronLeft, AlertTriangle, CheckCircle } from 'lucide-re
 import { DocumentTemplate, TemplateVariable } from '@/hooks/useDocumentTemplates'
 import { ValidatedFormField } from './ValidatedFormField'
 import { SmartAutofill } from './SmartAutofill'
+import { isValidEmail } from '@/lib/security'
 
 interface DocumentFormWizardProps {
   template: DocumentTemplate

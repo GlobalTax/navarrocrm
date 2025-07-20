@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Mail, UserPlus, Clock, AlertCircle, Check } from 'lucide-react'
 import { useUserInvitations } from '@/hooks/useUserInvitations'
+import { validateAndSanitizeEmail } from '@/lib/security'
 
 interface EnhancedUserInviteDialogProps {
   open: boolean
@@ -43,8 +44,11 @@ export const EnhancedUserInviteDialog = ({ open, onOpenChange, onClose }: Enhanc
 
     if (!formData.email) {
       newErrors.email = 'El email es requerido'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email no válido'
+    } else {
+      const emailResult = validateAndSanitizeEmail(formData.email)
+      if (!emailResult.isValid) {
+        newErrors.email = emailResult.error || 'Email no válido'
+      }
     }
 
     if (!formData.role) {
@@ -61,8 +65,11 @@ export const EnhancedUserInviteDialog = ({ open, onOpenChange, onClose }: Enhanc
     if (!validateForm()) return
 
     try {
+      // Sanitizar email antes de enviar
+      const emailResult = validateAndSanitizeEmail(formData.email)
+      
       await sendInvitation.mutateAsync({
-        email: formData.email,
+        email: emailResult.sanitizedEmail,
         role: formData.role,
         message: formData.message
       })

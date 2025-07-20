@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Trash2, Users, Mail } from 'lucide-react'
+import { validateAndSanitizeEmail } from '@/lib/security'
 
 interface AttendeeManagerProps {
   attendees: string[]
@@ -21,30 +22,20 @@ export const AttendeeManager = ({
   const [newEmail, setNewEmail] = useState('')
   const [emailError, setEmailError] = useState('')
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
-
   const addAttendee = () => {
-    const email = newEmail.trim()
+    const result = validateAndSanitizeEmail(newEmail)
     
-    if (!email) {
-      setEmailError('El email es obligatorio')
+    if (!result.isValid) {
+      setEmailError(result.error || 'Email inválido')
       return
     }
 
-    if (!validateEmail(email)) {
-      setEmailError('Formato de email inválido')
-      return
-    }
-
-    if (attendees.includes(email)) {
+    if (attendees.includes(result.sanitizedEmail)) {
       setEmailError('Este email ya está en la lista')
       return
     }
 
-    onAttendeesChange([...attendees, email])
+    onAttendeesChange([...attendees, result.sanitizedEmail])
     setNewEmail('')
     setEmailError('')
   }

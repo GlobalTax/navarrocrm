@@ -1,4 +1,5 @@
 import { ValidationError } from '../BaseBulkUploadDialog'
+import { validateAndSanitizeEmail } from '@/lib/security'
 
 export interface ContactValidationData {
   name: string
@@ -48,12 +49,15 @@ export const useBulkUploadValidators = () => {
     }
 
     // Validar email (formato si está presente)
-    if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-      errors.push({
-        row: index + 1,
-        field: 'email',
-        message: 'Formato de email inválido'
-      })
+    if (row.email) {
+      const emailResult = validateAndSanitizeEmail(row.email)
+      if (!emailResult.isValid) {
+        errors.push({
+          row: index + 1,
+          field: 'email',
+          message: emailResult.error || 'Formato de email inválido'
+        })
+      }
     }
 
     // Validar tipo de cliente
@@ -92,7 +96,7 @@ export const useBulkUploadValidators = () => {
 
     const contact: ContactValidationData = {
       name: row.name.trim(),
-      email: row.email?.trim() || undefined,
+      email: row.email ? validateAndSanitizeEmail(row.email).sanitizedEmail : undefined,
       phone: row.phone?.trim() || undefined,
       address_street: row.address_street?.trim() || undefined,
       address_city: row.address_city?.trim() || undefined,
@@ -117,12 +121,15 @@ export const useBulkUploadValidators = () => {
         field: 'email',
         message: 'El email es requerido'
       })
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-      errors.push({
-        row: index + 1,
-        field: 'email',
-        message: 'Formato de email inválido'
-      })
+    } else {
+      const emailResult = validateAndSanitizeEmail(row.email)
+      if (!emailResult.isValid) {
+        errors.push({
+          row: index + 1,
+          field: 'email',
+          message: emailResult.error || 'Formato de email inválido'
+        })
+      }
     }
 
     // Validar rol (requerido)
@@ -160,8 +167,9 @@ export const useBulkUploadValidators = () => {
       return { data: null, errors }
     }
 
+    const emailResult = validateAndSanitizeEmail(row.email)
     const user: UserValidationData = {
-      email: row.email.trim().toLowerCase(),
+      email: emailResult.sanitizedEmail,
       role: row.role.trim(),
       send_email: sendEmail,
       message: row.message?.trim() || undefined,
@@ -184,12 +192,15 @@ export const useBulkUploadValidators = () => {
     }
 
     // Validar email si está presente
-    if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-      errors.push({
-        row: index + 1,
-        field: 'email',
-        message: 'Formato de email inválido'
-      })
+    if (row.email) {
+      const emailResult = validateAndSanitizeEmail(row.email)
+      if (!emailResult.isValid) {
+        errors.push({
+          row: index + 1,
+          field: 'email',
+          message: emailResult.error || 'Formato de email inválido'
+        })
+      }
     }
 
     // Validar URL del sitio web si está presente
@@ -226,10 +237,11 @@ export const useBulkUploadValidators = () => {
 
     // Crear nombre completo combinando firstname y lastname
     const name = [row.firstname, row.lastname].filter(Boolean).join(' ').trim() || row.company || row.email || 'Sin nombre'
+    const emailResult = row.email ? validateAndSanitizeEmail(row.email) : null
 
     const hubspotContact: HubSpotValidationData = {
       name,
-      email: row.email?.trim() || undefined,
+      email: emailResult?.sanitizedEmail || undefined,
       phone: row.phone?.trim() || row.mobilephone?.trim() || undefined,
       company: row.company?.trim() || undefined,
       website: row.website?.trim() || undefined,
