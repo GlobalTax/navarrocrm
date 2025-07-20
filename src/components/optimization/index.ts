@@ -4,7 +4,7 @@ export { LazyRenderComponent } from './LazyRenderComponent'
 export { OptimizedList } from './OptimizedList'
 
 // Phase 6: Cache and persistence
-export { OfflineIndicator } from './OfflineIndicator'
+export { default as OfflineIndicator } from './OfflineIndicator'
 
 // Legacy exports
 export { LazyRouteWrapper } from './LazyRouteWrapper'

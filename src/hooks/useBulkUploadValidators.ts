@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react'
-import type { BulkUploadValidationResult, ContactValidationData, ValidationResult } from '@/types/forms'
+import type { BulkUploadValidationResult, ContactValidationData, ValidationResult, FormFieldError } from '@/types/forms'
 import type { ValidationError } from '@/types/interfaces'
 
 interface BulkUploadValidators {
@@ -39,7 +39,8 @@ export const useBulkUploadValidators = (): BulkUploadValidators => {
       errors.push({
         row: 0, // Will be set by caller
         field: 'name',
-        message: 'El nombre debe tener al menos 2 caracteres'
+        message: 'El nombre debe tener al menos 2 caracteres',
+        type: 'required'
       })
     }
 
@@ -47,7 +48,8 @@ export const useBulkUploadValidators = (): BulkUploadValidators => {
       errors.push({
         row: 0,
         field: 'email',
-        message: 'El formato del email no es válido'
+        message: 'El formato del email no es válido',
+        type: 'format'
       })
     }
 
@@ -55,7 +57,8 @@ export const useBulkUploadValidators = (): BulkUploadValidators => {
       errors.push({
         row: 0,
         field: 'phone',
-        message: 'El formato del teléfono no es válido'
+        message: 'El formato del teléfono no es válido',
+        type: 'format'
       })
     }
 
@@ -63,7 +66,8 @@ export const useBulkUploadValidators = (): BulkUploadValidators => {
       errors.push({
         row: 0,
         field: 'dni_nif',
-        message: 'El formato del DNI/NIF/CIF no es válido'
+        message: 'El formato del DNI/NIF/CIF no es válido',
+        type: 'format'
       })
     }
 
@@ -111,15 +115,15 @@ export const useBulkUploadValidators = (): BulkUploadValidators => {
   }, [validateSingleContact])
 
   const validateCsvFile = useCallback(async (file: File): Promise<ValidationResult> => {
-    const errors: ValidationError[] = []
+    const errors: FormFieldError[] = []
     const warnings: string[] = []
 
     // Validate file type
     if (!file.name.toLowerCase().endsWith('.csv')) {
       errors.push({
-        row: 0,
         field: 'file',
-        message: 'El archivo debe ser de tipo CSV'
+        message: 'El archivo debe ser de tipo CSV',
+        type: 'format'
       })
     }
 
@@ -127,18 +131,18 @@ export const useBulkUploadValidators = (): BulkUploadValidators => {
     const maxSize = 10 * 1024 * 1024
     if (file.size > maxSize) {
       errors.push({
-        row: 0,
         field: 'file',
-        message: 'El archivo no puede superar los 10MB'
+        message: 'El archivo no puede superar los 10MB',
+        type: 'custom'
       })
     }
 
     // Additional validations could be added here
     if (file.size === 0) {
       errors.push({
-        row: 0,
         field: 'file',
-        message: 'El archivo está vacío'
+        message: 'El archivo está vacío',
+        type: 'required'
       })
     }
 

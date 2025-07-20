@@ -3,8 +3,8 @@ import { useState, useMemo } from 'react'
 import { VoiceAssistant } from '@/components/ai/VoiceAssistant'
 import { DocumentAnalyzer } from '@/components/ai/DocumentAnalyzer'
 import { TimeOptimizer } from '@/components/ai/TimeOptimizer'
-import { ComplianceMonitor } from '@/components/ai/ComplianceMonitor'
-import { BusinessIntelligence } from '@/components/ai/BusinessIntelligence'
+import ComplianceMonitor from '@/components/ai/ComplianceMonitor'
+import BusinessIntelligence from '@/components/ai/BusinessIntelligence'
 import { Mic, FileText, Clock, Shield, TrendingUp } from 'lucide-react'
 
 export const useAdvancedAIState = () => {
