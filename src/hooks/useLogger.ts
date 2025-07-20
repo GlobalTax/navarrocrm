@@ -31,6 +31,25 @@ interface LogContext {
   debugKey?: string
   renderTime?: string
   totalRenders?: number
+  // Phase 5: Rendering optimization
+  currentCount?: number
+  originalCount?: number
+  filteredCount?: number
+  totalItems?: number
+  visibleItems?: number
+  itemHeight?: number
+  overscan?: number
+  intersectionRatio?: string
+  delay?: number
+  cacheKey?: string
+  accessCount?: number
+  localCacheSize?: number
+  globalCacheSize?: number
+  pattern?: string
+  searchTerm?: string
+  sortBy?: string
+  hasNextPage?: boolean
+  isLoading?: boolean
   depsLength?: number
   recreationCount?: number
   loading?: number
