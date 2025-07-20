@@ -1,7 +1,7 @@
 
 import { NavLink } from 'react-router-dom'
 import { cn } from "@/lib/utils"
-import { navigationData } from './NavigationData'
+import { NAVIGATION_DATA } from './NavigationData'
 import { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
 
 export const NavigationMenu = () => {
@@ -9,7 +9,7 @@ export const NavigationMenu = () => {
 
   return (
     <div className="space-y-4">
-      {navigationData.map((section) => (
+      {NAVIGATION_DATA.map((section) => (
         <div key={section.title} className="space-y-1">
           <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
             {section.title}
