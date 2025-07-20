@@ -1,3 +1,4 @@
+
 import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package } from 'lucide-react'
 
 export interface NavigationItem {
@@ -18,7 +19,7 @@ export interface QuickAction {
   href: string
 }
 
-export const navigationData: NavigationSection[] = [
+export const NAVIGATION_DATA: NavigationSection[] = [
   {
     title: "Principal",
     items: [
@@ -141,7 +142,7 @@ export const navigationData: NavigationSection[] = [
   }
 ]
 
-export const quickActions: QuickAction[] = [
+export const QUICK_ACTIONS: QuickAction[] = [
   {
     name: "Nuevo Cliente",
     href: "/clients/new"
