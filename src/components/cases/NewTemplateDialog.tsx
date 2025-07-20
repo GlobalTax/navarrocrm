@@ -1,13 +1,16 @@
 
 import { useState } from 'react'
+
+import { toast } from 'sonner'
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
-import { toast } from 'sonner'
 
 interface NewTemplateDialogProps {
   open: boolean
@@ -29,7 +32,7 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
     default_billing_method: 'hourly'
   })
 
-  const { practiceAreas = [] } = usePracticeAreas()
+  const { data: practiceAreas, isLoading: isLoadingAreas } = usePracticeAreas()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,15 +46,7 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       practice_area_id: formData.practice_area_id || undefined,
-      default_billing_method: formData.default_billing_method
-    })
-
-    // Reset form
-    setFormData({
-      name: '',
-      description: '',
-      practice_area_id: '',
-      default_billing_method: 'hourly'
+      default_billing_method: formData.default_billing_method || undefined
     })
   }
 
@@ -67,47 +62,47 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Nueva Plantilla de Expediente</DialogTitle>
         </DialogHeader>
-
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre *</Label>
+            <Label htmlFor="template-name">Nombre de la Plantilla *</Label>
             <Input
-              id="name"
+              id="template-name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Ej: Contrato de Arrendamiento"
-              disabled={isLoading}
+              placeholder="Ej: Compraventa Inmueble"
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="template-description">Descripción</Label>
             <Textarea
-              id="description"
+              id="template-description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe el tipo de expediente..."
+              placeholder="Descripción opcional de la plantilla..."
               rows={3}
-              disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="practice_area">Área de Práctica</Label>
-            <Select
-              value={formData.practice_area_id}
+            <Label>Área de Práctica</Label>
+            <Select 
+              value={formData.practice_area_id} 
               onValueChange={(value) => setFormData(prev => ({ ...prev, practice_area_id: value }))}
-              disabled={isLoading}
+              disabled={isLoadingAreas}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar área..." />
               </SelectTrigger>
               <SelectContent>
-                {practiceAreas.map((area) => (
+                <SelectItem value="">Sin especificar</SelectItem>
+                {practiceAreas?.map((area) => (
                   <SelectItem key={area.id} value={area.id}>
                     {area.name}
                   </SelectItem>
@@ -117,11 +112,10 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="billing_method">Método de Facturación</Label>
-            <Select
-              value={formData.default_billing_method}
+            <Label>Método de Facturación por Defecto</Label>
+            <Select 
+              value={formData.default_billing_method} 
               onValueChange={(value) => setFormData(prev => ({ ...prev, default_billing_method: value }))}
-              disabled={isLoading}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -136,9 +130,9 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
+            <Button 
+              type="button" 
+              variant="outline" 
               onClick={handleClose}
               disabled={isLoading}
             >
