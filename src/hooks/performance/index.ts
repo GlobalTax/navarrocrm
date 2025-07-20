@@ -27,6 +27,14 @@ export { useImageOptimization } from './useImageOptimization'
 export { useCriticalResourcePreload } from './useCriticalResourcePreload'
 export { useFontAndCSSOptimization } from './useFontAndCSSOptimization'
 
+// Phase 8: Micro-optimizations
+export { useBundleAnalyzer } from './useBundleAnalyzer'
+export { useCodeSplitting } from './useCodeSplitting'
+export { useTreeShaking } from './useTreeShaking'
+export { useDOMOptimizer } from './useDOMOptimizer'
+export { useEventDelegation } from './useEventDelegation'
+export { useRuntimeProfiler } from './useRuntimeProfiler'
+
 // Re-export utilities
 export { 
   createDebounce, 
