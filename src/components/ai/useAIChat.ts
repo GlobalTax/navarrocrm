@@ -107,7 +107,12 @@ export const useAIChat = () => {
   }
 
   const handleAIAction = (action: AIAction): void => {
-    logger.info('Ejecutando acción IA', { action })
+    logger.info('Ejecutando acción IA', { 
+      metadata: { 
+        actionType: action.type,
+        hasPayload: !!action.payload 
+      }
+    })
     
     // Tipado seguro de las acciones
     switch (action.type) {
@@ -123,7 +128,9 @@ export const useAIChat = () => {
         // Implementar lógica de búsqueda
         break
       default:
-        logger.warn('Acción no reconocida', { actionType: action.type })
+        logger.warn('Acción no reconocida', { 
+          metadata: { actionType: action.type }
+        })
     }
   }
 

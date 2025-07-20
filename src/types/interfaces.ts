@@ -1,9 +1,94 @@
 
 // Interfaces para AI Assistant
 export interface AIAction {
-  type: string
-  payload?: unknown
-  target?: string
+  type: 'navigate' | 'create_client' | 'search_cases'
+  payload?: string | object
+}
+
+export interface BusinessInsight {
+  summary: string
+  kpis: {
+    totalRevenue: number
+    totalClients: number
+    totalCases: number
+    activeProjects: number
+  }
+  revenueChart: Array<{
+    month: string
+    revenue: number
+    trend: 'up' | 'down' | 'stable'
+  }>
+  clientChurnRisk: Array<{
+    id: string
+    name: string
+    riskLevel: 'high' | 'medium' | 'low'
+    reason: string
+  }>
+  casesProfitability: Array<{
+    type: string
+    profit: number
+    cases: number
+  }>
+  growthOpportunities: Array<{
+    title: string
+    description: string
+    effort: 'low' | 'medium' | 'high'
+    impact: 'low' | 'medium' | 'high'
+  }>
+  risks: Array<{
+    category: string
+    description: string
+    severity: 'low' | 'medium' | 'high'
+    recommendation: string
+  }>
+}
+
+export interface ComplianceResult {
+  overallScore: number
+  categories: Array<{
+    name: string
+    score: number
+    status: 'compliant' | 'warning' | 'critical'
+    issues: number
+  }>
+  criticalIssues: Array<{
+    severity: 'high' | 'medium' | 'low'
+    category: string
+    description: string
+    recommendation: string
+    deadline?: string
+  }>
+  upcomingDeadlines: Array<{
+    type: string
+    description: string
+    date: string
+    daysLeft: number
+    priority: 'urgent' | 'important' | 'normal'
+  }>
+  recommendations: string[]
+}
+
+export interface TimeOptimizationResult {
+  currentEfficiency: number
+  optimizedSchedule: Array<{
+    task: string
+    originalTime: number
+    optimizedTime: number
+    priority: 'high' | 'medium' | 'low'
+  }>
+  recommendations: Array<{
+    type: string
+    title: string
+    description: string
+    impact: 'high' | 'medium' | 'low'
+    effort: 'low' | 'medium' | 'high'
+  }>
+  timeDistribution: Array<{
+    category: string
+    hours: number
+    percentage: number
+  }>
+  potentialSavings: number
 }
 
 // Interfaces para Collaboration Hub
@@ -50,6 +135,9 @@ export interface NetworkInfo {
   effectiveType: 'slow-2g' | '2g' | '3g' | '4g' | 'unknown'
   downlink: number
   rtt: number
+  saveData: boolean
+  reconnectAttempts: number
+  timeSinceLastOnline: number | null
 }
 
 // Interfaces para validación

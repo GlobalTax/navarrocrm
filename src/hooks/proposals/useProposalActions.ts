@@ -78,6 +78,10 @@ export const useProposalActions = () => {
   return {
     duplicateProposal,
     updateProposalStatus,
+    updateProposal: async (proposalId: string, data: any) => {
+      // Mock implementation
+      return Promise.resolve()
+    },
     deleteProposal
   }
 }

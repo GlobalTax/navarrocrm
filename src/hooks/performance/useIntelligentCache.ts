@@ -105,7 +105,7 @@ export function useIntelligentCache<T>(
       logger.info('🔄 Obteniendo datos', { 
         key, 
         priority, 
-        isSlowConnection,
+        isSlowConnection: isSlowConnection(),
         retryCount: retryCountRef.current 
       })
 

@@ -11,7 +11,10 @@ export const useNetworkStatus = () => {
     connectionType: 'unknown',
     effectiveType: 'unknown',
     downlink: 0,
-    rtt: 0
+    rtt: 0,
+    saveData: false,
+    reconnectAttempts: 0,
+    timeSinceLastOnline: null
   })
 
   const updateNetworkInfo = (): void => {
@@ -24,7 +27,10 @@ export const useNetworkStatus = () => {
       connectionType: connection?.type || 'unknown',
       effectiveType: connection?.effectiveType || 'unknown',
       downlink: connection?.downlink || 0,
-      rtt: connection?.rtt || 0
+      rtt: connection?.rtt || 0,
+      saveData: connection?.saveData || false,
+      reconnectAttempts: networkInfo.reconnectAttempts || 0,
+      timeSinceLastOnline: networkInfo.timeSinceLastOnline
     }
 
     setNetworkInfo(newNetworkInfo)
@@ -92,6 +98,12 @@ export const useNetworkStatus = () => {
 
   return {
     networkInfo,
+    isOnline: networkInfo.isOnline,
+    effectiveType: networkInfo.effectiveType,
+    downlink: networkInfo.downlink,
+    saveData: networkInfo.saveData,
+    reconnectAttempts: networkInfo.reconnectAttempts,
+    timeSinceLastOnline: networkInfo.timeSinceLastOnline,
     isSlowConnection,
     getConnectionQuality,
     updateNetworkInfo

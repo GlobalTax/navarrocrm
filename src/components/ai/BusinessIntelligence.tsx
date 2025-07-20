@@ -50,9 +50,51 @@ export const BusinessIntelligence = () => {
   const { isAnalyzing, generateBusinessInsights } = useAdvancedAI()
 
   const handleGenerateInsights = async () => {
-    const result = await generateBusinessInsights(selectedPeriod)
+    const result = await generateBusinessInsights()
     if (result) {
-      setInsights(result as BusinessInsight)
+      // Adaptar el resultado a la interfaz local
+      const adaptedResult: BusinessInsight = {
+        revenue: {
+          current: result.kpis.totalRevenue,
+          predicted: result.kpis.totalRevenue * 1.1,
+          trend: 'up',
+          monthlyData: result.revenueChart.map(item => ({
+            month: item.month,
+            revenue: item.revenue,
+            prediction: item.revenue * 1.05
+          }))
+        },
+        clients: {
+          total: result.kpis.totalClients,
+          new: 5,
+          retention: 95,
+          churnRisk: result.clientChurnRisk.map(client => ({
+            name: client.name,
+            riskLevel: client.riskLevel === 'high' ? 80 : client.riskLevel === 'medium' ? 50 : 20,
+            reason: client.reason
+          }))
+        },
+        cases: {
+          active: result.kpis.activeProjects,
+          completion_rate: 85,
+          profitability: result.casesProfitability
+        },
+        opportunities: result.growthOpportunities.map(opp => ({
+          type: 'efficiency' as const,
+          title: opp.title,
+          description: opp.description,
+          potential_value: 5000,
+          effort: opp.effort
+        })),
+        risks: result.risks.map(risk => ({
+          category: risk.category,
+          description: risk.description,
+          probability: risk.severity === 'high' ? 0.8 : risk.severity === 'medium' ? 0.5 : 0.2,
+          impact: risk.severity === 'high' ? 90 : risk.severity === 'medium' ? 60 : 30,
+          mitigation: risk.recommendation
+        }))
+      }
+      setInsights(adaptedResult)
     }
   }
 

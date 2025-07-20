@@ -144,7 +144,7 @@ export function useCriticalResourcePreload(
 
     logger.info('🚀 Recursos críticos precargados', {
       count: criticalResources.length,
-      isSlowConnection,
+      isSlowConnection: isSlowConnection(),
       saveData
     })
   }, [isOnline, resources, preloadResource, isSlowConnection, saveData, logger])
@@ -215,6 +215,6 @@ export function useCriticalResourcePreload(
     cancelHoverPreload,
     observeElement,
     preloadedCount: preloadedRefs.current.size,
-    isNetworkOptimal: isOnline && !isSlowConnection && !saveData
+    isNetworkOptimal: isOnline && !isSlowConnection() && !saveData
   }
 }
