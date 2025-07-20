@@ -86,7 +86,7 @@ export function useSmartMemo<T>(
       localEntry.accessCount++
       logger.info('🎯 Cache hit (local)', { 
         cacheKey: cacheKey.substring(0, 50),
-        accessCount: localEntry.accessCount 
+        accessCount_: localEntry.accessCount 
       })
       return localEntry.value
     }
@@ -99,7 +99,7 @@ export function useSmartMemo<T>(
       localCache.current.set(cacheKey, { ...globalEntry })
       logger.info('🌐 Cache hit (global)', { 
         cacheKey: cacheKey.substring(0, 50),
-        accessCount: globalEntry.accessCount 
+        accessCount_: globalEntry.accessCount 
       })
       return globalEntry.value
     }
@@ -136,13 +136,13 @@ export function useSmartMemo<T>(
     // Update deps reference
     depsRef.current = [...deps]
 
-    logger.info('🔄 Valor computado', {
-      cacheKey: cacheKey.substring(0, 50),
-      computationTime: `${computationTime}ms`,
-      totalComputations: computationCountRef.current,
-      localCacheSize: localCache.current.size,
-      globalCacheSize: globalCache.size
-    })
+      logger.info('🔄 Valor computado', {
+        cacheKey: cacheKey.substring(0, 50),
+        computationTime: `${computationTime}ms`,
+        totalComputations: computationCountRef.current,
+        localCacheSize_: localCache.current.size,
+        globalCacheSize_: globalCache.size
+      })
 
     return value
   }, deps) // eslint-disable-line react-hooks/exhaustive-deps

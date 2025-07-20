@@ -15,7 +15,6 @@ interface LogContext {
   path?: string
   stack?: string
   target?: string
-  maxRetries?: number
   strategy?: string
   value?: number
   originalError?: string
@@ -42,14 +41,45 @@ interface LogContext {
   intersectionRatio?: string
   delay?: number
   cacheKey?: string
-  accessCount?: number
-  localCacheSize?: number
-  globalCacheSize?: number
   pattern?: string
   searchTerm?: string
   sortBy?: string
   hasNextPage?: boolean
   isLoading?: boolean
+  // Phase 6: Cache and persistence
+  key?: string
+  size?: number
+  compressed?: boolean
+  age?: number
+  fetchTime?: string
+  effectiveType?: string
+  downlink?: number
+  rtt?: number
+  saveData?: boolean
+  attempts?: number
+  lastOnlineTime?: string
+  source?: string
+  isSlowConnection?: boolean
+  overflow?: number
+  queueSize?: number
+  batchSize?: number
+  failed?: number
+  success?: number
+  retryable?: number
+  total?: number
+  stored?: string
+  current?: string
+  type?: string
+  entity?: string
+  priority?: string
+  offlineTime?: number
+  // Unique fields
+  maxRetries_?: number
+  reconnectAttempts_?: number
+  accessCount_?: number
+  localCacheSize_?: number
+  globalCacheSize_?: number
+  retryCount_?: number
   depsLength?: number
   recreationCount?: number
   loading?: number

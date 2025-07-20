@@ -16,6 +16,12 @@ export { useIntersectionObserver } from './useIntersectionObserver'
 export { useLazyRender } from './useLazyRender'
 export { useSmartMemo, useClearMemoCache } from './useSmartMemo'
 
+// Phase 6: Cache and persistence
+export { useOfflineStorage } from './useOfflineStorage'
+export { useNetworkStatus } from './useNetworkStatus'
+export { useIntelligentCache } from './useIntelligentCache'
+export { useOfflineSync } from './useOfflineSync'
+
 // Re-export utilities
 export { 
   createDebounce, 

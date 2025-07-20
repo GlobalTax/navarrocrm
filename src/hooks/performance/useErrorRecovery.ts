@@ -105,8 +105,8 @@ export const useErrorRecovery = (options: RecoveryOptions = {}) => {
     if (state.retryCount >= maxRetries) {
       logger.error('🚨 Max retries exceeded', {
         error: error.message,
-        retryCount: state.retryCount,
-        maxRetries
+        retryCount_: state.retryCount,
+        maxRetries_: maxRetries
       })
       
       if (fallbackAction) {
