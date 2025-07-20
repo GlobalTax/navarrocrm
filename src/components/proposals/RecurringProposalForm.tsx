@@ -176,13 +176,17 @@ export function RecurringProposalForm({
   const addLineItem = () => {
     const newItem: Omit<ProposalLineItem, 'id' | 'proposal_id'> = {
       service_catalog_id: undefined,
+      service_name: '',
       name: '',
       description: '',
       quantity: 1,
       unit_price: 0,
       total_price: 0,
       billing_unit: 'hour',
-      sort_order: formData.line_items.length
+      estimated_hours: null,
+      sort_order: formData.line_items.length,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }
     setFormData(prev => ({
       ...prev,
