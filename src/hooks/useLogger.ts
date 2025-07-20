@@ -12,6 +12,22 @@ interface LogContext {
   maxExecutions?: number
   computationTime?: string
   totalComputations?: number
+  path?: string
+  stack?: string
+  target?: string
+  maxRetries?: number
+  strategy?: string
+  value?: number
+  originalError?: string
+  sessionId?: string
+  context?: string
+  recoveryError?: string
+  componentStack?: string
+  score?: string
+  threshold?: number
+  pageViews?: number
+  totalErrors?: number
+  totalInteractions?: number
   debugKey?: string
   renderTime?: string
   totalRenders?: number

@@ -3,6 +3,13 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useWebVitals } from '@/hooks/performance/useWebVitals'
 import { useLogger } from '@/hooks/useLogger'
 
+interface NetworkInfo {
+  effectiveType?: string
+  downlink?: number
+  rtt?: number
+  saveData?: boolean
+}
+
 interface TelemetryData {
   sessionId: string
   startTime: number
@@ -11,7 +18,7 @@ interface TelemetryData {
   interactions: number
   webVitals: any
   userAgent: string
-  connection?: NetworkInformation
+  connection?: NetworkInfo
 }
 
 interface TelemetryContextType {

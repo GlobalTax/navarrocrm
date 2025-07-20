@@ -58,7 +58,7 @@ export const useWebVitals = () => {
     logger.info(`📊 Web Vital: ${name.toUpperCase()}`, {
       value: Math.round(value),
       score,
-      threshold: THRESHOLDS[name]
+      threshold: THRESHOLDS[name].poor
     })
 
     // Alert for poor scores
