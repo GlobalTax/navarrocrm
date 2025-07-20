@@ -133,13 +133,31 @@ export const useBulkUploadProcessors = () => {
     const batchSize = 10
     let successCount = 0
 
+    // Obtener el usuario actual para invited_by si es necesario
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user && dataType === 'users') throw new Error('Usuario no autenticado')
+
     for (let i = 0; i < validatedData.length; i += batchSize) {
       const batch = validatedData.slice(i, i + batchSize)
       
-      const itemsToInsert = batch.map(item => ({
-        ...item,
-        org_id: orgId
-      }))
+      let itemsToInsert: any[]
+      
+      if (dataType === 'users') {
+        itemsToInsert = batch.map(item => ({
+          email: item.email,
+          role: item.role,
+          org_id: orgId,
+          invited_by: user!.id,
+          token: crypto.randomUUID(),
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        }))
+      } else {
+        itemsToInsert = batch.map(item => ({
+          ...item,
+          org_id: orgId
+        }))
+      }
 
       const tableName = dataType === 'users' ? 'user_invitations' : dataType
       const { error } = await supabase

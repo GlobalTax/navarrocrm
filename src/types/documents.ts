@@ -3,11 +3,17 @@
 
 export interface DocumentTemplate {
   id: string
+  org_id: string
   name: string
-  document_type: string
+  description: string | null
+  document_type: 'contract' | 'communication' | 'procedural'
+  category: string | null
+  practice_area: string | null
   template_content: string
   variables: TemplateVariable[]
+  is_active: boolean
   is_ai_enhanced: boolean
+  created_by: string
   created_at: string
   updated_at: string
 }
@@ -15,7 +21,7 @@ export interface DocumentTemplate {
 export interface TemplateVariable {
   name: string
   label: string
-  type: 'text' | 'number' | 'date' | 'boolean' | 'email' | 'phone'
+  type: 'text' | 'number' | 'date' | 'boolean' | 'email' | 'phone' | 'select'
   required: boolean
   default?: string | number | boolean | null
   options?: string[]

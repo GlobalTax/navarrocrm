@@ -1,17 +1,20 @@
 
 import { ServiceData } from '../data/practiceAreasData'
-import { SelectedService } from '../types/legalProposal.types'
+import { SelectedService } from '@/types/proposals'
 
 export const convertServiceToSelected = (service: ServiceData): SelectedService => {
   return {
     id: service.id,
     name: service.name,
     description: service.description,
+    price: service.basePrice,
+    estimatedHours: service.estimatedHours,
+    category: service.category,
     basePrice: service.basePrice,
     customPrice: service.basePrice, // Inicialmente igual al precio base
     quantity: 1,
     billingUnit: service.billingUnit,
-    estimatedHours: service.estimatedHours,
+    notes: '',
     total: service.basePrice * 1 // cantidad inicial = 1
   }
 }

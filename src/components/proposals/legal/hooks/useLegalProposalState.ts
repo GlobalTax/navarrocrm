@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react'
 import { 
   LegalProposalData, 
@@ -6,7 +5,7 @@ import {
   PracticeArea,
   LegalService 
 } from '@/types/proposals'
-import { convertServiceToSelected, updateServiceTotal } from '../utils/serviceConversion'
+import { updateServiceTotal } from '../utils/serviceConversion'
 import { practiceAreasData } from '../data/practiceAreasData'
 
 const initialProposalData: LegalProposalData = {
@@ -56,7 +55,15 @@ export const useLegalProposalState = () => {
           selectedServices: prev.selectedServices.filter(s => s.id !== serviceId)
         }
       } else {
-        const selectedService = convertServiceToSelected(serviceData)
+        const selectedService: SelectedService = {
+          ...serviceData,
+          quantity: 1,
+          customPrice: serviceData.price,
+          notes: '',
+          total: serviceData.price,
+          basePrice: serviceData.price,
+          billingUnit: 'hour'
+        }
         return {
           ...prev,
           selectedServices: [...prev.selectedServices, selectedService]
@@ -122,6 +129,6 @@ export const useLegalProposalState = () => {
     selectedServiceIds: proposalData.selectedServices.map(s => s.id),
     
     // Data
-    practiceAreasData: practiceAreasData as PracticeArea[]
+    practiceAreasData: Object.values(practiceAreasData) as PracticeArea[]
   }
 }

@@ -22,10 +22,10 @@ export interface DocumentTemplate {
 
 export interface TemplateVariable {
   name: string
-  type: 'text' | 'number' | 'date' | 'boolean' | 'select'
+  type: 'text' | 'number' | 'date' | 'boolean' | 'email' | 'phone' | 'select'
   required: boolean
   label: string
-  default?: string
+  default?: string | number | boolean
   options?: string[] // para tipo select
 }
 
