@@ -1,4 +1,5 @@
 
+import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Users, UserCheck, Building, Calendar } from 'lucide-react'
@@ -9,22 +10,38 @@ interface ContactMetricsDashboardProps {
 }
 
 export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardProps) {
-  const totalContacts = contacts.length
-  const activeContacts = contacts.filter(c => c.status === 'activo').length
-  const companies = contacts.filter(c => c.client_type === 'empresa').length
-  const individuals = contacts.filter(c => c.client_type === 'particular').length
+  // OPTIMIZACIÓN: Memoizar métricas básicas
+  const basicMetrics = useMemo(() => ({
+    totalContacts: contacts.length,
+    activeContacts: contacts.filter(c => c.status === 'activo').length,
+    companies: contacts.filter(c => c.client_type === 'empresa').length,
+    individuals: contacts.filter(c => c.client_type === 'particular').length,
+    thisMonthContacts: contacts.filter(c => {
+      const created = new Date(c.created_at)
+      const now = new Date()
+      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
+    }).length
+  }), [contacts])
   
-  const relationshipTypes = contacts.reduce((acc, contact) => {
-    const type = contact.relationship_type || 'Sin especificar'
-    acc[type] = (acc[type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  // OPTIMIZACIÓN: Memoizar agrupación por tipos de relación
+  const relationshipTypes = useMemo(() => 
+    contacts.reduce((acc, contact) => {
+      const type = contact.relationship_type || 'Sin especificar'
+      acc[type] = (acc[type] || 0) + 1
+      return acc
+    }, {} as Record<string, number>),
+    [contacts]
+  )
 
-  const businessSectors = contacts.reduce((acc, contact) => {
-    const sector = contact.business_sector || 'Sin especificar'
-    acc[sector] = (acc[sector] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  // OPTIMIZACIÓN: Memoizar agrupación por sectores
+  const businessSectors = useMemo(() => 
+    contacts.reduce((acc, contact) => {
+      const sector = contact.business_sector || 'Sin especificar'
+      acc[sector] = (acc[sector] || 0) + 1
+      return acc
+    }, {} as Record<string, number>),
+    [contacts]
+  )
 
   return (
     <div className="space-y-6">
@@ -36,7 +53,7 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalContacts}</div>
+            <div className="text-2xl font-bold">{basicMetrics.totalContacts}</div>
           </CardContent>
         </Card>
 
@@ -46,9 +63,9 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeContacts}</div>
+            <div className="text-2xl font-bold">{basicMetrics.activeContacts}</div>
             <p className="text-xs text-muted-foreground">
-              {totalContacts > 0 ? Math.round((activeContacts / totalContacts) * 100) : 0}% del total
+              {basicMetrics.totalContacts > 0 ? Math.round((basicMetrics.activeContacts / basicMetrics.totalContacts) * 100) : 0}% del total
             </p>
           </CardContent>
         </Card>
@@ -59,9 +76,9 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{companies}</div>
+            <div className="text-2xl font-bold">{basicMetrics.companies}</div>
             <p className="text-xs text-muted-foreground">
-              {individuals} particulares
+              {basicMetrics.individuals} particulares
             </p>
           </CardContent>
         </Card>
@@ -73,11 +90,7 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {contacts.filter(c => {
-                const created = new Date(c.created_at)
-                const now = new Date()
-                return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
-              }).length}
+              {basicMetrics.thisMonthContacts}
             </div>
             <p className="text-xs text-muted-foreground">Nuevos contactos</p>
           </CardContent>
@@ -99,7 +112,7 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
                   <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary rounded-full"
-                      style={{ width: `${(count / totalContacts) * 100}%` }}
+                      style={{ width: `${(count / basicMetrics.totalContacts) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -124,7 +137,7 @@ export function ContactMetricsDashboard({ contacts }: ContactMetricsDashboardPro
                   <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary rounded-full"
-                      style={{ width: `${(count / totalContacts) * 100}%` }}
+                      style={{ width: `${(count / basicMetrics.totalContacts) * 100}%` }}
                     />
                   </div>
                 </div>
