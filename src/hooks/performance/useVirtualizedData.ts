@@ -35,7 +35,7 @@ export function useVirtualizedData<T>(
     
     if (shouldVirtualize) {
       logger.info(`🚀 Activando virtualización para ${componentType}`, {
-        itemCount: items.length,
+        count: items.length,
         threshold: config.threshold
       })
     }

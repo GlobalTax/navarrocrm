@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useVirtualizedData } from '@/hooks/performance/useVirtualizedData'
 import { VirtualizedCaseTable } from '@/components/cases/VirtualizedCaseTable'
@@ -26,30 +25,30 @@ export const SmartVirtualizedTable: React.FC<SmartVirtualizedTableProps> = ({
   switch (component) {
     case 'cases':
       return shouldVirtualize ? (
-        <VirtualizedCaseTable cases={items} {...props} />
+        <VirtualizedCaseTable cases={items} {...(props as any)} />
       ) : (
-        <CaseTable cases={items} {...props} />
+        <CaseTable cases={items} {...(props as any)} />
       )
     
     case 'tasks':
       return shouldVirtualize ? (
-        <VirtualizedTasksList tasks={items} {...props} />
+        <VirtualizedTasksList tasks={items} {...(props as any)} />
       ) : (
-        <TasksList tasks={items} {...props} />
+        <TasksList tasks={items} {...(props as any)} />
       )
     
     case 'users':
       return shouldVirtualize ? (
-        <VirtualizedUserTable users={items} {...props} />
+        <VirtualizedUserTable users={items} {...(props as any)} />
       ) : (
-        <UserTable users={items} {...props} />
+        <UserTable users={items} {...(props as any)} />
       )
     
     case 'contacts':
       return shouldVirtualize ? (
-        <VirtualizedContactTableLegacy contacts={items} {...props} />
+        <VirtualizedContactTableLegacy contacts={items} {...(props as any)} />
       ) : (
-        <ContactTable contacts={items} {...props} />
+        <ContactTable contacts={items} {...(props as any)} />
       )
     
     default:
