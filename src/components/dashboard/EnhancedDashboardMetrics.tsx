@@ -1,6 +1,7 @@
 
 import { CompactMetricWidget } from './CompactMetricWidget'
 import { Clock, Users, FileText, Target, TrendingUp, Euro, AlertTriangle, CheckCircle } from 'lucide-react'
+import { memo } from 'react'
 
 interface DashboardStats {
   totalTimeEntries: number
@@ -24,7 +25,7 @@ interface EnhancedDashboardMetricsProps {
   stats: DashboardStats
 }
 
-export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProps) => {
+const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsProps) => {
   if (stats.loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -122,3 +123,30 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
     </div>
   )
 }
+
+// Memoización profunda de estadísticas del dashboard
+export const EnhancedDashboardMetrics = memo(EnhancedDashboardMetricsComponent, (prevProps, nextProps) => {
+  const prevStats = prevProps.stats
+  const nextStats = nextProps.stats
+
+  // Comparación shallow de todas las propiedades de stats
+  return (
+    prevStats.totalTimeEntries === nextStats.totalTimeEntries &&
+    prevStats.totalBillableHours === nextStats.totalBillableHours &&
+    prevStats.totalClients === nextStats.totalClients &&
+    prevStats.totalCases === nextStats.totalCases &&
+    prevStats.totalActiveCases === nextStats.totalActiveCases &&
+    prevStats.pendingInvoices === nextStats.pendingInvoices &&
+    prevStats.hoursThisWeek === nextStats.hoursThisWeek &&
+    prevStats.hoursThisMonth === nextStats.hoursThisMonth &&
+    prevStats.utilizationRate === nextStats.utilizationRate &&
+    prevStats.averageHoursPerDay === nextStats.averageHoursPerDay &&
+    prevStats.totalRevenue === nextStats.totalRevenue &&
+    prevStats.pendingTasks === nextStats.pendingTasks &&
+    prevStats.overdueTasks === nextStats.overdueTasks &&
+    prevStats.loading === nextStats.loading &&
+    prevStats.error === nextStats.error
+  )
+})
+
+EnhancedDashboardMetrics.displayName = 'EnhancedDashboardMetrics'

@@ -2,6 +2,7 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { LucideIcon } from 'lucide-react'
+import { memo } from 'react'
 
 interface CompactMetricWidgetProps {
   title: string
@@ -13,7 +14,7 @@ interface CompactMetricWidgetProps {
   size?: 'sm' | 'md'
 }
 
-export const CompactMetricWidget = ({ 
+const CompactMetricWidgetComponent = ({ 
   title, 
   value, 
   change, 
@@ -67,3 +68,18 @@ export const CompactMetricWidget = ({
     </Card>
   )
 }
+
+// Memoización con comparador optimizado para props estables
+export const CompactMetricWidget = memo(CompactMetricWidgetComponent, (prevProps, nextProps) => {
+  return (
+    prevProps.title === nextProps.title &&
+    prevProps.value === nextProps.value &&
+    prevProps.change === nextProps.change &&
+    prevProps.changeType === nextProps.changeType &&
+    prevProps.icon === nextProps.icon &&
+    prevProps.className === nextProps.className &&
+    prevProps.size === nextProps.size
+  )
+})
+
+CompactMetricWidget.displayName = 'CompactMetricWidget'
