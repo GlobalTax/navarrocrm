@@ -3,11 +3,84 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import { createLogger } from '@/utils/logger'
+import { useMemo } from 'react'
 import type { CreateCaseData, UpdateCaseData } from './types'
 
-export const useCasesMutations = () => {
+/**
+ * Configuración de opciones para useCasesMutations
+ * @interface UseCasesMutationsOptions
+ */
+export interface UseCasesMutationsOptions {
+  /** Mostrar notificaciones toast */
+  showToasts?: boolean
+  /** Optimistic updates habilitados */
+  optimisticUpdates?: boolean
+  /** Callback de éxito personalizado */
+  onSuccess?: (data: any) => void
+  /** Callback de error personalizado */
+  onError?: (error: Error) => void
+  /** Invalidar queries automáticamente */
+  autoInvalidate?: boolean
+}
+
+/**
+ * Hook para mutaciones de casos (crear, actualizar, eliminar, archivar)
+ * Proporciona operaciones CRUD completas con validación y manejo de errores
+ * 
+ * @param {UseCasesMutationsOptions} options - Opciones de configuración
+ * @returns Objeto con funciones de mutación y estados de carga
+ * 
+ * @example
+ * ```tsx
+ * const {
+ *   createCase,
+ *   updateCase,
+ *   deleteCase,
+ *   archiveCase,
+ *   isCreating
+ * } = useCasesMutations({
+ *   showToasts: true,
+ *   optimisticUpdates: false
+ * })
+ * 
+ * // Crear nuevo caso
+ * createCase({
+ *   title: 'Nuevo Caso',
+ *   description: 'Descripción del caso',
+ *   contact_id: contactId
+ * })
+ * ```
+ * 
+ * @throws {Error} Cuando no se puede acceder a los datos del usuario
+ */
+export const useCasesMutations = (options: UseCasesMutationsOptions = {}) => {
+  const logger = createLogger('useCasesMutations')
   const { user } = useApp()
   const queryClient = useQueryClient()
+
+  // Validación y configuración de opciones
+  const validatedOptions = useMemo(() => {
+    const defaults: Required<UseCasesMutationsOptions> = {
+      showToasts: true,
+      optimisticUpdates: false,
+      onSuccess: () => {},
+      onError: () => {},
+      autoInvalidate: true
+    }
+
+    return { ...defaults, ...options }
+  }, [options])
+
+  // Validación de contexto
+  if (!user) {
+    logger.error('Usuario no encontrado en el contexto')
+    throw new Error('Usuario no autenticado')
+  }
+
+  if (!user.org_id) {
+    logger.warn('org_id no encontrado para el usuario', { userId: user.id })
+  }
 
   const createCaseMutation = useMutation({
     mutationFn: async (caseData: CreateCaseData) => {
