@@ -10,10 +10,13 @@ interface VirtualizationConfig {
 }
 
 const VIRTUALIZATION_CONFIG: Record<string, VirtualizationConfig> = {
-  contacts: { height: 600, itemHeight: 80, threshold: 100, overscan: 5 },
+  contacts: { height: 600, itemHeight: 80, threshold: 50, overscan: 5 },
   cases: { height: 500, itemHeight: 90, threshold: 50, overscan: 3 },
   tasks: { height: 700, itemHeight: 70, threshold: 100, overscan: 5 },
-  users: { height: 400, itemHeight: 85, threshold: 50, overscan: 3 }
+  users: { height: 400, itemHeight: 85, threshold: 50, overscan: 3 },
+  // Nuevas configuraciones para componentes especializados
+  'ai-usage': { height: 600, itemHeight: 80, threshold: 200, overscan: 5 },
+  'contact-cards': { height: 600, itemHeight: 240, threshold: 50, overscan: 2 }
 }
 
 interface VirtualizedDataResult<T> {
@@ -35,8 +38,9 @@ export function useVirtualizedData<T>(
     
     if (shouldVirtualize) {
       logger.info(`🚀 Activando virtualización para ${componentType}`, {
-        count: items.length,
-        threshold: config.threshold
+        itemCount: items.length,
+        threshold: config.threshold,
+        itemHeight: config.itemHeight
       })
     }
     

@@ -27,3 +27,12 @@ export { CompanyRowOptimized } from '../contacts/CompanyRowOptimized'
 
 // Phase 2: Performance hooks
 export { useVirtualizationCleanup } from '../../hooks/performance/useVirtualizationCleanup'
+
+// Phase 3: Specialized Components
+export { VirtualizedAIUsageTable } from '../admin/VirtualizedAIUsageTable'
+export { VirtualizedContactCardView } from '../contacts/VirtualizedContactCardView'
+
+// Phase 3: Specialized hooks
+export { useImageLazyLoading } from '../../hooks/performance/useImageLazyLoading'
+export { useGridVirtualization } from '../../hooks/performance/useGridVirtualization'
+export { useLogStreamProcessor } from '../../hooks/performance/useLogStreamProcessor'

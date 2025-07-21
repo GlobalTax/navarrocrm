@@ -35,6 +35,15 @@ export { useDOMOptimizer } from './useDOMOptimizer'
 export { useEventDelegation } from './useEventDelegation'
 export { useRuntimeProfiler } from './useRuntimeProfiler'
 
+// Phase 1: Critical High-Volume Components (re-exports)
+export { useVirtualizedData, VIRTUALIZATION_CONFIG } from './useVirtualizedData'
+export { useVirtualizationCleanup } from './useVirtualizationCleanup'
+
+// Phase 3: Specialized Components
+export { useImageLazyLoading } from './useImageLazyLoading'
+export { useGridVirtualization } from './useGridVirtualization'
+export { useLogStreamProcessor } from './useLogStreamProcessor'
+
 // Re-export utilities
 export { 
   createDebounce, 
