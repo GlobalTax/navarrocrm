@@ -118,6 +118,9 @@ interface LogContext {
   type?: string
   entity?: string
   priority?: string
+  
+  // Permite cualquier propiedad adicional para contexto específico
+  [key: string]: any
 }
 
 /**
