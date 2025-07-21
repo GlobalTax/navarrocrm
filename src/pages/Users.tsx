@@ -40,7 +40,7 @@ const Users = () => {
   const [showAuditDialog, setShowAuditDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any>(null)
 
-  const stats = getFilteredStats()
+  const stats = getFilteredStats
 
   // Handlers para acciones de usuario
   const handleEditUser = (user: any) => {

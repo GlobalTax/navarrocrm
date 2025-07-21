@@ -56,39 +56,7 @@ export const useAIUsage = (month?: Date) => {
     },
     enabled: true,
     staleTime: 1000 * 60 * 2, // 2 minutos para datos de uso de AI (relativamente frescos)
-    select: (logs) => {
-      // Calcular estadísticas de forma optimizada
-      const stats: AIUsageStats = {
-        totalCalls: logs.length,
-        totalTokens: logs.reduce((sum, log) => sum + (log.total_tokens || 0), 0),
-        totalCost: logs.reduce((sum, log) => sum + (log.estimated_cost || 0), 0),
-        successRate: logs.length ? (logs.filter(log => log.success).length / logs.length) * 100 : 0,
-        avgDuration: logs.length ? logs.reduce((sum, log) => sum + (log.duration_ms || 0), 0) / logs.length : 0,
-        callsByOrg: {},
-        tokensByOrg: {},
-        costByOrg: {}
-      }
-
-      // Agrupar por organización de forma eficiente
-      logs.forEach(log => {
-        const orgName = (log as any).organizations?.name || 'Sin organización'
-        stats.callsByOrg[orgName] = (stats.callsByOrg[orgName] || 0) + 1
-        stats.tokensByOrg[orgName] = (stats.tokensByOrg[orgName] || 0) + (log.total_tokens || 0)
-        stats.costByOrg[orgName] = (stats.costByOrg[orgName] || 0) + (log.estimated_cost || 0)
-      })
-
-      return { logs, stats }
-    },
-    placeholderData: (previousData) => previousData ?? { logs: [], stats: {
-      totalCalls: 0,
-      totalTokens: 0,
-      totalCost: 0,
-      successRate: 0,
-      avgDuration: 0,
-      callsByOrg: {},
-      tokensByOrg: {},
-      costByOrg: {}
-    }},
+    placeholderData: (previousData) => previousData ?? [],
   })
 }
 

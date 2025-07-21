@@ -10,7 +10,7 @@ export const useUserInvitationsQuery = () => {
 
   return useQuery({
     queryKey: ['user-invitations', user?.org_id],
-    queryFn: async (): Promise<UserInvitation[]> => {
+    queryFn: async () => {
       if (!user?.org_id) return []
       
       const { data, error } = await supabase
@@ -33,9 +33,10 @@ export const useUserInvitationsQuery = () => {
       status: invitation.status as UserInvitation['status'],
       token: invitation.token,
       expires_at: invitation.expires_at,
+      accepted_at: invitation.accepted_at,
       created_at: invitation.created_at,
       updated_at: invitation.updated_at
-    })),
+    })) as UserInvitation[],
     placeholderData: (previousData) => previousData ?? [],
   })
 }
