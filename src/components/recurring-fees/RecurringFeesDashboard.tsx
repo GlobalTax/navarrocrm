@@ -1,4 +1,5 @@
 
+import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Euro, Calendar, AlertCircle, Clock, FileText } from 'lucide-react'
@@ -11,38 +12,64 @@ interface RecurringFeesDashboardProps {
 }
 
 export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) => {
-  const activeFeesCount = fees.filter(f => f.status === 'active').length
-  const overdueFeesCount = fees.filter(f => 
-    f.status === 'active' && 
-    new Date(f.next_billing_date) < new Date()
-  ).length
-  
-  const upcomingFeesCount = fees.filter(f => 
-    f.status === 'active' && 
-    new Date(f.next_billing_date) >= new Date() &&
-    new Date(f.next_billing_date) <= addDays(new Date(), 7)
-  ).length
-  
-  const automaticFeesCount = fees.filter(f => f.proposal_id).length
-  
-  const monthlyRevenue = fees
-    .filter(f => f.status === 'active')
-    .reduce((sum, f) => {
-      const multiplier = f.frequency === 'yearly' ? 1/12 : 
-                        f.frequency === 'quarterly' ? 1/3 : 1
-      return sum + (f.amount * multiplier)
-    }, 0)
-
-  const yearlyRevenue = monthlyRevenue * 12
-
-  const upcomingFees = fees
-    .filter(f => 
+  // OPTIMIZACIÓN: Memoizar todos los cálculos costosos del dashboard
+  const dashboardMetrics = useMemo(() => {
+    const activeFeesCount = fees.filter(f => f.status === 'active').length
+    const overdueFeesCount = fees.filter(f => 
+      f.status === 'active' && 
+      new Date(f.next_billing_date) < new Date()
+    ).length
+    
+    const upcomingFeesCount = fees.filter(f => 
       f.status === 'active' && 
       new Date(f.next_billing_date) >= new Date() &&
       new Date(f.next_billing_date) <= addDays(new Date(), 7)
+    ).length
+    
+    const automaticFeesCount = fees.filter(f => f.proposal_id).length
+    
+    const monthlyRevenue = fees
+      .filter(f => f.status === 'active')
+      .reduce((sum, f) => {
+        const multiplier = f.frequency === 'yearly' ? 1/12 : 
+                          f.frequency === 'quarterly' ? 1/3 : 1
+        return sum + (f.amount * multiplier)
+      }, 0)
+
+    const yearlyRevenue = monthlyRevenue * 12
+
+    return {
+      activeFeesCount,
+      overdueFeesCount,
+      upcomingFeesCount,
+      automaticFeesCount,
+      monthlyRevenue,
+      yearlyRevenue
+    }
+  }, [fees])
+
+  // OPTIMIZACIÓN: Memoizar cuotas próximas con transformación costosa
+  const upcomingFees = useMemo(() => {
+    const now = new Date()
+    const weekFromNow = addDays(now, 7)
+    
+    return fees
+      .filter(f => 
+        f.status === 'active' && 
+        new Date(f.next_billing_date) >= now &&
+        new Date(f.next_billing_date) <= weekFromNow
+      )
+      .sort((a, b) => new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime())
+      .slice(0, 5)
+  }, [fees])
+
+  // OPTIMIZACIÓN: Memoizar cuotas vencidas para alertas
+  const overdueFeesForAlert = useMemo(() => {
+    return fees.filter(f => 
+      f.status === 'active' && 
+      new Date(f.next_billing_date) < new Date()
     )
-    .sort((a, b) => new Date(a.next_billing_date).getTime() - new Date(b.next_billing_date).getTime())
-    .slice(0, 5)
+  }, [fees])
 
   return (
     <div className="space-y-6">
@@ -56,10 +83,10 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              €{monthlyRevenue.toFixed(0)}
+              €{dashboardMetrics.monthlyRevenue.toFixed(0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              €{yearlyRevenue.toFixed(0)} anuales
+              €{dashboardMetrics.yearlyRevenue.toFixed(0)} anuales
             </p>
           </CardContent>
         </Card>
@@ -73,7 +100,7 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {activeFeesCount}
+              {dashboardMetrics.activeFeesCount}
             </div>
             <p className="text-xs text-muted-foreground">
               De {fees.length} totales
@@ -90,7 +117,7 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {overdueFeesCount}
+              {dashboardMetrics.overdueFeesCount}
             </div>
             <p className="text-xs text-muted-foreground">
               Requieren atención
@@ -107,7 +134,7 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {automaticFeesCount}
+              {dashboardMetrics.automaticFeesCount}
             </div>
             <p className="text-xs text-muted-foreground">
               Desde propuestas
@@ -123,7 +150,7 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
               <Clock className="w-5 h-5 text-amber-600" />
               Próximas Facturaciones (7 días)
               <Badge className="bg-amber-100 text-amber-800">
-                {upcomingFeesCount}
+                {dashboardMetrics.upcomingFeesCount}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -152,20 +179,20 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
         </Card>
       )}
 
-      {overdueFeesCount > 0 && (
+      {dashboardMetrics.overdueFeesCount > 0 && (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-red-700">
               <AlertCircle className="w-5 h-5" />
               Cuotas Vencidas - Atención Requerida
               <Badge className="bg-red-100 text-red-800">
-                {overdueFeesCount}
+                {dashboardMetrics.overdueFeesCount}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-red-600">
-              Hay {overdueFeesCount} cuota(s) recurrente(s) que han pasado su fecha de facturación. 
+              Hay {dashboardMetrics.overdueFeesCount} cuota(s) recurrente(s) que han pasado su fecha de facturación. 
               Revísalas para generar las facturas correspondientes o ajustar las fechas.
             </p>
           </CardContent>

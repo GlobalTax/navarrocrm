@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
 import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
@@ -40,6 +40,64 @@ export default function Dashboard() {
     }
   }
 
+  // OPTIMIZACIÓN: Memoizar transformación de stats costosa
+  const enhancedStats = useMemo(() => {
+    const totalHours = stats.totalBillableHours + stats.totalNonBillableHours
+    const utilizationRate = totalHours > 0 ? 
+      Math.round((stats.totalBillableHours / totalHours) * 100) : 0
+    const estimatedRevenue = stats.totalBillableHours * 50 // €50/hora estimado
+    
+    return {
+      totalTimeEntries: stats.totalTimeEntries,
+      totalBillableHours: stats.totalBillableHours,
+      totalClients: stats.totalContacts,
+      totalCases: stats.totalCases,
+      totalActiveCases: stats.activeCases,
+      pendingInvoices: 0,
+      hoursThisWeek: 0,
+      hoursThisMonth: stats.thisMonthHours,
+      utilizationRate,
+      averageHoursPerDay: 0,
+      totalRevenue: estimatedRevenue,
+      pendingTasks: 0,
+      overdueTasks: 0,
+      loading: isLoading,
+      error: error?.message || null
+    }
+  }, [
+    stats.totalTimeEntries,
+    stats.totalBillableHours,
+    stats.totalNonBillableHours,
+    stats.totalContacts,
+    stats.totalCases,
+    stats.activeCases,
+    stats.thisMonthHours,
+    isLoading,
+    error
+  ])
+
+  // OPTIMIZACIÓN: Memoizar mensaje de bienvenida
+  const welcomeMessage = useMemo(() => 
+    user?.email?.split('@')[0] || 'Usuario',
+    [user?.email]
+  )
+
+  // OPTIMIZACIÓN: Memoizar formato de tiempo
+  const formatTime = useMemo(() => (date: Date) => 
+    date.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    }), [])
+
+  // OPTIMIZACIÓN: Memoizar badges
+  const badges = useMemo(() => [
+    {
+      label: `Rol: ${user?.role}`,
+      variant: 'outline' as const,
+      color: 'text-blue-600 border-blue-200 bg-blue-50'
+    }
+  ], [user?.role])
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -51,44 +109,13 @@ export default function Dashboard() {
     )
   }
 
-  const welcomeMessage = user?.email?.split('@')[0] || 'Usuario'
-  const formatTime = (date: Date) => date.toLocaleTimeString('es-ES', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  })
-
-  // Convert stats to match EnhancedDashboardMetrics interface
-  const enhancedStats = {
-    totalTimeEntries: stats.totalTimeEntries,
-    totalBillableHours: stats.totalBillableHours,
-    totalClients: stats.totalContacts,
-    totalCases: stats.totalCases,
-    totalActiveCases: stats.activeCases,
-    pendingInvoices: 0,
-    hoursThisWeek: 0,
-    hoursThisMonth: stats.thisMonthHours,
-    utilizationRate: stats.totalTimeEntries > 0 ? Math.round((stats.totalBillableHours / (stats.totalBillableHours + stats.totalNonBillableHours)) * 100) : 0,
-    averageHoursPerDay: 0,
-    totalRevenue: stats.totalBillableHours * 50, // Estimated at €50/hour
-    pendingTasks: 0,
-    overdueTasks: 0,
-    loading: isLoading,
-    error: error?.message || null
-  }
-
   return (
     <MainLayout>
       <StandardPageContainer>
         <StandardPageHeader
           title={`Bienvenido, ${welcomeMessage}`}
           description="Panel de control inteligente con métricas en tiempo real"
-          badges={[
-            {
-              label: `Rol: ${user.role}`,
-              variant: 'outline',
-              color: 'text-blue-600 border-blue-200 bg-blue-50'
-            }
-          ]}
+          badges={badges}
           actions={
             <Button
               variant="outline"

@@ -1,4 +1,5 @@
-import React from 'react'
+
+import React, { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Target, TrendingUp, Calendar, Award, Zap } from 'lucide-react'
@@ -7,88 +8,102 @@ import { useTimeEntries } from '@/hooks/useTimeEntries'
 export function ModernTimeTrackingDashboard() {
   const { timeEntries } = useTimeEntries()
 
-  // Calcular estadísticas del día
-  const today = new Date()
-  const todayEntries = timeEntries.filter(entry => {
-    const entryDate = new Date(entry.created_at)
-    return entryDate.toDateString() === today.toDateString()
-  })
+  // OPTIMIZACIÓN: Memoizar cálculos complejos de estadísticas
+  const timeStats = useMemo(() => {
+    const today = new Date()
+    const todayEntries = timeEntries.filter(entry => {
+      const entryDate = new Date(entry.created_at)
+      return entryDate.toDateString() === today.toDateString()
+    })
 
-  const todayMinutes = todayEntries.reduce((sum, entry) => sum + entry.duration_minutes, 0)
-  const todayHours = (todayMinutes / 60).toFixed(1)
-  
-  const billableMinutes = todayEntries
-    .filter(entry => entry.is_billable)
-    .reduce((sum, entry) => sum + entry.duration_minutes, 0)
-  const billableHours = (billableMinutes / 60).toFixed(1)
-  
-  const billableRate = todayMinutes > 0 ? Math.round((billableMinutes / todayMinutes) * 100) : 0
-  
-  // Objetivo diario (8 horas = 480 minutos)
-  const dailyGoalMinutes = 480
-  const goalProgress = Math.min((todayMinutes / dailyGoalMinutes) * 100, 100)
-  
-  // Estadísticas semanales
-  const weekStart = new Date(today)
-  weekStart.setDate(today.getDate() - today.getDay())
-  
-  const weekEntries = timeEntries.filter(entry => {
-    const entryDate = new Date(entry.created_at)
-    return entryDate >= weekStart
-  })
-  
-  const weekMinutes = weekEntries.reduce((sum, entry) => sum + entry.duration_minutes, 0)
-  const weekHours = (weekMinutes / 60).toFixed(1)
+    const todayMinutes = todayEntries.reduce((sum, entry) => sum + entry.duration_minutes, 0)
+    const todayHours = (todayMinutes / 60).toFixed(1)
+    
+    const billableMinutes = todayEntries
+      .filter(entry => entry.is_billable)
+      .reduce((sum, entry) => sum + entry.duration_minutes, 0)
+    const billableHours = (billableMinutes / 60).toFixed(1)
+    
+    const billableRate = todayMinutes > 0 ? Math.round((billableMinutes / todayMinutes) * 100) : 0
+    
+    // Objetivo diario (8 horas = 480 minutos)
+    const dailyGoalMinutes = 480
+    const goalProgress = Math.min((todayMinutes / dailyGoalMinutes) * 100, 100)
+    
+    // Estadísticas semanales
+    const weekStart = new Date(today)
+    weekStart.setDate(today.getDate() - today.getDay())
+    
+    const weekEntries = timeEntries.filter(entry => {
+      const entryDate = new Date(entry.created_at)
+      return entryDate >= weekStart
+    })
+    
+    const weekMinutes = weekEntries.reduce((sum, entry) => sum + entry.duration_minutes, 0)
+    const weekHours = (weekMinutes / 60).toFixed(1)
 
-  const getProgressColor = (progress: number) => {
+    return {
+      todayHours,
+      billableHours,
+      billableRate,
+      goalProgress,
+      weekHours,
+      weekMinutes,
+      todayEntriesCount: todayEntries.length
+    }
+  }, [timeEntries])
+
+  // OPTIMIZACIÓN: Memoizar función de color para evitar re-creación
+  const getProgressColor = useMemo(() => (progress: number) => {
     if (progress >= 100) return 'bg-green-500'
     if (progress >= 75) return 'bg-blue-500'
     if (progress >= 50) return 'bg-yellow-500'
     return 'bg-gray-300'
-  }
+  }, [])
 
-  const stats = [
+  // OPTIMIZACIÓN: Memoizar configuración de stats
+  const stats = useMemo(() => [
     {
       title: 'Hoy',
-      value: `${todayHours}h`,
+      value: `${timeStats.todayHours}h`,
       target: '8h objetivo',
-      progress: goalProgress,
+      progress: timeStats.goalProgress,
       icon: Clock,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
-      trend: goalProgress >= 100 ? '+' : ''
+      trend: timeStats.goalProgress >= 100 ? '+' : ''
     },
     {
       title: 'Facturable Hoy',
-      value: `${billableHours}h`,
-      target: `${billableRate}% del total`,
-      progress: billableRate,
+      value: `${timeStats.billableHours}h`,
+      target: `${timeStats.billableRate}% del total`,
+      progress: timeStats.billableRate,
       icon: Target,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      trend: billableRate >= 80 ? '🎯' : ''
+      trend: timeStats.billableRate >= 80 ? '🎯' : ''
     },
     {
       title: 'Esta Semana',
-      value: `${weekHours}h`,
+      value: `${timeStats.weekHours}h`,
       target: '40h objetivo',
-      progress: Math.min((weekMinutes / 2400) * 100, 100), // 40h = 2400m
+      progress: Math.min((timeStats.weekMinutes / 2400) * 100, 100), // 40h = 2400m
       icon: Calendar,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      trend: weekMinutes > 1800 ? '📈' : '' // Más de 30h
+      trend: timeStats.weekMinutes > 1800 ? '📈' : '' // Más de 30h
     },
     {
       title: 'Productividad',
-      value: todayEntries.length > 0 ? '⭐⭐⭐⭐' : '⭐⭐⭐',
-      target: `${todayEntries.length} entradas`,
-      progress: Math.min(todayEntries.length * 25, 100),
+      value: timeStats.todayEntriesCount > 0 ? '⭐⭐⭐⭐' : '⭐⭐⭐',
+      target: `${timeStats.todayEntriesCount} entradas`,
+      progress: Math.min(timeStats.todayEntriesCount * 25, 100),
       icon: Award,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      trend: todayEntries.length >= 4 ? '🔥' : ''
+      trend: timeStats.todayEntriesCount >= 4 ? '🔥' : ''
     }
-  ]
+  ], [timeStats])
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
