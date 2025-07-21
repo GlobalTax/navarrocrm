@@ -50,15 +50,6 @@ export function RealAcademiaContent() {
     }
   }, [courses, categories, userProgress])
 
-  // OPTIMIZACIÓN: Memoizar datos de progreso por curso
-  const coursesWithProgress = useMemo(() => {
-    if (!courses || !userProgress) return courses || []
-    
-    return courses.map(course => ({
-      ...course,
-      userProgress: userProgress.find(p => p.course_id === course.id)
-    }))
-  }, [courses, userProgress])
 
   // Mostrar estado de carga
   if (categoriesLoading || coursesLoading || progressLoading) {
@@ -103,13 +94,13 @@ export function RealAcademiaContent() {
       />
 
       {/* Courses Grid */}
-      {coursesWithProgress.length > 0 ? (
+      {courses && courses.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {coursesWithProgress.map((course) => (
+          {courses.map((course) => (
             <CourseCard
               key={course.id}
               course={course}
-              userProgress={course.userProgress}
+              userProgress={userProgress?.find(p => p.course_id === course.id)}
               onCourseSelect={setSelectedCourse}
             />
           ))}
