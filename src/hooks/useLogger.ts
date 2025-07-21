@@ -165,6 +165,21 @@ interface LogContext {
   preloadThreshold?: number
   totalLoaded?: number
   imagesProcessed?: number
+  // Additional virtualization properties
+  filtered?: number
+  recordCount?: number
+  columnCount?: number
+  src?: string
+  originalSrc?: string
+  chunkSize?: number
+  statusFilter?: string
+  orgFilter?: string
+  rowCount?: number
+  totalChunks?: number
+  totalCost?: string
+  itemWidth?: string
+  successRate?: string
+  containerWidth?: number
 }
 
 interface Logger {

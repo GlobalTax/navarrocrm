@@ -268,6 +268,7 @@ export const VirtualizedAIUsageTable: React.FC<VirtualizedAIUsageTableProps> = (
           ) : (
             <List
               height={height}
+              width="100%"
               itemCount={processedLogs.length}
               itemSize={80}
               itemData={processedLogs}
