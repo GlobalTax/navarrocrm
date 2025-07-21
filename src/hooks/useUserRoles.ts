@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
+import { useMemo } from 'react'
 
 export const useUserRoles = () => {
   const { user } = useApp()
@@ -32,5 +33,13 @@ export const useUserRoles = () => {
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 1000 * 60 * 10, // 10 minutos para roles (datos más estáticos)
+    select: (data) => data.map(role => ({
+      id: role.id,
+      user_id: role.user_id,
+      role: role.role,
+      created_at: role.created_at
+    })),
+    placeholderData: (previousData) => previousData ?? [],
   })
 }

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import type { Proposal } from '@/types/proposals'
+import { useMemo } from 'react'
 
 export const useProposalsData = () => {
   const { user } = useApp()
@@ -27,9 +28,11 @@ export const useProposalsData = () => {
         throw error
       }
       
-      if (!data) return []
-      
-      // Map contact_id to client_id for backward compatibility  
+      return data || []
+    },
+    enabled: !!user?.org_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos para propuestas
+    select: (data) => {
       return data.map(proposal => ({
         ...proposal,
         client_id: proposal.contact_id,
@@ -40,7 +43,7 @@ export const useProposalsData = () => {
         }
       })) as Proposal[]
     },
-    enabled: !!user?.org_id
+    placeholderData: (previousData) => previousData ?? [],
   })
 
   return {

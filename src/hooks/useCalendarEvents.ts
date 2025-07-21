@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { Tables, TablesInsert } from '@/integrations/supabase/types'
@@ -15,7 +15,6 @@ export type CreateCalendarEventData = Omit<TablesInsert<'calendar_events'>, 'id'
 export const useCalendarEvents = () => {
   const queryClient = useQueryClient()
 
-  // Obtener eventos del mes actual
   const getCalendarEvents = async (): Promise<CalendarEvent[]> => {
     const { data, error } = await supabase
       .from('calendar_events')
@@ -33,7 +32,6 @@ export const useCalendarEvents = () => {
     return data || []
   }
 
-  // Query para obtener eventos
   const {
     data: events = [],
     isLoading,
@@ -41,12 +39,17 @@ export const useCalendarEvents = () => {
   } = useQuery({
     queryKey: ['calendar-events'],
     queryFn: getCalendarEvents,
+    staleTime: 1000 * 60 * 2, // 2 minutos para eventos (datos que cambian frecuentemente)
+    select: (data) => data.map(event => ({
+      ...event,
+      contact: event.contact || undefined,
+      case: event.case || undefined
+    })),
+    placeholderData: (previousData) => previousData ?? [],
   })
 
-  // Mutation para crear evento
   const createEventMutation = useMutation({
     mutationFn: async (eventData: CreateCalendarEventData) => {
-      // Obtener el usuario actual y su organización
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Usuario no autenticado')
 
@@ -82,7 +85,6 @@ export const useCalendarEvents = () => {
     },
   })
 
-  // Mutation para actualizar evento
   const updateEventMutation = useMutation({
     mutationFn: async ({ id, ...eventData }: Partial<CalendarEvent> & { id: string }) => {
       const { data, error } = await supabase
@@ -104,7 +106,6 @@ export const useCalendarEvents = () => {
     },
   })
 
-  // Mutation para eliminar evento
   const deleteEventMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase

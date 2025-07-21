@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { Contact } from '@/hooks/useContacts'
@@ -25,7 +25,7 @@ export const usePersons = () => {
 
   const { data: persons = [], isLoading, error, refetch } = useQuery({
     queryKey: ['persons', user?.org_id],
-    queryFn: async (): Promise<Person[]> => {
+    queryFn: async () => {
       logger.debug('Fetching persons for org:', user?.org_id)
       
       if (!user?.org_id) {
@@ -33,7 +33,6 @@ export const usePersons = () => {
         return []
       }
 
-      // OPTIMIZACIÓN: Query única con JOIN para obtener personas y empresas asociadas
       const { data: personsData, error: personsError } = await supabase
         .from('contacts')
         .select(`
@@ -53,36 +52,38 @@ export const usePersons = () => {
       }
       
       logger.info('Persons fetched successfully:', personsData?.length || 0)
-      
-      return (personsData || []).map(person => ({
-        ...person,
-        client_type: (person.client_type as 'particular' | 'autonomo') || 'particular',
-        relationship_type: (person.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-        email_preferences: parseEmailPreferences(person.email_preferences) || defaultEmailPreferences,
-        company: person.company ? {
-          id: person.company.id,
-          name: person.company.name
-        } : null
-      }))
+      return personsData || []
     },
     enabled: !!user?.org_id,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos para personas
+    select: (data) => data.map(person => ({
+      ...person,
+      client_type: (person.client_type as 'particular' | 'autonomo') || 'particular',
+      relationship_type: (person.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+      email_preferences: parseEmailPreferences(person.email_preferences) || defaultEmailPreferences,
+      company: person.company ? {
+        id: person.company.id,
+        name: person.company.name
+      } : null
+    })),
+    placeholderData: (previousData) => previousData ?? [],
     gcTime: 1000 * 60 * 10, // 10 minutos
   })
 
-  const filteredPersons = persons.filter(person => {
-    // Verificación segura de búsqueda
-    const matchesSearch = !searchTerm || 
-      person.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (person.email && person.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (person.phone && person.phone.includes(searchTerm)) ||
-      (person.company?.name && person.company.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredPersons = useMemo(() => {
+    return persons.filter(person => {
+      const matchesSearch = !searchTerm || 
+        person.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (person.email && person.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (person.phone && person.phone.includes(searchTerm)) ||
+        (person.company?.name && person.company.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesStatus = statusFilter === 'all' || person.status === statusFilter
-    const matchesType = typeFilter === 'all' || person.client_type === typeFilter
+      const matchesStatus = statusFilter === 'all' || person.status === statusFilter
+      const matchesType = typeFilter === 'all' || person.client_type === typeFilter
 
-    return matchesSearch && matchesStatus && matchesType
-  })
+      return matchesSearch && matchesStatus && matchesType
+    })
+  }, [persons, searchTerm, statusFilter, typeFilter])
 
   return {
     persons,

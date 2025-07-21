@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { startOfMonth, endOfMonth, format } from 'date-fns'
+import { useMemo } from 'react'
 
 export interface AIUsageLog {
   id: string
@@ -36,7 +37,7 @@ export const useAIUsage = (month?: Date) => {
 
   return useQuery({
     queryKey: ['ai-usage', format(startDate, 'yyyy-MM')],
-    queryFn: async (): Promise<{ logs: AIUsageLog[], stats: AIUsageStats }> => {
+    queryFn: async () => {
       const { data: logs, error } = await supabase
         .from('ai_usage_logs')
         .select(`
@@ -51,29 +52,43 @@ export const useAIUsage = (month?: Date) => {
         throw new Error(`Error fetching AI usage: ${error.message}`)
       }
 
-      // Calcular estadísticas
+      return logs || []
+    },
+    enabled: true,
+    staleTime: 1000 * 60 * 2, // 2 minutos para datos de uso de AI (relativamente frescos)
+    select: (logs) => {
+      // Calcular estadísticas de forma optimizada
       const stats: AIUsageStats = {
-        totalCalls: logs?.length || 0,
-        totalTokens: logs?.reduce((sum, log) => sum + (log.total_tokens || 0), 0) || 0,
-        totalCost: logs?.reduce((sum, log) => sum + (log.estimated_cost || 0), 0) || 0,
-        successRate: logs?.length ? (logs.filter(log => log.success).length / logs.length) * 100 : 0,
-        avgDuration: logs?.length ? (logs.reduce((sum, log) => sum + (log.duration_ms || 0), 0) / logs.length) : 0,
+        totalCalls: logs.length,
+        totalTokens: logs.reduce((sum, log) => sum + (log.total_tokens || 0), 0),
+        totalCost: logs.reduce((sum, log) => sum + (log.estimated_cost || 0), 0),
+        successRate: logs.length ? (logs.filter(log => log.success).length / logs.length) * 100 : 0,
+        avgDuration: logs.length ? logs.reduce((sum, log) => sum + (log.duration_ms || 0), 0) / logs.length : 0,
         callsByOrg: {},
         tokensByOrg: {},
         costByOrg: {}
       }
 
-      // Agrupar por organización
-      logs?.forEach(log => {
+      // Agrupar por organización de forma eficiente
+      logs.forEach(log => {
         const orgName = (log as any).organizations?.name || 'Sin organización'
         stats.callsByOrg[orgName] = (stats.callsByOrg[orgName] || 0) + 1
         stats.tokensByOrg[orgName] = (stats.tokensByOrg[orgName] || 0) + (log.total_tokens || 0)
         stats.costByOrg[orgName] = (stats.costByOrg[orgName] || 0) + (log.estimated_cost || 0)
       })
 
-      return { logs: logs || [], stats }
+      return { logs, stats }
     },
-    enabled: true
+    placeholderData: (previousData) => previousData ?? { logs: [], stats: {
+      totalCalls: 0,
+      totalTokens: 0,
+      totalCost: 0,
+      successRate: 0,
+      avgDuration: 0,
+      callsByOrg: {},
+      tokensByOrg: {},
+      costByOrg: {}
+    }},
   })
 }
 
@@ -91,7 +106,14 @@ export const useUserRoles = () => {
       }
 
       return data || []
-    }
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutos para roles
+    select: (data) => data.map(role => ({
+      id: role.id,
+      user_id: role.user_id,
+      role: role.role
+    })),
+    placeholderData: (previousData) => previousData ?? [],
   })
 }
 
