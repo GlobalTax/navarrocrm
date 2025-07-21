@@ -1,471 +1,344 @@
-
-import { useCallback } from 'react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { toast } from 'sonner'
 import { createLogger } from '@/utils/logger'
-import { createError, handleError } from '@/utils/errorHandler'
+import type { SubmissionResult, RetryStrategy } from '@/types/shared/formTypes'
 
 /**
- * Entidad con ID requerido para operaciones de actualización
+ * Interfaz para definir la configuración del hook useSharedFormSubmit
+ * @template TEntity - Tipo de la entidad (Contact, Client, etc.)
+ * @template TFormData - Tipo de los datos del formulario
  */
-export interface EntityWithId {
-  /** Identificador único de la entidad */
-  id: string
-}
-
-/**
- * Configuración para el hook de envío compartido de formularios
- * @template T - Tipo de datos del formulario
- */
-export interface SharedFormSubmitConfig<T> {
-  /** Entidad existente para edición (null para crear nueva) */
-  entity: EntityWithId | null
-  /** Función a ejecutar al cerrar el formulario */
+interface SharedFormSubmitConfig<TEntity extends { id?: string }, TFormData extends Record<string, any>> {
+  entity: TEntity | null
   onClose: () => void
-  /** Nombre de la tabla en Supabase */
   tableName: string
-  /** Función para mapear datos del formulario a entidad de base de datos */
-  mapFormDataToEntity: (data: T, orgId: string) => Record<string, any>
-  /** Mensajes de éxito personalizados */
+  mapFormDataToEntity: (data: TFormData, orgId: string) => Omit<TEntity, 'id'>
   successMessage: {
-    /** Mensaje para operación de creación */
     create: string
-    /** Mensaje para operación de actualización */
     update: string
   }
+  retryStrategy?: RetryStrategy
 }
 
 /**
- * Resultado del hook de envío compartido de formularios
- * @template T - Tipo de datos del formulario
+ * Interfaz para el resultado del envío del formulario
+ * @property {boolean} success - Indica si el envío fue exitoso
+ * @property {string} [error] - Mensaje de error en caso de fallo
  */
-export interface SharedFormSubmitResult<T> {
-  /** Función para enviar el formulario */
-  onSubmit: (data: T) => Promise<void>
+interface FormSubmissionResult {
+  success: boolean
+  error?: string
 }
 
 /**
- * Estrategias de recuperación para diferentes tipos de errores
+ * Tipo para definir el estado del envío del formulario
+ * @property {boolean} isSubmitting - Indica si el formulario está en proceso de envío
+ * @property {string | null} error - Mensaje de error en caso de fallo
+ * @property {() => Promise<FormSubmissionResult>} submitForm - Función para enviar el formulario
  */
-interface RecoveryStrategy {
-  /** Nombre de la estrategia */
-  name: string
-  /** Función de recuperación que retorna true si fue exitosa */
-  execute: () => Promise<boolean>
-  /** Número máximo de intentos */
-  maxAttempts: number
+interface FormSubmitState {
+  isSubmitting: boolean
+  error: string | null
+  submitForm: (data: any) => Promise<FormSubmissionResult>
 }
 
 /**
- * Hook compartido para gestionar el envío de formularios con validación y recuperación
+ * Tipo para definir la estrategia de reintentos
+ * @property {number} maxRetries - Número máximo de reintentos
+ * @property {number} delay - Delay inicial en milisegundos entre reintentos
+ */
+interface RetryStrategy {
+  maxRetries: number
+  delay: number
+}
+
+/**
+ * Tipo para el resultado del envío del formulario
+ */
+type SubmissionResult = {
+  success: boolean
+  data?: any
+  error?: string
+  operation: 'create' | 'update'
+  duration: number
+}
+
+/**
+ * Hook compartido para gestionar el envío de formularios con funcionalidad común
+ * Proporciona capacidades robustas de envío, manejo de errores y recuperación
  * 
- * Proporciona funcionalidad unificada para operaciones CRUD en formularios de entidades.
- * Incluye manejo robusto de errores, logging detallado, validación de autenticación
- * y estrategias de recuperación para errores de red.
+ * @template TEntity - Tipo de la entidad (Contact, Client, etc.)
+ * @template TFormData - Tipo de los datos del formulario
  * 
- * @template T - Tipo de datos del formulario
- * 
- * @param {SharedFormSubmitConfig<T>} config - Configuración del envío
- * @param {EntityWithId | null} config.entity - Entidad existente para edición
- * @param {() => void} config.onClose - Función de cierre del formulario
+ * @param {Object} config - Configuración del hook
+ * @param {TEntity | null} config.entity - Entidad existente (null para crear nueva)
+ * @param {() => void} config.onClose - Función a ejecutar al cerrar el formulario
  * @param {string} config.tableName - Nombre de la tabla en Supabase
- * @param {(data: T, orgId: string) => Record<string, any>} config.mapFormDataToEntity - Función de mapeo
- * @param {object} config.successMessage - Mensajes de éxito personalizados
+ * @param {Function} config.mapFormDataToEntity - Función para mapear datos del formulario a entidad
+ * @param {Object} config.successMessage - Mensajes de éxito para crear/actualizar
+ * @param {RetryStrategy} [config.retryStrategy] - Estrategia de reintentos para errores de red
  * 
- * @returns {SharedFormSubmitResult<T>} Objeto con función de envío
+ * @returns {Object} Funciones y estado del envío del formulario
  * 
  * @example
  * ```typescript
- * const { onSubmit } = useSharedFormSubmit({
- *   entity: selectedClient,
- *   onClose: () => setDialogOpen(false),
+ * const { submitForm, isSubmitting, error } = useSharedFormSubmit({
+ *   entity: contact,
+ *   onClose,
  *   tableName: 'contacts',
- *   mapFormDataToEntity: (data, orgId) => ({
- *     ...data,
- *     org_id: orgId,
- *     updated_at: new Date().toISOString()
- *   }),
+ *   mapFormDataToEntity: mapContactFormDataToEntity,
  *   successMessage: {
- *     create: 'Cliente creado exitosamente',
- *     update: 'Cliente actualizado exitosamente'
+ *     create: 'Contacto creado exitosamente',
+ *     update: 'Contacto actualizado exitosamente'
  *   }
  * })
- * 
- * // Usar en formulario
- * <form onSubmit={form.handleSubmit(onSubmit)}>
- *   {/* campos del formulario */}
- * </form>
  * ```
  * 
- * @throws {AppError} Cuando faltan parámetros requeridos o hay errores de validación
- * 
  * @since 1.0.0
- * @category Form Management
  */
-export const useSharedFormSubmit = <T>({
+export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData extends Record<string, any>>({
   entity,
   onClose,
   tableName,
   mapFormDataToEntity,
-  successMessage
-}: SharedFormSubmitConfig<T>): SharedFormSubmitResult<T> => {
+  successMessage,
+  retryStrategy = { maxRetries: 2, delay: 1000 }
+}: SharedFormSubmitConfig<TEntity, TFormData>) => {
+  const logger = createLogger('useSharedFormSubmit')
   const { user } = useApp()
-  const isEditing = !!entity
-  const logger = createLogger(`SharedFormSubmit-${tableName}`)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Validación exhaustiva de parámetros en la inicialización
-  if (typeof onClose !== 'function') {
-    const error = createError('onClose debe ser una función válida', {
-      severity: 'high',
-      userMessage: 'Error en configuración del formulario',
-      technicalMessage: 'Invalid onClose function in useSharedFormSubmit'
-    })
-    logger.error('Parameter validation failed', { onClose: typeof onClose })
-    throw error
-  }
-
-  if (!tableName || typeof tableName !== 'string' || tableName.trim().length === 0) {
-    const error = createError('Nombre de tabla es requerido', {
-      severity: 'high',
-      userMessage: 'Error en configuración del formulario',
-      technicalMessage: 'Invalid tableName in useSharedFormSubmit'
-    })
-    logger.error('Table name validation failed', { tableName })
-    throw error
-  }
-
-  if (!mapFormDataToEntity || typeof mapFormDataToEntity !== 'function') {
-    const error = createError('Función de mapeo es requerida', {
-      severity: 'high',
-      userMessage: 'Error en configuración del formulario',
-      technicalMessage: 'Invalid mapFormDataToEntity function in useSharedFormSubmit'
-    })
-    logger.error('Mapping function validation failed', { 
-      mapFormDataToEntity: typeof mapFormDataToEntity 
-    })
-    throw error
-  }
-
-  if (!successMessage || !successMessage.create || !successMessage.update) {
-    const error = createError('Mensajes de éxito son requeridos', {
-      severity: 'medium',
-      userMessage: 'Error en configuración del formulario',
-      technicalMessage: 'Invalid successMessage configuration in useSharedFormSubmit'
-    })
-    logger.error('Success message validation failed', { successMessage })
-    throw error
-  }
-
-  logger.info('Form submit hook initialized', {
-    tableName,
-    isEditing,
-    entityId: entity?.id,
-    hasSuccessMessages: !!(successMessage.create && successMessage.update)
-  })
-
-  /**
-   * Estrategias de recuperación para errores de red
-   */
-  const getRecoveryStrategies = useCallback((): RecoveryStrategy[] => [
-    {
-      name: 'network_retry',
-      maxAttempts: 3,
-      execute: async () => {
-        logger.info('Attempting network recovery', { strategy: 'network_retry' })
-        // Verificar conectividad básica
-        try {
-          const response = await fetch('/api/health', { method: 'HEAD' })
-          return response.ok
-        } catch {
-          return false
-        }
-      }
-    },
-    {
-      name: 'supabase_reconnect',
-      maxAttempts: 2,
-      execute: async () => {
-        logger.info('Attempting Supabase reconnection', { strategy: 'supabase_reconnect' })
-        try {
-          // Intentar operación simple para verificar conectividad
-          const { error } = await supabase.from('organizations').select('id').limit(1)
-          return !error
-        } catch {
-          return false
-        }
-      }
+  // Validación robusta de parámetros
+  try {
+    if (typeof onClose !== 'function') {
+      throw new Error('onClose debe ser una función válida')
     }
-  ], [logger])
+    if (!tableName?.trim()) {
+      throw new Error('tableName es requerido y no puede estar vacío')
+    }
+    if (typeof mapFormDataToEntity !== 'function') {
+      throw new Error('mapFormDataToEntity debe ser una función válida')
+    }
+    if (!successMessage?.create || !successMessage?.update) {
+      throw new Error('successMessage debe contener mensajes para create y update')
+    }
+    if (!user?.org_id) {
+      throw new Error('Usuario debe tener org_id válido')
+    }
+  } catch (validationError) {
+    logger.error('Error de validación en configuración del hook', { 
+      error: validationError, 
+      tableName, 
+      hasEntity: !!entity,
+      hasUser: !!user 
+    })
+    throw validationError
+  }
 
   /**
-   * Ejecuta estrategias de recuperación para errores de red
-   * @param {Error} error - Error original que necesita recuperación
-   * @returns {Promise<boolean>} True si la recuperación fue exitosa
+   * Estrategia de recuperación para errores de red
+   * Implementa reintentos automáticos con backoff exponencial
    */
-  const attemptRecovery = useCallback(async (error: Error): Promise<boolean> => {
-    const strategies = getRecoveryStrategies()
+  const executeWithRetry = async <T>(
+    operation: () => Promise<T>,
+    context: string
+  ): Promise<T> => {
+    let lastError: Error
     
-    for (const strategy of strategies) {
-      logger.info('Executing recovery strategy', {
-        strategy: strategy.name,
-        maxAttempts: strategy.maxAttempts,
-        originalError: error.message
-      })
-
-      for (let attempt = 1; attempt <= strategy.maxAttempts; attempt++) {
-        try {
-          const success = await strategy.execute()
-          if (success) {
-            logger.info('Recovery strategy succeeded', {
-              strategy: strategy.name,
-              attempt,
-              totalAttempts: strategy.maxAttempts
-            })
-            return true
-          }
-          logger.warn('Recovery strategy attempt failed', {
-            strategy: strategy.name,
-            attempt,
-            remainingAttempts: strategy.maxAttempts - attempt
-          })
-        } catch (recoveryError) {
-          logger.error('Recovery strategy execution failed', {
-            strategy: strategy.name,
-            attempt,
-            error: recoveryError instanceof Error ? recoveryError.message : 'Unknown error'
-          })
+    for (let attempt = 0; attempt <= retryStrategy.maxRetries; attempt++) {
+      try {
+        logger.debug(`Ejecutando operación: ${context}`, { attempt, maxRetries: retryStrategy.maxRetries })
+        const result = await operation()
+        
+        if (attempt > 0) {
+          logger.info(`Operación exitosa tras ${attempt} reintentos`, { context })
         }
-
-        // Delay exponencial entre intentos
-        if (attempt < strategy.maxAttempts) {
-          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+        
+        return result
+      } catch (error) {
+        lastError = error as Error
+        logger.warn(`Intento ${attempt + 1} fallido para: ${context}`, { 
+          error: lastError.message,
+          attempt,
+          willRetry: attempt < retryStrategy.maxRetries
+        })
+        
+        // Si es el último intento, no esperamos
+        if (attempt < retryStrategy.maxRetries) {
+          const delay = retryStrategy.delay * Math.pow(2, attempt) // Backoff exponencial
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
     }
-
-    logger.error('All recovery strategies failed', {
-      strategiesAttempted: strategies.length,
-      originalError: error.message
+    
+    logger.error(`Operación falló tras ${retryStrategy.maxRetries + 1} intentos`, { 
+      context, 
+      finalError: lastError.message 
     })
-    return false
-  }, [getRecoveryStrategies, logger])
+    throw lastError
+  }
 
   /**
-   * Función principal de envío del formulario
-   * Maneja todo el ciclo de vida de la operación con logging detallado
+   * Función principal para enviar formularios
+   * Maneja tanto creación como actualización de entidades
    */
-  const onSubmit = useCallback(async (data: T): Promise<void> => {
-    const operationId = crypto.randomUUID()
-    const operationStartTime = Date.now()
-    
-    logger.info('Form submission started', {
-      operationId,
+  const submitForm = async (formData: TFormData): Promise<SubmissionResult> => {
+    const startTime = performance.now()
+    logger.debug('Iniciando envío de formulario', {
+      mode: entity ? 'update' : 'create',
       tableName,
-      isEditing,
       entityId: entity?.id,
-      userId: user?.id,
-      orgId: user?.org_id,
-      dataKeys: data ? Object.keys(data as Record<string, any>) : []
+      formDataKeys: Object.keys(formData)
     })
 
-    // Validación de autenticación crítica
-    if (!user?.org_id) {
-      const authError = createError('Usuario no autenticado o sin organización', {
-        severity: 'high',
-        userMessage: 'Error: No se pudo identificar la organización',
-        technicalMessage: 'Missing user.org_id in form submission',
-        showToast: true
-      })
-      
-      logger.error('Authentication validation failed', {
-        operationId,
-        hasUser: !!user,
-        userId: user?.id,
-        hasOrgId: !!user?.org_id,
-        validationTime: Date.now() - operationStartTime
-      })
-      
-      handleError(authError, `SharedFormSubmit-${tableName}`)
-      return
-    }
-
-    // Validación de datos del formulario
-    if (!data || typeof data !== 'object') {
-      const dataError = createError('Datos del formulario inválidos', {
-        severity: 'high',
-        userMessage: 'Error en los datos del formulario',
-        technicalMessage: 'Invalid form data in submission'
-      })
-      
-      logger.error('Form data validation failed', {
-        operationId,
-        dataType: typeof data,
-        isObject: typeof data === 'object',
-        hasData: !!data
-      })
-      
-      handleError(dataError, `SharedFormSubmit-${tableName}`)
-      return
-    }
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      // Fase 1: Mapeo de datos con métricas de rendimiento
-      const mappingStartTime = Date.now()
-      logger.info('Starting data mapping', { operationId, tableName })
-      
-      const entityData = mapFormDataToEntity(data, user.org_id)
-      
-      if (!entityData || typeof entityData !== 'object') {
-        throw createError('Datos mapeados inválidos', {
-          severity: 'high',
-          userMessage: 'Error al procesar los datos del formulario',
-          technicalMessage: 'mapFormDataToEntity returned invalid data'
-        })
+      // Validación de datos del formulario
+      if (!formData || typeof formData !== 'object') {
+        throw new Error('Los datos del formulario son inválidos')
       }
-      
-      const mappingTime = Date.now() - mappingStartTime
-      logger.debug('Data mapping completed', {
-        operationId,
+
+      // Mapear datos del formulario a entidad
+      const entityData = await executeWithRetry(
+        () => Promise.resolve(mapFormDataToEntity(formData, user.org_id)),
+        'mapFormDataToEntity'
+      )
+
+      logger.debug('Datos mapeados exitosamente', {
+        originalKeys: Object.keys(formData),
         mappedKeys: Object.keys(entityData),
-        dataSize: JSON.stringify(entityData).length,
-        mappingTime
+        orgId: user.org_id
       })
 
-      // Fase 2: Operación de base de datos con retry logic
-      const dbStartTime = Date.now()
-      logger.info(`Executing database operation: ${isEditing ? 'UPDATE' : 'INSERT'}`, {
-        operationId,
-        tableName,
-        entityId: entity?.id,
-        recordSize: Object.keys(entityData).length
-      })
+      let result
+      
+      if (entity?.id) {
+        // Actualizar entidad existente
+        logger.debug('Actualizando entidad existente', { 
+          entityId: entity.id, 
+          tableName,
+          updateData: Object.keys(entityData)
+        })
 
-      let dbOperation: Promise<any>
+        result = await executeWithRetry(async () => {
+          const { data, error: updateError } = await supabase
+            .from(tableName)
+            .update(entityData)
+            .eq('id', entity.id)
+            .eq('org_id', user.org_id)
+            .select()
 
-      if (isEditing && entity) {
-        dbOperation = supabase
-          .from(tableName as any)
-          .update(entityData)
-          .eq('id', entity.id)
-      } else {
-        dbOperation = supabase
-          .from(tableName as any)
-          .insert(entityData)
-      }
-
-      const { error: dbError } = await dbOperation
-      const dbTime = Date.now() - dbStartTime
-
-      if (dbError) {
-        // Intentar recuperación automática para errores de red
-        if (dbError.message.includes('network') || dbError.message.includes('timeout')) {
-          logger.warn('Network error detected, attempting recovery', {
-            operationId,
-            error: dbError.message,
-            dbTime
-          })
-
-          const recoverySuccess = await attemptRecovery(new Error(dbError.message))
-          if (recoverySuccess) {
-            // Reintentar operación después de recuperación exitosa
-            const { error: retryError } = await dbOperation
-            if (!retryError) {
-              logger.info('Operation successful after recovery', {
-                operationId,
-                retryTime: Date.now() - dbStartTime
-              })
-              toast.success(isEditing ? successMessage.update : successMessage.create)
-              onClose()
-              return
-            }
+          if (updateError) {
+            logger.error('Error en actualización de Supabase', { 
+              error: updateError, 
+              entityId: entity.id,
+              tableName
+            })
+            throw new Error(`Error al actualizar: ${updateError.message}`)
           }
-        }
 
-        throw createError(`Error en operación de base de datos: ${tableName}`, {
-          severity: 'high',
-          userMessage: isEditing ? 'Error al actualizar el registro' : 'Error al crear el registro',
-          technicalMessage: dbError.message,
-          showToast: true
+          if (!data || data.length === 0) {
+            throw new Error('No se encontró la entidad para actualizar o no tienes permisos')
+          }
+
+          return data[0]
+        }, `update-${tableName}`)
+
+        toast.success(successMessage.update)
+        logger.info('Entidad actualizada exitosamente', {
+          entityId: entity.id,
+          tableName,
+          duration: performance.now() - startTime
+        })
+      } else {
+        // Crear nueva entidad
+        logger.debug('Creando nueva entidad', { 
+          tableName,
+          createData: Object.keys(entityData)
+        })
+
+        result = await executeWithRetry(async () => {
+          const { data, error: createError } = await supabase
+            .from(tableName)
+            .insert(entityData)
+            .select()
+
+          if (createError) {
+            logger.error('Error en creación de Supabase', { 
+              error: createError,
+              tableName,
+              entityData: Object.keys(entityData)
+            })
+            throw new Error(`Error al crear: ${createError.message}`)
+          }
+
+          if (!data || data.length === 0) {
+            throw new Error('No se pudo crear la entidad')
+          }
+
+          return data[0]
+        }, `create-${tableName}`)
+
+        toast.success(successMessage.create)
+        logger.info('Entidad creada exitosamente', {
+          newEntityId: result.id,
+          tableName,
+          duration: performance.now() - startTime
         })
       }
 
-      logger.info('Database operation completed successfully', {
-        operationId,
-        operation: isEditing ? 'update' : 'create',
-        tableName,
-        entityId: entity?.id,
-        dbTime,
-        totalTime: Date.now() - operationStartTime
-      })
-      
-      toast.success(isEditing ? successMessage.update : successMessage.create)
+      // Cerrar formulario tras éxito
       onClose()
 
+      return {
+        success: true,
+        data: result,
+        operation: entity?.id ? 'update' : 'create',
+        duration: performance.now() - startTime
+      }
+
     } catch (error) {
-      const totalTime = Date.now() - operationStartTime
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      const duration = performance.now() - startTime
       
-      logger.error('Form submission failed', {
-        operationId,
+      logger.error('Error en envío de formulario', {
+        error: errorMessage,
+        mode: entity ? 'update' : 'create',
         tableName,
-        operation: isEditing ? 'update' : 'create',
-        error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        totalTime,
-        entityId: entity?.id
+        duration,
+        formDataProvided: !!formData,
+        orgId: user.org_id
       })
 
-      // Manejo especializado de errores de base de datos
-      if (error instanceof Error) {
-        if (error.message.includes('duplicate key')) {
-          handleError(createError('Registro duplicado', {
-            severity: 'medium',
-            userMessage: 'Ya existe un registro con estos datos',
-            technicalMessage: error.message
-          }), `SharedFormSubmit-${tableName}`)
-        } else if (error.message.includes('violates foreign key')) {
-          handleError(createError('Error de referencia', {
-            severity: 'medium',
-            userMessage: 'Error en las relaciones de datos',
-            technicalMessage: error.message
-          }), `SharedFormSubmit-${tableName}`)
-        } else if (error.message.includes('permission denied')) {
-          handleError(createError('Permisos insuficientes', {
-            severity: 'high',
-            userMessage: 'No tienes permisos para realizar esta operación',
-            technicalMessage: error.message
-          }), `SharedFormSubmit-${tableName}`)
-        } else {
-          handleError(error, `SharedFormSubmit-${tableName}`)
-        }
-      } else {
-        handleError(createError('Error desconocido en envío de formulario', {
-          severity: 'high',
-          userMessage: 'Ha ocurrido un error inesperado',
-          technicalMessage: 'Unknown error type in form submission'
-        }), `SharedFormSubmit-${tableName}`)
+      setError(errorMessage)
+      toast.error('Error al guardar', {
+        description: errorMessage
+      })
+
+      return {
+        success: false,
+        error: errorMessage,
+        operation: entity?.id ? 'update' : 'create',
+        duration
       }
+    } finally {
+      setIsSubmitting(false)
+      logger.debug('Finalizando envío de formulario', {
+        duration: performance.now() - startTime,
+        tableName
+      })
     }
-  }, [
-    entity,
-    user,
-    tableName,
-    isEditing,
-    mapFormDataToEntity,
-    successMessage,
-    onClose,
-    attemptRecovery,
-    logger
-  ])
+  }
 
-  logger.debug('Form submit hook ready', {
-    tableName,
-    isEditing,
-    hasEntity: !!entity,
-    hasUser: !!user,
-    hasOrgId: !!user?.org_id
-  })
-
-  return { onSubmit }
+  return {
+    submitForm,
+    isSubmitting,
+    error,
+    clearError: () => setError(null)
+  }
 }
