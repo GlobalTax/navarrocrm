@@ -1,4 +1,3 @@
-
 import { useSharedFormState } from '../shared/useSharedFormState'
 import { contactSchema } from './contactFormSchema'
 import { defaultContactFormValues, type Contact } from './contactFormTypes'
@@ -12,7 +11,6 @@ import type { ContactFormData } from '@/components/contacts/ContactFormTabs'
  * @param {Contact} contact - Datos del contacto a mapear
  * @returns {ContactFormData} Datos formateados para el formulario
  */
-
 const mapContactToFormData = (contact: Contact): ContactFormData => {
   const logger = useLogger('mapContactToFormData')
   
@@ -51,14 +49,12 @@ const mapContactToFormData = (contact: Contact): ContactFormData => {
  * @returns {Object} Objeto con estado y funciones del formulario
  * 
  * @example
- * ```typescript
  * const { form, isEditing, resetForm } = useContactFormState(selectedContact)
  * 
  * // Usar en formulario
- * <Form {...form}>
- *   {/* campos del formulario */}
- * </Form>
- * ```
+ * // <Form {...form}>
+ * //   campos del formulario
+ * // </Form>
  * 
  * @since 1.0.0
  */
