@@ -156,6 +156,15 @@ interface LogContext {
   memoryHeap?: string
   analysisTime?: string
   frameRate?: string
+  
+  // Virtualization specific properties
+  itemCount?: number
+  stopIndex?: number
+  visibleRange?: string
+  bufferRange?: string
+  preloadThreshold?: number
+  totalLoaded?: number
+  imagesProcessed?: number
 }
 
 interface Logger {
