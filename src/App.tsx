@@ -19,6 +19,25 @@ const Setup = lazy(() => import('@/pages/Setup'))
 const Emails = lazy(() => import('@/pages/Emails'))
 const NylasCallback = lazy(() => import('@/pages/NylasCallback'))
 
+// Lazy load new pages for sidebar navigation
+const Cases = lazy(() => import('@/pages/Cases'))
+const Proposals = lazy(() => import('@/pages/Proposals'))
+const RecurringFees = lazy(() => import('@/pages/RecurringFees'))
+const Tasks = lazy(() => import('@/pages/Tasks'))
+const TimeTracking = lazy(() => import('@/pages/TimeTracking'))
+const Calendar = lazy(() => import('@/pages/Calendar'))
+const Rooms = lazy(() => import('@/pages/Rooms'))
+const PanelOcupacion = lazy(() => import('@/pages/PanelOcupacion'))
+const Equipment = lazy(() => import('@/pages/Equipment'))
+const Documents = lazy(() => import('@/pages/Documents'))
+const Users = lazy(() => import('@/pages/Users'))
+const Integrations = lazy(() => import('@/pages/Integrations'))
+const Reports = lazy(() => import('@/pages/Reports'))
+const Academia = lazy(() => import('@/pages/Academia'))
+const AcademiaAdmin = lazy(() => import('@/pages/AcademiaAdmin'))
+const AIAssistant = lazy(() => import('@/pages/AIAssistant'))
+const AIAdmin = lazy(() => import('@/pages/AIAdmin'))
+
 // Create optimized query client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +101,150 @@ function App() {
                       element={
                         <LazyRouteWrapper routeName="NylasCallback">
                           <NylasCallback />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+
+                    {/* Principal */}
+                    <Route 
+                      path="/cases" 
+                      element={
+                        <LazyRouteWrapper routeName="Cases">
+                          <Cases />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/proposals" 
+                      element={
+                        <LazyRouteWrapper routeName="Proposals">
+                          <Proposals />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/recurring-fees" 
+                      element={
+                        <LazyRouteWrapper routeName="RecurringFees">
+                          <RecurringFees />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+
+                    {/* Productividad */}
+                    <Route 
+                      path="/tasks" 
+                      element={
+                        <LazyRouteWrapper routeName="Tasks">
+                          <Tasks />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/time-tracking" 
+                      element={
+                        <LazyRouteWrapper routeName="TimeTracking">
+                          <TimeTracking />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/calendar" 
+                      element={
+                        <LazyRouteWrapper routeName="Calendar">
+                          <Calendar />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/rooms" 
+                      element={
+                        <LazyRouteWrapper routeName="Rooms">
+                          <Rooms />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/panel-ocupacion" 
+                      element={
+                        <LazyRouteWrapper routeName="PanelOcupacion">
+                          <PanelOcupacion />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/equipment" 
+                      element={
+                        <LazyRouteWrapper routeName="Equipment">
+                          <Equipment />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/documents" 
+                      element={
+                        <LazyRouteWrapper routeName="Documents">
+                          <Documents />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+
+                    {/* Configuración */}
+                    <Route 
+                      path="/users" 
+                      element={
+                        <LazyRouteWrapper routeName="Users">
+                          <Users />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/integrations" 
+                      element={
+                        <LazyRouteWrapper routeName="Integrations">
+                          <Integrations />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/reports" 
+                      element={
+                        <LazyRouteWrapper routeName="Reports">
+                          <Reports />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+
+                    {/* IA & Academia */}
+                    <Route 
+                      path="/academia" 
+                      element={
+                        <LazyRouteWrapper routeName="Academia">
+                          <Academia />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/academia/admin" 
+                      element={
+                        <LazyRouteWrapper routeName="AcademiaAdmin">
+                          <AcademiaAdmin />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/ai-assistant" 
+                      element={
+                        <LazyRouteWrapper routeName="AIAssistant">
+                          <AIAssistant />
+                        </LazyRouteWrapper>
+                      } 
+                    />
+                    <Route 
+                      path="/ai-admin" 
+                      element={
+                        <LazyRouteWrapper routeName="AIAdmin">
+                          <AIAdmin />
                         </LazyRouteWrapper>
                       } 
                     />

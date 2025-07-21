@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
@@ -5,16 +6,11 @@ import { useApp } from '@/contexts/AppContext'
 import { createLogger } from '@/utils/logger'
 import type { SubmissionResult, RetryStrategy } from '@/types/shared/formTypes'
 
-/**
- * Interfaz para definir la configuración del hook useSharedFormSubmit
- * @template TEntity - Tipo de la entidad (Contact, Client, etc.)
- * @template TFormData - Tipo de los datos del formulario
- */
-interface SharedFormSubmitConfig<TEntity extends { id?: string }, TFormData extends Record<string, any>> {
-  entity: TEntity | null
+interface SharedFormSubmitConfig {
+  entity: any | null
   onClose: () => void
   tableName: string
-  mapFormDataToEntity: (data: TFormData, orgId: string) => Omit<TEntity, 'id'>
+  mapFormDataToEntity: (data: any, orgId: string) => any
   successMessage: {
     create: string
     update: string
@@ -22,126 +18,24 @@ interface SharedFormSubmitConfig<TEntity extends { id?: string }, TFormData exte
   retryStrategy?: RetryStrategy
 }
 
-/**
- * Interfaz para el resultado del envío del formulario
- * @property {boolean} success - Indica si el envío fue exitoso
- * @property {string} [error] - Mensaje de error en caso de fallo
- */
 interface FormSubmissionResult {
   success: boolean
   error?: string
 }
 
-/**
- * Tipo para definir el estado del envío del formulario
- * @property {boolean} isSubmitting - Indica si el formulario está en proceso de envío
- * @property {string | null} error - Mensaje de error en caso de fallo
- * @property {() => Promise<FormSubmissionResult>} submitForm - Función para enviar el formulario
- */
-interface FormSubmitState {
-  isSubmitting: boolean
-  error: string | null
-  submitForm: (data: any) => Promise<FormSubmissionResult>
-}
-
-/**
- * Tipo para definir la estrategia de reintentos
- * @property {number} maxRetries - Número máximo de reintentos
- * @property {number} delay - Delay inicial en milisegundos entre reintentos
- */
-interface RetryStrategy {
-  maxRetries: number
-  delay: number
-}
-
-/**
- * Tipo para el resultado del envío del formulario
- */
-type SubmissionResult = {
-  success: boolean
-  data?: any
-  error?: string
-  operation: 'create' | 'update'
-  duration: number
-}
-
-/**
- * Hook compartido para gestionar el envío de formularios con funcionalidad común
- * Proporciona capacidades robustas de envío, manejo de errores y recuperación
- * 
- * @template TEntity - Tipo de la entidad (Contact, Client, etc.)
- * @template TFormData - Tipo de los datos del formulario
- * 
- * @param {Object} config - Configuración del hook
- * @param {TEntity | null} config.entity - Entidad existente (null para crear nueva)
- * @param {() => void} config.onClose - Función a ejecutar al cerrar el formulario
- * @param {string} config.tableName - Nombre de la tabla en Supabase
- * @param {Function} config.mapFormDataToEntity - Función para mapear datos del formulario a entidad
- * @param {Object} config.successMessage - Mensajes de éxito para crear/actualizar
- * @param {RetryStrategy} [config.retryStrategy] - Estrategia de reintentos para errores de red
- * 
- * @returns {Object} Funciones y estado del envío del formulario
- * 
- * @example
- * ```typescript
- * const { submitForm, isSubmitting, error } = useSharedFormSubmit({
- *   entity: contact,
- *   onClose,
- *   tableName: 'contacts',
- *   mapFormDataToEntity: mapContactFormDataToEntity,
- *   successMessage: {
- *     create: 'Contacto creado exitosamente',
- *     update: 'Contacto actualizado exitosamente'
- *   }
- * })
- * ```
- * 
- * @since 1.0.0
- */
-export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData extends Record<string, any>>({
+export const useSharedFormSubmit = ({
   entity,
   onClose,
   tableName,
   mapFormDataToEntity,
   successMessage,
   retryStrategy = { maxRetries: 2, delay: 1000 }
-}: SharedFormSubmitConfig<TEntity, TFormData>) => {
+}: SharedFormSubmitConfig) => {
   const logger = createLogger('useSharedFormSubmit')
   const { user } = useApp()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Validación robusta de parámetros
-  try {
-    if (typeof onClose !== 'function') {
-      throw new Error('onClose debe ser una función válida')
-    }
-    if (!tableName?.trim()) {
-      throw new Error('tableName es requerido y no puede estar vacío')
-    }
-    if (typeof mapFormDataToEntity !== 'function') {
-      throw new Error('mapFormDataToEntity debe ser una función válida')
-    }
-    if (!successMessage?.create || !successMessage?.update) {
-      throw new Error('successMessage debe contener mensajes para create y update')
-    }
-    if (!user?.org_id) {
-      throw new Error('Usuario debe tener org_id válido')
-    }
-  } catch (validationError) {
-    logger.error('Error de validación en configuración del hook', { 
-      error: validationError, 
-      tableName, 
-      hasEntity: !!entity,
-      hasUser: !!user 
-    })
-    throw validationError
-  }
-
-  /**
-   * Estrategia de recuperación para errores de red
-   * Implementa reintentos automáticos con backoff exponencial
-   */
   const executeWithRetry = async <T>(
     operation: () => Promise<T>,
     context: string
@@ -166,9 +60,8 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
           willRetry: attempt < retryStrategy.maxRetries
         })
         
-        // Si es el último intento, no esperamos
         if (attempt < retryStrategy.maxRetries) {
-          const delay = retryStrategy.delay * Math.pow(2, attempt) // Backoff exponencial
+          const delay = retryStrategy.delay * Math.pow(2, attempt)
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
@@ -181,11 +74,7 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
     throw lastError
   }
 
-  /**
-   * Función principal para enviar formularios
-   * Maneja tanto creación como actualización de entidades
-   */
-  const submitForm = async (formData: TFormData): Promise<SubmissionResult> => {
+  const submitForm = async (formData: any): Promise<SubmissionResult> => {
     const startTime = performance.now()
     logger.debug('Iniciando envío de formulario', {
       mode: entity ? 'update' : 'create',
@@ -198,12 +87,10 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
     setError(null)
 
     try {
-      // Validación de datos del formulario
       if (!formData || typeof formData !== 'object') {
         throw new Error('Los datos del formulario son inválidos')
       }
 
-      // Mapear datos del formulario a entidad
       const entityData = await executeWithRetry(
         () => Promise.resolve(mapFormDataToEntity(formData, user.org_id)),
         'mapFormDataToEntity'
@@ -218,7 +105,6 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
       let result
       
       if (entity?.id) {
-        // Actualizar entidad existente
         logger.debug('Actualizando entidad existente', { 
           entityId: entity.id, 
           tableName,
@@ -227,7 +113,7 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
 
         result = await executeWithRetry(async () => {
           const { data, error: updateError } = await supabase
-            .from(tableName)
+            .from(tableName as any)
             .update(entityData)
             .eq('id', entity.id)
             .eq('org_id', user.org_id)
@@ -256,7 +142,6 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
           duration: performance.now() - startTime
         })
       } else {
-        // Crear nueva entidad
         logger.debug('Creando nueva entidad', { 
           tableName,
           createData: Object.keys(entityData)
@@ -264,7 +149,7 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
 
         result = await executeWithRetry(async () => {
           const { data, error: createError } = await supabase
-            .from(tableName)
+            .from(tableName as any)
             .insert(entityData)
             .select()
 
@@ -292,7 +177,6 @@ export const useSharedFormSubmit = <TEntity extends { id?: string }, TFormData e
         })
       }
 
-      // Cerrar formulario tras éxito
       onClose()
 
       return {

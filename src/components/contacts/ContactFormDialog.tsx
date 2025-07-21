@@ -16,7 +16,7 @@ interface ContactFormDialogProps {
 }
 
 export const ContactFormDialog = ({ contact, open, onClose }: ContactFormDialogProps) => {
-  const { form, isEditing, isCompanyDataLoaded, handleCompanyFound, onSubmit } = useContactForm(contact, onClose)
+  const { form, isEditing, isCompanyDataLoaded, handleCompanyFound, submitForm } = useContactForm(contact, onClose)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -28,7 +28,7 @@ export const ContactFormDialog = ({ contact, open, onClose }: ContactFormDialogP
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(submitForm)} className="space-y-6">
             
             {/* Sección de búsqueda empresarial */}
             {!isEditing && (

@@ -1,4 +1,3 @@
-
 import { useClientFormState } from './clients/useClientFormState'
 import { useClientFormSubmit } from './clients/useClientFormSubmit'
 import { createLogger } from '@/utils/logger'
@@ -6,95 +5,32 @@ import { createError, handleError } from '@/utils/errorHandler'
 import type { Client } from './clients/clientFormTypes'
 import type { CompanyData } from './useCompanyLookup'
 
-/**
- * Configuración para el hook useClientForm
- */
 interface ClientFormConfig {
-  /** Cliente a editar (null para crear nuevo) */
   client: Client | null
-  /** Función llamada al cerrar el formulario */
   onClose: () => void
-  /** Callback ejecutado cuando se encuentra una empresa */
   onCompanyFound?: (company: CompanyData) => void
-  /** Callback ejecutado después de envío exitoso */
   onSuccess?: (client: Client) => void
-  /** Validación adicional personalizada */
   customValidation?: (client: Client) => boolean
 }
 
-/**
- * Valor de retorno del hook useClientForm
- */
 interface ClientFormReturn {
-  /** Instancia del formulario react-hook-form */
   form: ReturnType<typeof useClientFormState>['form']
-  /** Indica si está en modo edición */
   isEditing: boolean
-  /** Indica si se han cargado datos de empresa */
   isCompanyDataLoaded: boolean
-  /** Función para manejar empresa encontrada */
   handleCompanyFound: (company: CompanyData) => void
-  /** Función para enviar el formulario */
-  onSubmit: ReturnType<typeof useClientFormSubmit>['onSubmit']
-  /** Estado de validación del formulario */
+  submitForm: ReturnType<typeof useClientFormSubmit>['submitForm']
   isValid: boolean
-  /** Errores de validación actuales */
   errors: Record<string, string>
 }
 
-/**
- * Hook principal para gestionar formularios de clientes.
- * Proporciona funcionalidad completa para crear y editar clientes con validación,
- * búsqueda de empresas y manejo de errores robusto.
- * 
- * @param config - Configuración del formulario de cliente
- * @returns Objeto con form, estado y funciones de gestión
- * 
- * @example
- * ```tsx
- * const { 
- *   form, 
- *   isEditing, 
- *   handleCompanyFound, 
- *   onSubmit,
- *   isValid 
- * } = useClientForm({
- *   client: selectedClient,
- *   onClose: () => setDialogOpen(false),
- *   onCompanyFound: (company) => {
- *     console.log('Empresa encontrada:', company.name)
- *   },
- *   onSuccess: (client) => {
- *     toast.success(`Cliente ${client.name} guardado exitosamente`)
- *   }
- * })
- * 
- * return (
- *   <Form {...form}>
- *     <form onSubmit={form.handleSubmit(onSubmit)}>
- *       <CompanyLookupSection onCompanyFound={handleCompanyFound} />
- *       <ClientFormTabs form={form} />
- *       <Button type="submit" disabled={!isValid}>
- *         {isEditing ? 'Actualizar' : 'Crear'} Cliente
- *       </Button>
- *     </form>
- *   </Form>
- * )
- * ```
- * 
- * @throws {Error} Si los parámetros no son válidos
- */
 export const useClientForm = (config: ClientFormConfig | Client | null, onClose?: () => void): ClientFormReturn => {
   const logger = createLogger('useClientForm')
   
-  // Normalizar parámetros para backward compatibility
   let normalizedConfig: ClientFormConfig
   
   if (typeof config === 'object' && config !== null && 'client' in config) {
-    // Nueva API con objeto de configuración
     normalizedConfig = config as ClientFormConfig
   } else {
-    // API legacy con parámetros separados
     if (typeof onClose !== 'function') {
       throw createError('Invalid onClose parameter', {
         severity: 'high',
@@ -196,13 +132,10 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
     throw error // Re-throw para que el componente pueda manejar el error
   }
 
-  // Inicializar hooks de estado y envío
   const { form, isEditing, isCompanyDataLoaded, handleCompanyFound: originalHandleCompanyFound } = useClientFormState(normalizedConfig.client)
   
-  // Envolver handleCompanyFound con callback personalizado
   const enhancedHandleCompanyFound = (companyData: CompanyData) => {
     try {
-      // Validar datos de empresa
       if (!companyData || typeof companyData !== 'object') {
         throw createError('Invalid company data', {
           severity: 'medium',
@@ -219,10 +152,8 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
         })
       }
 
-      // Ejecutar handler original
       originalHandleCompanyFound(companyData)
       
-      // Ejecutar callback personalizado si existe
       if (normalizedConfig.onCompanyFound) {
         normalizedConfig.onCompanyFound(companyData)
       }
@@ -246,14 +177,12 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
     }
   }
 
-  // Envolver onSubmit con callback de éxito
   const originalSubmit = useClientFormSubmit(normalizedConfig.client, normalizedConfig.onClose)
   
-  const enhancedOnSubmit = async (data: any) => {
+  const enhancedSubmitForm = async (data: any) => {
     try {
-      await originalSubmit.onSubmit(data)
+      await originalSubmit.submitForm(data)
       
-      // Ejecutar callback de éxito si está definido
       if (normalizedConfig.onSuccess && normalizedConfig.client) {
         normalizedConfig.onSuccess(normalizedConfig.client)
       }
@@ -284,7 +213,6 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
     }
   }
 
-  // Calcular estado de validación
   const isValid = form.formState.isValid && !form.formState.isSubmitting
   const errors = Object.keys(form.formState.errors).reduce((acc, key) => {
     const error = form.formState.errors[key]
@@ -297,19 +225,12 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
     isEditing,
     isCompanyDataLoaded,
     handleCompanyFound: enhancedHandleCompanyFound,
-    onSubmit: enhancedOnSubmit,
+    submitForm: enhancedSubmitForm,
     isValid,
     errors
   }
 }
 
-/**
- * Hook especializado para crear nuevos clientes empresariales
- * 
- * @param onClose - Callback al cerrar el formulario
- * @param onCompanyFound - Callback cuando se encuentra una empresa
- * @returns Hook configurado para creación de clientes empresariales
- */
 export const useCompanyClientForm = (
   onClose: () => void,
   onCompanyFound?: (company: CompanyData) => void
@@ -319,7 +240,6 @@ export const useCompanyClientForm = (
     onClose,
     onCompanyFound,
     customValidation: (client) => {
-      // Validaciones específicas para clientes empresariales
       return client.client_type === 'empresa' && 
              client.dni_nif?.length >= 8 &&
              client.name.length >= 2

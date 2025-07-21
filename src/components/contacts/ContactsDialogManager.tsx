@@ -34,6 +34,13 @@ export function ContactsDialogManager({
   onQuantumImportClose,
   onBulkUploadSuccess
 }: ContactsDialogManagerProps) {
+  // Convertir contacts a formato compatible con ClientExportDialog
+  const contactsAsClients = contacts.map(contact => ({
+    ...contact,
+    // Asegurar que relationship_type sea compatible
+    relationship_type: 'cliente' as const
+  }))
+
   return (
     <>
       <ContactFormDialog
@@ -59,7 +66,7 @@ export function ContactsDialogManager({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={contacts}
+        clients={contactsAsClients}
       />
 
       <QuantumImportDialog
