@@ -209,6 +209,8 @@ export const usePersonCreationForm = (
   onClose: () => void,
   initialData?: Partial<Person>
 ) => {
+  const logger = createLogger('usePersonCreationForm')
+  
   return usePersonForm({
     person: null,
     onClose,
