@@ -18,3 +18,12 @@ export { default as OfflineIndicator } from './OfflineIndicator'
 
 // Legacy exports
 export { LazyRouteWrapper } from './LazyRouteWrapper'
+
+// Phase 2: Improved existing components
+export { VirtualizedPersonsTable } from '../contacts/VirtualizedPersonsTable'
+export { VirtualizedCompaniesTable } from '../contacts/VirtualizedCompaniesTable'
+export { PersonRowOptimized } from '../contacts/PersonRowOptimized'
+export { CompanyRowOptimized } from '../contacts/CompanyRowOptimized'
+
+// Phase 2: Performance hooks
+export { useVirtualizationCleanup } from '../../hooks/performance/useVirtualizationCleanup'
