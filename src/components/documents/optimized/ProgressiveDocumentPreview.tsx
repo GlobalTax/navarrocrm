@@ -61,7 +61,7 @@ export const ProgressiveDocumentPreview = ({
   })
 
   // Intersection Observer para lazy loading del contenido completo
-  const { isIntersecting } = useIntersectionObserver(previewRef, {
+  const { isIntersecting } = useIntersectionObserver({
     threshold: 0.1,
     rootMargin: '100px'
   })

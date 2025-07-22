@@ -75,7 +75,7 @@ export const useDocumentCache = <T = any>(options: CacheOptions = {}) => {
       
       logger.debug('📦 Datos comprimidos', {
         original: jsonString.length,
-        compressed: compressed.length,
+        compressedLength: compressed.length,
         ratio: ((1 - compressed.length / jsonString.length) * 100).toFixed(1) + '%'
       })
 
@@ -268,7 +268,7 @@ export const useDocumentCache = <T = any>(options: CacheOptions = {}) => {
       
       logger.debug('💾 Datos cacheados', { 
         key, 
-        size: (size / 1024).toFixed(1) + 'KB',
+        sizeKB: (size / 1024).toFixed(1) + 'KB',
         compressed: compressionEnabled 
       })
     } catch (error) {
