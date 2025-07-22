@@ -41,8 +41,8 @@ export const usePerformanceMonitor = (componentName: string, threshold = 16) => 
       // Detectar renders lentos
       if (renderTime > threshold) {
         logger.warn(`Slow render detected in ${componentName}`, {
-          renderTime: `${renderTime.toFixed(2)}ms`,
-          threshold: `${threshold}ms`
+          renderTime: renderTime.toFixed(2),
+          threshold: threshold
         })
       }
 
@@ -60,7 +60,7 @@ export const usePerformanceMonitor = (componentName: string, threshold = 16) => 
           avgRenderTime,
           memoryUsage,
           slowRenders,
-          lastSlowRender: renderTimesRef.current[renderTimesRef.current.length - 1] || 0
+          lastSlowRender: renderTime
         })
       }
     }
