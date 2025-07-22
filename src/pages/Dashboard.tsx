@@ -1,35 +1,33 @@
-import { useEffect, useState, useMemo } from 'react'
+
+import { useEffect, useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { OptimizedDashboardLayout } from '@/components/dashboard/OptimizedDashboardLayout'
+import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
+import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
-import { useParallelQueries } from '@/hooks/optimization/useParallelQueries'
-import { useMemoizedMetrics } from '@/hooks/optimization/useMemoizedMetrics'
-import { usePerformanceMonitor } from '@/hooks/optimization/usePerformanceMonitor'
+import { useDashboardStats } from '@/hooks/useDashboardStats'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { MainLayout } from '@/components/layout/MainLayout'
 import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { MetricsErrorBoundary } from '@/components/dashboard/MetricsErrorBoundary'
 
 export default function Dashboard() {
   const { user } = useApp()
-  const { data, isLoading, error, refetchAll } = useParallelQueries()
+  const { stats, isLoading, error, refetch } = useDashboardStats()
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
-  const { metrics } = usePerformanceMonitor('Dashboard', 20)
 
   useEffect(() => {
     if (user?.org_id) {
+      refetch()
       setLastRefresh(new Date())
     }
-  }, [user])
+  }, [user, refetch])
 
   const handleRefresh = async () => {
     try {
-      await refetchAll()
+      await refetch()
       setLastRefresh(new Date())
       toast.success('Dashboard actualizado', {
         description: 'Los datos se han actualizado correctamente'
@@ -40,47 +38,6 @@ export default function Dashboard() {
       })
     }
   }
-
-  // OPTIMIZACIÓN: Memoizar transformación de stats costosa
-  const enhancedStats = useMemoizedMetrics(data || {
-    totalTimeEntries: 0,
-    totalBillableHours: 0,
-    totalClients: 0,
-    totalCases: 0,
-    totalActiveCases: 0,
-    pendingInvoices: 0,
-    hoursThisWeek: 0,
-    hoursThisMonth: 0,
-    utilizationRate: 0,
-    averageHoursPerDay: 0,
-    totalRevenue: 0,
-    pendingTasks: 0,
-    overdueTasks: 0,
-    loading: isLoading,
-    error: error || null
-  })
-
-  // OPTIMIZACIÓN: Memoizar mensaje de bienvenida
-  const welcomeMessage = useMemo(() => 
-    user?.email?.split('@')[0] || 'Usuario',
-    [user?.email]
-  )
-
-  // OPTIMIZACIÓN: Memoizar formato de tiempo
-  const formatTime = useMemo(() => (date: Date) => 
-    date.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }), [])
-
-  // OPTIMIZACIÓN: Memoizar badges
-  const badges = useMemo(() => [
-    {
-      label: `Rol: ${user?.role}`,
-      variant: 'outline' as const,
-      color: 'text-blue-600 border-blue-200 bg-blue-50'
-    }
-  ], [user?.role])
 
   if (!user) {
     return (
@@ -93,51 +50,105 @@ export default function Dashboard() {
     )
   }
 
+  const welcomeMessage = user?.email?.split('@')[0] || 'Usuario'
+  const formatTime = (date: Date) => date.toLocaleTimeString('es-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
+
+  // Convert stats to match EnhancedDashboardMetrics interface
+  const enhancedStats = {
+    totalTimeEntries: stats.totalTimeEntries,
+    totalBillableHours: stats.totalBillableHours,
+    totalClients: stats.totalContacts,
+    totalCases: stats.totalCases,
+    totalActiveCases: stats.activeCases,
+    pendingInvoices: 0,
+    hoursThisWeek: 0,
+    hoursThisMonth: stats.thisMonthHours,
+    utilizationRate: stats.totalTimeEntries > 0 ? Math.round((stats.totalBillableHours / (stats.totalBillableHours + stats.totalNonBillableHours)) * 100) : 0,
+    averageHoursPerDay: 0,
+    totalRevenue: stats.totalBillableHours * 50, // Estimated at €50/hour
+    pendingTasks: 0,
+    overdueTasks: 0,
+    loading: isLoading,
+    error: error?.message || null
+  }
+
   return (
-    <MainLayout>
-      <StandardPageContainer>
-        <StandardPageHeader
-          title={`Bienvenido, ${welcomeMessage}`}
-          description="Panel de control inteligente con métricas en tiempo real"
-          badges={badges}
-          actions={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Actualizar
-            </Button>
+    <StandardPageContainer>
+      <StandardPageHeader
+        title={`Bienvenido, ${welcomeMessage}`}
+        description="Panel de control inteligente con métricas en tiempo real"
+        badges={[
+          {
+            label: `Rol: ${user.role}`,
+            variant: 'outline',
+            color: 'text-blue-600 border-blue-200 bg-blue-50'
           }
-        />
+        ]}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        }
+      />
 
-        {/* Timer de trabajo activo */}
-        <div className="mb-6">
-          <EnhancedActiveTimer />
-        </div>
+      {/* Timer de trabajo activo */}
+      <div className="mb-6">
+        <EnhancedActiveTimer />
+      </div>
 
-        {/* Indicador de última actualización */}
-        <div className="text-sm text-gray-500 mb-4 flex items-center justify-between">
-          <span>Última actualización: {formatTime(lastRefresh)}</span>
-          {process.env.NODE_ENV === 'development' && (
-            <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-              {metrics.componentRenders} renders | {metrics.avgRenderTime.toFixed(1)}ms avg
-            </span>
-          )}
-        </div>
-        
-        {/* Layout principal optimizado con error boundary */}
-        <MetricsErrorBoundary onRetry={handleRefresh}>
-          <OptimizedDashboardLayout />
-        </MetricsErrorBoundary>
-        
-        {error && (
-          <DashboardError error={error} onRetry={refetchAll} />
-        )}
-      </StandardPageContainer>
-    </MainLayout>
+      {/* Indicador de última actualización */}
+      <div className="text-sm text-gray-500 mb-4">
+        Última actualización: {formatTime(lastRefresh)}
+      </div>
+      
+      {/* Métricas principales con diseño compacto */}
+      <EnhancedDashboardMetrics stats={enhancedStats} />
+      
+      {/* Layout principal */}
+      {!isLoading && <EnhancedDashboardLayout />}
+      
+      {error && (
+        <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
+      )}
+    </StandardPageContainer>
   )
 }
+
+// Componente de skeleton para loading
+const DashboardLoadingSkeleton = () => (
+  <div className="space-y-6">
+    {/* Active Timer Skeleton */}
+    <Skeleton className="h-16 w-full" />
+    
+    {/* Métricas principales skeleton */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-32" />
+      ))}
+    </div>
+    
+    {/* Métricas adicionales skeleton */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-32" />
+      ))}
+    </div>
+    
+    {/* Layout skeleton */}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <Skeleton className="lg:col-span-4 h-64" />
+      <Skeleton className="lg:col-span-5 h-64" />
+      <Skeleton className="lg:col-span-3 h-64" />
+    </div>
+  </div>
+)

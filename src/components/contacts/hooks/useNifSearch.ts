@@ -1,13 +1,11 @@
 
 import { useState } from 'react'
 import { useCompanyLookup, type CompanyData } from '@/hooks/useCompanyLookup'
-import { useLogger } from '@/hooks/useLogger'
 
 export const useNifSearch = () => {
   const [lastSearchResult, setLastSearchResult] = useState<CompanyData & { isSimulated?: boolean, warning?: string } | null>(null)
   const [searchError, setSearchError] = useState<string | null>(null)
   const { lookupCompany, isLoading } = useCompanyLookup()
-  const logger = useLogger('useNifSearch')
 
   const performSearch = async (nif: string, onCompanyFound: (company: CompanyData) => void) => {
     if (!nif.trim()) {
@@ -18,16 +16,16 @@ export const useNifSearch = () => {
     setSearchError(null)
     setLastSearchResult(null)
 
-    logger.info('Iniciando búsqueda', { metadata: { nif } })
+    console.log('🔍 NifLookup - Iniciando búsqueda:', nif)
 
     const result = await lookupCompany(nif)
     if (result) {
-      logger.info('Empresa encontrada', { metadata: { result } })
+      console.log('✅ NifLookup - Empresa encontrada:', result)
       setLastSearchResult(result as CompanyData & { isSimulated?: boolean, warning?: string })
       setSearchError(null)
       onCompanyFound(result)
     } else {
-      logger.warn('No se encontró empresa', { metadata: { nif } })
+      console.log('❌ NifLookup - No se encontró empresa')
       setSearchError('No se pudo encontrar la empresa')
     }
   }

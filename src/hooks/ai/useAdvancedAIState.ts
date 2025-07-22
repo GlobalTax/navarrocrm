@@ -1,44 +1,13 @@
 
-import { useState, useMemo, useCallback } from 'react'
-import { createLogger } from '@/utils/logger'
+import { useState, useMemo } from 'react'
 import { VoiceAssistant } from '@/components/ai/VoiceAssistant'
 import { DocumentAnalyzer } from '@/components/ai/DocumentAnalyzer'
 import { TimeOptimizer } from '@/components/ai/TimeOptimizer'
-import ComplianceMonitor from '@/components/ai/ComplianceMonitor'
-import BusinessIntelligence from '@/components/ai/BusinessIntelligence'
+import { ComplianceMonitor } from '@/components/ai/ComplianceMonitor'
+import { BusinessIntelligence } from '@/components/ai/BusinessIntelligence'
 import { Mic, FileText, Clock, Shield, TrendingUp } from 'lucide-react'
 
-/**
- * Hook para gestionar el estado avanzado de herramientas AI
- * Proporciona filtrado, búsqueda y gestión de herramientas de inteligencia artificial
- * 
- * @returns {Object} Estado y funciones para gestionar herramientas AI
- * @returns {string} returns.searchTerm - Término de búsqueda actual
- * @returns {Function} returns.setSearchTerm - Función para actualizar búsqueda
- * @returns {string} returns.difficultyFilter - Filtro de dificultad actual
- * @returns {Function} returns.setDifficultyFilter - Función para actualizar filtro
- * @returns {Array} returns.filteredTools - Herramientas filtradas
- * 
- * @example
- * ```typescript
- * const { 
- *   searchTerm, 
- *   setSearchTerm, 
- *   filteredTools, 
- *   categories 
- * } = useAdvancedAIState()
- * 
- * // Buscar herramientas
- * setSearchTerm('análisis')
- * 
- * // Mostrar herramientas filtradas
- * filteredTools.map(tool => <ToolCard key={tool.id} {...tool} />)
- * ```
- * 
- * @since 1.0.0
- */
 export const useAdvancedAIState = () => {
-  const logger = createLogger('useAdvancedAIState')
   const [searchTerm, setSearchTerm] = useState('')
   const [difficultyFilter, setDifficultyFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -125,45 +94,13 @@ export const useAdvancedAIState = () => {
     return [...new Set(aiTools.map(tool => tool.category))]
   }, [aiTools])
 
-  /**
-   * Actualiza el término de búsqueda con logging
-   */
-  const updateSearchTerm = useCallback((term: string) => {
-    logger.debug('Actualizando término de búsqueda', { term, previousTerm: searchTerm })
-    setSearchTerm(term)
-  }, [logger, searchTerm])
-
-  /**
-   * Actualiza el filtro de dificultad con logging
-   */
-  const updateDifficultyFilter = useCallback((difficulty: string) => {
-    logger.debug('Actualizando filtro de dificultad', { difficulty, previousFilter: difficultyFilter })
-    setDifficultyFilter(difficulty)
-  }, [logger, difficultyFilter])
-
-  /**
-   * Actualiza el filtro de categoría con logging
-   */
-  const updateCategoryFilter = useCallback((category: string) => {
-    logger.debug('Actualizando filtro de categoría', { category, previousFilter: categoryFilter })
-    setCategoryFilter(category)
-  }, [logger, categoryFilter])
-
-  logger.debug('Estado de herramientas AI actualizado', {
-    searchTerm,
-    difficultyFilter,
-    categoryFilter,
-    totalTools: aiTools.length,
-    filteredCount: filteredTools.length
-  })
-
   return {
     searchTerm,
-    setSearchTerm: updateSearchTerm,
+    setSearchTerm,
     difficultyFilter,
-    setDifficultyFilter: updateDifficultyFilter,
+    setDifficultyFilter,
     categoryFilter,
-    setCategoryFilter: updateCategoryFilter,
+    setCategoryFilter,
     aiTools,
     filteredTools,
     categories

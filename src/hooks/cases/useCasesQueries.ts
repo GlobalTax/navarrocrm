@@ -2,115 +2,24 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { createLogger } from '@/utils/logger'
 import type { Case } from './types'
 
-/**
- * Resultado de consulta paginada de casos
- * @interface CasesQueryResult
- */
 interface CasesQueryResult {
-  /** Array de casos */
   data: Case[]
-  /** Número total de casos */
   count: number
-  /** Si hay más páginas disponibles */
   hasMore: boolean
 }
 
-/**
- * Filtros disponibles para la consulta de casos
- * @interface CasesFilters
- */
 interface CasesFilters {
-  /** Término de búsqueda en título y número de expediente */
   searchTerm?: string
-  /** Filtro por estado del caso */
   statusFilter?: string
-  /** Filtro por área de práctica */
   practiceAreaFilter?: string
-  /** Filtro por procurador responsable */
   solicitorFilter?: string
 }
 
-/**
- * Opciones de configuración para useCasesQueries
- * @interface UseCasesQueriesOptions
- */
-interface UseCasesQueriesOptions {
-  /** Habilitar la consulta */
-  enabled?: boolean
-  /** Tiempo de cache en milisegundos */
-  staleTime?: number
-  /** Límite de casos por consulta */
-  limit?: number
-}
-
-/**
- * Hook para consultar y gestionar casos de la organización
- * Proporciona funcionalidades avanzadas de filtrado, búsqueda y paginación
- * 
- * @param {CasesFilters} filters - Filtros para aplicar a la consulta
- * @param {UseCasesQueriesOptions} options - Opciones de configuración
- * @returns {Object} Resultado con casos, estado de carga y funciones
- * 
- * @example
- * ```tsx
- * const { cases, isLoading, error, refetch } = useCasesQueries({
- *   searchTerm: 'divorcio',
- *   statusFilter: 'active',
- *   practiceAreaFilter: 'family'
- * })
- * 
- * if (isLoading) return <div>Cargando casos...</div>
- * if (error) return <div>Error: {error.message}</div>
- * 
- * return (
- *   <div>
- *     {cases.map(case => (
- *       <CaseCard key={case.id} case={case} />
- *     ))}
- *   </div>
- * )
- * ```
- * 
- * @throws {Error} Cuando no se puede acceder a los datos del usuario
- * @throws {Error} Cuando los filtros son inválidos
- */
-export const useCasesQueries = (filters: CasesFilters = {}, options: UseCasesQueriesOptions = {}) => {
-  const logger = createLogger('useCasesQueries')
+export const useCasesQueries = (filters: CasesFilters = {}) => {
   const { user } = useApp()
-  const PAGE_SIZE = options.limit ?? 25
-
-  // Validación de parámetros
-  if (filters && typeof filters !== 'object') {
-    logger.error('filters debe ser un objeto', { filters: typeof filters })
-    throw new Error('El parámetro filters debe ser un objeto válido')
-  }
-
-  if (filters.searchTerm && typeof filters.searchTerm !== 'string') {
-    logger.error('searchTerm debe ser una cadena', { searchTerm: typeof filters.searchTerm })
-    throw new Error('El filtro searchTerm debe ser una cadena válida')
-  }
-
-  if (filters.searchTerm && filters.searchTerm.length > 100) {
-    logger.warn('searchTerm muy largo, truncando', { length: filters.searchTerm.length })
-    filters.searchTerm = filters.searchTerm.substring(0, 100)
-  }
-
-  if (options.limit && (options.limit < 1 || options.limit > 1000)) {
-    logger.warn('Límite fuera de rango (1-1000), usando valor por defecto', { limit: options.limit })
-  }
-
-  if (options.staleTime && (options.staleTime < 0 || options.staleTime > 1000 * 60 * 60)) {
-    logger.warn('staleTime fuera de rango recomendado (0-3600000ms)', { staleTime: options.staleTime })
-  }
-
-  // Validación de contexto
-  if (!user) {
-    logger.error('Usuario no encontrado en el contexto')
-    throw new Error('Usuario no autenticado')
-  }
+  const PAGE_SIZE = 25
 
   const { data: cases = [], isLoading, error, refetch } = useQuery({
     queryKey: ['cases', user?.org_id, filters],

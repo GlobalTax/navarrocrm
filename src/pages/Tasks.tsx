@@ -1,39 +1,113 @@
 
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Plus, CheckSquare } from 'lucide-react'
-import { MainLayout } from '@/components/layout/MainLayout'
-import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { useTasks } from '@/hooks/useTasks'
+import { useTasksPageState } from '@/hooks/tasks/useTasksPageState'
+import { useTasksFilters } from '@/hooks/tasks/useTasksFilters'
+import { TasksStats } from '@/components/tasks/TasksStats'
+import { TasksBoardKanban } from '@/components/tasks/TasksBoardKanban'
+import { TasksList } from '@/components/tasks/TasksList'
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
+import { TasksEmptyState } from '@/components/tasks/TasksEmptyState'
+import { TasksErrorState } from '@/components/tasks/TasksErrorState'
+import { TasksLoadingState } from '@/components/tasks/TasksLoadingState'
+import { TasksViewSelector } from '@/components/tasks/TasksViewSelector'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { StandardFilters } from '@/components/layout/StandardFilters'
 
 const Tasks = () => {
-  return (
-    <MainLayout>
-      <StandardPageContainer>
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Tareas</h1>
-            <p className="text-gray-600 mt-1">Gestiona tareas y seguimiento de trabajo</p>
-          </div>
-          <Button className="border-0.5 border-black rounded-[10px]">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Tarea
-          </Button>
-        </div>
+  const { tasks, taskStats, isLoading, error } = useTasks()
+  const pageState = useTasksPageState()
+  const filtersState = useTasksFilters()
 
-        <Card className="border-0.5 border-black rounded-[10px] shadow-sm">
-          <CardHeader className="text-center py-12">
-            <div className="mx-auto mb-4 p-3 bg-purple-100 rounded-full w-fit">
-              <CheckSquare className="h-8 w-8 text-purple-600" />
-            </div>
-            <CardTitle className="text-xl mb-2">Gestión de Tareas</CardTitle>
-            <CardDescription className="max-w-md mx-auto">
-              Organiza y hace seguimiento de todas las tareas del despacho.
-              Funcionalidad en desarrollo.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </StandardPageContainer>
-    </MainLayout>
+  console.log('🔍 Tasks page state:', { 
+    tasks: tasks?.length, 
+    taskStats, 
+    isLoading, 
+    error: error?.message 
+  })
+
+  const filteredTasks = filtersState.filterTasks(tasks)
+
+  if (error) {
+    console.error('❌ Tasks page error:', error)
+    return (
+      <TasksErrorState 
+        error={error} 
+        onRetry={() => window.location.reload()} 
+      />
+    )
+  }
+
+  if (isLoading) {
+    return <TasksLoadingState />
+  }
+
+  const safeTasks = Array.isArray(tasks) ? tasks : []
+
+  return (
+    <div className="space-y-6">
+      <StandardPageHeader
+        title="Tareas"
+        description="Organiza y gestiona todas las tareas del despacho"
+        primaryAction={{
+          label: 'Nueva Tarea',
+          onClick: pageState.handleCreateTask
+        }}
+      >
+        <TasksViewSelector 
+          viewMode={pageState.viewMode} 
+          onViewModeChange={pageState.setViewMode} 
+        />
+      </StandardPageHeader>
+      
+      <TasksStats stats={taskStats} />
+      
+      <StandardFilters
+        searchPlaceholder="Buscar tareas..."
+        searchValue={filtersState.filters.search}
+        onSearchChange={(value) => filtersState.setFilters({ ...filtersState.filters, search: value })}
+        filters={[
+          {
+            placeholder: 'Estado',
+            value: filtersState.filters.status,
+            onChange: (value) => filtersState.setFilters({ ...filtersState.filters, status: value }),
+            options: filtersState.statusOptions
+          },
+          {
+            placeholder: 'Prioridad',
+            value: filtersState.filters.priority,
+            onChange: (value) => filtersState.setFilters({ ...filtersState.filters, priority: value }),
+            options: filtersState.priorityOptions
+          }
+        ]}
+        hasActiveFilters={filtersState.hasActiveFilters}
+        onClearFilters={filtersState.handleClearFilters}
+      />
+
+      {safeTasks.length === 0 ? (
+        <TasksEmptyState onCreateTask={pageState.handleCreateTask} />
+      ) : (
+        <>
+          {pageState.viewMode === 'board' ? (
+            <TasksBoardKanban 
+              tasks={filteredTasks}
+              onEditTask={pageState.handleEditTask}
+              onCreateTask={pageState.handleCreateTask}
+            />
+          ) : (
+            <TasksList 
+              tasks={filteredTasks}
+              onEditTask={pageState.handleEditTask}
+            />
+          )}
+        </>
+      )}
+
+      <TaskFormDialog
+        isOpen={pageState.isTaskDialogOpen}
+        onClose={pageState.closeTaskDialog}
+        task={pageState.selectedTask}
+      />
+    </div>
   )
 }
 

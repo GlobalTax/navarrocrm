@@ -1,5 +1,4 @@
 
-import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Users, TrendingUp, Calendar, Euro, Building, User, Mail, Phone } from 'lucide-react'
@@ -10,48 +9,35 @@ interface ClientMetricsDashboardProps {
 }
 
 export const ClientMetricsDashboard = ({ clients }: ClientMetricsDashboardProps) => {
-  // OPTIMIZACIÓN: Memoizar estadísticas costosas
-  const stats = useMemo(() => {
-    const clientsWithRate = clients.filter(c => c.hourly_rate)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    
-    return {
-      total: clients.length,
-      active: clients.filter(c => c.status === 'activo').length,
-      prospects: clients.filter(c => c.status === 'prospecto').length,
-      companies: clients.filter(c => c.client_type === 'empresa').length,
-      individuals: clients.filter(c => c.client_type === 'particular').length,
-      withEmail: clients.filter(c => c.email).length,
-      withPhone: clients.filter(c => c.phone).length,
-      avgHourlyRate: clientsWithRate.length > 0 
-        ? clientsWithRate.reduce((sum, c) => sum + (c.hourly_rate || 0), 0) / clientsWithRate.length
-        : 0,
-      recentClients: clients.filter(c => {
-        const createdDate = new Date(c.created_at)
-        return createdDate >= thirtyDaysAgo
-      }).length
+  const stats = {
+    total: clients.length,
+    active: clients.filter(c => c.status === 'activo').length,
+    prospects: clients.filter(c => c.status === 'prospecto').length,
+    companies: clients.filter(c => c.client_type === 'empresa').length,
+    individuals: clients.filter(c => c.client_type === 'particular').length,
+    withEmail: clients.filter(c => c.email).length,
+    withPhone: clients.filter(c => c.phone).length,
+    avgHourlyRate: clients.filter(c => c.hourly_rate).length > 0 
+      ? clients.filter(c => c.hourly_rate).reduce((sum, c) => sum + (c.hourly_rate || 0), 0) / clients.filter(c => c.hourly_rate).length
+      : 0,
+    recentClients: clients.filter(c => {
+      const createdDate = new Date(c.created_at)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      return createdDate >= thirtyDaysAgo
+    }).length
+  }
+
+  const sectors = clients.reduce((acc, client) => {
+    if (client.business_sector) {
+      acc[client.business_sector] = (acc[client.business_sector] || 0) + 1
     }
-  }, [clients])
+    return acc
+  }, {} as Record<string, number>)
 
-  // OPTIMIZACIÓN: Memoizar agrupación por sectores
-  const sectors = useMemo(() => 
-    clients.reduce((acc, client) => {
-      if (client.business_sector) {
-        acc[client.business_sector] = (acc[client.business_sector] || 0) + 1
-      }
-      return acc
-    }, {} as Record<string, number>),
-    [clients]
-  )
-
-  // OPTIMIZACIÓN: Memoizar top sectores
-  const topSectors = useMemo(() => 
-    Object.entries(sectors)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5),
-    [sectors]
-  )
+  const topSectors = Object.entries(sectors)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
 
   return (
     <div className="space-y-6">

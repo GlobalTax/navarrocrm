@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
@@ -23,7 +22,7 @@ export const useRecurringFeesOverdue = () => {
       return data?.length || 0
     },
     enabled: !!user?.org_id,
-    refetchInterval: 5 * 60 * 1000,
-    staleTime: 2 * 60 * 1000
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    staleTime: 2 * 60 * 1000 // Consider stale after 2 minutes
   })
 }

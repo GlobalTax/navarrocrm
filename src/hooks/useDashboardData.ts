@@ -1,9 +1,7 @@
-
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { startOfWeek, startOfMonth, subMonths, format } from 'date-fns'
-import { useMemo } from 'react'
 
 export interface DashboardData {
   recentActivities: RecentActivity[]
@@ -45,29 +43,16 @@ export interface TimelineData {
 export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'month') => {
   const { user } = useApp()
 
-  // OPTIMIZACIÓN: Memoizar fechas para evitar recálculos
-  const dateRanges = useMemo(() => {
-    const now = new Date()
-    const startDate = dateRange === 'week' ? startOfWeek(now) :
-                     dateRange === 'month' ? startOfMonth(now) :
-                     startOfMonth(subMonths(now, 3))
-    
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekStart = startOfWeek(now)
-    const monthStart = startOfMonth(now)
-
-    return {
-      startDate,
-      todayStart,
-      weekStart,
-      monthStart
-    }
-  }, [dateRange])
-
   return useQuery({
     queryKey: ['dashboard-data', user?.org_id, dateRange],
     queryFn: async () => {
       if (!user?.org_id) throw new Error('No org_id available')
+
+      // Calcular fechas según el rango
+      const now = new Date()
+      const startDate = dateRange === 'week' ? startOfWeek(now) :
+                       dateRange === 'month' ? startOfMonth(now) :
+                       startOfMonth(subMonths(now, 3))
 
       // Obtener actividades recientes
       const recentActivities = await fetchRecentActivities(user.org_id)
@@ -76,10 +61,10 @@ export const useDashboardData = (dateRange: 'week' | 'month' | 'quarter' = 'mont
       const performanceData = await fetchPerformanceData(user.org_id)
       
       // Obtener estadísticas rápidas
-      const quickStats = await fetchQuickStats(user.org_id, dateRanges)
+      const quickStats = await fetchQuickStats(user.org_id, startDate)
       
       // Obtener datos de timeline
-      const timelineData = await fetchTimelineData(user.org_id, dateRanges.startDate)
+      const timelineData = await fetchTimelineData(user.org_id, startDate)
 
       return {
         recentActivities,
@@ -216,8 +201,11 @@ async function fetchPerformanceData(orgId: string): Promise<PerformanceData[]> {
   return months
 }
 
-async function fetchQuickStats(orgId: string, dateRanges: any): Promise<QuickStats> {
-  const { todayStart, weekStart, monthStart } = dateRanges
+async function fetchQuickStats(orgId: string, startDate: Date): Promise<QuickStats> {
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const weekStart = startOfWeek(now)
+  const monthStart = startOfMonth(now)
 
   // Horas de hoy
   const { data: todayEntries } = await supabase
@@ -250,7 +238,7 @@ async function fetchQuickStats(orgId: string, dateRanges: any): Promise<QuickSta
   const { data: overdueTasks } = await supabase
     .from('tasks')
     .select('id')
-    .lt('due_date', new Date().toISOString())
+    .lt('due_date', now.toISOString())
     .neq('status', 'completed')
 
   return {

@@ -1,33 +1,28 @@
 
 import { useState, useCallback } from 'react'
 import type { AcademyCourse, AcademyCategory, AcademyLesson } from '@/types/academy'
-import { createLogger } from '@/utils/logger'
 
-/**
- * Estado mejorado de administración de Academia
- * @interface EnhancedAcademiaAdminState
- */
 interface EnhancedAcademiaAdminState {
-  /** Estados de diálogos */
+  // Dialog states
   courseDialogOpen: boolean
   categoryDialogOpen: boolean
   lessonDialogOpen: boolean
   lessonsManagementDialogOpen: boolean
   aiCourseDialogOpen: boolean
   
-  /** Elementos seleccionados */
+  // Selected items
   selectedCourse: AcademyCourse | null
   selectedCategory: AcademyCategory | null
   selectedLesson: AcademyLesson | null
   selectedCourseForLesson: string
   selectedCourseForManagement: { id: string; title: string } | null
   
-  /** Estados de carga */
+  // Loading states
   isGeneratingWithAI: boolean
   isDeletingCourse: boolean
   isDeletingCategory: boolean
   
-  /** Estados de error */
+  // Error states
   lastError: string | null
 }
 
@@ -48,62 +43,18 @@ const initialState: EnhancedAcademiaAdminState = {
   lastError: null
 }
 
-/**
- * Hook mejorado para gestionar el estado de administración de Academia
- * Proporciona un estado más completo con manejo de errores y carga
- * 
- * @returns {Object} Objeto con estado y acciones disponibles
- * @returns {EnhancedAcademiaAdminState} returns.state - Estado actual
- * @returns {Object} returns.actions - Acciones disponibles
- * 
- * @example
- * ```typescript
- * const { state, actions } = useEnhancedAcademiaAdminState()
- * 
- * // Abrir diálogo con manejo de errores
- * actions.openCourseDialog(course)
- * 
- * // Gestionar estados de carga
- * actions.setGeneratingWithAI(true)
- * 
- * // Gestionar errores
- * actions.setError('Error al procesar')
- * ```
- * 
- * @since 1.1.0
- */
 export const useEnhancedAcademiaAdminState = () => {
-  const logger = createLogger('useEnhancedAcademiaAdminState')
   const [state, setState] = useState<EnhancedAcademiaAdminState>(initialState)
 
-  /**
-   * Abre el diálogo de curso con validación mejorada
-   * @param {AcademyCourse} [course] - Curso a editar (opcional)
-   */
+  // Course actions
   const openCourseDialog = useCallback((course?: AcademyCourse) => {
-    try {
-      if (course && (!course.id || !course.title)) {
-        logger.error('Datos de curso inválidos', { course })
-        setState(prev => ({ ...prev, lastError: 'Datos de curso inválidos' }))
-        return
-      }
-
-      setState(prev => ({
-        ...prev,
-        courseDialogOpen: true,
-        selectedCourse: course || null,
-        lastError: null
-      }))
-
-      logger.debug('Diálogo de curso abierto', { 
-        courseId: course?.id, 
-        mode: course ? 'edit' : 'create' 
-      })
-    } catch (error) {
-      logger.error('Error al abrir diálogo de curso', { error })
-      setState(prev => ({ ...prev, lastError: 'Error al abrir diálogo de curso' }))
-    }
-  }, [logger])
+    setState(prev => ({
+      ...prev,
+      courseDialogOpen: true,
+      selectedCourse: course || null,
+      lastError: null
+    }))
+  }, [])
 
   const closeCourseDialog = useCallback(() => {
     setState(prev => ({

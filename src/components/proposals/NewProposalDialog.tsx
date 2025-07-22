@@ -40,7 +40,6 @@ export function NewProposalDialog({
         title: editingProposal.title || '',
         description: editingProposal.description || '',
         proposal_type: editingProposal.proposal_type || 'service',
-        is_recurring: editingProposal.is_recurring || false,
         valid_until: editingProposal.valid_until || '',
         notes: editingProposal.notes || '',
         line_items: editingProposal.line_items || []
@@ -52,7 +51,6 @@ export function NewProposalDialog({
       title: '',
       description: '',
       proposal_type: 'service',
-      is_recurring: false,
       valid_until: '',
       notes: '',
       line_items: []
@@ -62,17 +60,13 @@ export function NewProposalDialog({
   const addLineItem = () => {
     const newItem: Omit<ProposalLineItem, 'id' | 'proposal_id'> = {
       service_catalog_id: undefined,
-      service_name: '',
       name: '',
       description: '',
       quantity: 1,
       unit_price: 0,
       total_price: 0,
       billing_unit: 'hour',
-      estimated_hours: null,
-      sort_order: formData.line_items.length,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      sort_order: formData.line_items.length
     }
     setFormData(prev => ({
       ...prev,
@@ -150,7 +144,6 @@ export function NewProposalDialog({
       title: '',
       description: '',
       proposal_type: 'service',
-      is_recurring: false,
       valid_until: '',
       notes: '',
       line_items: []

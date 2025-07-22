@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -16,7 +15,6 @@ import { DocumentBasicInfo } from './generator/DocumentBasicInfo'
 import { DocumentVariablesForm } from './generator/DocumentVariablesForm'
 import { DocumentPreview } from './generator/DocumentPreview'
 import { useDocumentForm } from './generator/useDocumentForm'
-import { DocumentTemplate, CaseData, ContactData } from '@/types/documents'
 import { toast } from 'sonner'
 
 interface DocumentGeneratorDialogProps {
@@ -34,14 +32,12 @@ export const DocumentGeneratorDialog = ({
   const { cases } = useCases()
   const { contacts } = useContacts()
   
-  const [preview, setPreview] = useState<string>('')
-  const [activeTab, setActiveTab] = useState<string>('form')
-  const [useAdvancedMode, setUseAdvancedMode] = useState<boolean>(true)
+  const [preview, setPreview] = useState('')
+  const [activeTab, setActiveTab] = useState('form')
+  const [useAdvancedMode, setUseAdvancedMode] = useState(true)
   const [generatedDocumentId, setGeneratedDocumentId] = useState<string | null>(null)
 
-  const template: DocumentTemplate | undefined = templates.find(t => t.id === templateId)
-  const typedCases: CaseData[] = cases as CaseData[]
-  const typedContacts: ContactData[] = contacts as ContactData[]
+  const template = templates.find(t => t.id === templateId)
 
   const {
     formData,
@@ -54,12 +50,10 @@ export const DocumentGeneratorDialog = ({
     handleSubmit: submitForm,
     resetForm
   } = useDocumentForm({
-    template: template || null,
-    cases: typedCases,
-    contacts: typedContacts,
+    template,
+    cases,
+    contacts,
     onSubmit: async (data) => {
-      if (!template) return
-      
       const result = await generateDocument.mutateAsync({
         templateId: template.id,
         title: data.title,
@@ -100,6 +94,7 @@ export const DocumentGeneratorDialog = ({
     }
   }, [open, resetForm])
 
+
   if (!template) {
     return null
   }
@@ -130,8 +125,8 @@ export const DocumentGeneratorDialog = ({
               <DocumentBasicInfo
                 formData={formData}
                 onFormDataChange={updateFormData}
-                cases={typedCases}
-                contacts={typedContacts}
+                cases={cases}
+                contacts={contacts}
                 isAiEnhanced={template.is_ai_enhanced}
                 onCaseSelect={autofillFromCase}
                 onContactSelect={autofillFromContact}
@@ -141,19 +136,19 @@ export const DocumentGeneratorDialog = ({
                 <DocumentFormWizard
                   template={template}
                   formData={formData}
-                  onDataChange={(newData: Record<string, any>) => {
+                  onDataChange={(newData) => {
                     Object.entries(newData).forEach(([key, value]) => {
                       if (key === 'variables') {
                         Object.entries(value as Record<string, any>).forEach(([varKey, varValue]) => {
                           updateVariable(varKey, varValue)
                         })
                       } else {
-                        updateFormData(key as keyof typeof formData, value)
+                        updateFormData(key, value)
                       }
                     })
                   }}
-                  cases={typedCases}
-                  contacts={typedContacts}
+                  cases={cases}
+                  contacts={contacts}
                 />
               ) : (
                 <DocumentVariablesForm
@@ -194,7 +189,7 @@ export const DocumentGeneratorDialog = ({
               documentType={template.document_type}
               templateId={template.id}
               initialVariables={formData.variables}
-              onContentGenerated={(content: string) => {
+              onContentGenerated={(content) => {
                 // Actualizar el preview con el contenido generado
                 setPreview(content)
                 // Opcional: cambiar a la pestaña de preview
@@ -208,7 +203,7 @@ export const DocumentGeneratorDialog = ({
               <AIDocumentAnalyzer
                 documentId={generatedDocumentId}
                 documentContent={preview}
-                onContentUpdate={(newContent: string) => {
+                onContentUpdate={(newContent) => {
                   setPreview(newContent)
                 }}
               />

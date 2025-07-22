@@ -9,7 +9,6 @@ import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
-import { validateAndSanitizeEmail } from '@/lib/security'
 
 interface ClientBulkUploadProps {
   open: boolean
@@ -58,15 +57,12 @@ export function ClientBulkUpload({ open, onClose, onSuccess }: ClientBulkUploadP
     }
 
     // Validar email (formato si está presente)
-    if (row.email) {
-      const emailValidation = validateAndSanitizeEmail(row.email)
-      if (!emailValidation.isValid) {
-        errors.push({
-          row: index + 1,
-          field: 'email',
-          message: emailValidation.error || 'Formato de email inválido'
-        })
-      }
+    if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
+      errors.push({
+        row: index + 1,
+        field: 'email',
+        message: 'Formato de email inválido'
+      })
     }
 
     // Validar tipo de cliente

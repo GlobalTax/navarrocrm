@@ -1,85 +1,50 @@
-
-import { useState, useEffect } from 'react'
-import { useLogger } from './useLogger'
-import { ActiveCase, TeamMember } from '@/types/interfaces'
+import { useState } from 'react'
 
 export const useCollaborationHub = () => {
-  const logger = useLogger('useCollaborationHub')
-  
-  const [activeCases, setActiveCases] = useState<ActiveCase[]>([
-    {
-      id: '1',
-      title: 'Caso Laboral - Despido Improcedente',
-      clientName: 'María González',
-      clientType: 'particular',
-      status: 'activo',
-      unreadCount: 3
-    },
-    {
-      id: '2', 
-      title: 'Constitución Sociedad Limitada',
-      clientName: 'Tech Solutions SL',
-      clientType: 'empresa',
-      status: 'pendiente',
-      unreadCount: 1
-    }
+  const [activeCases] = useState([
+    { id: '1', title: 'Caso Mercantil ABC', clientName: 'TechCorp SL', clientType: 'empresa', status: 'activo', unreadCount: 3 },
+    { id: '2', title: 'Divorcio Sr. García', clientName: 'Juan García', clientType: 'particular', status: 'pendiente', unreadCount: 0 }
   ])
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    {
-      id: '1',
-      name: 'Ana Martínez',
-      role: 'Partner',
-      status: 'online',
-      avatar: 'AM'
-    },
-    {
-      id: '2',
-      name: 'Carlos López', 
-      role: 'Senior Associate',
-      status: 'busy',
-      avatar: 'CL'
-    }
+  const [teamMembers] = useState([
+    { id: '1', name: 'Ana Martínez', role: 'Abogada Senior', status: 'online', avatar: '' },
+    { id: '2', name: 'Carlos López', role: 'Partner', status: 'busy', avatar: '' }
   ])
 
-  const shareDocument = (caseId: string, document: { id: string; name: string; type: string }): void => {
-    logger.info('Compartiendo documento', { 
-      metadata: { 
-        caseId, 
-        documentId: document.id,
-        documentName: document.name,
-        documentType: document.type
-      }
-    })
-    
-    // Implementar lógica de compartir documento
+  const [messages] = useState([
+    { caseId: '1', content: '¿Podemos revisar el contrato?', senderName: 'Cliente', isOwn: false, timestamp: '10:30', senderAvatar: '', attachments: [] },
+    { caseId: '1', content: 'Por supuesto, lo revisamos ahora', senderName: 'Ana', isOwn: true, timestamp: '10:32', senderAvatar: '', attachments: [] }
+  ])
+
+  const [notifications] = useState([
+    { type: 'message', title: 'Nuevo mensaje', description: 'Cliente ha enviado documentos', time: '5 min ago' },
+    { type: 'document', title: 'Documento firmado', description: 'Contrato firmado digitalmente', time: '15 min ago' }
+  ])
+
+  const sendMessage = (caseId: string, content: string) => {
+    console.log(`Sending message to case ${caseId}: ${content}`)
   }
 
-  const updateCaseStatus = (caseId: string, newStatus: ActiveCase['status']): void => {
-    setActiveCases(prev => 
-      prev.map(case_ => 
-        case_.id === caseId 
-          ? { ...case_, status: newStatus }
-          : case_
-      )
-    )
+  const scheduleCall = (caseId: string, datetime: string) => {
+    console.log(`Scheduling call for case ${caseId} at ${datetime}`)
   }
 
-  const updateMemberStatus = (memberId: string, newStatus: TeamMember['status']): void => {
-    setTeamMembers(prev =>
-      prev.map(member =>
-        member.id === memberId
-          ? { ...member, status: newStatus }
-          : member
-      )
-    )
+  const shareDocument = (caseId: string, document: any) => {
+    console.log(`Sharing document in case ${caseId}:`, document)
+  }
+
+  const inviteCollaborator = (email: string, role: string) => {
+    console.log(`Inviting ${email} as ${role}`)
   }
 
   return {
     activeCases,
     teamMembers,
+    messages,
+    notifications,
+    sendMessage,
+    scheduleCall,
     shareDocument,
-    updateCaseStatus,
-    updateMemberStatus
+    inviteCollaborator
   }
 }

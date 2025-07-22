@@ -1,17 +1,18 @@
-
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
-import { 
-  DocumentFormData, 
-  DocumentTemplate, 
-  CaseData, 
-  ContactData 
-} from '@/types/documents'
+
+interface DocumentFormData {
+  title: string
+  variables: Record<string, any>
+  caseId: string
+  contactId: string
+  useAI: boolean
+}
 
 interface UseDocumentFormProps {
-  template: DocumentTemplate | null
-  cases: CaseData[]
-  contacts: ContactData[]
+  template: any
+  cases: any[]
+  contacts: any[]
   onSubmit: (data: DocumentFormData) => Promise<void>
 }
 
@@ -36,7 +37,7 @@ export const useDocumentForm = ({
   useEffect(() => {
     if (template) {
       const initialVariables: Record<string, any> = {}
-      template.variables.forEach((variable) => {
+      template.variables.forEach((variable: any) => {
         initialVariables[variable.name] = variable.default || ''
       })
       
@@ -48,7 +49,7 @@ export const useDocumentForm = ({
     }
   }, [template])
 
-  const updateFormData = useCallback((field: keyof DocumentFormData, value: any) => {
+  const updateFormData = useCallback((field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -92,7 +93,7 @@ export const useDocumentForm = ({
     }
     
     // Validate required variables
-    template?.variables.forEach((variable) => {
+    template?.variables.forEach((variable: any) => {
       if (variable.required) {
         const value = formData.variables[variable.name]
         if (!value || (typeof value === 'string' && !value.trim())) {
@@ -110,7 +111,7 @@ export const useDocumentForm = ({
     if (!selectedCase) return
 
     const updates: Record<string, any> = {}
-    template?.variables.forEach((variable) => {
+    template?.variables.forEach((variable: any) => {
       switch (variable.name) {
         case 'nombre_cliente':
         case 'cliente':
@@ -153,7 +154,7 @@ export const useDocumentForm = ({
     if (!selectedContact) return
 
     const updates: Record<string, any> = {}
-    template?.variables.forEach((variable) => {
+    template?.variables.forEach((variable: any) => {
       switch (variable.name) {
         case 'nombre_cliente':
         case 'cliente':
@@ -215,7 +216,7 @@ export const useDocumentForm = ({
   const resetForm = useCallback(() => {
     if (template) {
       const initialVariables: Record<string, any> = {}
-      template.variables.forEach((variable) => {
+      template.variables.forEach((variable: any) => {
         initialVariables[variable.name] = variable.default || ''
       })
       

@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -5,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { AlertCircle, Mail, Eye, Send } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { sanitizeEmailHTML } from '@/lib/security'
 
 interface EmailInvitationPreviewProps {
   eventTitle: string
@@ -126,9 +126,7 @@ export const EmailInvitationPreview = ({
                     </DialogHeader>
                     <div 
                       className="border rounded-lg p-4 bg-white"
-                      dangerouslySetInnerHTML={{ 
-                        __html: sanitizeEmailHTML(generateEmailPreview())
-                      }}
+                      dangerouslySetInnerHTML={{ __html: generateEmailPreview() }}
                     />
                   </DialogContent>
                 </Dialog>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -17,7 +16,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAbortController } from '@/hooks/performance'
-import { sanitizeDocumentHTML, validateAndSanitizeEmail } from '@/lib/security'
 
 interface DocumentPreviewProps {
   content: string
@@ -92,9 +90,8 @@ export const DocumentPreview = ({
       const email = prompt('Ingrese el email de destino:')
       if (!email) return
 
-      const emailValidation = validateAndSanitizeEmail(email)
-      if (!emailValidation.isValid) {
-        toast.error(emailValidation.error || 'Email inválido')
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error('Email inválido')
         return
       }
 
@@ -209,9 +206,7 @@ export const DocumentPreview = ({
             {viewMode === 'formatted' ? (
               <div 
                 className="prose prose-sm max-w-none font-serif leading-relaxed"
-                dangerouslySetInnerHTML={{ 
-                  __html: sanitizeDocumentHTML(formatContent(content))
-                }}
+                dangerouslySetInnerHTML={{ __html: formatContent(content) }}
               />
             ) : (
               <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">

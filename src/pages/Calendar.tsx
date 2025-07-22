@@ -1,33 +1,119 @@
 
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar as CalendarIcon } from 'lucide-react'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { useState, useMemo } from 'react'
+import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar'
+import { CalendarEventDialog } from '@/components/calendar/CalendarEventDialog'
+import { Loader2 } from 'lucide-react'
+import { useCalendarEvents, CreateCalendarEventData } from '@/hooks/useCalendarEvents'
+import { useClients } from '@/hooks/useClients'
+import { useCases } from '@/hooks/useCases'
+import { format } from 'date-fns'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
-const Calendar = () => {
-  return (
-    <MainLayout>
-      <StandardPageContainer>
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Calendario</h1>
-          <p className="text-gray-600 mt-1">Gestiona citas y eventos</p>
+export default function Calendar() {
+  const [isNewEventOpen, setIsNewEventOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  
+  const { events, isLoading, createEvent, isCreating } = useCalendarEvents()
+  const { clients = [] } = useClients()
+  const { cases = [] } = useCases()
+
+  // Transformar eventos para el componente FullScreenCalendar
+  const calendarData = useMemo(() => {
+    if (!events.length) return []
+
+    const eventsByDate = events.reduce((acc, event) => {
+      const eventDate = new Date(event.start_datetime)
+      const dateKey = format(eventDate, 'yyyy-MM-dd')
+      
+      if (!acc[dateKey]) {
+        acc[dateKey] = []
+      }
+      
+      acc[dateKey].push({
+        id: event.id,
+        name: event.title,
+        time: format(eventDate, 'HH:mm'),
+        datetime: event.start_datetime,
+        type: event.event_type as 'meeting' | 'deadline' | 'task' | 'court',
+        client: event.contact?.name,
+        description: event.description,
+        location: event.location,
+        status: event.status
+      })
+      
+      return acc
+    }, {} as Record<string, any[]>)
+
+    return Object.entries(eventsByDate).map(([date, events]) => ({
+      day: new Date(date),
+      events
+    }))
+  }, [events])
+
+  const handleNewEvent = (date?: Date) => {
+    // Validate and safely set the selected date
+    if (date && date instanceof Date && !isNaN(date.getTime())) {
+      setSelectedDate(date)
+    } else {
+      setSelectedDate(new Date()) // fallback to current date
+    }
+    setIsNewEventOpen(true)
+  }
+
+  const handleEventClick = (event: any) => {
+    console.log('Clicked event:', event)
+    // TODO: Abrir modal de detalles/edición del evento
+  }
+
+  const handleCreateEvent = (eventData: CreateCalendarEventData) => {
+    createEvent(eventData, {
+      onSuccess: () => {
+        setIsNewEventOpen(false)
+        setSelectedDate(null)
+      }
+    })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Cargando calendario...</span>
         </div>
+      </div>
+    )
+  }
 
-        <Card className="border-0.5 border-black rounded-[10px] shadow-sm">
-          <CardHeader className="text-center py-12">
-            <div className="mx-auto mb-4 p-3 bg-indigo-100 rounded-full w-fit">
-              <CalendarIcon className="h-8 w-8 text-indigo-600" />
-            </div>
-            <CardTitle className="text-xl mb-2">Calendario del Despacho</CardTitle>
-            <CardDescription className="max-w-md mx-auto">
-              Organiza citas, reuniones y eventos importantes.
-              Funcionalidad en desarrollo.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </StandardPageContainer>
-    </MainLayout>
+  return (
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Calendario"
+        description="Gestiona citas, plazos y eventos importantes del despacho"
+        primaryAction={{
+          label: 'Nuevo Evento',
+          onClick: () => handleNewEvent()
+        }}
+      />
+
+      <div className="bg-white rounded-lg shadow-sm">
+        <FullScreenCalendar 
+          data={calendarData}
+          onNewEvent={handleNewEvent}
+          onEventClick={handleEventClick}
+        />
+      </div>
+
+      <CalendarEventDialog
+        open={isNewEventOpen}
+        onOpenChange={setIsNewEventOpen}
+        onSubmit={handleCreateEvent}
+        isCreating={isCreating}
+        clients={clients}
+        cases={cases}
+        selectedDate={selectedDate}
+      />
+    </StandardPageContainer>
   )
 }
-
-export default Calendar

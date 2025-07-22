@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/integrations/supabase/client'
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react'
-import { useLogger } from '@/hooks/useLogger'
 
 interface SecurityCheck {
   name: string
@@ -17,7 +16,6 @@ interface SecurityCheck {
 export const SecurityVerification = () => {
   const [checks, setChecks] = useState<SecurityCheck[]>([])
   const [isRunning, setIsRunning] = useState(false)
-  const logger = useLogger('SecurityVerification')
 
   const runSecurityChecks = async () => {
     setIsRunning(true)
@@ -25,7 +23,7 @@ export const SecurityVerification = () => {
 
     try {
       // Test 1: Verificar función is_system_setup con search_path seguro
-      logger.debug('Verificando función is_system_setup...')
+      console.log('🔍 Verificando función is_system_setup...')
       const { data: setupResult, error: setupError } = await supabase.rpc('is_system_setup')
       
       if (setupError) {
@@ -44,7 +42,7 @@ export const SecurityVerification = () => {
       }
 
       // Test 2: Verificar función get_user_org_id con search_path seguro
-      logger.debug('Verificando función get_user_org_id...')
+      console.log('🔍 Verificando función get_user_org_id...')
       const { data: { session } } = await supabase.auth.getSession()
       
       if (session) {
@@ -73,7 +71,7 @@ export const SecurityVerification = () => {
       }
 
       // Test 3: Verificar configuración de autenticación
-      logger.debug('Verificando configuración de Auth...')
+      console.log('🔍 Verificando configuración de Auth...')
       securityChecks.push({
         name: 'Configuración de Auth',
         status: 'warning',
@@ -82,7 +80,7 @@ export const SecurityVerification = () => {
       })
 
       // Test 4: Verificar conexión general
-      logger.debug('Verificando conexión general...')
+      console.log('🔍 Verificando conexión general...')
       const { data: connTest, error: connError } = await supabase
         .from('organizations')
         .select('id')

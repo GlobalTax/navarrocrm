@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react'
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -35,14 +35,14 @@ interface RecurringFeeCardProps {
   onGenerateInvoice?: (fee: RecurringFee) => void
 }
 
-const RecurringFeeCardComponent = ({
+export function RecurringFeeCard({
   recurringFee,
   onEdit,
   onDelete,
   onToggleStatus,
   onViewDetails,
   onGenerateInvoice
-}: RecurringFeeCardProps) => {
+}: RecurringFeeCardProps) {
   const isOverdue = isAfter(new Date(), new Date(recurringFee.next_billing_date))
   
   const getStatusColor = (status: string) => {
@@ -242,36 +242,3 @@ const RecurringFeeCardComponent = ({
     </Card>
   )
 }
-
-// Memoización crítica para listas grandes con comparador profundo
-export const RecurringFeeCard = memo(RecurringFeeCardComponent, (prevProps, nextProps) => {
-  const prevFee = prevProps.recurringFee
-  const nextFee = nextProps.recurringFee
-
-  // Comparación profunda del objeto recurringFee
-  return (
-    prevFee.id === nextFee.id &&
-    prevFee.name === nextFee.name &&
-    prevFee.amount === nextFee.amount &&
-    prevFee.frequency === nextFee.frequency &&
-    prevFee.status === nextFee.status &&
-    prevFee.priority === nextFee.priority &&
-    prevFee.next_billing_date === nextFee.next_billing_date &&
-    prevFee.included_hours === nextFee.included_hours &&
-    prevFee.hourly_rate_extra === nextFee.hourly_rate_extra &&
-    prevFee.proposal_id === nextFee.proposal_id &&
-    prevFee.auto_invoice === nextFee.auto_invoice &&
-    prevFee.description === nextFee.description &&
-    JSON.stringify(prevFee.tags) === JSON.stringify(nextFee.tags) &&
-    JSON.stringify(prevFee.client) === JSON.stringify(nextFee.client) &&
-    JSON.stringify(prevFee.proposal) === JSON.stringify(nextFee.proposal) &&
-    // Comparación de callbacks (referencia)
-    prevProps.onEdit === nextProps.onEdit &&
-    prevProps.onDelete === nextProps.onDelete &&
-    prevProps.onToggleStatus === nextProps.onToggleStatus &&
-    prevProps.onViewDetails === nextProps.onViewDetails &&
-    prevProps.onGenerateInvoice === nextProps.onGenerateInvoice
-  )
-})
-
-RecurringFeeCard.displayName = 'RecurringFeeCard'

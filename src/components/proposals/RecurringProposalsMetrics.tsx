@@ -1,6 +1,7 @@
 
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { 
   TrendingUp, 
   DollarSign, 
@@ -26,6 +27,7 @@ const formatCurrency = (amount: number) => {
 export const RecurringProposalsMetrics: React.FC<RecurringProposalsMetricsProps> = ({
   proposals
 }) => {
+  // Calcular métricas
   const activeProposals = proposals.filter(p => p.status === 'won')
   const totalMRR = activeProposals.reduce((sum, p) => {
     const amount = p.retainer_amount || p.total_amount || 0
@@ -41,6 +43,7 @@ export const RecurringProposalsMetrics: React.FC<RecurringProposalsMetricsProps>
   const totalHours = activeProposals.reduce((sum, p) => sum + (p.included_hours || 0), 0)
   const avgDealSize = activeProposals.length > 0 ? totalMRR / activeProposals.length : 0
   
+  // Próximas renovaciones (próximos 30 días)
   const nextMonth = new Date()
   nextMonth.setMonth(nextMonth.getMonth() + 1)
   const upcomingRenewals = activeProposals.filter(p => {

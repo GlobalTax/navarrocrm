@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -20,69 +19,4 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    target: 'es2022',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Core React libraries
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          
-          // UI Components
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-select',
-            '@radix-ui/react-toast'
-          ],
-          
-          // Data fetching
-          'query-vendor': ['@tanstack/react-query'],
-          
-          // Supabase
-          'supabase-vendor': ['@supabase/supabase-js'],
-          
-          // Virtualization
-          'virtualization': ['react-window', 'react-window-infinite-loader'],
-          
-          // Icons and utilities
-          'utils-vendor': ['lucide-react', 'clsx', 'tailwind-merge'],
-          
-          // Heavy components
-          'heavy-components': [
-            './src/components/migration/MigrationDashboard',
-            './src/components/quantum/QuantumClientImporter',
-            './src/components/onboarding/ImprovedClientOnboarding'
-          ]
-        }
-      }
-    },
-    // Optimize chunks
-    chunkSizeWarningLimit: 1000,
-    // Enable minification
-    minify: mode === 'production' ? 'terser' : 'esbuild',
-    ...(mode === 'production' && {
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true
-        }
-      }
-    })
-  },
-  // Set modern target for top-level await support
-  esbuild: {
-    target: 'es2022'
-  },
-  // Enable experimental features
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      '@tanstack/react-query',
-      '@supabase/supabase-js'
-    ]
-  }
 }));

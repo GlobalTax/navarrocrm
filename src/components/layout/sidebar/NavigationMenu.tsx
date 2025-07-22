@@ -1,16 +1,15 @@
 
 import { NavLink } from 'react-router-dom'
 import { cn } from "@/lib/utils"
-import { NAVIGATION_DATA } from './NavigationData'
+import { navigationData } from './NavigationData'
 import { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
-import { memo } from 'react'
 
-const NavigationMenuComponent = () => {
+export const NavigationMenu = () => {
   const { data: overdueCount = 0 } = useRecurringFeesOverdue()
 
   return (
     <div className="space-y-4">
-      {NAVIGATION_DATA.map((section) => (
+      {navigationData.map((section) => (
         <div key={section.title} className="space-y-1">
           <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
             {section.title}
@@ -54,12 +53,3 @@ const NavigationMenuComponent = () => {
     </div>
   )
 }
-
-// Memoización de navegación para prevenir re-renders innecesarios
-export const NavigationMenu = memo(NavigationMenuComponent, (prevProps, nextProps) => {
-  // Al no tener props externas, solo depende de overdueCount interno
-  // El hook useRecurringFeesOverdue maneja su propio cache
-  return false // Siempre re-renderizar para capturar cambios en overdueCount
-})
-
-NavigationMenu.displayName = 'NavigationMenu'

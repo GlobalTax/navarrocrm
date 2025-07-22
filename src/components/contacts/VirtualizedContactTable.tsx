@@ -1,5 +1,5 @@
 
-import { forwardRef, memo, useCallback, useMemo } from 'react'
+import { forwardRef } from 'react'
 import { FixedSizeList as List } from 'react-window'
 import InfiniteLoader from 'react-window-infinite-loader'
 import { Contact } from '@/hooks/useContacts'
@@ -14,19 +14,10 @@ interface VirtualizedContactTableProps {
   fetchNextPage?: () => void
 }
 
-export const VirtualizedContactTable = memo(forwardRef<any, VirtualizedContactTableProps>(
+export const VirtualizedContactTable = forwardRef<any, VirtualizedContactTableProps>(
   ({ contacts, onEditContact, hasNextPage, isFetchingNextPage, fetchNextPage }, ref) => {
-    const itemCount = useMemo(() => 
-      hasNextPage ? contacts.length + 1 : contacts.length, 
-      [hasNextPage, contacts.length]
-    )
-    
-    const isItemLoaded = useCallback((index: number) => !!contacts[index], [contacts])
-    
-    const itemData = useMemo(() => 
-      ({ contacts, onEditContact }), 
-      [contacts, onEditContact]
-    )
+    const itemCount = hasNextPage ? contacts.length + 1 : contacts.length
+    const isItemLoaded = (index: number) => !!contacts[index]
 
     return (
       <div className="rounded-xl border border-gray-100 bg-white overflow-hidden">
@@ -54,7 +45,7 @@ export const VirtualizedContactTable = memo(forwardRef<any, VirtualizedContactTa
               width="100%"
               itemCount={itemCount}
               itemSize={80}
-              itemData={itemData}
+              itemData={{ contacts, onEditContact }}
               onItemsRendered={onItemsRendered}
             >
               {ContactRow}
@@ -73,6 +64,6 @@ export const VirtualizedContactTable = memo(forwardRef<any, VirtualizedContactTa
       </div>
     )
   }
-))
+)
 
 VirtualizedContactTable.displayName = 'VirtualizedContactTable'

@@ -1,15 +1,16 @@
-
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Plus, Euro, Calendar, AlertCircle, FileText } from 'lucide-react'
+import { Plus, Euro, Calendar, AlertCircle } from 'lucide-react'
 import { useRecurringFees } from '@/hooks/useRecurringFees'
 import { RecurringFeeCard } from '@/components/recurring-fees/RecurringFeeCard'
 import { ContactRecurringFeeForm } from './ContactRecurringFeeForm'
 import { useDeleteRecurringFee, useUpdateRecurringFee } from '@/hooks/recurringFees/useRecurringFeesMutations'
 import { useNavigate } from 'react-router-dom'
 import type { RecurringFee } from '@/types/recurringFees'
+import { FileText, ExternalLink } from 'lucide-react'
 
 interface ContactRecurringFeesTabProps {
   contactId: string
@@ -21,6 +22,7 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
   const [editingFee, setEditingFee] = useState<RecurringFee | null>(null)
 
+  // Obtener cuotas recurrentes del contacto
   const { data: recurringFees = [], isLoading, refetch } = useRecurringFees({ 
     client_id: contactId 
   })
@@ -95,6 +97,7 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
 
   return (
     <div className="space-y-6">
+      {/* Header con métricas */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h3 className="text-lg font-semibold">Cuotas Recurrentes</h3>
@@ -108,6 +111,7 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
         </Button>
       </div>
 
+      {/* Métricas resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -161,6 +165,7 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
         </Card>
       </div>
 
+      {/* Lista de cuotas recurrentes */}
       {recurringFees.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
@@ -181,6 +186,7 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {recurringFees.map((fee) => (
             <div key={fee.id} className="space-y-4">
+              {/* Información de la propuesta asociada */}
               {fee.proposal && (
                 <div className="text-sm bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-blue-700">
@@ -208,6 +214,7 @@ export const ContactRecurringFeesTab = ({ contactId, contactName }: ContactRecur
         </div>
       )}
 
+      {/* Formularios */}
       <Dialog open={isCreateFormOpen} onOpenChange={setIsCreateFormOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>

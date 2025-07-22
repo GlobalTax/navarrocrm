@@ -6,7 +6,6 @@ import { ClientsTabsContent } from '@/components/clients/ClientsTabsContent'
 import { ClientsDialogManager } from '@/components/clients/ClientsDialogManager'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { MainLayout } from '@/components/layout/MainLayout'
 
 const Clients = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -47,54 +46,52 @@ const Clients = () => {
   }
 
   return (
-    <MainLayout>
-      <StandardPageContainer>
-        <StandardPageHeader
-          title="Clientes"
-          description="Gestiona tu cartera de clientes"
-          primaryAction={{
-            label: 'Nuevo Cliente',
-            onClick: handleCreateClient
-          }}
-        />
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Clientes"
+        description="Gestiona tu cartera de clientes"
+        primaryAction={{
+          label: 'Nuevo Cliente',
+          onClick: handleCreateClient
+        }}
+      />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="list">
-              Gestión de Clientes
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              Análisis y Métricas
-            </TabsTrigger>
-          </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="list">
+            Gestión de Clientes
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            Análisis y Métricas
+          </TabsTrigger>
+        </TabsList>
 
-          <ClientsTabsContent
-            clients={clients}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            onCreateClient={handleCreateClient}
-            onViewClient={handleViewClient}
-            onEditClient={handleEditClient}
-            onBulkUpload={() => setIsBulkUploadOpen(true)}
-            onExport={() => setIsExportDialogOpen(true)}
-          />
-        </Tabs>
-
-        <ClientsDialogManager
-          selectedClient={selectedClient}
-          isCreateDialogOpen={isCreateDialogOpen}
-          isEditDialogOpen={isEditDialogOpen}
-          isDetailDialogOpen={isDetailDialogOpen}
-          isBulkUploadOpen={isBulkUploadOpen}
-          isExportDialogOpen={isExportDialogOpen}
+        <ClientsTabsContent
           clients={clients}
-          onClose={handleDialogClose}
-          onBulkUploadClose={() => setIsBulkUploadOpen(false)}
-          onExportClose={() => setIsExportDialogOpen(false)}
-          onBulkUploadSuccess={handleBulkUploadSuccess}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          onCreateClient={handleCreateClient}
+          onViewClient={handleViewClient}
+          onEditClient={handleEditClient}
+          onBulkUpload={() => setIsBulkUploadOpen(true)}
+          onExport={() => setIsExportDialogOpen(true)}
         />
-      </StandardPageContainer>
-    </MainLayout>
+      </Tabs>
+
+      <ClientsDialogManager
+        selectedClient={selectedClient}
+        isCreateDialogOpen={isCreateDialogOpen}
+        isEditDialogOpen={isEditDialogOpen}
+        isDetailDialogOpen={isDetailDialogOpen}
+        isBulkUploadOpen={isBulkUploadOpen}
+        isExportDialogOpen={isExportDialogOpen}
+        clients={clients}
+        onClose={handleDialogClose}
+        onBulkUploadClose={() => setIsBulkUploadOpen(false)}
+        onExportClose={() => setIsExportDialogOpen(false)}
+        onBulkUploadSuccess={handleBulkUploadSuccess}
+      />
+    </StandardPageContainer>
   )
 }
 

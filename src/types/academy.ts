@@ -1,4 +1,3 @@
-
 // Tipos centralizados para el módulo de Academia
 export interface AcademyCategory {
   id: string

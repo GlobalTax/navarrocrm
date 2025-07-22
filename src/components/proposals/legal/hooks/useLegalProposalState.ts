@@ -1,11 +1,7 @@
+
 import { useState, useCallback } from 'react'
-import { 
-  LegalProposalData, 
-  SelectedService, 
-  PracticeArea,
-  LegalService 
-} from '@/types/proposals'
-import { updateServiceTotal } from '../utils/serviceConversion'
+import { LegalProposalData, SelectedService } from '../types/legalProposal.types'
+import { convertServiceToSelected, updateServiceTotal } from '../utils/serviceConversion'
 import { practiceAreasData } from '../data/practiceAreasData'
 
 const initialProposalData: LegalProposalData = {
@@ -30,8 +26,8 @@ const initialProposalData: LegalProposalData = {
 
 export const useLegalProposalState = () => {
   const [proposalData, setProposalData] = useState<LegalProposalData>(initialProposalData)
-  const [currentStep, setCurrentStep] = useState<number>(1)
-  const [showSuccess, setShowSuccess] = useState<boolean>(false)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const updateProposalData = useCallback((field: keyof LegalProposalData, value: any) => {
     setProposalData(prev => ({ ...prev, [field]: value }))
@@ -45,7 +41,7 @@ export const useLegalProposalState = () => {
     }))
   }, [])
 
-  const handleServiceToggle = useCallback((serviceId: string, serviceData: LegalService) => {
+  const handleServiceToggle = useCallback((serviceId: string, serviceData: any) => {
     setProposalData(prev => {
       const isCurrentlySelected = prev.selectedServices.some(s => s.id === serviceId)
       
@@ -55,15 +51,7 @@ export const useLegalProposalState = () => {
           selectedServices: prev.selectedServices.filter(s => s.id !== serviceId)
         }
       } else {
-        const selectedService: SelectedService = {
-          ...serviceData,
-          quantity: 1,
-          customPrice: serviceData.price,
-          notes: '',
-          total: serviceData.price,
-          basePrice: serviceData.price,
-          billingUnit: 'hour'
-        }
+        const selectedService = convertServiceToSelected(serviceData)
         return {
           ...prev,
           selectedServices: [...prev.selectedServices, selectedService]
@@ -92,7 +80,7 @@ export const useLegalProposalState = () => {
     }))
   }, [])
 
-  const canProceed = useCallback((): boolean => {
+  const canProceed = useCallback(() => {
     switch (currentStep) {
       case 1:
         return Boolean(proposalData.clientId)
@@ -129,6 +117,6 @@ export const useLegalProposalState = () => {
     selectedServiceIds: proposalData.selectedServices.map(s => s.id),
     
     // Data
-    practiceAreasData: Object.values(practiceAreasData) as PracticeArea[]
+    practiceAreasData
   }
 }

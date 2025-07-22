@@ -1,4 +1,3 @@
-
 // Exportaciones de los pasos del onboarding
 export { WelcomeStep } from './WelcomeStep'
 export { ClientTypeStep } from './ClientTypeStep'

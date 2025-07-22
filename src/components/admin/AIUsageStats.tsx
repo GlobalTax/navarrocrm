@@ -1,5 +1,4 @@
 
-import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -101,12 +100,9 @@ export const AIUsageStatsCards = ({ stats, isLoading }: AIUsageStatsProps) => {
 }
 
 export const AIUsageByOrgCard = ({ stats }: AIUsageStatsProps) => {
-  const orgEntries = useMemo(() => 
-    Object.entries(stats.callsByOrg)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 10),
-    [stats.callsByOrg]
-  )
+  const orgEntries = Object.entries(stats.callsByOrg)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 10)
 
   return (
     <Card>

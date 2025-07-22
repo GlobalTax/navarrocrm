@@ -3,78 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import { createLogger } from '@/utils/logger'
-import { useMemo } from 'react'
 import type { CourseFormData, CategoryFormData, LessonFormData } from '@/types/academy'
 
-/**
- * Configuración de opciones para useAcademyMutations
- * @interface UseAcademyMutationsOptions
- */
-export interface UseAcademyMutationsOptions {
-  /** Mostrar notificaciones toast */
-  showToasts?: boolean
-  /** Optimistic updates habilitados */
-  optimisticUpdates?: boolean
-  /** Callback de éxito personalizado */
-  onSuccess?: (data: any) => void
-  /** Callback de error personalizado */
-  onError?: (error: Error) => void
-}
-
-/**
- * Hook para mutaciones de Academy (crear, actualizar, eliminar)
- * Proporciona operaciones CRUD completas con manejo de errores y validación
- * 
- * @param {UseAcademyMutationsOptions} options - Opciones de configuración
- * @returns Objeto con funciones de mutación para categorías, cursos y lecciones
- * 
- * @example
- * ```tsx
- * const {
- *   createCategory,
- *   updateCourse,
- *   deleteLesson
- * } = useAcademyMutations({
- *   showToasts: true,
- *   optimisticUpdates: true
- * })
- * 
- * // Crear nueva categoría
- * createCategory.mutate({
- *   name: 'Nueva Categoría',
- *   color: '#6366f1'
- * })
- * ```
- * 
- * @throws {Error} Cuando no se puede acceder a los datos del usuario
- */
-export const useAcademyMutations = (options: UseAcademyMutationsOptions = {}) => {
-  const logger = createLogger('useAcademyMutations')
+export const useAcademyMutations = () => {
   const { user } = useApp()
   const queryClient = useQueryClient()
-
-  // Validación y configuración de opciones
-  const validatedOptions = useMemo(() => {
-    const defaults: Required<UseAcademyMutationsOptions> = {
-      showToasts: true,
-      optimisticUpdates: false,
-      onSuccess: () => {},
-      onError: () => {}
-    }
-
-    return { ...defaults, ...options }
-  }, [options])
-
-  // Validación de contexto
-  if (!user) {
-    logger.error('Usuario no encontrado en el contexto')
-    throw new Error('Usuario no autenticado')
-  }
-
-  if (!user.org_id) {
-    logger.warn('org_id no encontrado para el usuario', { userId: user.id })
-  }
 
   // Mutaciones de Categorías
   const createCategory = useMutation({

@@ -37,22 +37,9 @@ export const DocumentAnalyzer = () => {
   const handleAnalyze = async () => {
     if (!selectedFile) return
 
-    try {
-      const result = await analyzeDocument(selectedFile.name)
-      setAnalysisResult({
-        documentType: result.documentType || 'documento',
-        extractedData: result.extractedData || {},
-        riskLevel: result.riskLevel || 'medium',
-        issues: (result.issues || []).map(issue => ({
-          type: issue.type as 'warning' | 'error' | 'info',
-          message: issue.description,
-          location: undefined
-        })),
-        suggestions: result.suggestions || [],
-        confidence: result.confidence
-      })
-    } catch (error) {
-      console.error('Error analyzing document:', error)
+    const result = await analyzeDocument(selectedFile, 'comprehensive')
+    if (result) {
+      setAnalysisResult(result.result as AnalysisResult)
     }
   }
 

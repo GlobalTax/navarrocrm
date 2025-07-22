@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import { useMemo } from 'react'
 
 export interface UserFilters {
   search: string
@@ -30,7 +29,7 @@ export const useEnhancedUsers = (filters: UserFilters) => {
 
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['enhanced-users', user?.org_id, filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<EnhancedUser[]> => {
       if (!user?.org_id) return []
       
       let query = supabase
@@ -59,20 +58,6 @@ export const useEnhancedUsers = (filters: UserFilters) => {
       return data || []
     },
     enabled: !!user?.org_id,
-    staleTime: 1000 * 60 * 3, // 3 minutos para usuarios con filtros
-    select: (data) => data.map(user => ({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      org_id: user.org_id,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
-      is_active: user.is_active,
-      last_login_at: user.last_login_at,
-      deleted_at: user.deleted_at,
-      deleted_by: user.deleted_by
-    })),
-    placeholderData: (previousData) => previousData ?? [],
   })
 
   const activateUser = useMutation({
@@ -129,7 +114,7 @@ export const useEnhancedUsers = (filters: UserFilters) => {
     },
   })
 
-  const getFilteredStats = useMemo(() => {
+  const getFilteredStats = () => {
     const stats = {
       total: users.length,
       active: users.filter(u => u.is_active).length,
@@ -140,7 +125,7 @@ export const useEnhancedUsers = (filters: UserFilters) => {
     }
 
     return stats
-  }, [users])
+  }
 
   return {
     users,

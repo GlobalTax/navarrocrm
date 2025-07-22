@@ -1,329 +1,305 @@
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
-import { TrendingUp, AlertTriangle, Users, DollarSign, Briefcase, Target } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
+import { TrendingUp, DollarSign, Users, Briefcase, AlertCircle, CheckCircle } from 'lucide-react'
 import { useAdvancedAI } from '@/hooks/useAdvancedAI'
-import type { BusinessInsight } from '@/types/interfaces'
-import type { BusinessInsightState } from '@/types/states'
 
-const BusinessIntelligence = () => {
-  const { generateBusinessInsights, isAnalyzing } = useAdvancedAI()
-  const [insightState, setInsightState] = useState<BusinessInsightState>({
-    insights: [],
-    isLoading: false,
-    lastUpdated: null,
-    error: null
-  })
+interface BusinessInsight {
+  revenue: {
+    current: number
+    predicted: number
+    trend: 'up' | 'down' | 'stable'
+    monthlyData: Array<{ month: string; revenue: number; prediction: number }>
+  }
+  clients: {
+    total: number
+    new: number
+    retention: number
+    churnRisk: Array<{ name: string; riskLevel: number; reason: string }>
+  }
+  cases: {
+    active: number
+    completion_rate: number
+    profitability: Array<{ type: string; profit: number; cases: number }>
+  }
+  opportunities: Array<{
+    type: 'cross_sell' | 'upsell' | 'new_market' | 'efficiency'
+    title: string
+    description: string
+    potential_value: number
+    effort: 'low' | 'medium' | 'high'
+  }>
+  risks: Array<{
+    category: string
+    description: string
+    probability: number
+    impact: number
+    mitigation: string
+  }>
+}
 
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
+
+export const BusinessIntelligence = () => {
   const [insights, setInsights] = useState<BusinessInsight | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = useState('month')
+  const { isAnalyzing, generateBusinessInsights } = useAdvancedAI()
 
-  const generateInsights = async (): Promise<void> => {
-    setInsightState(prev => ({ ...prev, isLoading: true, error: null }))
-    
-    try {
-      const result = await generateBusinessInsights()
-      setInsights(result)
-      setInsightState(prev => ({
-        ...prev,
-        insights: [result],
-        lastUpdated: new Date(),
-        isLoading: false
-      }))
-    } catch (error) {
-      setInsightState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Error generating insights',
-        isLoading: false
-      }))
+  const handleGenerateInsights = async () => {
+    const result = await generateBusinessInsights(selectedPeriod)
+    if (result) {
+      setInsights(result as BusinessInsight)
     }
   }
 
-  useEffect(() => {
-    generateInsights()
-  }, [])
-
-  const getRiskColor = (level: 'high' | 'medium' | 'low'): string => {
-    const colorMap: Record<typeof level, string> = {
-      high: 'destructive',
-      medium: 'default',
-      low: 'secondary'
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up': return <TrendingUp className="h-4 w-4 text-green-600" />
+      case 'down': return <TrendingUp className="h-4 w-4 text-red-600 rotate-180" />
+      case 'stable': return <TrendingUp className="h-4 w-4 text-yellow-600 rotate-90" />
+      default: return <TrendingUp className="h-4 w-4 text-gray-600" />
     }
-    return colorMap[level]
   }
 
-  const getEffortColor = (effort: 'low' | 'medium' | 'high'): string => {
-    const colorMap: Record<typeof effort, string> = {
-      low: 'default',
-      medium: 'secondary',
-      high: 'destructive'
+  const getEffortColor = (effort: string) => {
+    switch (effort) {
+      case 'low': return 'bg-green-100 text-green-800'
+      case 'medium': return 'bg-yellow-100 text-yellow-800'
+      case 'high': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
-    return colorMap[effort]
-  }
-
-  if (insightState.isLoading || isAnalyzing) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Business Intelligence</h2>
-          <Progress value={45} className="w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (insightState.error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
-            Error en Business Intelligence
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-4">{insightState.error}</p>
-          <Button onClick={generateInsights}>
-            Reintentar Análisis
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!insights) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Business Intelligence</CardTitle>
-          <CardDescription>Genera insights inteligentes sobre tu negocio</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={generateInsights}>
-            Generar Insights
-          </Button>
-        </CardContent>
-      </Card>
-    )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Business Intelligence</h2>
-          <p className="text-gray-600">
-            Última actualización: {insightState.lastUpdated?.toLocaleString('es-ES')}
-          </p>
-        </div>
-        <Button onClick={generateInsights} disabled={insightState.isLoading}>
-          Actualizar Insights
-        </Button>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Business Intelligence IA
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Última Semana</SelectItem>
+                <SelectItem value="month">Último Mes</SelectItem>
+                <SelectItem value="quarter">Último Trimestre</SelectItem>
+                <SelectItem value="year">Último Año</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleGenerateInsights} disabled={isAnalyzing} size="lg">
+              {isAnalyzing ? 'Generando Insights...' : 'Generar Análisis'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* KPIs Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              €{insights.kpis.totalRevenue.toLocaleString('es-ES')}
-            </div>
-          </CardContent>
-        </Card>
+      {insights && (
+        <div className="space-y-6">
+          {/* KPIs principales */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Ingresos</p>
+                    <p className="text-2xl font-bold">€{insights.revenue.current.toLocaleString()}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {getTrendIcon(insights.revenue.trend)}
+                      <span className="text-sm">
+                        Pred: €{insights.revenue.predicted.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{insights.kpis.totalClients}</div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Clientes</p>
+                    <p className="text-2xl font-bold">{insights.clients.total}</p>
+                    <p className="text-sm text-green-600">+{insights.clients.new} nuevos</p>
+                  </div>
+                  <Users className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Casos Totales</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{insights.kpis.totalCases}</div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Casos Activos</p>
+                    <p className="text-2xl font-bold">{insights.cases.active}</p>
+                    <p className="text-sm text-blue-600">
+                      {insights.cases.completion_rate}% completado
+                    </p>
+                  </div>
+                  <Briefcase className="h-8 w-8 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Proyectos Activos</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{insights.kpis.activeProjects}</div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Retención</p>
+                    <p className="text-2xl font-bold">{insights.clients.retention}%</p>
+                    <p className="text-sm text-red-600">
+                      {insights.clients.churnRisk.length} en riesgo
+                    </p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-orange-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-      <Tabs defaultValue="revenue" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="revenue">Ingresos</TabsTrigger>
-          <TabsTrigger value="clients">Clientes</TabsTrigger>
-          <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
-          <TabsTrigger value="risks">Riesgos</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="revenue" className="space-y-4">
+          {/* Gráfico de ingresos */}
           <Card>
             <CardHeader>
-              <CardTitle>Evolución de Ingresos</CardTitle>
-              <CardDescription>Tendencia mensual de ingresos</CardDescription>
+              <CardTitle>Evolución de Ingresos vs Predicción</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={insights.revenueChart}>
+                <LineChart data={insights.revenue.monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`€${value}`, 'Ingresos']} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#0061FF" 
-                    strokeWidth={2}
-                  />
+                  <Tooltip formatter={(value) => [`€${value}`, '']} />
+                  <Line type="monotone" dataKey="revenue" stroke="#0088FE" strokeWidth={2} name="Ingresos Reales" />
+                  <Line type="monotone" dataKey="prediction" stroke="#00C49F" strokeDasharray="5 5" name="Predicción IA" />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
+          {/* Rentabilidad por tipo de caso */}
           <Card>
             <CardHeader>
               <CardTitle>Rentabilidad por Tipo de Caso</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={insights.casesProfitability}>
+                <BarChart data={insights.cases.profitability}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="type" />
                   <YAxis />
                   <Tooltip formatter={(value) => [`€${value}`, 'Beneficio']} />
-                  <Bar dataKey="profit" fill="#0061FF" />
+                  <Bar dataKey="profit" fill="#8884d8" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="clients" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Clientes en Riesgo de Abandono</CardTitle>
-              <CardDescription>Clientes que requieren atención inmediata</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {insights.clientChurnRisk.map((client) => (
-                  <div key={client.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{client.name}</p>
-                      <p className="text-sm text-gray-600">{client.reason}</p>
+          {/* Clientes en riesgo */}
+          {insights.clients.churnRisk.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  Clientes en Riesgo de Abandono
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {insights.clients.churnRisk.map((client, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{client.name}</p>
+                        <p className="text-sm text-gray-600">{client.reason}</p>
+                      </div>
+                      <Badge variant="destructive">
+                        Riesgo: {client.riskLevel}%
+                      </Badge>
                     </div>
-                    <Badge variant={getRiskColor(client.riskLevel) as any}>
-                      {client.riskLevel === 'high' ? 'Alto' : 
-                       client.riskLevel === 'medium' ? 'Medio' : 'Bajo'}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        <TabsContent value="opportunities" className="space-y-4">
+          {/* Oportunidades */}
           <Card>
             <CardHeader>
-              <CardTitle>Oportunidades de Crecimiento</CardTitle>
-              <CardDescription>Áreas identificadas para expansión</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Oportunidades de Crecimiento
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {insights.growthOpportunities.map((opportunity, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {insights.opportunities.map((opportunity, index) => (
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-medium">{opportunity.title}</h4>
-                      <div className="flex gap-2">
-                        <Badge variant={getEffortColor(opportunity.effort) as any}>
-                          Esfuerzo: {opportunity.effort === 'low' ? 'Bajo' :
-                                    opportunity.effort === 'medium' ? 'Medio' : 'Alto'}
-                        </Badge>
-                        <Badge variant="outline">
-                          Impacto: {opportunity.impact === 'low' ? 'Bajo' :
-                                   opportunity.impact === 'medium' ? 'Medio' : 'Alto'}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600">{opportunity.description}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="risks" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Análisis de Riesgos</CardTitle>
-              <CardDescription>Riesgos identificados y recomendaciones</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {insights.risks.map((risk, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-medium flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4" />
-                          {risk.category}
-                        </h4>
-                        <p className="text-sm text-gray-600 mt-1">{risk.description}</p>
-                      </div>
-                      <Badge variant={getRiskColor(risk.severity) as any}>
-                        {risk.severity === 'high' ? 'Crítico' :
-                         risk.severity === 'medium' ? 'Moderado' : 'Bajo'}
+                      <Badge className={getEffortColor(opportunity.effort)}>
+                        {opportunity.effort}
                       </Badge>
                     </div>
-                    <div className="mt-3 p-3 bg-blue-50 rounded">
-                      <p className="text-sm font-medium text-blue-900">Recomendación:</p>
-                      <p className="text-sm text-blue-800">{risk.recommendation}</p>
+                    <p className="text-sm text-gray-600 mb-3">{opportunity.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-600">
+                        Potencial: €{opportunity.potential_value.toLocaleString()}
+                      </span>
+                      <Badge variant="outline">{opportunity.type}</Badge>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+
+          {/* Riesgos identificados */}
+          {insights.risks.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  Riesgos Identificados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {insights.risks.map((risk, index) => (
+                    <div key={index} className="p-4 border-l-4 border-l-red-500 bg-red-50">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-red-800">{risk.category}</h4>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">
+                            Prob: {risk.probability}%
+                          </Badge>
+                          <Badge variant="outline">
+                            Impacto: {risk.impact}/10
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-sm text-red-700 mb-2">{risk.description}</p>
+                      <p className="text-sm font-medium text-red-800">
+                        Mitigación: {risk.mitigation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   )
 }
-
-export default BusinessIntelligence

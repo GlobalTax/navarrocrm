@@ -14,7 +14,7 @@ interface ClientFormDialogProps {
 }
 
 export const ClientFormDialog = ({ client, open, onClose }: ClientFormDialogProps) => {
-  const { form, isEditing, isCompanyDataLoaded, handleCompanyFound, submitForm } = useClientForm(client, onClose)
+  const { form, isEditing, isCompanyDataLoaded, handleCompanyFound, onSubmit } = useClientForm(client, onClose)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -26,7 +26,7 @@ export const ClientFormDialog = ({ client, open, onClose }: ClientFormDialogProp
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(submitForm)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             
             {/* Sección de búsqueda empresarial */}
             {!isEditing && (

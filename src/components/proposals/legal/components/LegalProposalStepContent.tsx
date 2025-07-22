@@ -9,7 +9,7 @@ import { LegalServiceManager } from '../LegalServiceManager'
 import { LegalRetainerConfigurator } from '../LegalRetainerConfigurator'
 import { LegalProposalTexts } from '../LegalProposalTexts'
 import { LegalProposalPreview } from '../LegalProposalPreview'
-import { LegalProposalData, SelectedService } from '@/types/proposals'
+import { LegalProposalData, SelectedService } from '../types/legalProposal.types'
 
 interface LegalProposalStepContentProps {
   currentStep: number

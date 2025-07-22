@@ -1,154 +1,130 @@
 
-import { useState } from 'react'
-import { useLogger } from './useLogger'
+import { useState, useCallback } from 'react'
+import { supabase } from '@/integrations/supabase/client'
+import { useApp } from '@/contexts/AppContext'
+import { toast } from 'sonner'
 
-import { BusinessInsight, ComplianceResult, TimeOptimizationResult } from '@/types/interfaces'
-
-interface AnalysisResult {
-  summary: string
-  recommendations: string[]
+export interface AIAnalysisResult {
+  type: 'document_analysis' | 'time_optimization' | 'compliance_check' | 'business_intelligence'
+  result: any
   confidence: number
-  documentType?: string
-  extractedData?: Record<string, any>
-  riskLevel?: 'low' | 'medium' | 'high'
-  issues?: Array<{
-    type: string
-    severity: 'low' | 'medium' | 'high'
-    description: string
-    suggestion: string
-  }>
-  suggestions?: string[]
+  suggestions: string[]
 }
 
 export const useAdvancedAI = () => {
-  const logger = useLogger('useAdvancedAI')
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const { user } = useApp()
 
-  const analyzeDocument = async (content: string): Promise<AnalysisResult> => {
+  const analyzeDocument = useCallback(async (file: File, analysisType: string) => {
+    if (!user?.org_id) return null
+
     setIsAnalyzing(true)
-    
     try {
-      logger.info('Starting document analysis')
-      
-      // Simular análisis de IA
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      const result: AnalysisResult = {
-        summary: 'Análisis completado del documento',
-        recommendations: [
-          'Revisar cláusulas específicas',
-          'Verificar términos legales'
-        ],
-        confidence: 0.85,
-        documentType: 'contractual',
-        extractedData: {},
-        riskLevel: 'medium',
-        issues: [],
-        suggestions: []
-      }
-      
-      logger.info('Document analysis completed', { metadata: result })
-      return result
-      
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+
+      const { data, error } = await supabase.functions.invoke('advanced-ai-analysis', {
+        body: {
+          file: base64,
+          analysisType,
+          fileName: file.name,
+          fileType: file.type,
+          orgId: user.org_id
+        }
+      })
+
+      if (error) throw error
+
+      return data as AIAnalysisResult
     } catch (error) {
-      logger.error('Error in document analysis', { error })
-      throw error
+      console.error('Error analyzing document:', error)
+      toast.error('No se pudo analizar el documento')
+      return null
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [user?.org_id])
 
-  const generateBusinessInsights = async (): Promise<BusinessInsight> => {
+  const optimizeSchedule = useCallback(async () => {
+    if (!user?.org_id) return null
+
     setIsAnalyzing(true)
-    
     try {
-      logger.info('Starting business insights generation')
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      const result: BusinessInsight = {
-        summary: 'Análisis de inteligencia de negocio completado',
-        kpis: {
-          totalRevenue: 125000,
-          totalClients: 45,
-          totalCases: 128,
-          activeProjects: 23
-        },
-        revenueChart: [
-          { month: 'Enero', revenue: 20000, trend: 'up' },
-          { month: 'Febrero', revenue: 22000, trend: 'up' },
-          { month: 'Marzo', revenue: 25000, trend: 'up' }
-        ],
-        clientChurnRisk: [],
-        casesProfitability: [],
-        growthOpportunities: [],
-        risks: []
-      }
-      
-      return result
+      const { data, error } = await supabase.functions.invoke('schedule-optimizer', {
+        body: {
+          orgId: user.org_id,
+          userId: user.id
+        }
+      })
+
+      if (error) throw error
+      return data
     } catch (error) {
-      logger.error('Error generating business insights', { error })
-      throw error
+      console.error('Error optimizing schedule:', error)
+      toast.error('No se pudo optimizar la agenda')
+      return null
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [user?.org_id, user?.id])
 
-  const checkCompliance = async (): Promise<ComplianceResult> => {
+  const checkCompliance = useCallback(async (caseId?: string) => {
+    if (!user?.org_id) return null
+
     setIsAnalyzing(true)
-    
     try {
-      logger.info('Starting compliance check')
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      const result: ComplianceResult = {
-        overallScore: 85,
-        categories: [
-          { name: 'GDPR', score: 90, status: 'compliant', issues: 0 },
-          { name: 'LOPD', score: 80, status: 'warning', issues: 2 }
-        ],
-        criticalIssues: [],
-        upcomingDeadlines: [],
-        recommendations: []
-      }
-      
-      return result
+      const { data, error } = await supabase.functions.invoke('compliance-checker', {
+        body: {
+          orgId: user.org_id,
+          caseId,
+          checkType: 'full_audit'
+        }
+      })
+
+      if (error) throw error
+      return data
     } catch (error) {
-      logger.error('Error checking compliance', { error })
-      throw error
+      console.error('Error checking compliance:', error)
+      toast.error('No se pudo realizar la auditoría de compliance')
+      return null
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [user?.org_id])
 
-  const optimizeSchedule = async (): Promise<TimeOptimizationResult> => {
+  const generateBusinessInsights = useCallback(async (period: string = 'month') => {
+    if (!user?.org_id) return null
+
     setIsAnalyzing(true)
-    
     try {
-      logger.info('Starting schedule optimization')
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      const result: TimeOptimizationResult = {
-        currentEfficiency: 75,
-        optimizedSchedule: [],
-        recommendations: [],
-        timeDistribution: [],
-        potentialSavings: 15
-      }
-      
-      return result
+      const { data, error } = await supabase.functions.invoke('business-intelligence', {
+        body: {
+          orgId: user.org_id,
+          period,
+          analysisType: 'comprehensive'
+        }
+      })
+
+      if (error) throw error
+      return data
     } catch (error) {
-      logger.error('Error optimizing schedule', { error })
-      throw error
+      console.error('Error generating business insights:', error)
+      toast.error('No se pudieron generar los insights de negocio')
+      return null
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [user?.org_id])
 
   return {
     isAnalyzing,
     analyzeDocument,
-    generateBusinessInsights,
+    optimizeSchedule,
     checkCompliance,
-    optimizeSchedule
+    generateBusinessInsights
   }
 }

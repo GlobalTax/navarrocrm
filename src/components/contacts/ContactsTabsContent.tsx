@@ -1,5 +1,4 @@
 
-import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { TabsContent } from '@/components/ui/tabs'
 import { Upload, Download, UserPlus, Building2 } from 'lucide-react'
@@ -20,7 +19,7 @@ interface ContactsTabsContentProps {
   onEditCompany: (company: Company) => void
 }
 
-export const ContactsTabsContent = memo(({
+export const ContactsTabsContent = ({
   contacts,
   onBulkUpload,
   onExport,
@@ -94,6 +93,4 @@ export const ContactsTabsContent = memo(({
       </TabsContent>
     </>
   )
-})
-
-ContactsTabsContent.displayName = 'ContactsTabsContent'
+}

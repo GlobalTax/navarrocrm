@@ -1,4 +1,3 @@
-
 import React from 'react'
 import type { OnboardingStep } from '@/types/onboarding'
 import { useOnboarding } from '@/contexts/OnboardingContext'

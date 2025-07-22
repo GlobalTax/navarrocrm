@@ -23,17 +23,13 @@ export const transformLineItemsToServices = (lineItems: Omit<ProposalLineItem, '
 export const transformServicesToLineItems = (services: SelectedService[]): Omit<ProposalLineItem, 'id' | 'proposal_id'>[] => {
   return services.map((service, index) => ({
     service_catalog_id: service.id,
-    service_name: service.name,
     name: service.name,
     description: service.description || '',
     quantity: service.quantity || 1,
     unit_price: service.customPrice || service.basePrice,
     total_price: service.total || (service.customPrice || service.basePrice) * (service.quantity || 1),
     billing_unit: service.billingUnit || 'unit',
-    estimated_hours: service.estimatedHours || null,
-    sort_order: index,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    sort_order: index
   }))
 }
 

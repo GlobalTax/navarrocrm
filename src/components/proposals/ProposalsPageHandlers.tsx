@@ -128,7 +128,7 @@ export const useProposalsPageHandlers = ({
     const currentProposal = selectedProposal
     if (!currentProposal) return
 
-    const success = await updateStatus(id, status as "draft" | "sent" | "accepted" | "rejected")
+    const success = await updateStatus(id, currentProposal.status, status)
     if (success) {
       // Actualizar el estado local del proposal seleccionado
       setSelectedProposal(prev => prev ? { ...prev, status } : null)

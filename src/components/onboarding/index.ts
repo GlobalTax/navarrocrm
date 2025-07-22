@@ -1,4 +1,3 @@
-
 // Exportaciones del módulo de onboarding
 export { OnboardingDialog } from './OnboardingDialog'
 export { OnboardingProgress } from './OnboardingProgress'

@@ -1,20 +1,17 @@
 
 import { ServiceData } from '../data/practiceAreasData'
-import { SelectedService } from '@/types/proposals'
+import { SelectedService } from '../types/legalProposal.types'
 
 export const convertServiceToSelected = (service: ServiceData): SelectedService => {
   return {
     id: service.id,
     name: service.name,
     description: service.description,
-    price: service.basePrice,
-    estimatedHours: service.estimatedHours,
-    category: service.category,
     basePrice: service.basePrice,
     customPrice: service.basePrice, // Inicialmente igual al precio base
     quantity: 1,
     billingUnit: service.billingUnit,
-    notes: '',
+    estimatedHours: service.estimatedHours,
     total: service.basePrice * 1 // cantidad inicial = 1
   }
 }
@@ -37,7 +34,6 @@ export const createServiceFromCatalog = (catalogService: any): ServiceData => {
     id: catalogService.id,
     name: catalogService.name,
     description: catalogService.description || '',
-    price: catalogService.default_price || 0,
     basePrice: catalogService.default_price || 0,
     billingUnit: catalogService.billing_unit || 'hour',
     estimatedHours: Math.ceil((catalogService.default_price || 0) / 50),

@@ -4,10 +4,10 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
 
-const AVAILABLE_TAGS = [
+const availableTags = [
   'Fiscal', 'Laboral', 'Jurídico', 'Contable', 'Mercantil', 
   'Premium', 'Urgente', 'Consultoría', 'Asesoría', 'Compliance'
-] as const
+]
 
 interface RecurringFeeTagsManagerProps {
   selectedTags: string[]
@@ -24,7 +24,7 @@ export function RecurringFeeTagsManager({
     <div className="space-y-2">
       <Label>Etiquetas</Label>
       <div className="flex flex-wrap gap-2 mb-2">
-        {AVAILABLE_TAGS.map((tag) => (
+        {availableTags.map((tag) => (
           <Badge
             key={tag}
             variant={selectedTags.includes(tag) ? "default" : "outline"}

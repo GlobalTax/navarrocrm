@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -34,31 +34,25 @@ export const AIUsageTable = ({ logs, isLoading }: AIUsageTableProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [orgFilter, setOrgFilter] = useState<string>('all')
 
-  // OPTIMIZACIÓN: Memoizar filtrado costoso
-  const filteredLogs = useMemo(() => {
-    return logs.filter(log => {
-      const matchesSearch = searchTerm === '' || 
-        log.function_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.model_used?.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'success' && log.success) ||
-        (statusFilter === 'error' && !log.success)
-      
-      const matchesOrg = orgFilter === 'all' || log.org_id === orgFilter
-      
-      return matchesSearch && matchesStatus && matchesOrg
-    })
-  }, [logs, searchTerm, statusFilter, orgFilter])
+  // Filtrar logs
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = searchTerm === '' || 
+      log.function_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.model_used?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'success' && log.success) ||
+      (statusFilter === 'error' && !log.success)
+    
+    const matchesOrg = orgFilter === 'all' || log.org_id === orgFilter
+    
+    return matchesSearch && matchesStatus && matchesOrg
+  })
 
-  // OPTIMIZACIÓN: Memoizar organizaciones únicas
-  const uniqueOrgs = useMemo(() => 
-    Array.from(new Set(logs.map(log => log.org_id))),
-    [logs]
-  )
+  // Obtener organizaciones únicas
+  const uniqueOrgs = Array.from(new Set(logs.map(log => log.org_id)))
 
-  // OPTIMIZACIÓN: Memoizar datos CSV
-  const csvData = useMemo(() => {
+  const exportToCSV = () => {
     const headers = [
       'Fecha',
       'Organización',
@@ -72,7 +66,7 @@ export const AIUsageTable = ({ logs, isLoading }: AIUsageTableProps) => {
       'Error'
     ]
 
-    const data = filteredLogs.map(log => [
+    const csvData = filteredLogs.map(log => [
       format(new Date(log.created_at), 'yyyy-MM-dd HH:mm:ss'),
       log.org_id,
       log.user_id,
@@ -85,13 +79,11 @@ export const AIUsageTable = ({ logs, isLoading }: AIUsageTableProps) => {
       log.error_message || ''
     ])
 
-    return [headers, ...data]
+    const csvContent = [headers, ...csvData]
       .map(row => row.map(cell => `"${cell}"`).join(','))
       .join('\n')
-  }, [filteredLogs])
 
-  const exportToCSV = () => {
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
     link.download = `ai-usage-${format(new Date(), 'yyyy-MM-dd')}.csv`

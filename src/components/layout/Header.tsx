@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect, memo } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useApp } from '@/contexts/AppContext'
@@ -8,7 +8,7 @@ import { HeaderClock } from './HeaderClock'
 import { NotificationsPanel } from '@/components/notifications/NotificationsPanel'
 import { useNotifications } from '@/hooks/useNotifications'
 
-const HeaderComponent = () => {
+export const Header = () => {
   const { user, signOut } = useApp()
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications()
   const [showNotifications, setShowNotifications] = useState(false)
@@ -115,12 +115,3 @@ const HeaderComponent = () => {
     </header>
   )
 }
-
-// Memoización selectiva del header
-export const Header = memo(HeaderComponent, (prevProps, nextProps) => {
-  // Header no recibe props externas, depende solo de contexto interno
-  // No memoizar completamente para mantener reactividad de notificaciones
-  return false
-})
-
-Header.displayName = 'Header'

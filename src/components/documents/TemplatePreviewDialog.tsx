@@ -6,7 +6,6 @@ import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DocumentTemplate } from '@/hooks/useDocumentTemplates'
 import { FileText, Bot, Copy, Settings, X } from 'lucide-react'
-import { sanitizeDocumentHTML } from '@/lib/security'
 
 interface TemplatePreviewDialogProps {
   open: boolean
@@ -219,12 +218,9 @@ export const TemplatePreviewDialog = ({
             <ScrollArea className="h-[calc(100%-2rem)]">
               <div className="prose prose-sm max-w-none">
                 <div className="bg-card border rounded-lg p-6">
-                  <div 
-                    className="whitespace-pre-wrap font-sans text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ 
-                      __html: sanitizeDocumentHTML(previewContent)
-                    }}
-                  />
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+                    {previewContent}
+                  </pre>
                 </div>
               </div>
             </ScrollArea>

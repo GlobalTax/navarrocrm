@@ -38,34 +38,7 @@ export const TimeOptimizer = () => {
   const handleOptimize = async () => {
     const result = await optimizeSchedule()
     if (result) {
-      // Adaptar el resultado a la interfaz local
-      const adaptedResult: TimeOptimizationResult = {
-        currentEfficiency: result.currentEfficiency,
-        optimizedSchedule: result.optimizedSchedule.map((item, index) => ({
-          time: `${9 + index}:00`,
-          task: item.task,
-          priority: item.priority,
-          estimatedDuration: item.optimizedTime,
-          type: 'work' as const
-        })),
-        recommendations: result.recommendations.map(rec => ({
-          type: 'efficiency' as const,
-          message: rec.description,
-          impact: rec.impact
-        })),
-        timeDistribution: {
-          productive_hours: result.timeDistribution.reduce((acc, item) => 
-            item.category === 'productive' ? acc + item.hours : acc, 0),
-          meeting_hours: result.timeDistribution.reduce((acc, item) => 
-            item.category === 'meetings' ? acc + item.hours : acc, 0),
-          break_hours: result.timeDistribution.reduce((acc, item) => 
-            item.category === 'breaks' ? acc + item.hours : acc, 0),
-          admin_hours: result.timeDistribution.reduce((acc, item) => 
-            item.category === 'admin' ? acc + item.hours : acc, 0)
-        },
-        potentialSavings: result.potentialSavings
-      }
-      setOptimizationResult(adaptedResult)
+      setOptimizationResult(result as TimeOptimizationResult)
     }
   }
 

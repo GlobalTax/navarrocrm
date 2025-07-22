@@ -1,39 +1,25 @@
-
 import { supabase } from '@/integrations/supabase/client'
-import { 
-  ContactInsertData, 
-  UserInvitationInsertData, 
-  HubSpotContactInsertData,
-  BulkUploadProcessorResult 
-} from '@/types/bulkUpload'
-import { 
-  ContactValidationData, 
-  UserValidationData, 
-  HubSpotValidationData 
-} from './useBulkUploadValidators'
+import { ContactValidationData, UserValidationData, HubSpotValidationData } from './useBulkUploadValidators'
 
 export const useBulkUploadProcessors = () => {
-  const processContacts = async (
-    validatedData: ContactValidationData[], 
-    orgId: string
-  ): Promise<number> => {
+  const processContacts = async (validatedData: ContactValidationData[], orgId: string): Promise<number> => {
     const batchSize = 10
     let successCount = 0
 
     for (let i = 0; i < validatedData.length; i += batchSize) {
       const batch = validatedData.slice(i, i + batchSize)
       
-      const contactsToInsert: ContactInsertData[] = batch.map(contact => ({
+      const contactsToInsert = batch.map(contact => ({
         name: contact.name,
         email: contact.email,
         phone: contact.phone,
         address_street: contact.address_street,
         address_city: contact.address_city,
         address_postal_code: contact.address_postal_code,
-        address_country: contact.address_country || 'España',
-        client_type: (contact.client_type as ContactInsertData['client_type']) || 'particular',
-        status: (contact.status as ContactInsertData['status']) || 'activo',
-        relationship_type: (contact.relationship_type as ContactInsertData['relationship_type']) || 'prospecto',
+        address_country: contact.address_country,
+        client_type: contact.client_type,
+        status: contact.status,
+        relationship_type: contact.relationship_type,
         org_id: orgId
       }))
 
@@ -49,10 +35,7 @@ export const useBulkUploadProcessors = () => {
     return successCount
   }
 
-  const processUsers = async (
-    validatedData: UserValidationData[], 
-    orgId: string
-  ): Promise<number> => {
+  const processUsers = async (validatedData: UserValidationData[], orgId: string): Promise<number> => {
     const batchSize = 10
     let successCount = 0
 
@@ -63,9 +46,9 @@ export const useBulkUploadProcessors = () => {
     for (let i = 0; i < validatedData.length; i += batchSize) {
       const batch = validatedData.slice(i, i + batchSize)
       
-      const usersToInsert: UserInvitationInsertData[] = batch.map(userData => ({
+      const usersToInsert = batch.map(userData => ({
         email: userData.email,
-        role: userData.role as UserInvitationInsertData['role'],
+        role: userData.role,
         org_id: orgId,
         invited_by: user.id,
         token: crypto.randomUUID(),
@@ -85,17 +68,14 @@ export const useBulkUploadProcessors = () => {
     return successCount
   }
 
-  const processHubSpotContacts = async (
-    validatedData: HubSpotValidationData[], 
-    orgId: string
-  ): Promise<number> => {
+  const processHubSpotContacts = async (validatedData: HubSpotValidationData[], orgId: string): Promise<number> => {
     const batchSize = 10
     let successCount = 0
 
     for (let i = 0; i < validatedData.length; i += batchSize) {
       const batch = validatedData.slice(i, i + batchSize)
       
-      const contactsToInsert: HubSpotContactInsertData[] = batch.map(contact => ({
+      const contactsToInsert = batch.map(contact => ({
         name: contact.name,
         email: contact.email,
         phone: contact.phone,
@@ -105,8 +85,8 @@ export const useBulkUploadProcessors = () => {
         address_postal_code: undefined,
         address_country: 'España',
         client_type: contact.company ? 'empresa' : 'particular',
-        status: 'activo' as const,
-        relationship_type: 'prospecto' as const,
+        status: 'activo',
+        relationship_type: 'prospecto',
         business_sector: contact.industry,
         how_found_us: 'HubSpot',
         internal_notes: `Importado desde HubSpot. Lifecycle: ${contact.lifecycle_stage}, Lead Status: ${contact.lead_status}`,
@@ -125,43 +105,21 @@ export const useBulkUploadProcessors = () => {
     return successCount
   }
 
-  const processWithAI = async (
-    validatedData: Record<string, any>[], 
-    dataType: string, 
-    orgId: string
-  ): Promise<number> => {
+  const processWithAI = async (validatedData: any[], dataType: string, orgId: string): Promise<number> => {
     const batchSize = 10
     let successCount = 0
-
-    // Obtener el usuario actual para invited_by si es necesario
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user && dataType === 'users') throw new Error('Usuario no autenticado')
 
     for (let i = 0; i < validatedData.length; i += batchSize) {
       const batch = validatedData.slice(i, i + batchSize)
       
-      let itemsToInsert: any[]
-      
-      if (dataType === 'users') {
-        itemsToInsert = batch.map(item => ({
-          email: item.email,
-          role: item.role,
-          org_id: orgId,
-          invited_by: user!.id,
-          token: crypto.randomUUID(),
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        }))
-      } else {
-        itemsToInsert = batch.map(item => ({
-          ...item,
-          org_id: orgId
-        }))
-      }
+      const itemsToInsert = batch.map(item => ({
+        ...item,
+        org_id: orgId
+      }))
 
       const tableName = dataType === 'users' ? 'user_invitations' : dataType
       const { error } = await supabase
-        .from(tableName as 'contacts' | 'user_invitations')
+        .from(tableName as any)
         .insert(itemsToInsert)
 
       if (error) throw error

@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { LucideIcon } from 'lucide-react'
-import { memo } from 'react'
 
 interface MetricWidgetProps {
   title: string
@@ -16,7 +15,7 @@ interface MetricWidgetProps {
   className?: string
 }
 
-const MetricWidgetComponent = ({ 
+export const MetricWidget = ({ 
   title, 
   value, 
   change, 
@@ -59,19 +58,3 @@ const MetricWidgetComponent = ({
     </Card>
   )
 }
-
-// Memoización con comparador específico para props de métricas
-export const MetricWidget = memo(MetricWidgetComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.title === nextProps.title &&
-    prevProps.value === nextProps.value &&
-    prevProps.change === nextProps.change &&
-    prevProps.changeType === nextProps.changeType &&
-    prevProps.icon === nextProps.icon &&
-    prevProps.progress === nextProps.progress &&
-    prevProps.description === nextProps.description &&
-    prevProps.className === nextProps.className
-  )
-})
-
-MetricWidget.displayName = 'MetricWidget'

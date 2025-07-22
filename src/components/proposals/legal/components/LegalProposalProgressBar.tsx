@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle } from 'lucide-react'
-import { PROPOSAL_STEPS } from '@/types/proposals'
+import { PROPOSAL_STEPS } from '../types/legalProposal.types'
 
 interface LegalProposalProgressBarProps {
   currentStep: number

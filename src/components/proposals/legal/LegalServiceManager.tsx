@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Trash2, Plus, Calculator, Settings, Euro, Clock, AlertCircle } from 'lucide-react'
-import { SelectedService } from '@/types/proposals'
+import { SelectedService } from './types/legalProposal.types'
 import { formatCurrency, formatBillingUnit } from './utils/serviceConversion'
 
 interface LegalServiceManagerProps {

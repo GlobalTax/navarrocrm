@@ -7,8 +7,8 @@ import { Badge } from '@/components/ui/badge'
 export const ClientsTab = () => {
   const { clients } = useClients()
 
-  const activeClients = clients.filter(c => (c.relationship_type as string) === 'cliente').length
-  const prospects = clients.filter(c => (c.relationship_type as string) === 'prospecto').length
+  const activeClients = clients.filter(c => c.status === 'activo').length
+  const prospects = clients.filter(c => c.relationship_type === 'prospecto').length
   const totalClients = clients.length
 
   // Análisis simple de clientes por sector

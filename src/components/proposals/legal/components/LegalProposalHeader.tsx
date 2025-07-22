@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Scale, X } from 'lucide-react';
-import { ProposalStep, PROPOSAL_STEPS } from '@/types/proposals';
+import { PROPOSAL_STEPS } from '../types/legalProposal.types';
 
 interface LegalProposalHeaderProps {
   currentStep: number;

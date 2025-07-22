@@ -4,12 +4,9 @@ import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import { Message } from './types'
-import { useLogger } from '@/hooks/useLogger'
-import { AIAction } from '@/types/interfaces'
 
 export const useAIChat = () => {
   const { user } = useApp()
-  const logger = useLogger('useAIChat')
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -25,18 +22,13 @@ export const useAIChat = () => {
       ]
     }
   ])
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const sendMessage = async (content: string): Promise<void> => {
-    logger.info('Enviando mensaje', { metadata: { content } })
+  const sendMessage = async (content: string) => {
+    console.log('📤 AIChat - Enviando mensaje:', content)
     
     if (!content.trim() || isLoading) {
-      logger.warn('Mensaje bloqueado', { 
-        metadata: {
-          reason: content.trim() ? 'loading' : 'empty_content',
-          isLoading 
-        }
-      })
+      console.log('⚠️ AIChat - Mensaje bloqueado. Contenido vacío o cargando')
       return
     }
 
@@ -51,7 +43,7 @@ export const useAIChat = () => {
     setIsLoading(true)
 
     try {
-      logger.info('Llamando a función Edge')
+      console.log('🚀 AIChat - Llamando a función Edge...')
       
       const response = await supabase.functions.invoke('ai-assistant', {
         body: {
@@ -65,15 +57,10 @@ export const useAIChat = () => {
         }
       })
 
-      logger.info('Respuesta recibida', { 
-        metadata: {
-          hasError: !!response.error,
-          hasData: !!response.data 
-        }
-      })
+      console.log('📥 AIChat - Respuesta recibida:', response)
 
       if (response.error) {
-        logger.error('Error en respuesta', { error: response.error })
+        console.error('❌ AIChat - Error en respuesta:', response.error)
         throw new Error(response.error.message)
       }
 
@@ -92,7 +79,7 @@ export const useAIChat = () => {
       }
 
     } catch (error) {
-      logger.error('Error al enviar mensaje', { error })
+      console.error('💥 AIChat - Error al enviar mensaje:', error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -106,32 +93,8 @@ export const useAIChat = () => {
     }
   }
 
-  const handleAIAction = (action: AIAction): void => {
-    logger.info('Ejecutando acción IA', { 
-      metadata: { 
-        actionType: action.type,
-        hasPayload: !!action.payload 
-      }
-    })
-    
-    // Tipado seguro de las acciones
-    switch (action.type) {
-      case 'navigate':
-        if (typeof action.payload === 'string') {
-          window.location.href = action.payload
-        }
-        break
-      case 'create_client':
-        // Implementar lógica de creación de cliente
-        break
-      case 'search_cases':
-        // Implementar lógica de búsqueda
-        break
-      default:
-        logger.warn('Acción no reconocida', { 
-          metadata: { actionType: action.type }
-        })
-    }
+  const handleAIAction = (action: any) => {
+    console.log('🎬 AIChat - Ejecutando acción IA:', action)
   }
 
   return {

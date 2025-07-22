@@ -1,4 +1,3 @@
-
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
@@ -6,9 +5,7 @@ import { useApp } from '@/contexts/AppContext'
 import { useDebounced } from '@/hooks/useDebounced'
 import { Contact } from '@/hooks/useContacts'
 import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
-import { createLogger } from '@/utils/logger'
 
-const logger = createLogger('useInfiniteContacts')
 const PAGE_SIZE = 50
 
 interface ContactsPage {
@@ -23,7 +20,7 @@ export const useInfiniteContacts = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [relationshipFilter, setRelationshipFilter] = useState<string>('all')
   
-  // OPTIMIZACIÓN: Debounce search para evitar queries excesivas
+  // Debounce search to avoid excessive API calls
   const debouncedSearchTerm = useDebounced(searchTerm, 300)
 
   const {
@@ -37,10 +34,10 @@ export const useInfiniteContacts = () => {
   } = useInfiniteQuery({
     queryKey: ['infinite-contacts', user?.org_id, debouncedSearchTerm, statusFilter, relationshipFilter],
     queryFn: async ({ pageParam = 0 }): Promise<ContactsPage> => {
-      logger.debug('Fetching contacts page:', pageParam, 'for org:', user?.org_id)
+      console.log('🔄 Fetching contacts page:', pageParam, 'for org:', user?.org_id)
       
       if (!user?.org_id) {
-        logger.warn('No org_id available')
+        console.log('❌ No org_id available')
         return { contacts: [], nextCursor: null, hasMore: false }
       }
 
@@ -67,7 +64,7 @@ export const useInfiniteContacts = () => {
       const { data: contacts, error: contactsError } = await query
 
       if (contactsError) {
-        logger.error('Error fetching contacts:', contactsError)
+        console.error('❌ Error fetching contacts:', contactsError)
         throw contactsError
       }
 
@@ -77,7 +74,7 @@ export const useInfiniteContacts = () => {
         email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
       }))
 
-      logger.debug('Contacts page fetched successfully:', typedContacts.length)
+      console.log('✅ Contacts page fetched:', typedContacts.length)
 
       return {
         contacts: typedContacts,
@@ -88,8 +85,6 @@ export const useInfiniteContacts = () => {
     enabled: !!user?.org_id,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos
   })
 
   // Flatten all pages into a single array

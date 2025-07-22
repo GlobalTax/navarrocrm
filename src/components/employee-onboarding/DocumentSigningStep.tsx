@@ -10,7 +10,6 @@ import { Separator } from '@/components/ui/separator'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
-import { sanitizeDocumentHTML } from '@/lib/security'
 
 interface OnboardingDocument {
   id: string
@@ -292,9 +291,7 @@ export const DocumentSigningStep = ({ onboardingId, onAllDocumentsSigned }: Docu
             <div className="space-y-4">
               <div 
                 className="border rounded-lg p-4 bg-background min-h-[400px]"
-                dangerouslySetInnerHTML={{ 
-                  __html: sanitizeDocumentHTML(selectedDocument.content)
-                }}
+                dangerouslySetInnerHTML={{ __html: selectedDocument.content }}
               />
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setSelectedDocument(null)}>
