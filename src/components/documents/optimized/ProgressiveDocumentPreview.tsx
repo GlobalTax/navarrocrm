@@ -38,29 +38,48 @@ export const ProgressiveDocumentPreview = ({
   const chunkSize = size > 1024 * 1024 ? 500 : 1000 // Chunks más pequeños para docs grandes
   const previewLength = size > 1024 * 1024 ? 200 : 500
   
+  const [previewContent, setPreviewContent] = useState('')
+  const [fullContent, setFullContent] = useState('')
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [fullError, setFullError] = useState<string | null>(null)
+
   const {
-    sanitizedContent: previewContent,
+    sanitizeProgressively: sanitizePreview,
     isProcessing: previewProcessing,
-    error: previewError
+    progress: previewProgress
   } = useProgressiveSanitization({
-    content: content.substring(0, previewLength),
     chunkSize,
     strictMode: true,
     preserveFormatting: false
   })
 
   const {
-    sanitizedContent: fullContent,
+    sanitizeProgressively: sanitizeFull,
     isProcessing: fullProcessing,
-    error: fullError,
     progress: sanitizationProgress
   } = useProgressiveSanitization({
-    content: showFullContent ? content : '',
     chunkSize,
     strictMode: false,
-    preserveFormatting: true,
-    enabled: showFullContent
+    preserveFormatting: true
   })
+
+  // Sanitize preview content on mount
+  useEffect(() => {
+    const sanitizePreviewContent = async () => {
+      try {
+        const result = await sanitizePreview(content.substring(0, previewLength))
+        setPreviewContent(result.sanitizedContent)
+        setPreviewError(null)
+      } catch (error) {
+        setPreviewError('Error al procesar vista previa')
+        logger.error('Error sanitizing preview', { error })
+      }
+    }
+    
+    if (content) {
+      sanitizePreviewContent()
+    }
+  }, [content, previewLength, sanitizePreview, logger])
 
   // Intersection Observer para lazy loading del contenido completo
   const { targetRef, isIntersecting } = useIntersectionObserver({
@@ -73,23 +92,35 @@ export const ProgressiveDocumentPreview = ({
     if (isIntersecting && !showFullContent && !fullProcessing) {
       logger.info('🔄 Activando carga progresiva', { 
         documentId, 
-        size: `${(size / 1024).toFixed(1)}KB` 
+        sizeKB: (size / 1024).toFixed(1)
       })
       setLoadingState('loading')
       setShowFullContent(true)
     }
   }, [isIntersecting, showFullContent, fullProcessing, documentId, size, logger])
 
-  // Actualizar estado cuando termine la sanitización completa
+  // Sanitizar contenido completo cuando se active
   useEffect(() => {
-    if (showFullContent && !fullProcessing && fullContent) {
-      setLoadingState('full')
-      logger.info('✅ Contenido completo cargado', { 
-        documentId,
-        contentLength: fullContent.length 
-      })
+    const sanitizeFullContent = async () => {
+      try {
+        const result = await sanitizeFull(content)
+        setFullContent(result.sanitizedContent)
+        setFullError(null)
+        setLoadingState('full')
+        logger.info('✅ Contenido completo cargado', { 
+          documentId,
+          contentLength: result.sanitizedContent.length 
+        })
+      } catch (error) {
+        setFullError('Error al procesar contenido completo')
+        logger.error('Error sanitizing full content', { error })
+      }
     }
-  }, [showFullContent, fullProcessing, fullContent, documentId, logger])
+    
+    if (showFullContent && content) {
+      sanitizeFullContent()
+    }
+  }, [showFullContent, content, sanitizeFull, documentId, logger])
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 B'
@@ -140,7 +171,7 @@ export const ProgressiveDocumentPreview = ({
             <div className="flex items-center gap-2 mb-2">
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400" />
               <span className="text-xs text-gray-600">
-                Cargando contenido completo... {Math.round(sanitizationProgress)}%
+                Cargando contenido completo... {Math.round(sanitizationProgress.percentage)}%
               </span>
             </div>
             <div className="space-y-2">
