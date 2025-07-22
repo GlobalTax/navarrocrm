@@ -1,11 +1,12 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
-import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
+import { OptimizedDashboardLayout } from '@/components/dashboard/OptimizedDashboardLayout'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
-import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { useParallelQueries } from '@/hooks/optimization/useParallelQueries'
+import { useMemoizedMetrics } from '@/hooks/optimization/useMemoizedMetrics'
+import { usePerformanceMonitor } from '@/hooks/optimization/usePerformanceMonitor'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { MainLayout } from '@/components/layout/MainLayout'
@@ -16,19 +17,19 @@ import { toast } from 'sonner'
 
 export default function Dashboard() {
   const { user } = useApp()
-  const { stats, isLoading, error, refetch } = useDashboardStats()
+  const { data, isLoading, error, refetchAll } = useParallelQueries()
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+  const { metrics } = usePerformanceMonitor('Dashboard', 20)
 
   useEffect(() => {
     if (user?.org_id) {
-      refetch()
       setLastRefresh(new Date())
     }
-  }, [user, refetch])
+  }, [user])
 
   const handleRefresh = async () => {
     try {
-      await refetch()
+      await refetchAll()
       setLastRefresh(new Date())
       toast.success('Dashboard actualizado', {
         description: 'Los datos se han actualizado correctamente'
@@ -41,40 +42,23 @@ export default function Dashboard() {
   }
 
   // OPTIMIZACIÓN: Memoizar transformación de stats costosa
-  const enhancedStats = useMemo(() => {
-    const totalHours = stats.totalBillableHours + stats.totalNonBillableHours
-    const utilizationRate = totalHours > 0 ? 
-      Math.round((stats.totalBillableHours / totalHours) * 100) : 0
-    const estimatedRevenue = stats.totalBillableHours * 50 // €50/hora estimado
-    
-    return {
-      totalTimeEntries: stats.totalTimeEntries,
-      totalBillableHours: stats.totalBillableHours,
-      totalClients: stats.totalContacts,
-      totalCases: stats.totalCases,
-      totalActiveCases: stats.activeCases,
-      pendingInvoices: 0,
-      hoursThisWeek: 0,
-      hoursThisMonth: stats.thisMonthHours,
-      utilizationRate,
-      averageHoursPerDay: 0,
-      totalRevenue: estimatedRevenue,
-      pendingTasks: 0,
-      overdueTasks: 0,
-      loading: isLoading,
-      error: error?.message || null
-    }
-  }, [
-    stats.totalTimeEntries,
-    stats.totalBillableHours,
-    stats.totalNonBillableHours,
-    stats.totalContacts,
-    stats.totalCases,
-    stats.activeCases,
-    stats.thisMonthHours,
-    isLoading,
-    error
-  ])
+  const enhancedStats = useMemoizedMetrics(data || {
+    totalTimeEntries: 0,
+    totalBillableHours: 0,
+    totalClients: 0,
+    totalCases: 0,
+    totalActiveCases: 0,
+    pendingInvoices: 0,
+    hoursThisWeek: 0,
+    hoursThisMonth: 0,
+    utilizationRate: 0,
+    averageHoursPerDay: 0,
+    totalRevenue: 0,
+    pendingTasks: 0,
+    overdueTasks: 0,
+    loading: isLoading,
+    error: error || null
+  })
 
   // OPTIMIZACIÓN: Memoizar mensaje de bienvenida
   const welcomeMessage = useMemo(() => 
@@ -136,18 +120,20 @@ export default function Dashboard() {
         </div>
 
         {/* Indicador de última actualización */}
-        <div className="text-sm text-gray-500 mb-4">
-          Última actualización: {formatTime(lastRefresh)}
+        <div className="text-sm text-gray-500 mb-4 flex items-center justify-between">
+          <span>Última actualización: {formatTime(lastRefresh)}</span>
+          {process.env.NODE_ENV === 'development' && (
+            <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+              {metrics.componentRenders} renders | {metrics.avgRenderTime.toFixed(1)}ms avg
+            </span>
+          )}
         </div>
         
-        {/* Métricas principales con diseño compacto */}
-        <EnhancedDashboardMetrics stats={enhancedStats} />
-        
-        {/* Layout principal */}
-        {!isLoading && <EnhancedDashboardLayout />}
+        {/* Layout principal optimizado */}
+        <OptimizedDashboardLayout />
         
         {error && (
-          <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
+          <DashboardError error={error} onRetry={refetchAll} />
         )}
       </StandardPageContainer>
     </MainLayout>
