@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useMemo } from 'react'
 import { useApp } from '@/contexts/AppContext'
 import { OptimizedDashboardLayout } from '@/components/dashboard/OptimizedDashboardLayout'
@@ -14,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { MetricsErrorBoundary } from '@/components/dashboard/MetricsErrorBoundary'
 
 export default function Dashboard() {
   const { user } = useApp()
@@ -129,8 +129,10 @@ export default function Dashboard() {
           )}
         </div>
         
-        {/* Layout principal optimizado */}
-        <OptimizedDashboardLayout />
+        {/* Layout principal optimizado con error boundary */}
+        <MetricsErrorBoundary onRetry={handleRefresh}>
+          <OptimizedDashboardLayout />
+        </MetricsErrorBoundary>
         
         {error && (
           <DashboardError error={error} onRetry={refetchAll} />

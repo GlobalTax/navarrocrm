@@ -44,11 +44,33 @@ const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsPr
     )
   }
 
-  const formatCurrency = (amount: number) => 
-    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
+  // Funciones de formato con validación robusta
+  const formatCurrency = (amount: number | undefined | null) => {
+    const validAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(validAmount)
+  }
 
-  const formatHours = (hours: number) => 
-    `${hours.toFixed(1)}h`
+  const formatHours = (hours: number | undefined | null) => {
+    const validHours = typeof hours === 'number' && !isNaN(hours) ? hours : 0
+    return `${validHours.toFixed(1)}h`
+  }
+
+  // Validar y normalizar todas las métricas
+  const safeStats = {
+    totalTimeEntries: stats.totalTimeEntries || 0,
+    totalBillableHours: stats.totalBillableHours || 0,
+    totalClients: stats.totalClients || 0,
+    totalCases: stats.totalCases || 0,
+    totalActiveCases: stats.totalActiveCases || 0,
+    pendingInvoices: stats.pendingInvoices || 0,
+    hoursThisWeek: stats.hoursThisWeek || 0,
+    hoursThisMonth: stats.hoursThisMonth || 0,
+    utilizationRate: stats.utilizationRate || 0,
+    averageHoursPerDay: stats.averageHoursPerDay || 0,
+    totalRevenue: stats.totalRevenue || 0,
+    pendingTasks: stats.pendingTasks || 0,
+    overdueTasks: stats.overdueTasks || 0
+  }
 
   return (
     <div className="space-y-6 mb-6">
@@ -56,21 +78,21 @@ const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsPr
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <CompactMetricWidget
           title="Horas Facturables"
-          value={formatHours(stats.totalBillableHours)}
-          change={`${stats.totalTimeEntries} registros`}
+          value={formatHours(safeStats.totalBillableHours)}
+          change={`${safeStats.totalTimeEntries} registros`}
           changeType="neutral"
           icon={Clock}
         />
         
         <CompactMetricWidget
           title="Clientes Activos"
-          value={stats.totalClients}
+          value={safeStats.totalClients}
           icon={Users}
         />
         
         <CompactMetricWidget
           title="Expedientes"
-          value={`${stats.totalActiveCases}/${stats.totalCases}`}
+          value={`${safeStats.totalActiveCases}/${safeStats.totalCases}`}
           change="Activos/Total"
           changeType="neutral"
           icon={FileText}
@@ -78,8 +100,8 @@ const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsPr
         
         <CompactMetricWidget
           title="Utilización"
-          value={`${stats.utilizationRate}%`}
-          changeType={stats.utilizationRate >= 75 ? 'positive' : stats.utilizationRate >= 50 ? 'neutral' : 'negative'}
+          value={`${safeStats.utilizationRate}%`}
+          changeType={safeStats.utilizationRate >= 75 ? 'positive' : safeStats.utilizationRate >= 50 ? 'neutral' : 'negative'}
           icon={Target}
         />
       </div>
@@ -88,7 +110,7 @@ const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsPr
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <CompactMetricWidget
           title="Este Mes"
-          value={formatHours(stats.hoursThisMonth)}
+          value={formatHours(safeStats.hoursThisMonth)}
           change="Horas registradas"
           changeType="neutral"
           icon={TrendingUp}
@@ -97,7 +119,7 @@ const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsPr
         
         <CompactMetricWidget
           title="Ingresos Est."
-          value={formatCurrency(stats.totalRevenue)}
+          value={formatCurrency(safeStats.totalRevenue)}
           change="Basado en horas"
           changeType="positive"
           icon={Euro}
@@ -106,16 +128,16 @@ const EnhancedDashboardMetricsComponent = ({ stats }: EnhancedDashboardMetricsPr
         
         <CompactMetricWidget
           title="Tareas Pendientes"
-          value={stats.pendingTasks}
-          changeType={stats.pendingTasks > 10 ? 'negative' : 'neutral'}
+          value={safeStats.pendingTasks}
+          changeType={safeStats.pendingTasks > 10 ? 'negative' : 'neutral'}
           icon={AlertTriangle}
           size="sm"
         />
         
         <CompactMetricWidget
           title="Facturas Pend."
-          value={stats.pendingInvoices}
-          changeType={stats.pendingInvoices > 5 ? 'negative' : 'positive'}
+          value={safeStats.pendingInvoices}
+          changeType={safeStats.pendingInvoices > 5 ? 'negative' : 'positive'}
           icon={CheckCircle}
           size="sm"
         />

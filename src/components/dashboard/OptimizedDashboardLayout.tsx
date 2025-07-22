@@ -11,35 +11,46 @@ import { EnhancedDashboardMetrics } from './EnhancedDashboardMetrics'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 
+// Valores por defecto seguros para las métricas
+const DEFAULT_DASHBOARD_STATS = {
+  totalTimeEntries: 0,
+  totalBillableHours: 0,
+  totalClients: 0,
+  totalCases: 0,
+  totalActiveCases: 0,
+  pendingInvoices: 0,
+  hoursThisWeek: 0,
+  hoursThisMonth: 0,
+  utilizationRate: 0,
+  averageHoursPerDay: 0,
+  totalRevenue: 0,
+  pendingTasks: 0,
+  overdueTasks: 0,
+  loading: false,
+  error: null
+}
+
 export const OptimizedDashboardLayout = () => {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter'>('month')
   const { data, isLoading, error, refetchAll, isFetching } = useParallelQueries()
   const { metrics } = usePerformanceMonitor('OptimizedDashboardLayout')
 
-  // Usar datos memoizados solo si están disponibles
-  const memoizedMetrics = useMemoizedMetrics(data || {
-    totalTimeEntries: 0,
-    totalBillableHours: 0,
-    totalClients: 0,
-    totalCases: 0,
-    totalActiveCases: 0,
-    pendingInvoices: 0,
-    hoursThisWeek: 0,
-    hoursThisMonth: 0,
-    utilizationRate: 0,
-    averageHoursPerDay: 0,
-    totalRevenue: 0,
-    pendingTasks: 0,
-    overdueTasks: 0,
+  // Usar datos memoizados con valores por defecto seguros
+  const safeStatsInput = {
+    ...DEFAULT_DASHBOARD_STATS,
+    ...(data || {}), // Mergear datos reales si están disponibles
     loading: isLoading,
     error: error || null
-  })
+  }
+
+  const memoizedMetrics = useMemoizedMetrics(safeStatsInput)
 
   const handleRefresh = async () => {
     try {
       await refetchAll()
       toast.success('Dashboard actualizado correctamente')
     } catch (error) {
+      console.error('Error refreshing dashboard:', error)
       toast.error('Error al actualizar el dashboard')
     }
   }
@@ -101,8 +112,10 @@ export const OptimizedDashboardLayout = () => {
         isRefreshing={isFetching}
       />
 
-      {/* Métricas optimizadas */}
-      <EnhancedDashboardMetrics stats={memoizedMetrics.enhancedStats} />
+      {/* Métricas optimizadas con error boundary implícito */}
+      <div className="dashboard-metrics-container">
+        <EnhancedDashboardMetrics stats={memoizedMetrics.enhancedStats} />
+      </div>
 
       {/* Layout principal con lazy loading */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -115,12 +128,16 @@ export const OptimizedDashboardLayout = () => {
         
         {/* Columna central - Gráficos de rendimiento */}
         <div className="lg:col-span-5 space-y-6">
-          <LazyPerformanceChart />
+          <Suspense fallback={<Skeleton className="h-96 rounded-xl" />}>
+            <LazyPerformanceChart />
+          </Suspense>
         </div>
         
         {/* Columna derecha - Actividad reciente */}
         <div className="lg:col-span-3">
-          <OptimizedRecentActivity />
+          <Suspense fallback={<Skeleton className="h-96 rounded-xl" />}>
+            <OptimizedRecentActivity />
+          </Suspense>
         </div>
       </div>
 

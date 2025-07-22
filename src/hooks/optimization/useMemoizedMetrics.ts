@@ -20,29 +20,59 @@ interface DashboardStats {
   error?: string | null
 }
 
-export const useMemoizedMetrics = (stats: DashboardStats) => {
+// Función helper para normalizar valores numéricos
+const safeNumber = (value: any): number => {
+  const num = Number(value)
+  return isNaN(num) || !isFinite(num) ? 0 : num
+}
+
+// Función helper para normalizar stats
+const normalizeDashboardStats = (stats: Partial<DashboardStats>): DashboardStats => {
+  return {
+    totalTimeEntries: safeNumber(stats.totalTimeEntries),
+    totalBillableHours: safeNumber(stats.totalBillableHours),
+    totalClients: safeNumber(stats.totalClients),
+    totalCases: safeNumber(stats.totalCases),
+    totalActiveCases: safeNumber(stats.totalActiveCases),
+    pendingInvoices: safeNumber(stats.pendingInvoices),
+    hoursThisWeek: safeNumber(stats.hoursThisWeek),
+    hoursThisMonth: safeNumber(stats.hoursThisMonth),
+    utilizationRate: safeNumber(stats.utilizationRate),
+    averageHoursPerDay: safeNumber(stats.averageHoursPerDay),
+    totalRevenue: safeNumber(stats.totalRevenue),
+    pendingTasks: safeNumber(stats.pendingTasks),
+    overdueTasks: safeNumber(stats.overdueTasks),
+    loading: stats.loading || false,
+    error: stats.error || null
+  }
+}
+
+export const useMemoizedMetrics = (stats: Partial<DashboardStats>) => {
+  // Normalizar stats de entrada para evitar errores
+  const normalizedStats = useMemo(() => normalizeDashboardStats(stats), [stats])
+
   // Memoización de transformaciones costosas
   const enhancedStats = useOptimizedMemo(() => {
-    const totalHours = stats.totalBillableHours + (stats.totalTimeEntries * 0.3) // estimación horas no facturables
+    const totalHours = normalizedStats.totalBillableHours + (normalizedStats.totalTimeEntries * 0.3) // estimación horas no facturables
     const utilizationRate = totalHours > 0 ? 
-      Math.round((stats.totalBillableHours / totalHours) * 100) : 0
-    const estimatedRevenue = stats.totalBillableHours * 50 // €50/hora estimado
+      Math.round((normalizedStats.totalBillableHours / totalHours) * 100) : 0
+    const estimatedRevenue = normalizedStats.totalBillableHours * 50 // €50/hora estimado
     
     return {
-      ...stats,
-      utilizationRate,
-      totalRevenue: estimatedRevenue,
+      ...normalizedStats,
+      utilizationRate: Math.max(0, Math.min(100, utilizationRate)), // Clamp entre 0-100
+      totalRevenue: Math.max(0, estimatedRevenue), // Asegurar no negativo
       efficiencyScore: utilizationRate > 75 ? 'high' : utilizationRate > 50 ? 'medium' : 'low',
-      hoursPerDayAvg: stats.hoursThisMonth / 30,
-      revenuePerClient: stats.totalClients > 0 ? estimatedRevenue / stats.totalClients : 0
+      hoursPerDayAvg: normalizedStats.hoursThisMonth / 30,
+      revenuePerClient: normalizedStats.totalClients > 0 ? estimatedRevenue / normalizedStats.totalClients : 0
     }
   }, [
-    stats.totalTimeEntries,
-    stats.totalBillableHours,
-    stats.totalClients,
-    stats.totalCases,
-    stats.totalActiveCases,
-    stats.hoursThisMonth
+    normalizedStats.totalTimeEntries,
+    normalizedStats.totalBillableHours,
+    normalizedStats.totalClients,
+    normalizedStats.totalCases,
+    normalizedStats.totalActiveCases,
+    normalizedStats.hoursThisMonth
   ], 'enhanced-stats')
 
   // Memoización de métricas calculadas
@@ -58,21 +88,29 @@ export const useMemoizedMetrics = (stats: DashboardStats) => {
 
   // Formatters memoizados
   const formatters = useMemo(() => ({
-    currency: (amount: number) => 
-      new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount),
-    hours: (hours: number) => 
-      `${hours.toFixed(1)}h`,
-    percentage: (value: number) => 
-      `${Math.round(value)}%`,
-    number: (value: number) => 
-      value.toLocaleString('es-ES')
+    currency: (amount: number | undefined | null) => {
+      const validAmount = safeNumber(amount)
+      return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(validAmount)
+    },
+    hours: (hours: number | undefined | null) => {
+      const validHours = safeNumber(hours)
+      return `${validHours.toFixed(1)}h`
+    },
+    percentage: (value: number | undefined | null) => {
+      const validValue = safeNumber(value)
+      return `${Math.round(validValue)}%`
+    },
+    number: (value: number | undefined | null) => {
+      const validValue = safeNumber(value)
+      return validValue.toLocaleString('es-ES')
+    }
   }), [])
 
   return {
     enhancedStats,
     calculatedMetrics,
     formatters,
-    isLoading: stats.loading,
-    hasError: !!stats.error
+    isLoading: normalizedStats.loading,
+    hasError: !!normalizedStats.error
   }
 }
