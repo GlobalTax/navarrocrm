@@ -1,356 +1,231 @@
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect, useRef } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { 
-  Download, 
-  Send, 
-  Edit, 
-  Eye, 
-  EyeOff, 
-  FileText, 
-  Clock,
-  AlertCircle,
-  CheckCircle
-} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Eye, Download, AlertCircle } from 'lucide-react'
 import { useProgressiveSanitization } from '@/hooks/documents/useProgressiveSanitization'
-import { useDocumentMemory } from '@/hooks/documents/useDocumentMemory'
 import { useIntersectionObserver } from '@/hooks/performance/useIntersectionObserver'
-import { toast } from 'sonner'
+import { useLogger } from '@/hooks/useLogger'
 
 interface ProgressiveDocumentPreviewProps {
-  content: string
+  documentId: string
   title: string
-  templateName: string
-  variables: Record<string, any>
-  onEdit: () => void
-  onGenerate: () => void
-  isGenerating: boolean
-  canEdit?: boolean
-  maxPreviewSize?: number
+  content: string
+  size?: number
+  type?: string
+  onFullView?: () => void
+  onDownload?: () => void
+  className?: string
 }
 
 export const ProgressiveDocumentPreview = ({
-  content,
+  documentId,
   title,
-  templateName,
-  variables,
-  onEdit,
-  onGenerate,
-  isGenerating,
-  canEdit = true,
-  maxPreviewSize = 100000 // 100KB preview limit
+  content,
+  size = 0,
+  type = 'text',
+  onFullView,
+  onDownload,
+  className = ''
 }: ProgressiveDocumentPreviewProps) => {
-  const [viewMode, setViewMode] = useState<'formatted' | 'raw'>('formatted')
+  const logger = useLogger('ProgressiveDocumentPreview')
   const [showFullContent, setShowFullContent] = useState(false)
-  const [previewContent, setPreviewContent] = useState('')
-  const previewRef = useRef<HTMLDivElement>(null)
+  const [loadingState, setLoadingState] = useState<'preview' | 'loading' | 'full'>('preview')
   
-  const { sanitizeProgressively, isProcessing: isSanitizing, progress: sanitizationProgress } = useProgressiveSanitization({
-    chunkSize: 25000,
-    maxProcessingTime: 3000,
-    preserveFormatting: true
+  // Configuración adaptativa basada en el tamaño del documento
+  const chunkSize = size > 1024 * 1024 ? 500 : 1000 // Chunks más pequeños para docs grandes
+  const previewLength = size > 1024 * 1024 ? 200 : 500
+  
+  const {
+    sanitizedContent: previewContent,
+    isProcessing: previewProcessing,
+    error: previewError
+  } = useProgressiveSanitization({
+    content: content.substring(0, previewLength),
+    chunkSize,
+    strictMode: true,
+    preserveFormatting: false
   })
 
-  const { trackMemoryUsage, cleanup } = useDocumentMemory({
-    maxMemoryMB: 50,
-    cleanupThreshold: 40
+  const {
+    sanitizedContent: fullContent,
+    isProcessing: fullProcessing,
+    error: fullError,
+    progress: sanitizationProgress
+  } = useProgressiveSanitization({
+    content: showFullContent ? content : '',
+    chunkSize,
+    strictMode: false,
+    preserveFormatting: true,
+    enabled: showFullContent
   })
 
   // Intersection Observer para lazy loading del contenido completo
-  const { isIntersecting } = useIntersectionObserver({
+  const { targetRef, isIntersecting } = useIntersectionObserver({
     threshold: 0.1,
     rootMargin: '100px'
   })
 
-  // Métricas del documento
-  const documentMetrics = useMemo(() => {
-    const wordCount = content.split(' ').filter(word => word.length > 0).length
-    const charCount = content.length
-    const estimatedReadTime = Math.ceil(wordCount / 200)
-    const isLargeDocument = charCount > maxPreviewSize
-    
-    return {
-      wordCount,
-      charCount,
-      estimatedReadTime,
-      isLargeDocument,
-      truncatedContent: isLargeDocument ? content.substring(0, maxPreviewSize) + '...' : content
-    }
-  }, [content, maxPreviewSize])
-
-  // Procesamiento progresivo del contenido
+  // Cargar contenido completo cuando el componente sea visible
   useEffect(() => {
-    const processContent = async () => {
-      const contentToProcess = showFullContent ? content : documentMetrics.truncatedContent
-
-      try {
-        trackMemoryUsage('preview-processing')
-        
-        if (contentToProcess.length > 50000) {
-          // Usar sanitización progresiva para documentos grandes
-          const result = await sanitizeProgressively(contentToProcess)
-          setPreviewContent(result.sanitizedContent)
-          
-          if (result.warnings.length > 0) {
-            toast.warning(`Documento procesado con ${result.warnings.length} advertencias`)
-          }
-        } else {
-          // Procesamiento simple para documentos pequeños
-          const simpleFormatted = contentToProcess
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>')
-            .replace(/^\s*/, '<p>')
-            .replace(/\s*$/, '</p>')
-          
-          setPreviewContent(simpleFormatted)
-        }
-      } catch (error) {
-        console.error('Error procesando contenido:', error)
-        setPreviewContent(contentToProcess)
-        toast.error('Error procesando el documento')
-      }
+    if (isIntersecting && !showFullContent && !fullProcessing) {
+      logger.info('🔄 Activando carga progresiva', { 
+        documentId, 
+        size: `${(size / 1024).toFixed(1)}KB` 
+      })
+      setLoadingState('loading')
+      setShowFullContent(true)
     }
+  }, [isIntersecting, showFullContent, fullProcessing, documentId, size, logger])
 
-    if (isIntersecting || showFullContent) {
-      processContent()
-    }
-  }, [content, showFullContent, documentMetrics.truncatedContent, isIntersecting, sanitizeProgressively, trackMemoryUsage])
-
-  // Cleanup al desmontar
+  // Actualizar estado cuando termine la sanitización completa
   useEffect(() => {
-    return () => {
-      cleanup()
+    if (showFullContent && !fullProcessing && fullContent) {
+      setLoadingState('full')
+      logger.info('✅ Contenido completo cargado', { 
+        documentId,
+        contentLength: fullContent.length 
+      })
     }
-  }, [cleanup])
+  }, [showFullContent, fullProcessing, fullContent, documentId, logger])
 
-  const handleToggleFullContent = useCallback(() => {
-    setShowFullContent(prev => !prev)
-    trackMemoryUsage('toggle-full-content')
-  }, [trackMemoryUsage])
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  }
 
-  const handleDownloadPDF = useCallback(async () => {
-    try {
-      trackMemoryUsage('pdf-generation')
-      
-      // Simular generación de PDF
-      toast.success('Generando PDF...')
-      
-      // En implementación real, enviarías a endpoint de PDF
-      setTimeout(() => {
-        toast.success('PDF listo para descarga')
-      }, 2000)
-      
-    } catch (error) {
-      console.error('Error generando PDF:', error)
-      toast.error('Error al generar PDF')
+  const handleExpandClick = () => {
+    if (!showFullContent) {
+      setShowFullContent(true)
+      setLoadingState('loading')
+    } else if (onFullView) {
+      onFullView()
     }
-  }, [trackMemoryUsage])
+  }
 
-  const handleSendEmail = useCallback(async () => {
-    try {
-      const email = prompt('Ingrese el email de destino:')
-      if (!email) return
-
-      trackMemoryUsage('email-sending')
-      toast.success(`Enviando documento a ${email}...`)
-      
-      // En implementación real, enviarías email
-      setTimeout(() => {
-        toast.success('Documento enviado exitosamente')
-      }, 1500)
-      
-    } catch (error) {
-      console.error('Error enviando email:', error)
-      toast.error('Error al enviar email')
+  const renderContent = () => {
+    if (previewError || fullError) {
+      return (
+        <div className="flex items-center gap-2 text-red-600 p-4">
+          <AlertCircle className="h-4 w-4" />
+          <span className="text-sm">Error al procesar el documento</span>
+        </div>
+      )
     }
-  }, [trackMemoryUsage])
+
+    if (loadingState === 'preview' || previewProcessing) {
+      return (
+        <div className="space-y-2">
+          <div dangerouslySetInnerHTML={{ __html: previewContent }} />
+          {previewProcessing && (
+            <div className="flex items-center gap-2 text-gray-500">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400" />
+              <span className="text-xs">Procesando vista previa...</span>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    if (loadingState === 'loading') {
+      return (
+        <div className="space-y-3">
+          <div dangerouslySetInnerHTML={{ __html: previewContent }} />
+          <div className="border-t pt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400" />
+              <span className="text-xs text-gray-600">
+                Cargando contenido completo... {Math.round(sanitizationProgress)}%
+              </span>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div dangerouslySetInnerHTML={{ __html: fullContent || previewContent }} />
+    )
+  }
 
   return (
-    <Card className="h-full border-0.5 border-black rounded-[10px]">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Vista Previa del Documento
-              {documentMetrics.isLargeDocument && (
-                <Badge variant="outline" className="text-xs">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Documento grande
-                </Badge>
-              )}
-            </CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="secondary">{templateName}</Badge>
-              <span className="flex items-center gap-1">
-                <FileText className="h-3 w-3" />
-                {documentMetrics.wordCount.toLocaleString()} palabras
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                ~{documentMetrics.estimatedReadTime} min lectura
-              </span>
-              {documentMetrics.isLargeDocument && (
-                <span className="text-orange-600 text-xs">
-                  ({(documentMetrics.charCount / 1024).toFixed(1)}KB)
-                </span>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setViewMode(viewMode === 'formatted' ? 'raw' : 'formatted')}
-            >
-              {viewMode === 'formatted' ? (
-                <>
-                  <EyeOff className="h-4 w-4 mr-2" />
-                  Ver Código
-                </>
-              ) : (
-                <>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Ver Formato
-                </>
-              )}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-              <Download className="h-4 w-4 mr-2" />
-              PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleSendEmail}>
-              <Send className="h-4 w-4 mr-2" />
-              Email
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Document Info */}
-        <div className="bg-muted/30 rounded-lg p-4 space-y-2">
-          <h3 className="font-medium text-sm flex items-center gap-2">
-            Información del Documento
-            {isSanitizing && (
-              <div className="flex items-center gap-1 text-xs text-blue-600">
-                <div className="animate-spin rounded-full h-3 w-3 border border-blue-600 border-t-transparent"></div>
-                Procesando...
-              </div>
+    <Card 
+      ref={targetRef}
+      className={`transition-all duration-200 hover:shadow-md ${className}`}
+    >
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-sm truncate flex-1">{title}</h4>
+            {size > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {formatFileSize(size)}
+              </Badge>
             )}
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div>
-              <span className="text-muted-foreground">Título:</span>
-              <p className="font-medium">{title}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Caracteres:</span>
-              <p className="font-medium">{documentMetrics.charCount.toLocaleString()}</p>
-            </div>
           </div>
-          
-          {/* Progress bar para sanitización */}
-          {isSanitizing && sanitizationProgress && (
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Procesando contenido...</span>
-                <span>{sanitizationProgress.percentage}%</span>
-              </div>
-              <Progress value={sanitizationProgress.percentage} className="h-1" />
-            </div>
-          )}
-        </div>
-
-        {/* Large Document Warning */}
-        {documentMetrics.isLargeDocument && !showFullContent && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-yellow-800">
-                  Este documento es muy grande. Se muestra una vista previa de {(maxPreviewSize / 1024).toFixed(0)}KB.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 h-7 text-xs"
-                  onClick={handleToggleFullContent}
-                >
-                  Ver documento completo
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Preview Content */}
-        <div ref={previewRef} className="bg-white border rounded-lg overflow-hidden border-0.5 border-black">
-          <ScrollArea className="max-h-96">
-            <div className="p-6">
-              {viewMode === 'formatted' ? (
-                <div 
-                  className="prose prose-sm max-w-none font-serif leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: previewContent }}
-                />
-              ) : (
-                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">
-                  {showFullContent ? content : documentMetrics.truncatedContent}
-                </pre>
-              )}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Show Full Content Toggle */}
-        {documentMetrics.isLargeDocument && showFullContent && (
-          <div className="flex justify-center">
+          <div className="flex gap-1">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={handleToggleFullContent}
-              className="gap-2"
+              onClick={handleExpandClick}
+              className="h-6 w-6 p-0"
             >
-              <CheckCircle className="h-4 w-4" />
-              Mostrar vista previa resumida
+              <Eye className="h-3 w-3" />
             </Button>
-          </div>
-        )}
-        
-        {/* Actions */}
-        <div className="flex justify-between items-center pt-4 border-t">
-          {canEdit && (
-            <Button variant="outline" onClick={onEdit} className="gap-2">
-              <Edit className="h-4 w-4" />
-              Volver al Formulario
-            </Button>
-          )}
-          
-          <div className="flex gap-2">
-            <Button 
-              onClick={onGenerate} 
-              disabled={isGenerating || isSanitizing}
-              className="gap-2"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <FileText className="h-4 w-4" />
-                  Generar Documento
-                </>
-              )}
-            </Button>
+            {onDownload && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDownload}
+                className="h-6 w-6 p-0"
+              >
+                <Download className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Content */}
+        <div className="prose prose-sm max-w-none text-xs leading-relaxed max-h-32 overflow-hidden">
+          {renderContent()}
+        </div>
+
+        {/* Fade effect for preview */}
+        {loadingState === 'preview' && (
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+        )}
+
+        {/* Status indicator */}
+        {loadingState !== 'preview' && (
+          <div className="mt-3 pt-2 border-t">
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>
+                {loadingState === 'loading' ? 'Cargando...' : 'Contenido completo'}
+              </span>
+              {loadingState === 'full' && onFullView && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={onFullView}
+                  className="h-auto p-0 text-xs"
+                >
+                  Ver completo
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
