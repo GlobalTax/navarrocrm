@@ -16,7 +16,7 @@ export const useVirtualizationCleanup = ({
   memoryCheckInterval = 30000 // 30 segundos
 }: VirtualizationCleanupOptions) => {
   const logger = useLogger(`VirtualizationCleanup:${componentName}`)
-  const cleanupIntervalRef = useRef<NodeJS.Timeout>()
+  const cleanupIntervalRef = useRef<ReturnType<typeof setInterval>>()
   const performanceObserverRef = useRef<PerformanceObserver>()
 
   // Limpiar memoria no utilizada

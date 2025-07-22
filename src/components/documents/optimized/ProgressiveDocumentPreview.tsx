@@ -171,7 +171,7 @@ export const ProgressiveDocumentPreview = ({
             <div className="flex items-center gap-2 mb-2">
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400" />
               <span className="text-xs text-gray-600">
-                Cargando contenido completo... {Math.round(sanitizationProgress.percentage)}%
+                Cargando contenido completo... {Math.round(sanitizationProgress?.percentage || 0)}%
               </span>
             </div>
             <div className="space-y-2">

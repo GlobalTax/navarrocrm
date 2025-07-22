@@ -52,7 +52,7 @@ export const useProgressiveSanitization = (options: SanitizationOptions = {}) =>
 
     if (strictMode) {
       baseRules.allowedTags = ['p', 'br', 'strong', 'em']
-      baseRules.allowedAttributes = { '*': [], 'a': [], 'img': [] }
+      baseRules.allowedAttributes = { '*': ['class'], 'a': ['href'], 'img': ['src', 'alt'] }
     }
 
     if (preserveFormatting) {
