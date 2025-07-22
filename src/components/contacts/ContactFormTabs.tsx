@@ -7,7 +7,6 @@ import { PreferencesTab } from './tabs/PreferencesTab'
 import { BusinessTab } from './tabs/BusinessTab'
 import { TagsManager } from './tabs/TagsManager'
 import { FormSection } from '@/components/forms/FormSection'
-import { useFormSectionValidation } from '@/hooks/shared/useFormSectionValidation'
 
 export interface ContactFormData {
   name: string
