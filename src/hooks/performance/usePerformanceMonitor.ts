@@ -1,4 +1,6 @@
+
 import { useEffect, useRef, useState } from 'react'
+import { useLogger } from '@/hooks/useLogger'
 
 interface PerformanceMetrics {
   renderCount: number
@@ -19,6 +21,7 @@ export const usePerformanceMonitor = (componentName: string) => {
   const renderStartTime = useRef<number>()
   const renderTimes = useRef<number[]>([])
   const isDevMode = process.env.NODE_ENV === 'development'
+  const logger = useLogger('PerformanceMonitor')
 
   useEffect(() => {
     if (!isDevMode) return
@@ -46,29 +49,35 @@ export const usePerformanceMonitor = (componentName: string) => {
           componentsRendered: prev.componentsRendered + 1
         }))
 
-        // Log performance warnings
+        // Log performance warnings usando el logger centralizado
         if (renderTime > 16.67) { // More than one frame at 60fps
-          console.warn(`🐌 [Performance] ${componentName} render took ${renderTime.toFixed(2)}ms (>16.67ms)`)
+          logger.warn(`Slow render detected in ${componentName}`, {
+            component: 'PerformanceMonitor',
+            renderTime: renderTime.toFixed(2),
+            threshold: 16
+          })
         }
         
         if (avgRenderTime > 10) {
-          console.warn(`📊 [Performance] ${componentName} avg render time: ${avgRenderTime.toFixed(2)}ms`)
+          logger.warn(`High average render time in ${componentName}`, {
+            component: 'PerformanceMonitor',
+            avgRenderTime: avgRenderTime.toFixed(2),
+            threshold: 10
+          })
         }
       }
     }
-  }, [componentName, isDevMode]) // Add dependencies to prevent infinite loop
+  }, [componentName, isDevMode, logger]) // Agregamos logger a las dependencias
 
   const logMetrics = () => {
     if (!isDevMode) return
     
-    console.group(`📊 [Performance Metrics] ${componentName}`)
-    console.log('Render count:', metrics.renderCount)
-    console.log('Last render time:', `${metrics.lastRenderTime.toFixed(2)}ms`)
-    console.log('Average render time:', `${metrics.avgRenderTime.toFixed(2)}ms`)
-    if (metrics.memoryUsage) {
-      console.log('Memory usage:', `${(metrics.memoryUsage / 1024 / 1024).toFixed(2)}MB`)
-    }
-    console.groupEnd()
+    logger.debug(`Performance Metrics for ${componentName}`, {
+      renderCount: metrics.renderCount,
+      lastRenderTime: `${metrics.lastRenderTime.toFixed(2)}ms`,
+      avgRenderTime: `${metrics.avgRenderTime.toFixed(2)}ms`,
+      memoryUsage: metrics.memoryUsage ? `${(metrics.memoryUsage / 1024 / 1024).toFixed(2)}MB` : 'N/A'
+    })
   }
 
   return { metrics, logMetrics }

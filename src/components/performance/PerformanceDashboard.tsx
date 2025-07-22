@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Download
 } from 'lucide-react'
+import { useLogger } from '@/hooks/useLogger'
 
 interface PerformanceMetrics {
   memoryUsage: number
@@ -36,6 +37,7 @@ export const PerformanceDashboard: React.FC = () => {
   })
   
   const [isEnabled, setIsEnabled] = useState(process.env.NODE_ENV === 'development')
+  const logger = useLogger('PerformanceDashboard')
 
   useEffect(() => {
     if (!isEnabled) return
@@ -78,6 +80,15 @@ export const PerformanceDashboard: React.FC = () => {
     a.download = `performance-report-${Date.now()}.json`
     a.click()
     URL.revokeObjectURL(url)
+    
+    logger.info('Performance report downloaded', {
+      timestamp: new Date().toISOString(),
+      metrics: {
+        memoryUsage: metrics.memoryUsage.toFixed(1) + 'MB',
+        renderCount: metrics.renderCount,
+        avgRenderTime: metrics.avgRenderTime.toFixed(1) + 'ms'
+      }
+    })
   }
 
   if (!isEnabled) {

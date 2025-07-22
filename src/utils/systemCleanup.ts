@@ -1,3 +1,4 @@
+
 /**
  * Sistema de limpieza y optimización automática
  * Centraliza todas las tareas de mantenimiento de la aplicación

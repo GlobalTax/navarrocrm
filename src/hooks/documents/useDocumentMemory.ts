@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useCallback } from 'react'
 import { useLogger } from '@/hooks/useLogger'
 
@@ -48,7 +47,7 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
       
       const memoryMB = metrics.used / 1024 / 1024
       if (memoryMB > maxMemoryMB * 0.9) {
-        logger.warn('🚨 Alto uso de memoria detectado', {
+        logger.warn('Alto uso de memoria detectado', {
           operation,
           memoryMB: memoryMB.toFixed(1),
           maxMemoryMB,
@@ -63,7 +62,7 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
     if ('gc' in window && typeof (window as any).gc === 'function') {
       try {
         (window as any).gc()
-        logger.info('🗑️ Garbage collection forzado')
+        logger.info('Garbage collection forzado')
       } catch (error) {
         logger.warn('No se pudo forzar garbage collection:', error)
       }
@@ -78,7 +77,7 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
     // Forzar GC si es posible
     forceGarbageCollection()
     
-    logger.info('🧹 Limpieza de memoria completada')
+    logger.info('Limpieza de memoria completada')
   }, [forceGarbageCollection, logger])
 
   // Monitoreo automático de memoria
@@ -93,7 +92,7 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
         const memoryMB = metrics.used / 1024 / 1024
         
         if (metrics.percentage > cleanupThreshold) {
-          logger.warn('🚨 Umbral de memoria excedido, iniciando limpieza', {
+          logger.warn('Umbral de memoria excedido, iniciando limpieza', {
             percentage: metrics.percentage.toFixed(1),
             memoryMB: memoryMB.toFixed(1),
             threshold: cleanupThreshold
@@ -104,7 +103,7 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
         }
 
         // Log periódico del estado de memoria
-        logger.debug('📊 Estado de memoria', {
+        logger.debug('Estado de memoria', {
           memoryMB: memoryMB.toFixed(1),
           percentage: metrics.percentage.toFixed(1),
           operations: memoryTracking.current.size
@@ -141,7 +140,7 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
     const isLeak = memoryMB > maxMemoryMB && metrics.percentage > 90
 
     if (isLeak) {
-      logger.error('💥 Posible memory leak detectado', {
+      logger.error('Posible memory leak detectado', {
         memoryMB: memoryMB.toFixed(1),
         percentage: metrics.percentage.toFixed(1),
         operationsTracked: memoryTracking.current.size
@@ -174,8 +173,40 @@ export const useDocumentMemory = (options: MemoryOptions = {}) => {
     cleanup,
     forceGarbageCollection,
     getMemoryMetrics,
-    getDetailedMetrics,
-    checkForMemoryLeaks,
+    getDetailedMetrics: useCallback(() => {
+      const current = getMemoryMetrics()
+      const operations = Array.from(memoryTracking.current.entries()).map(([operation, memory]) => ({
+        operation,
+        memoryMB: (memory / 1024 / 1024).toFixed(1)
+      }))
+  
+      return {
+        current,
+        operations,
+        summary: {
+          totalOperations: operations.length,
+          maxMemoryMB,
+          cleanupThreshold
+        }
+      }
+    }, [getMemoryMetrics, maxMemoryMB, cleanupThreshold]),
+    checkForMemoryLeaks: useCallback(() => {
+      const metrics = getMemoryMetrics()
+      if (!metrics) return false
+  
+      const memoryMB = metrics.used / 1024 / 1024
+      const isLeak = memoryMB > maxMemoryMB && metrics.percentage > 90
+  
+      if (isLeak) {
+        logger.error('Posible memory leak detectado', {
+          memoryMB: memoryMB.toFixed(1),
+          percentage: metrics.percentage.toFixed(1),
+          operationsTracked: memoryTracking.current.size
+        })
+      }
+  
+      return isLeak
+    }, [getMemoryMetrics, maxMemoryMB, logger]),
     startMemoryMonitoring
   }
 }

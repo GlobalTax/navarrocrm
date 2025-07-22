@@ -1,4 +1,6 @@
+
 import { useEffect, useRef } from 'react'
+import { useLogger } from '@/hooks/useLogger'
 
 interface MemoryInfo {
   usedJSHeapSize: number
@@ -10,6 +12,7 @@ export const useMemoryTracker = (componentName: string, interval: number = 5000)
   const intervalRef = useRef<NodeJS.Timeout>()
   const initialMemory = useRef<number>()
   const isDevMode = process.env.NODE_ENV === 'development'
+  const logger = useLogger('MemoryTracker')
 
   useEffect(() => {
     if (!isDevMode || !(performance as any).memory) return
@@ -23,16 +26,24 @@ export const useMemoryTracker = (componentName: string, interval: number = 5000)
       const memoryMB = currentMemory / 1024 / 1024
       const diffMB = memoryDiff / 1024 / 1024
 
-      console.log(`🧠 [Memory] ${componentName}: ${memoryMB.toFixed(2)}MB (${diffMB > 0 ? '+' : ''}${diffMB.toFixed(2)}MB)`)
+      logger.debug(`Memory stats for ${componentName}`, {
+        memoryMB: memoryMB.toFixed(2),
+        diffMB: (diffMB > 0 ? '+' : '') + diffMB.toFixed(2)
+      })
 
       // Warning for memory leaks
       if (diffMB > 10) {
-        console.warn(`⚠️ [Memory Leak] ${componentName} increased memory by ${diffMB.toFixed(2)}MB`)
+        logger.warn(`Memory Leak detected in ${componentName}`, {
+          increaseMB: diffMB.toFixed(2)
+        })
       }
 
       // Critical warning
       if (memoryMB > 100) {
-        console.error(`🚨 [Memory Critical] ${componentName} using ${memoryMB.toFixed(2)}MB`)
+        logger.error(`Critical memory usage in ${componentName}`, {
+          memoryMB: memoryMB.toFixed(2),
+          threshold: 100
+        })
       }
     }
 
@@ -49,9 +60,11 @@ export const useMemoryTracker = (componentName: string, interval: number = 5000)
         const leaked = finalMemory - initialMemory.current
         
         if (leaked > 1024 * 1024) { // More than 1MB
-          console.warn(`💧 [Memory Leak] ${componentName} may have leaked ${(leaked / 1024 / 1024).toFixed(2)}MB`)
+          logger.warn(`Potential memory leak in ${componentName}`, {
+            leakedMB: (leaked / 1024 / 1024).toFixed(2)
+          })
         }
       }
     }
-  }, [componentName, interval, isDevMode])
+  }, [componentName, interval, isDevMode, logger])
 }
