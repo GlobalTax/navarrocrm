@@ -5,6 +5,7 @@ import { createLogger } from '@/utils/logger'
 import { createError, handleError } from '@/utils/errorHandler'
 import type { Contact } from './useContacts'
 import type { CompanyData } from './useCompanyLookup'
+import type { SubmissionResult } from '@/types/shared/formTypes'
 
 interface ContactFormConfig {
   contact: Contact | null
@@ -88,9 +89,9 @@ export const useContactForm = (contact: Contact | null, onClose: () => void): Co
 
   const originalSubmit = useContactFormSubmit(contact, onClose)
   
-  const enhancedSubmitForm = async (data: any) => {
+  const enhancedSubmitForm = async (data: any): Promise<SubmissionResult> => {
     try {
-      await originalSubmit.submitForm(data)
+      const result = await originalSubmit.submitForm(data)
       
       if (config.onSuccess && contact) {
         config.onSuccess(contact)
@@ -104,6 +105,8 @@ export const useContactForm = (contact: Contact | null, onClose: () => void): Co
           relationshipType: data.relationship_type
         }
       })
+      
+      return result
       
     } catch (error) {
       logger.error('Contact form submission failed', {

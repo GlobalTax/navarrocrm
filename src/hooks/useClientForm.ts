@@ -4,6 +4,7 @@ import { createLogger } from '@/utils/logger'
 import { createError, handleError } from '@/utils/errorHandler'
 import type { Client } from './clients/clientFormTypes'
 import type { CompanyData } from './useCompanyLookup'
+import type { SubmissionResult } from '@/types/shared/formTypes'
 
 interface ClientFormConfig {
   client: Client | null
@@ -179,9 +180,9 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
 
   const originalSubmit = useClientFormSubmit(normalizedConfig.client, normalizedConfig.onClose)
   
-  const enhancedSubmitForm = async (data: any) => {
+  const enhancedSubmitForm = async (data: any): Promise<SubmissionResult> => {
     try {
-      await originalSubmit.submitForm(data)
+      const result = await originalSubmit.submitForm(data)
       
       if (normalizedConfig.onSuccess && normalizedConfig.client) {
         normalizedConfig.onSuccess(normalizedConfig.client)
@@ -195,6 +196,8 @@ export const useClientForm = (config: ClientFormConfig | Client | null, onClose?
           relationshipType: data.relationship_type
         }
       })
+      
+      return result
       
     } catch (error) {
       logger.error('Client form submission failed', {
