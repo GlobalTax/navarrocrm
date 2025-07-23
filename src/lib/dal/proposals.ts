@@ -40,7 +40,7 @@ export class ProposalsDAL extends BaseDAL<Proposal> {
 
   async getProposalWithLineItems(id: string): Promise<DALResponse<any>> {
     const query = supabase
-      .from(this.tableName)
+      .from('proposals')
       .select(`
         *,
         proposal_line_items (*)

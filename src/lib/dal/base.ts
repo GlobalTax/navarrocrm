@@ -14,7 +14,7 @@ export abstract class BaseDAL<T> {
     try {
       const { data, error } = await queryPromise
       return {
-        data,
+        data: data as R,
         error,
         success: !error
       }
@@ -34,7 +34,7 @@ export abstract class BaseDAL<T> {
       .eq('id', id)
       .single()
     
-    return { data, error, success: !error }
+    return { data: data as T, error, success: !error }
   }
 
   async findMany(options: QueryOptions = {}): Promise<DALListResponse<T>> {
@@ -42,7 +42,7 @@ export abstract class BaseDAL<T> {
       .from(this.tableName as any)
       .select('*')
     
-    return { data: data || [], error, success: !error }
+    return { data: (data as T[]) || [], error, success: !error }
   }
 
   async create(data: any): Promise<DALResponse<T>> {
@@ -52,7 +52,7 @@ export abstract class BaseDAL<T> {
       .select()
       .single()
     
-    return { data: result, error, success: !error }
+    return { data: result as T, error, success: !error }
   }
 
   async update(id: string, data: any): Promise<DALResponse<T>> {
@@ -63,7 +63,7 @@ export abstract class BaseDAL<T> {
       .select()
       .single()
     
-    return { data: result, error, success: !error }
+    return { data: result as T, error, success: !error }
   }
 
   async delete(id: string): Promise<DALResponse<void>> {
