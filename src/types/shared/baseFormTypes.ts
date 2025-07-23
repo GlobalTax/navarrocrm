@@ -44,7 +44,10 @@ export interface BaseEntity {
   status: string | null
   tags: string[] | null
   internal_notes: string | null
-  company_id: string | null
+  company_id?: string | null
+  org_id: string
+  created_at: string
+  updated_at: string
 }
 
 export const createBaseDefaultValues = (): BaseFormData => ({

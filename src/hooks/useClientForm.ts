@@ -1,9 +1,9 @@
 
 import { useClientFormState } from './clients/useClientFormState'
 import { useClientFormSubmit } from './clients/useClientFormSubmit'
-import type { Client } from './clients/clientFormTypes'
+import type { Contact } from '@/types/shared/clientTypes'
 
-export const useClientForm = (client: Client | null, onClose: () => void) => {
+export const useClientForm = (client: Contact | null, onClose: () => void) => {
   const { form, isEditing, isCompanyDataLoaded, handleCompanyFound } = useClientFormState(client)
   const { onSubmit } = useClientFormSubmit(client, onClose)
 

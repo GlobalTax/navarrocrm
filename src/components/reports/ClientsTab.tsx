@@ -8,7 +8,7 @@ export const ClientsTab = () => {
   const { clients } = useClients()
 
   const activeClients = clients.filter(c => c.status === 'activo').length
-  const prospects = clients.filter(c => c.relationship_type === 'prospecto').length
+  const prospects = clients.filter(c => (c as any).relationship_type === 'prospecto').length
   const totalClients = clients.length
 
   // Análisis simple de clientes por sector

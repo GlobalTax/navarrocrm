@@ -2,14 +2,14 @@
 import { useSharedFormSubmit } from '../shared/useSharedFormSubmit'
 import { mapBaseFormDataToEntity } from '@/types/shared/baseFormTypes'
 import type { ClientFormData } from '@/components/clients/ClientFormTabs'
-import type { Client } from './clientFormTypes'
+import type { Contact } from '@/types/shared/clientTypes'
 
 const mapClientFormDataToEntity = (data: ClientFormData, orgId: string) => ({
   ...mapBaseFormDataToEntity(data, orgId),
   relationship_type: 'cliente' as const,
 })
 
-export const useClientFormSubmit = (client: Client | null, onClose: () => void) => {
+export const useClientFormSubmit = (client: Contact | null, onClose: () => void) => {
   return useSharedFormSubmit({
     entity: client,
     onClose,

@@ -5,7 +5,7 @@ import { ClientFormTabs } from './ClientFormTabs'
 import { CompanyLookupSection } from './CompanyLookupSection'
 import { ClientFormActions } from './ClientFormActions'
 import { useClientForm } from '@/hooks/useClientForm'
-import type { Contact } from '@/hooks/useContacts'
+import type { Contact } from '@/types/shared/clientTypes'
 
 interface ClientFormDialogProps {
   client?: Contact | null

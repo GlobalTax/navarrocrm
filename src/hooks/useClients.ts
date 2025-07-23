@@ -1,10 +1,6 @@
 
 import { useContacts, type Contact } from './useContacts'
-
-// Client type que extiende Contact pero hace email opcional
-export interface Client extends Contact {
-  // Email ya es opcional en Contact, así que no necesitamos override
-}
+import { Client } from '@/types/shared/clientTypes'
 
 // Backward compatibility hook for existing components
 export const useClients = () => {
@@ -54,5 +50,5 @@ export const useClients = () => {
   }
 }
 
-// Export Contact type for general use
-export type { Contact }
+// Export both types for general use
+export type { Contact, Client }

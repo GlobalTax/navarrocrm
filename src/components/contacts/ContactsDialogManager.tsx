@@ -59,7 +59,7 @@ export function ContactsDialogManager({
       <ClientExportDialog
         open={isExportDialogOpen}
         onClose={onExportClose}
-        clients={contacts}
+        clients={contacts.filter(c => c.relationship_type === 'cliente') as any}
       />
 
       <QuantumImportDialog

@@ -36,7 +36,7 @@ export interface BaseClient {
 // Cliente es un contacto con relationship_type = 'cliente'
 export interface Client extends BaseClient {
   relationship_type: 'cliente'
-  last_contact_date?: string | null
+  last_contact_date: string | null
   company_id?: string | null
 }
 
