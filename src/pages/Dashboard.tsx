@@ -1,29 +1,29 @@
 
 import { useEffect, useState } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics'
-import { EnhancedDashboardLayout } from '@/components/dashboard/EnhancedDashboardLayout'
+import { OptimizedDashboardMetrics } from '@/components/dashboard/OptimizedDashboardMetrics'
+import { OptimizedPerformanceChart } from '@/components/dashboard/OptimizedPerformanceChart'
+import { OptimizedRecentActivity } from '@/components/dashboard/OptimizedRecentActivity'
+import { TodayAgenda } from '@/components/dashboard/TodayAgenda'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
-import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { Skeleton } from '@/components/ui/skeleton'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 export default function Dashboard() {
   const { user } = useApp()
-  const { stats, isLoading, error, refetch } = useDashboardStats()
+  const { data, isLoading, error, refetch } = useOptimizedDashboard()
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   useEffect(() => {
     if (user?.org_id) {
-      refetch()
       setLastRefresh(new Date())
     }
-  }, [user, refetch])
+  }, [user])
 
   const handleRefresh = async () => {
     try {
@@ -56,30 +56,11 @@ export default function Dashboard() {
     minute: '2-digit' 
   })
 
-  // Convert stats to match EnhancedDashboardMetrics interface
-  const enhancedStats = {
-    totalTimeEntries: stats.totalTimeEntries,
-    totalBillableHours: stats.totalBillableHours,
-    totalClients: stats.totalContacts,
-    totalCases: stats.totalCases,
-    totalActiveCases: stats.activeCases,
-    pendingInvoices: 0,
-    hoursThisWeek: 0,
-    hoursThisMonth: stats.thisMonthHours,
-    utilizationRate: stats.totalTimeEntries > 0 ? Math.round((stats.totalBillableHours / (stats.totalBillableHours + stats.totalNonBillableHours)) * 100) : 0,
-    averageHoursPerDay: 0,
-    totalRevenue: stats.totalBillableHours * 50, // Estimated at €50/hour
-    pendingTasks: 0,
-    overdueTasks: 0,
-    loading: isLoading,
-    error: error?.message || null
-  }
-
   return (
     <StandardPageContainer>
       <StandardPageHeader
         title={`Bienvenido, ${welcomeMessage}`}
-        description="Panel de control inteligente con métricas en tiempo real"
+        description="Panel de control optimizado con métricas en tiempo real"
         badges={[
           {
             label: `Rol: ${user.role}`,
@@ -111,11 +92,34 @@ export default function Dashboard() {
         Última actualización: {formatTime(lastRefresh)}
       </div>
       
-      {/* Métricas principales con diseño compacto */}
-      <EnhancedDashboardMetrics stats={enhancedStats} />
+      {/* Métricas principales optimizadas */}
+      {data && (
+        <OptimizedDashboardMetrics 
+          data={data} 
+          isLoading={isLoading}
+          error={error?.message || null}
+        />
+      )}
       
-      {/* Layout principal */}
-      {!isLoading && <EnhancedDashboardLayout />}
+      {/* Layout principal optimizado */}
+      {!isLoading && data && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Columna izquierda - Agenda */}
+          <div className="lg:col-span-4 space-y-6">
+            <TodayAgenda />
+          </div>
+          
+          {/* Columna central - Gráficos de rendimiento */}
+          <div className="lg:col-span-5 space-y-6">
+            <OptimizedPerformanceChart data={data} isLoading={isLoading} />
+          </div>
+          
+          {/* Columna derecha - Actividad reciente */}
+          <div className="lg:col-span-3">
+            <OptimizedRecentActivity data={data} isLoading={isLoading} />
+          </div>
+        </div>
+      )}
       
       {error && (
         <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
@@ -123,32 +127,3 @@ export default function Dashboard() {
     </StandardPageContainer>
   )
 }
-
-// Componente de skeleton para loading
-const DashboardLoadingSkeleton = () => (
-  <div className="space-y-6">
-    {/* Active Timer Skeleton */}
-    <Skeleton className="h-16 w-full" />
-    
-    {/* Métricas principales skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-32" />
-      ))}
-    </div>
-    
-    {/* Métricas adicionales skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-32" />
-      ))}
-    </div>
-    
-    {/* Layout skeleton */}
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <Skeleton className="lg:col-span-4 h-64" />
-      <Skeleton className="lg:col-span-5 h-64" />
-      <Skeleton className="lg:col-span-3 h-64" />
-    </div>
-  </div>
-)
