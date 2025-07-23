@@ -1,15 +1,15 @@
 
 import { useState } from 'react'
-import { EnhancedPerformanceChart } from './EnhancedPerformanceChart'
-import { EnhancedRecentActivity } from './EnhancedRecentActivity'
+import { OptimizedPerformanceChart } from './OptimizedPerformanceChart'
+import { OptimizedRecentActivity } from './OptimizedRecentActivity'
 import { TodayAgenda } from './TodayAgenda'
 import { DashboardFilters } from './DashboardFilters'
-import { useDashboardData } from '@/hooks/useDashboardData'
+import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
 import { toast } from 'sonner'
 
 export const EnhancedDashboardLayout = () => {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter'>('month')
-  const { refetch, isRefetching } = useDashboardData(dateRange)
+  const { data, refetch, isLoading } = useOptimizedDashboard()
 
   const handleRefresh = async () => {
     try {
@@ -26,7 +26,7 @@ export const EnhancedDashboardLayout = () => {
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
         onRefresh={handleRefresh}
-        isRefreshing={isRefetching}
+        isRefreshing={isLoading}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -37,12 +37,12 @@ export const EnhancedDashboardLayout = () => {
         
         {/* Columna central - Gráficos de rendimiento */}
         <div className="lg:col-span-5 space-y-6">
-          <EnhancedPerformanceChart />
+          {data && <OptimizedPerformanceChart data={data} isLoading={isLoading} />}
         </div>
         
         {/* Columna derecha - Actividad reciente */}
         <div className="lg:col-span-3">
-          <EnhancedRecentActivity />
+          {data && <OptimizedRecentActivity data={data} isLoading={isLoading} />}
         </div>
       </div>
     </div>

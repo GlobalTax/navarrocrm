@@ -1,4 +1,5 @@
 
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -7,47 +8,71 @@ import {
   Users, 
   Clock, 
   CheckCircle,
-  Calendar,
   MoreHorizontal
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useDashboardData, RecentActivity } from '@/hooks/useDashboardData'
+import { OptimizedDashboardData } from '@/hooks/useOptimizedDashboard'
 import { useNavigate } from 'react-router-dom'
 
-const getActivityIcon = (type: RecentActivity['type']) => {
+const getActivityIcon = (type: string) => {
   switch (type) {
     case 'client': return Users
     case 'case': return FileText
     case 'time': return Clock
     case 'task': return CheckCircle
-    case 'proposal': return Calendar
+    default: return Clock
   }
 }
 
-const getActivityColor = (type: RecentActivity['type']) => {
+const getActivityColor = (type: string) => {
   switch (type) {
     case 'client': return 'bg-blue-100 text-blue-700'
     case 'case': return 'bg-green-100 text-green-700'
     case 'time': return 'bg-orange-100 text-orange-700'
     case 'task': return 'bg-purple-100 text-purple-700'
-    case 'proposal': return 'bg-indigo-100 text-indigo-700'
+    default: return 'bg-gray-100 text-gray-700'
   }
 }
 
-const getActivityBadgeColor = (type: RecentActivity['type']) => {
+const getActivityBadgeColor = (type: string) => {
   switch (type) {
     case 'client': return 'bg-blue-50 text-blue-700 border-blue-200'
     case 'case': return 'bg-green-50 text-green-700 border-green-200'
     case 'time': return 'bg-orange-50 text-orange-700 border-orange-200'
     case 'task': return 'bg-purple-50 text-purple-700 border-purple-200'
-    case 'proposal': return 'bg-indigo-50 text-indigo-700 border-indigo-200'
+    default: return 'bg-gray-50 text-gray-700 border-gray-200'
   }
 }
 
-export const EnhancedRecentActivity = () => {
-  const { data: dashboardData, isLoading } = useDashboardData()
+interface EnhancedRecentActivityProps {
+  data: OptimizedDashboardData
+  isLoading?: boolean
+}
+
+export const EnhancedRecentActivity = React.memo(({ 
+  data, 
+  isLoading 
+}: EnhancedRecentActivityProps) => {
   const navigate = useNavigate()
+
+  // Memoize navigation handler
+  const handleActivityClick = React.useCallback((type: string) => {
+    switch (type) {
+      case 'client':
+        navigate('/contacts')
+        break
+      case 'case':
+        navigate('/cases')
+        break
+      case 'time':
+        navigate('/time-tracking')
+        break
+      case 'task':
+        navigate('/tasks')
+        break
+    }
+  }, [navigate])
 
   if (isLoading) {
     return (
@@ -72,27 +97,7 @@ export const EnhancedRecentActivity = () => {
     )
   }
 
-  const activities = dashboardData?.recentActivities || []
-
-  const handleActivityClick = (activity: RecentActivity) => {
-    switch (activity.type) {
-      case 'client':
-        navigate('/clients')
-        break
-      case 'case':
-        navigate('/cases')
-        break
-      case 'time':
-        navigate('/time-tracking')
-        break
-      case 'task':
-        navigate('/tasks')
-        break
-      case 'proposal':
-        navigate('/proposals')
-        break
-    }
-  }
+  const activities = data?.recentActivities || []
 
   return (
     <Card>
@@ -117,7 +122,7 @@ export const EnhancedRecentActivity = () => {
               <div 
                 key={activity.id} 
                 className="group flex items-start gap-3 pb-3 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-md transition-colors"
-                onClick={() => handleActivityClick(activity)}
+                onClick={() => handleActivityClick(activity.type)}
               >
                 <div className={`p-2 rounded-lg ${getActivityColor(activity.type)}`}>
                   <Icon className="h-4 w-4" />
@@ -159,8 +164,10 @@ export const EnhancedRecentActivity = () => {
               Ver toda la actividad
             </Button>
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   )
-}
+})
+
+EnhancedRecentActivity.displayName = 'EnhancedRecentActivity'

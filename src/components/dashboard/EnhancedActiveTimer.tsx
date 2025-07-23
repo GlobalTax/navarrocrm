@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Play, Pause, Square, Clock, Timer } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useDashboardData } from '@/hooks/useDashboardData'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
 import { useState } from 'react'
 import { useInterval } from '@/hooks/performance/useInterval'
 import { toast } from 'sonner'
 
 export const EnhancedActiveTimer = () => {
   const navigate = useNavigate()
-  const { data: dashboardData } = useDashboardData()
-  const { timeEntries, createTimeEntry } = useTimeEntries()
+  const { data: dashboardData } = useOptimizedDashboard()
   const [elapsedTime, setElapsedTime] = useState(0)
   
   // Por ahora, mostrar estado estático hasta implementar funcionalidad completa
@@ -38,7 +36,6 @@ export const EnhancedActiveTimer = () => {
   }
 
   const handleStartTimer = () => {
-    // Navegar a time tracking para funcionalidad completa
     navigate('/time-tracking')
     toast.success('Redirigiendo a Time Tracking para iniciar timer')
   }
@@ -63,9 +60,9 @@ export const EnhancedActiveTimer = () => {
               <div>
                 <p className="font-medium text-sm">Timer de Trabajo</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Hoy: {todayHours}h</span>
+                  <span>Hoy: {todayHours.toFixed(1)}h</span>
                   <span>•</span>
-                  <span>Semana: {weekHours}h</span>
+                  <span>Semana: {weekHours.toFixed(1)}h</span>
                 </div>
               </div>
             </div>

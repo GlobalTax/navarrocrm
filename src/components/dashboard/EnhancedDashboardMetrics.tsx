@@ -1,31 +1,44 @@
 
+import React from 'react'
 import { CompactMetricWidget } from './CompactMetricWidget'
 import { Clock, Users, FileText, Target, TrendingUp, Euro, AlertTriangle, CheckCircle } from 'lucide-react'
+import { OptimizedDashboardData } from '@/hooks/useOptimizedDashboard'
 
-interface DashboardStats {
-  totalTimeEntries: number
-  totalBillableHours: number
-  totalClients: number
-  totalCases: number
-  totalActiveCases: number
-  pendingInvoices: number
-  hoursThisWeek: number
-  hoursThisMonth: number
-  utilizationRate: number
-  averageHoursPerDay: number
-  totalRevenue: number
-  pendingTasks: number
-  overdueTasks: number
-  loading?: boolean
+interface EnhancedDashboardMetricsProps {
+  data: OptimizedDashboardData
+  isLoading?: boolean
   error?: string | null
 }
 
-interface EnhancedDashboardMetricsProps {
-  stats: DashboardStats
-}
+export const EnhancedDashboardMetrics = React.memo(({ 
+  data, 
+  isLoading, 
+  error 
+}: EnhancedDashboardMetricsProps) => {
+  // Memoize expensive calculations
+  const calculations = React.useMemo(() => {
+    const { stats } = data
+    const utilizationRate = stats.totalTimeEntries > 0 
+      ? Math.round((stats.totalBillableHours / (stats.totalBillableHours + stats.totalNonBillableHours)) * 100) 
+      : 0
+    
+    const totalRevenue = stats.totalBillableHours * 50 // €50/hour estimate
+    
+    const formatCurrency = (amount: number) => 
+      new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
 
-export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProps) => {
-  if (stats.loading) {
+    const formatHours = (hours: number) => 
+      `${hours.toFixed(1)}h`
+
+    return {
+      utilizationRate,
+      totalRevenue,
+      formatCurrency,
+      formatHours
+    }
+  }, [data.stats])
+
+  if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -35,19 +48,16 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
     )
   }
 
-  if (stats.error) {
+  if (error) {
     return (
       <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-        <p className="text-red-700 text-sm">Error cargando métricas: {stats.error}</p>
+        <p className="text-red-700 text-sm">Error cargando métricas: {error}</p>
       </div>
     )
   }
 
-  const formatCurrency = (amount: number) => 
-    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
-
-  const formatHours = (hours: number) => 
-    `${hours.toFixed(1)}h`
+  const { stats } = data
+  const { utilizationRate, totalRevenue, formatCurrency, formatHours } = calculations
 
   return (
     <div className="space-y-6 mb-6">
@@ -63,13 +73,13 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
         
         <CompactMetricWidget
           title="Clientes Activos"
-          value={stats.totalClients}
+          value={stats.totalContacts}
           icon={Users}
         />
         
         <CompactMetricWidget
           title="Expedientes"
-          value={`${stats.totalActiveCases}/${stats.totalCases}`}
+          value={`${stats.activeCases}/${stats.totalCases}`}
           change="Activos/Total"
           changeType="neutral"
           icon={FileText}
@@ -77,8 +87,8 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
         
         <CompactMetricWidget
           title="Utilización"
-          value={`${stats.utilizationRate}%`}
-          changeType={stats.utilizationRate >= 75 ? 'positive' : stats.utilizationRate >= 50 ? 'neutral' : 'negative'}
+          value={`${utilizationRate}%`}
+          changeType={utilizationRate >= 75 ? 'positive' : utilizationRate >= 50 ? 'neutral' : 'negative'}
           icon={Target}
         />
       </div>
@@ -87,7 +97,7 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <CompactMetricWidget
           title="Este Mes"
-          value={formatHours(stats.hoursThisMonth)}
+          value={formatHours(stats.thisMonthHours)}
           change="Horas registradas"
           changeType="neutral"
           icon={TrendingUp}
@@ -96,7 +106,7 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
         
         <CompactMetricWidget
           title="Ingresos Est."
-          value={formatCurrency(stats.totalRevenue)}
+          value={formatCurrency(totalRevenue)}
           change="Basado en horas"
           changeType="positive"
           icon={Euro}
@@ -105,20 +115,22 @@ export const EnhancedDashboardMetrics = ({ stats }: EnhancedDashboardMetricsProp
         
         <CompactMetricWidget
           title="Tareas Pendientes"
-          value={stats.pendingTasks}
-          changeType={stats.pendingTasks > 10 ? 'negative' : 'neutral'}
+          value={data.quickStats.overdueItems}
+          changeType={data.quickStats.overdueItems > 10 ? 'negative' : 'neutral'}
           icon={AlertTriangle}
           size="sm"
         />
         
         <CompactMetricWidget
-          title="Facturas Pend."
-          value={stats.pendingInvoices}
-          changeType={stats.pendingInvoices > 5 ? 'negative' : 'positive'}
+          title="Casos Nuevos"
+          value={stats.thisMonthCases}
+          changeType="positive"
           icon={CheckCircle}
           size="sm"
         />
       </div>
     </div>
   )
-}
+})
+
+EnhancedDashboardMetrics.displayName = 'EnhancedDashboardMetrics'

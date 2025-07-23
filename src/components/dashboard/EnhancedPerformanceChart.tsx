@@ -1,11 +1,12 @@
 
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TrendingUp, TrendingDown, Target } from 'lucide-react'
-import { useDashboardData, PerformanceData } from '@/hooks/useDashboardData'
+import { OptimizedDashboardData } from '@/hooks/useOptimizedDashboard'
 
 const chartConfig = {
   horas: {
@@ -22,8 +23,29 @@ const chartConfig = {
   }
 }
 
-export const EnhancedPerformanceChart = () => {
-  const { data: dashboardData, isLoading } = useDashboardData()
+interface EnhancedPerformanceChartProps {
+  data: OptimizedDashboardData
+  isLoading?: boolean
+}
+
+export const EnhancedPerformanceChart = React.memo(({ 
+  data, 
+  isLoading 
+}: EnhancedPerformanceChartProps) => {
+  // Memoize trend calculations
+  const trendData = React.useMemo(() => {
+    const performanceData = data.performanceData
+    const currentMonth = performanceData[performanceData.length - 1]
+    const previousMonth = performanceData[performanceData.length - 2]
+    
+    const trend = currentMonth && previousMonth ? 
+      ((currentMonth.facturado - previousMonth.facturado) / previousMonth.facturado) * 100 : 0
+
+    const goalAchievement = currentMonth ? 
+      (currentMonth.facturado / (currentMonth.objetivo || 160)) * 100 : 0
+
+    return { trend, goalAchievement, currentMonth, previousMonth }
+  }, [data.performanceData])
   
   if (isLoading) {
     return (
@@ -38,15 +60,8 @@ export const EnhancedPerformanceChart = () => {
     )
   }
 
-  const performanceData = dashboardData?.performanceData || []
-  const currentMonth = performanceData[performanceData.length - 1]
-  const previousMonth = performanceData[performanceData.length - 2]
-  
-  const trend = currentMonth && previousMonth ? 
-    ((currentMonth.facturado - previousMonth.facturado) / previousMonth.facturado) * 100 : 0
-
-  const goalAchievement = currentMonth ? 
-    (currentMonth.facturado / (currentMonth.objetivo || 160)) * 100 : 0
+  const performanceData = data?.performanceData || []
+  const { trend, goalAchievement } = trendData
 
   return (
     <Card>
@@ -132,4 +147,6 @@ export const EnhancedPerformanceChart = () => {
       </CardContent>
     </Card>
   )
-}
+})
+
+EnhancedPerformanceChart.displayName = 'EnhancedPerformanceChart'
