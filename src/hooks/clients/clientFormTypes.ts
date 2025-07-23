@@ -1,10 +1,9 @@
 
-import { BaseFormData, BaseEntity, createBaseDefaultValues } from '@/types/shared/baseFormTypes'
+import { BaseFormData, createBaseDefaultValues } from '@/types/shared/baseFormTypes'
+import { Client } from '@/types/shared/clientTypes'
 import type { ClientFormData } from '@/components/clients/ClientFormTabs'
 
-export interface Client extends BaseEntity {
-  relationship_type: 'prospecto' | 'cliente' | 'ex_cliente'
-  last_contact_date?: string | null
-}
+// Re-export Client type for consistency
+export type { Client }
 
 export const defaultClientFormValues: ClientFormData = createBaseDefaultValues()

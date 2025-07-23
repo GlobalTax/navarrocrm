@@ -1,11 +1,10 @@
 
-import { BaseFormData, BaseEntity, createBaseDefaultValues } from '@/types/shared/baseFormTypes'
+import { BaseFormData, createBaseDefaultValues } from '@/types/shared/baseFormTypes'
+import { Contact } from '@/types/shared/clientTypes'
 import type { ContactFormData } from '@/components/contacts/ContactFormTabs'
 
-export interface Contact extends BaseEntity {
-  relationship_type: 'prospecto' | 'cliente' | 'ex_cliente'
-  last_contact_date?: string | null
-}
+// Re-export Contact type for consistency
+export type { Contact }
 
 export interface ContactFormDataExtended extends BaseFormData {
   relationship_type: 'prospecto' | 'cliente' | 'ex_cliente'

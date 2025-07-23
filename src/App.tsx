@@ -2,7 +2,7 @@
 import { BrowserRouter as Router } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AppProvider } from '@/contexts/AppContext'
-import { QueryClient } from '@/contexts/QueryContext'
+import { QueryProvider } from '@/contexts/QueryContext'
 import { OnboardingProvider } from '@/components/onboarding'
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
 import { AppRouter } from '@/router'
@@ -10,7 +10,7 @@ import { AppRouter } from '@/router'
 function App() {
   return (
     <GlobalErrorBoundary>
-      <QueryClient>
+      <QueryProvider>
         <AppProvider>
           <OnboardingProvider>
             <Toaster position="top-right" />
@@ -21,7 +21,7 @@ function App() {
             </Router>
           </OnboardingProvider>
         </AppProvider>
-      </QueryClient>
+      </QueryProvider>
     </GlobalErrorBoundary>
   )
 }

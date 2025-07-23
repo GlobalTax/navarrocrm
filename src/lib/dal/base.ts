@@ -20,6 +20,7 @@ export abstract class BaseDAL<T> {
         success: !error
       }
     } catch (error) {
+      console.error(`Error in ${this.tableName} operation:`, error)
       return {
         data: null,
         error: error as Error,
@@ -40,6 +41,7 @@ export abstract class BaseDAL<T> {
         count: count || 0
       }
     } catch (error) {
+      console.error(`Error in ${this.tableName} list operation:`, error)
       return {
         data: [],
         error: error as Error,
@@ -50,6 +52,14 @@ export abstract class BaseDAL<T> {
   }
 
   async findById(id: string): Promise<DALResponse<T>> {
+    if (!id) {
+      return {
+        data: null,
+        error: new Error('ID is required'),
+        success: false
+      }
+    }
+
     const query = supabase
       .from(this.tableName as any)
       .select('*')
@@ -64,30 +74,34 @@ export abstract class BaseDAL<T> {
       .from(this.tableName as any)
       .select(options.select || '*', { count: 'exact' })
 
-    // Aplicar filtros
-    if (options.filters) {
+    // Aplicar filtros con validación
+    if (options.filters && typeof options.filters === 'object') {
       Object.entries(options.filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && key) {
           query = query.eq(key, value)
         }
       })
     }
 
-    // Aplicar ordenamiento
-    if (options.sort && options.sort.length > 0) {
+    // Aplicar ordenamiento con validación
+    if (options.sort && Array.isArray(options.sort) && options.sort.length > 0) {
       options.sort.forEach(sortOption => {
-        query = query.order(sortOption.column, { 
-          ascending: sortOption.ascending !== false 
-        })
+        if (sortOption.column) {
+          query = query.order(sortOption.column, { 
+            ascending: sortOption.ascending !== false 
+          })
+        }
       })
     }
 
-    // Aplicar paginación
+    // Aplicar paginación con mejor null safety
     if (options.pagination) {
       const { page, limit, offset } = options.pagination
-      if (offset !== undefined) {
-        query = query.range(offset, offset + (limit || 10) - 1)
-      } else if (page !== undefined && limit !== undefined) {
+      
+      if (typeof offset === 'number' && offset >= 0) {
+        const safeLimit = typeof limit === 'number' && limit > 0 ? limit : 10
+        query = query.range(offset, offset + safeLimit - 1)
+      } else if (typeof page === 'number' && page > 0 && typeof limit === 'number' && limit > 0) {
         const start = (page - 1) * limit
         query = query.range(start, start + limit - 1)
       }
@@ -96,7 +110,15 @@ export abstract class BaseDAL<T> {
     return this.handleListResponse<T>(query)
   }
 
-  async create(data: any): Promise<DALResponse<T>> {
+  async create(data: Partial<T>): Promise<DALResponse<T>> {
+    if (!data || typeof data !== 'object') {
+      return {
+        data: null,
+        error: new Error('Data is required for creation'),
+        success: false
+      }
+    }
+
     const query = supabase
       .from(this.tableName as any)
       .insert(data)
@@ -106,7 +128,23 @@ export abstract class BaseDAL<T> {
     return this.handleResponse<T>(query)
   }
 
-  async update(id: string, data: any): Promise<DALResponse<T>> {
+  async update(id: string, data: Partial<T>): Promise<DALResponse<T>> {
+    if (!id) {
+      return {
+        data: null,
+        error: new Error('ID is required for update'),
+        success: false
+      }
+    }
+
+    if (!data || typeof data !== 'object') {
+      return {
+        data: null,
+        error: new Error('Data is required for update'),
+        success: false
+      }
+    }
+
     const query = supabase
       .from(this.tableName as any)
       .update(data)
@@ -118,6 +156,14 @@ export abstract class BaseDAL<T> {
   }
 
   async delete(id: string): Promise<DALResponse<void>> {
+    if (!id) {
+      return {
+        data: null,
+        error: new Error('ID is required for deletion'),
+        success: false
+      }
+    }
+
     const query = supabase
       .from(this.tableName as any)
       .delete()

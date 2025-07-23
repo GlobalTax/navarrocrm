@@ -17,11 +17,11 @@ const queryClient = new TanstackQueryClient({
   },
 })
 
-interface QueryClientProps {
+interface QueryProviderProps {
   children: ReactNode
 }
 
-export const QueryClient: React.FC<QueryClientProps> = ({ children }) => {
+export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
