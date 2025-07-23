@@ -56,7 +56,6 @@ export const EnhancedRecentActivity = React.memo(({
 }: EnhancedRecentActivityProps) => {
   const navigate = useNavigate()
 
-  // Memoize navigation handler
   const handleActivityClick = React.useCallback((type: string) => {
     switch (type) {
       case 'client':
@@ -164,7 +163,7 @@ export const EnhancedRecentActivity = React.memo(({
               Ver toda la actividad
             </Button>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   )
