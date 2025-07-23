@@ -49,6 +49,14 @@ export const useCompanies = () => {
       const companiesWithContacts = await Promise.all(
         (companiesData || []).map(async (company) => {
           try {
+            // Verificar si es un contacto duplicado de Quantum
+            const isDuplicate = company.quantum_customer_id && 
+              companiesData.filter(c => c.quantum_customer_id === company.quantum_customer_id).length > 1
+
+            if (isDuplicate) {
+              console.warn(`⚠️ Empresa duplicada detectada: ${company.name} (Quantum ID: ${company.quantum_customer_id})`)
+            }
+
             const { data: contactsData, error: contactsError } = await supabase
               .from('contacts')
               .select('id, name, email, phone')
@@ -72,7 +80,8 @@ export const useCompanies = () => {
               relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
               email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
               primary_contact: contactsData?.[0] || null,
-              total_contacts: totalContacts || 0
+              total_contacts: totalContacts || 0,
+              isDuplicate: isDuplicate || false
             }
           } catch (error) {
             console.error('❌ Error processing company', company.name, ':', error)
@@ -82,7 +91,8 @@ export const useCompanies = () => {
               relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
               email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
               primary_contact: null,
-              total_contacts: 0
+              total_contacts: 0,
+              isDuplicate: false
             }
           }
         })

@@ -12,6 +12,7 @@ import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpl
 import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
 import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
 import { QuantumSyncStatus } from '@/components/contacts/QuantumSyncStatus'
+import { DuplicateAlert } from '@/components/contacts/DuplicateAlert'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useOnboarding } from '@/components/onboarding'
@@ -118,6 +119,7 @@ const Contacts = () => {
       {/* Métricas rápidas y estado de sincronización */}
       <div className="space-y-6 mb-6">
         <ContactQuickMetrics contacts={contacts} />
+        <DuplicateAlert />
         <QuantumSyncStatus />
       </div>
 

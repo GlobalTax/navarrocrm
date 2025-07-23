@@ -109,73 +109,103 @@ serve(async (req) => {
       );
     }
 
-    // Procesar y guardar cada cliente con UPSERT para evitar duplicados
+    // Obtener org_id del primer usuario disponible (fallback)
+    const { data: firstUser } = await supabase
+      .from('users')
+      .select('org_id')
+      .limit(1)
+      .single();
+
+    const defaultOrgId = firstUser?.org_id;
+    if (!defaultOrgId) {
+      throw new Error('No se pudo determinar la organización destino');
+    }
+
+    // Procesar y guardar cada cliente con UPSERT mejorado para evitar duplicados
     let registrosProcesados = 0;
     let registrosActualizados = 0;
     let registrosNuevos = 0;
+    let registrosOmitidos = 0;
     const errores: string[] = [];
     
-    console.log(`💾 Procesando ${customers.length} clientes con prevención de duplicados...`);
+    console.log(`💾 Procesando ${customers.length} clientes con prevención avanzada de duplicados...`);
 
     for (const customer of customers) {
       try {
-        if (!customer.id || !customer.name) {
+        if (!customer.id || !customer.name?.trim()) {
           console.warn('⚠️ Cliente con datos incompletos:', customer);
           errores.push(`Cliente con ID o nombre vacío: ${JSON.stringify(customer)}`);
+          registrosOmitidos++;
           continue;
         }
 
-        // Verificar si ya existe por quantum_customer_id para evitar duplicados
-        const { data: existingCustomer } = await supabase
-          .from('contacts')
-          .select('id, updated_at')
-          .eq('quantum_customer_id', customer.id)
-          .eq('client_type', 'empresa')
-          .eq('source', 'quantum_auto')
-          .single();
-
         const customerData = {
           quantum_customer_id: customer.id,
-          name: customer.name,
-          email: customer.email || null,
-          phone: customer.phone || null,
-          address_street: customer.address || null,
-          dni_nif: customer.nif || null,
-          business_sector: customer.sector || null,
+          name: customer.name.trim(),
+          email: customer.email?.trim() || null,
+          phone: customer.phone?.trim() || null,
+          address_street: customer.address?.trim() || null,
+          dni_nif: customer.nif?.trim() || null,
+          business_sector: customer.sector?.trim() || null,
           client_type: 'empresa',
           source: 'quantum_auto',
           relationship_type: 'cliente',
           status: 'activo',
-          // Solo setear org_id si es un nuevo registro
-          ...(existingCustomer ? {} : { org_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }) // TODO: Obtener org_id dinámicamente
+          org_id: defaultOrgId,
+          updated_at: new Date().toISOString()
         };
 
-        if (existingCustomer) {
-          // Actualizar registro existente
-          const { error } = await supabase
-            .from('contacts')
-            .update(customerData)
-            .eq('id', existingCustomer.id);
+        // Usar UPSERT con el constraint único para prevenir duplicados
+        const { data: upsertResult, error: upsertError } = await supabase
+          .from('contacts')
+          .upsert(customerData, {
+            onConflict: 'quantum_customer_id,org_id',
+            ignoreDuplicates: false
+          })
+          .select('id, created_at, updated_at');
 
-          if (error) {
-            console.error('❌ Error al actualizar cliente:', customer.id, error);
-            errores.push(`Error actualizando cliente ${customer.id}: ${error.message}`);
+        if (upsertError) {
+          // Si hay error de constraint, intentar actualizar manualmente
+          if (upsertError.code === '23505') {
+            console.log(`🔄 Actualizando cliente existente con constraint: ${customer.name}`);
+            
+            const { error: updateError } = await supabase
+              .from('contacts')
+              .update({
+                name: customerData.name,
+                email: customerData.email,
+                phone: customerData.phone,
+                address_street: customerData.address_street,
+                dni_nif: customerData.dni_nif,
+                business_sector: customerData.business_sector,
+                updated_at: customerData.updated_at
+              })
+              .eq('quantum_customer_id', customer.id)
+              .eq('org_id', defaultOrgId);
+
+            if (updateError) {
+              console.error('❌ Error al actualizar cliente:', customer.id, updateError);
+              errores.push(`Error actualizando cliente ${customer.id}: ${updateError.message}`);
+            } else {
+              registrosActualizados++;
+              console.log('✅ Cliente actualizado:', customer.id, customer.name);
+            }
+          } else {
+            console.error('❌ Error en upsert:', customer.id, upsertError);
+            errores.push(`Error en upsert cliente ${customer.id}: ${upsertError.message}`);
+          }
+        } else if (upsertResult && upsertResult.length > 0) {
+          // Determinar si fue creado o actualizado basándose en timestamps
+          const record = upsertResult[0];
+          const createdAt = new Date(record.created_at);
+          const updatedAt = new Date(record.updated_at);
+          
+          if (Math.abs(createdAt.getTime() - updatedAt.getTime()) < 1000) {
+            registrosNuevos++;
+            console.log('✅ Cliente creado:', customer.id, customer.name);
           } else {
             registrosActualizados++;
             console.log('🔄 Cliente actualizado:', customer.id, customer.name);
-          }
-        } else {
-          // Crear nuevo registro
-          const { error } = await supabase
-            .from('contacts')
-            .insert(customerData);
-
-          if (error) {
-            console.error('❌ Error al crear cliente:', customer.id, error);
-            errores.push(`Error creando cliente ${customer.id}: ${error.message}`);
-          } else {
-            registrosNuevos++;
-            console.log('✅ Cliente creado:', customer.id, customer.name);
           }
         }
         
@@ -186,16 +216,43 @@ serve(async (req) => {
       }
     }
 
+    // Verificar duplicados finales después de la sincronización
+    const { data: finalDuplicatesCheck } = await supabase
+      .from('contacts')
+      .select('quantum_customer_id, name')
+      .eq('org_id', defaultOrgId)
+      .not('quantum_customer_id', 'is', null)
+      .eq('client_type', 'empresa');
+
+    const duplicatesFound = finalDuplicatesCheck?.reduce((acc, contact) => {
+      const key = contact.quantum_customer_id!;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(contact.name);
+      return acc;
+    }, {} as Record<string, string[]>) || {};
+
+    const duplicateGroups = Object.entries(duplicatesFound)
+      .filter(([_, names]) => names.length > 1)
+      .map(([quantumId, names]) => ({
+        quantum_id: quantumId,
+        count: names.length,
+        names
+      }));
+
     const syncResult = {
-      success: errores.length === 0,
-      message: `Sincronización completada. Procesados: ${registrosProcesados}, Nuevos: ${registrosNuevos}, Actualizados: ${registrosActualizados}${errores.length > 0 ? `, Errores: ${errores.length}` : ''}`,
+      success: errores.length === 0 && duplicateGroups.length === 0,
+      message: `Sincronización completada. Procesados: ${registrosProcesados}, Nuevos: ${registrosNuevos}, Actualizados: ${registrosActualizados}, Omitidos: ${registrosOmitidos}${errores.length > 0 ? `, Errores: ${errores.length}` : ''}${duplicateGroups.length > 0 ? `, Duplicados detectados: ${duplicateGroups.length}` : ''}`,
       data: {
         processed: registrosProcesados,
         new: registrosNuevos,
         updated: registrosActualizados,
+        skipped: registrosOmitidos,
         errors: errores.length,
+        duplicates_detected: duplicateGroups.length,
         total: customers.length
-      }
+      },
+      duplicates: duplicateGroups.length > 0 ? duplicateGroups : undefined,
+      error_details: errores.length > 0 ? errores.slice(0, 10) : undefined // Máximo 10 errores en respuesta
     };
 
     console.log('🎉', syncResult.message);
