@@ -9,13 +9,25 @@ export const useContactsDAL = (orgId: string) => {
   // Query para obtener todos los contactos
   const contactsQuery = useQuery({
     queryKey: ['contacts', orgId],
-    queryFn: () => contactsDAL.findByOrganization(orgId),
+    queryFn: async () => {
+      const result = await contactsDAL.findByOrganization(orgId)
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Error al cargar contactos')
+      }
+      return result
+    },
     enabled: !!orgId
   })
 
   // Mutation para crear contacto
   const createContactMutation = useMutation({
-    mutationFn: (data: Partial<Contact>) => contactsDAL.create(data),
+    mutationFn: async (data: Partial<Contact>) => {
+      const result = await contactsDAL.create(data)
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Error al crear contacto')
+      }
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
       toast.success('Contacto creado exitosamente')
@@ -27,8 +39,13 @@ export const useContactsDAL = (orgId: string) => {
 
   // Mutation para actualizar contacto
   const updateContactMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Contact> }) => 
-      contactsDAL.update(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Contact> }) => {
+      const result = await contactsDAL.update(id, data)
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Error al actualizar contacto')
+      }
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
       toast.success('Contacto actualizado exitosamente')
@@ -40,7 +57,13 @@ export const useContactsDAL = (orgId: string) => {
 
   // Mutation para eliminar contacto
   const deleteContactMutation = useMutation({
-    mutationFn: (id: string) => contactsDAL.delete(id),
+    mutationFn: async (id: string) => {
+      const result = await contactsDAL.delete(id)
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Error al eliminar contacto')
+      }
+      return result
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
       toast.success('Contacto eliminado exitosamente')
@@ -75,7 +98,13 @@ export const useContactsDAL = (orgId: string) => {
 export const useContactSearch = (orgId: string, searchTerm: string) => {
   return useQuery({
     queryKey: ['contacts', 'search', orgId, searchTerm],
-    queryFn: () => contactsDAL.searchContacts(orgId, searchTerm),
+    queryFn: async () => {
+      const result = await contactsDAL.searchContacts(orgId, searchTerm)
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Error en la búsqueda')
+      }
+      return result
+    },
     enabled: !!orgId && searchTerm.length > 2
   })
 }
@@ -84,7 +113,13 @@ export const useContactSearch = (orgId: string, searchTerm: string) => {
 export const useContactDuplicates = (orgId: string) => {
   return useQuery({
     queryKey: ['contacts', 'duplicates', orgId],
-    queryFn: () => contactsDAL.findDuplicates(orgId),
+    queryFn: async () => {
+      const result = await contactsDAL.findDuplicates(orgId)
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Error al buscar duplicados')
+      }
+      return result
+    },
     enabled: !!orgId
   })
 }

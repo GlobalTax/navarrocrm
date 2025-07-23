@@ -7,7 +7,8 @@ export interface DALResponse<T> {
   success: boolean
 }
 
-export interface DALListResponse<T> extends DALResponse<T[]> {
+export interface DALListResponse<T> extends Omit<DALResponse<T[]>, 'data'> {
+  data: T[]
   count?: number
 }
 

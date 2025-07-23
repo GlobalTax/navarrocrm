@@ -1,3 +1,4 @@
+
 import { BaseDAL } from './base'
 import { supabase } from '@/integrations/supabase/client'
 import { DALResponse, DALListResponse } from './types'
@@ -50,7 +51,7 @@ export class ContactsDAL extends BaseDAL<Contact> {
       .eq('email', email)
       .single()
     
-    return this.handleResponse(query)
+    return this.handleResponse<Contact>(query)
   }
 
   async findByDniNif(dni: string): Promise<DALResponse<Contact>> {
@@ -60,7 +61,7 @@ export class ContactsDAL extends BaseDAL<Contact> {
       .eq('dni_nif', dni)
       .single()
     
-    return this.handleResponse(query)
+    return this.handleResponse<Contact>(query)
   }
 
   async findByOrganization(orgId: string): Promise<DALListResponse<Contact>> {
@@ -76,22 +77,22 @@ export class ContactsDAL extends BaseDAL<Contact> {
   ): Promise<DALListResponse<Contact>> {
     const query = supabase
       .from('contacts')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('org_id', orgId)
       .or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
       .order('created_at', { ascending: false })
     
-    return this.handleResponse(query)
+    return this.handleListResponse<Contact>(query)
   }
 
   async findDuplicates(orgId: string): Promise<DALListResponse<Contact>> {
     // Simplificar por ahora - implementación más compleja después
     const query = supabase
       .from('contacts')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('org_id', orgId)
     
-    return this.handleResponse(query)
+    return this.handleListResponse<Contact>(query)
   }
 }
 
