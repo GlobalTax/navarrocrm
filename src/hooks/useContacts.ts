@@ -1,44 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { parseEmailPreferences, defaultEmailPreferences } from '@/lib/typeUtils'
-
-export interface Contact {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  dni_nif: string | null
-  address_street: string | null
-  address_city: string | null
-  address_postal_code: string | null
-  address_country: string | null
-  legal_representative: string | null
-  client_type: string | null
-  business_sector: string | null
-  how_found_us: string | null
-  contact_preference: string | null
-  preferred_language: string | null
-  hourly_rate: number | null
-  payment_method: string | null
-  status: string | null
-  relationship_type: 'prospecto' | 'cliente' | 'ex_cliente'
-  tags: string[] | null
-  internal_notes: string | null
-  org_id: string
-  created_at: string
-  updated_at: string
-  last_contact_date: string | null
-  company_id: string | null
-  timezone: string | null
-  preferred_meeting_time: string | null
-  email_preferences: {
-    receive_followups: boolean
-    receive_reminders: boolean
-    receive_invitations: boolean
-  } | null
-}
+import { contactsDAL, type Contact } from '@/lib/dal'
+import { useContactsDAL, useContactSearch } from '@/hooks/useContactsDAL'
 
 export const useContacts = () => {
   const { user } = useApp()
@@ -46,61 +9,10 @@ export const useContacts = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [relationshipFilter, setRelationshipFilter] = useState<string>('all')
 
-  const { data: contacts = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['contacts', user?.org_id],
-    queryFn: async (): Promise<Contact[]> => {
-      console.log('🔄 [useContacts] Fetching contacts for org:', user?.org_id)
-      
-      if (!user?.org_id) {
-        console.log('❌ [useContacts] No org_id available')
-        return []
-      }
+  // Usar el nuevo DAL hook
+  const { contacts, isLoading, error, refetch } = useContactsDAL(user?.org_id || '')
 
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('org_id', user.org_id)
-        .order('name', { ascending: true })
-
-      if (error) {
-        console.error('❌ [useContacts] Error fetching contacts:', error)
-        throw error
-      }
-      
-      console.log('✅ [useContacts] Contacts fetched:', {
-        total: data?.length || 0,
-        byType: data?.reduce((acc: Record<string, number>, contact) => {
-          const type = contact.client_type || 'unknown'
-          acc[type] = (acc[type] || 0) + 1
-          return acc
-        }, {}) || {},
-        sampleContacts: data?.slice(0, 3).map(c => ({ 
-          id: c.id, 
-          name: c.name, 
-          client_type: c.client_type 
-        })) || []
-      })
-      
-      // Asegurar que relationship_type tenga el tipo correcto y parsear email_preferences
-      const processedContacts = (data || []).map(contact => ({
-        ...contact,
-        relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-        email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
-      }))
-      
-      console.log('🔄 [useContacts] Processed contacts:', {
-        companies: processedContacts.filter(c => c.client_type === 'empresa').length,
-        particulares: processedContacts.filter(c => c.client_type === 'particular').length,
-        autonomos: processedContacts.filter(c => c.client_type === 'autonomo').length
-      })
-      
-      return processedContacts
-    },
-    enabled: !!user?.org_id,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    gcTime: 1000 * 60 * 10, // 10 minutos
-  })
-
+  // Filtrar contactos localmente
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = !searchTerm || 
       contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,7 +20,6 @@ export const useContacts = () => {
       (contact.phone && contact.phone.includes(searchTerm))
 
     const matchesStatus = statusFilter === 'all' || contact.status === statusFilter
-
     const matchesRelationship = relationshipFilter === 'all' || contact.relationship_type === relationshipFilter
 
     return matchesSearch && matchesStatus && matchesRelationship
@@ -128,3 +39,6 @@ export const useContacts = () => {
     setRelationshipFilter,
   }
 }
+
+// Re-export Contact type for backward compatibility
+export type { Contact }
