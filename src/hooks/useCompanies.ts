@@ -32,7 +32,7 @@ export const useCompanies = () => {
         return []
       }
 
-      // Obtener empresas
+      // Obtener empresas (incluyendo verificación de duplicados)
       const { data: companiesData, error: companiesError } = await supabase
         .from('contacts')
         .select('*')
