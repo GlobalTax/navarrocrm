@@ -1,12 +1,30 @@
 
+// Core DAL exports
 export * from './types'
 export * from './base'
+
+// Entity DAL exports
 export * from './contacts'
 export * from './proposals'
+export * from './cases'
+export * from './calendar'
+export * from './documents'
+export * from './users'
+export * from './time-entries'
 
 // Re-export instances for easy access
 export { contactsDAL } from './contacts'
 export { proposalsDAL } from './proposals'
+export { casesDAL } from './cases'
+export { calendarDAL } from './calendar'
+export { documentsDAL, documentTemplatesDAL } from './documents'
+export { usersDAL, userInvitationsDAL } from './users'
+export { timeEntriesDAL } from './time-entries'
 
 // Re-export types for convenience
 export type { Contact, Client } from '@/types/shared/clientTypes'
+export type { Case } from './cases'
+export type { CalendarEvent } from './calendar'
+export type { Document, DocumentTemplate, DocumentVersion } from './documents'
+export type { User, UserInvitation } from './users'
+export type { TimeEntry, TimeReport } from './time-entries'
