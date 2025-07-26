@@ -5,14 +5,16 @@ import { AppProvider } from '@/contexts/AppContext'
 import { QueryProvider } from '@/contexts/QueryContext'
 import { OnboardingProvider } from '@/components/onboarding'
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
+import { BackgroundDataManager } from '@/components/cache/BackgroundDataManager'
 import { AppRouter } from '@/router'
 
 function App() {
   return (
     <GlobalErrorBoundary>
-      <QueryProvider>
-        <AppProvider>
+      <AppProvider>
+        <QueryProvider>
           <OnboardingProvider>
+            <BackgroundDataManager />
             <Toaster position="top-right" />
             <Router>
               <div className="min-h-screen bg-gray-50">
@@ -20,8 +22,8 @@ function App() {
               </div>
             </Router>
           </OnboardingProvider>
-        </AppProvider>
-      </QueryProvider>
+        </QueryProvider>
+      </AppProvider>
     </GlobalErrorBoundary>
   )
 }

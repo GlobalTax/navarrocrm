@@ -102,12 +102,17 @@ export const initializeRouteOptimization = () => {
   // Prefetch on user interactions
   document.addEventListener('mouseenter', (e) => {
     const target = e.target as HTMLElement
+    
+    // Safety check - ensure target has closest method
+    if (!target || typeof target.closest !== 'function') return
+    
     const link = target.closest('a[href]') as HTMLAnchorElement
     
     if (link && link.href.includes(window.location.origin)) {
       const route = new URL(link.href).pathname
       if (featureBundles.clients.some(r => route.includes(r.toLowerCase()))) {
         // Prefetch client management bundle
+        console.log('Prefetching client bundle for route:', route)
       }
     }
   }, { passive: true })
