@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Database } from 'lucide-react'
-import { Contact, useContacts } from '@/hooks/useContacts'
+import { useContactsList, type Contact } from '@/features/contacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
@@ -38,7 +38,7 @@ const Contacts = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [activeTab, setActiveTab] = useState('persons')
 
-  const { contacts, refetch } = useContacts()
+  const { contacts, refetch } = useContactsList()
   const { startOnboarding } = useOnboarding()
 
   const handleCreatePerson = () => {

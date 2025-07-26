@@ -14,7 +14,7 @@ export { ContactFilters } from './components/ContactFilters'
 // Hooks
 export { useContactsList } from './hooks'
 
-// TODO: Create types for Contacts feature
+export type { Contact } from '@/hooks/useContacts'
 // Types
 // export type {
 //   Contact,

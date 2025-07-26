@@ -14,7 +14,7 @@ export { CasesFilters } from './components/CasesFilters'
 // Hooks
 export { useCasesList } from './hooks'
 
-// TODO: Create types for Cases feature
+export type { Case, CreateCaseData } from '@/hooks/useCases'
 // Types
 // export type {
 //   Case,
