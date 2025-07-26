@@ -5,7 +5,7 @@
  */
 
 // Components (pages)
-// export { default as AcademiaPage } from './pages/AcademiaPage'
+export { default as AcademiaPage } from './pages/AcademiaPage'
 export { default as AcademiaAdminPage } from './pages/AcademiaAdminPage'
 
 // TODO: Create types for Academy feature

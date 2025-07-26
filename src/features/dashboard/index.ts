@@ -4,9 +4,8 @@
  * Panel principal y métricas del sistema
  */
 
-// TODO: Migrate existing components from src/components/dashboard/
-// Components
-// export { default as DashboardPage } from './pages/DashboardPage'
+// Components (pages)
+export { default as DashboardPage } from './pages/DashboardPage'
 // export { DashboardMetrics } from './components/DashboardMetrics'
 // export { QuickActions } from './components/QuickActions'
 // export { RecentActivity } from './components/RecentActivity'

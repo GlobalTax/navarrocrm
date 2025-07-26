@@ -1,12 +1,17 @@
 /**
  * Cases Feature Module
  * 
- * Gestión completa de expedientes legales
- * Arquitectura implementada progresivamente
+ * Gestión de expedientes y casos legales
  */
 
-// DAL exportado desde lib/dal
-export { casesDAL } from '@/lib/dal'
-export type { Case } from '@/lib/dal'
+// Components (pages)
+export { default as CasesPage } from './pages/CasesPage'
 
-// TODO: Migrar componentes y hooks existentes desde src/components/cases/ y src/hooks/cases/
+// TODO: Create types for Cases feature
+// Types
+// export type {
+//   Case,
+//   CaseStatus,
+//   CaseForm,
+//   CaseTemplate
+// } from './types'
