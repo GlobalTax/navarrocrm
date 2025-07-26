@@ -1,4 +1,4 @@
-import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
+import { useOptimizedDashboard } from '@/hooks/useOptimizedQueries'
 
 export const useDashboardMetrics = () => {
   return useOptimizedDashboard()
