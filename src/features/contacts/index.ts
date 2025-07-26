@@ -7,6 +7,10 @@
 // Components (pages)
 export { default as ContactsPage } from './pages/ContactsPage'
 
+// Components
+export { ContactsList } from './components/ContactsList'
+export { ContactFilters } from './components/ContactFilters'
+
 // TODO: Create types for Contacts feature
 // Types
 // export type {
