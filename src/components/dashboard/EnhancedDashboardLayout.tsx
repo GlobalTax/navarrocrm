@@ -4,12 +4,12 @@ import { OptimizedPerformanceChart } from './OptimizedPerformanceChart'
 import { OptimizedRecentActivity } from './OptimizedRecentActivity'
 import { TodayAgenda } from './TodayAgenda'
 import { DashboardFilters } from './DashboardFilters'
-import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
+import { useDashboardMetrics } from '@/features/dashboard'
 import { toast } from 'sonner'
 
 export const EnhancedDashboardLayout = () => {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter'>('month')
-  const { data, refetch, isLoading } = useOptimizedDashboard()
+  const { data, refetch, isLoading } = useDashboardMetrics()
 
   const handleRefresh = async () => {
     try {

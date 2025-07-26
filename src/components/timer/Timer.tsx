@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Play, Pause, Square, Clock } from 'lucide-react'
-import { useCases } from '@/hooks/useCases'
+import { useCasesList } from '@/features/cases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { toast } from 'sonner'
 
@@ -21,7 +21,7 @@ export const Timer = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const startTimeRef = useRef<Date | null>(null)
 
-  const { cases } = useCases()
+  const { cases } = useCasesList()
   const { createTimeEntry, isCreating } = useTimeEntries()
 
   useEffect(() => {

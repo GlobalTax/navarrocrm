@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useCases } from '@/hooks/useCases'
+import { useCasesList } from '@/features/cases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { toast } from 'sonner'
 
@@ -23,7 +23,7 @@ export const HeaderTimerDialog = ({ isOpen, onClose, onSave, timerSeconds }: Hea
   const [isBillable, setIsBillable] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { cases } = useCases()
+  const { cases } = useCasesList()
   const { createTimeEntry } = useTimeEntries()
 
   const formatTime = (totalSeconds: number) => {

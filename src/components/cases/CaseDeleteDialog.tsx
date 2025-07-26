@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Case } from '@/hooks/useCases'
+import { Case } from '@/features/cases'
 import { Trash2 } from 'lucide-react'
 
 interface CaseDeleteDialogProps {

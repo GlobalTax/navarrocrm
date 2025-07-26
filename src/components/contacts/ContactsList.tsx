@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
-import { useInfiniteContacts } from '@/hooks/useInfiniteContacts'
+import { useContactsList } from '@/features/contacts'
 import { Contact } from '@/hooks/useContacts'
 import { ContactFilters } from './ContactFilters'
 import { VirtualizedContactTable } from './VirtualizedContactTable'
@@ -28,7 +28,7 @@ export const ContactsList = ({ onCreateContact, onEditContact }: ContactsListPro
     setStatusFilter,
     relationshipFilter,
     setRelationshipFilter
-  } = useInfiniteContacts()
+  } = useContactsList()
 
   const handleRefresh = () => {
     refetch()

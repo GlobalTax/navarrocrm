@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Play, Pause, Square, Clock, Timer } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
+import { useDashboardMetrics } from '@/features/dashboard'
 import { useState } from 'react'
 import { useInterval } from '@/hooks/performance/useInterval'
 import { toast } from 'sonner'
 
 export const EnhancedActiveTimer = () => {
   const navigate = useNavigate()
-  const { data: dashboardData } = useOptimizedDashboard()
+  const { data: dashboardData } = useDashboardMetrics()
   const [elapsedTime, setElapsedTime] = useState(0)
   
   // Por ahora, mostrar estado estático hasta implementar funcionalidad completa

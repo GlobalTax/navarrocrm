@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Play, Pause, Square, Clock, Zap, Coffee, Target } from 'lucide-react'
-import { useCases } from '@/hooks/useCases'
+import { useCasesList } from '@/features/cases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { toast } from 'sonner'
 
@@ -20,7 +20,7 @@ export const ModernTimer = () => {
   const [entryType, setEntryType] = useState<'billable' | 'office_admin' | 'business_development' | 'internal'>('billable')
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const { cases } = useCases()
+  const { cases } = useCasesList()
   const { createTimeEntry, isCreating } = useTimeEntries()
 
   useEffect(() => {

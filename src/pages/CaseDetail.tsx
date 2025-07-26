@@ -12,7 +12,7 @@ import { CaseTimeline } from '@/components/cases/timeline/CaseTimeline'
 import { CaseTasksPanel } from '@/components/cases/tasks/CaseTasksPanel'
 import { CaseDocumentsPanel } from '@/components/cases/documents/CaseDocumentsPanel'
 import { CaseTimePanel } from '@/components/cases/time/CaseTimePanel'
-import { useCases } from '@/hooks/useCases'
+import { useCasesList } from '@/features/cases'
 import { MatterFormDialog } from '@/components/cases/MatterFormDialog'
 import { useState } from 'react'
 
@@ -45,7 +45,7 @@ const getStatusLabel = (status: string) => {
 export default function CaseDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { cases, isLoading, updateCase, deleteCase, archiveCase, isUpdating, isDeleting, isArchiving } = useCases()
+  const { cases, isLoading, updateCase, deleteCase, archiveCase, isUpdating, isDeleting, isArchiving } = useCasesList()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   if (isLoading) {

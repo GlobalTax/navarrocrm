@@ -6,7 +6,7 @@ import { OptimizedRecentActivity } from '@/components/dashboard/OptimizedRecentA
 import { TodayAgenda } from '@/components/dashboard/TodayAgenda'
 import { DashboardError } from '@/components/dashboard/DashboardError'
 import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
-import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
+import { useDashboardMetrics } from '../hooks'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { RefreshCw } from 'lucide-react'
@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 
 export default function DashboardPage() {
   const { user } = useApp()
-  const { data, isLoading, error, refetch } = useOptimizedDashboard()
+  const { data, isLoading, error, refetch } = useDashboardMetrics()
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   useEffect(() => {
