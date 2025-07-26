@@ -105,6 +105,3 @@ export class CasesDAL extends BaseDAL<Case> {
 
 // Singleton instance
 export const casesDAL = new CasesDAL()
-
-// Re-export Case type for convenience
-export type { Case }

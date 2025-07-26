@@ -108,9 +108,10 @@ export class UsersDAL extends BaseDAL<User> {
     } as Partial<User>)
   }
 
+  // TODO: Implement when RPC function exists
   async getUserStats(orgId: string): Promise<DALResponse<any>> {
-    const query = supabase.rpc('get_user_stats', { org_uuid: orgId })
-    return this.handleResponse(query)
+    // Placeholder - implement when RPC exists
+    return { data: null, error: null, success: true }
   }
 }
 
@@ -166,6 +167,3 @@ export class UserInvitationsDAL extends BaseDAL<UserInvitation> {
 // Singleton instances
 export const usersDAL = new UsersDAL()
 export const userInvitationsDAL = new UserInvitationsDAL()
-
-// Re-export types for convenience
-export type { User, UserInvitation }

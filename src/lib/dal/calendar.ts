@@ -119,6 +119,3 @@ export class CalendarDAL extends BaseDAL<CalendarEvent> {
 
 // Singleton instance
 export const calendarDAL = new CalendarDAL()
-
-// Re-export CalendarEvent type for convenience
-export type { CalendarEvent }

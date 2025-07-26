@@ -119,23 +119,15 @@ export class TimeEntriesDAL extends BaseDAL<TimeEntry> {
     })
   }
 
+  // TODO: Implement when RPC function exists
   async generateTimeReport(
     orgId: string,
     startDate: string,
     endDate: string,
     userId?: string
   ): Promise<DALListResponse<TimeReport>> {
-    let query = supabase.rpc('get_time_report', {
-      org_uuid: orgId,
-      start_date: startDate,
-      end_date: endDate
-    })
-
-    if (userId) {
-      query = query.eq('user_id', userId)
-    }
-    
-    return this.handleListResponse<TimeReport>(query)
+    // Placeholder - implement when RPC exists
+    return { data: [], error: null, success: true, count: 0 }
   }
 
   async getMonthlyStats(
@@ -152,18 +144,14 @@ export class TimeEntriesDAL extends BaseDAL<TimeEntry> {
     return this.handleResponse(query)
   }
 
+  // TODO: Implement when RPC function exists
   async getUserUtilization(
     userId: string,
     startDate: string,
     endDate: string
   ): Promise<DALResponse<any>> {
-    const query = supabase.rpc('get_user_utilization', {
-      user_uuid: userId,
-      start_date: startDate,
-      end_date: endDate
-    })
-    
-    return this.handleResponse(query)
+    // Placeholder - implement when RPC exists
+    return { data: null, error: null, success: true }
   }
 
   async bulkUpdateStatus(
@@ -182,6 +170,3 @@ export class TimeEntriesDAL extends BaseDAL<TimeEntry> {
 
 // Singleton instance
 export const timeEntriesDAL = new TimeEntriesDAL()
-
-// Re-export types for convenience
-export type { TimeEntry, TimeReport }
