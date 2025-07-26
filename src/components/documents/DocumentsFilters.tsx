@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Search, Filter, X, Star, Grid3X3, List } from 'lucide-react'
 import { DocumentTemplate } from '@/hooks/useDocumentTemplates'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface DocumentsFiltersProps {
   searchTerm: string
@@ -40,6 +41,12 @@ export const DocumentsFilters = ({
   onClearFilters
 }: DocumentsFiltersProps) => {
   const [filtersExpanded, setFiltersExpanded] = useState(false)
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm)
+  const debouncedSearchTerm = useDebounce(localSearchTerm, 300)
+
+  useEffect(() => {
+    onSearchChange(debouncedSearchTerm)
+  }, [debouncedSearchTerm, onSearchChange])
 
   // Extraer opciones únicas de las plantillas
   const uniqueTypes = [...new Set(templates.map(t => t.document_type))]
@@ -71,8 +78,8 @@ export const DocumentsFilters = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar plantillas..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
+              value={localSearchTerm}
+              onChange={(e) => setLocalSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>

@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react'
 import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card'
 import { PracticeArea } from '@/hooks/usePracticeAreas'
 import { User } from '@/hooks/useUsers'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface CasesFiltersProps {
   searchTerm: string
@@ -32,6 +34,13 @@ export function CasesFilters({
   practiceAreas,
   users
 }: CasesFiltersProps) {
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm)
+  const debouncedSearchTerm = useDebounce(localSearchTerm, 300)
+
+  useEffect(() => {
+    setSearchTerm(debouncedSearchTerm)
+  }, [debouncedSearchTerm, setSearchTerm])
+
   return (
     <Card className="mb-6">
       <CardContent className="pt-6">
@@ -39,8 +48,8 @@ export function CasesFilters({
           <div className="flex-1">
             <Input
               placeholder="Buscar expedientes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={localSearchTerm}
+              onChange={(e) => setLocalSearchTerm(e.target.value)}
               className="max-w-sm"
             />
           </div>

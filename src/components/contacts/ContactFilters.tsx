@@ -1,7 +1,9 @@
 
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search } from 'lucide-react'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface ContactFiltersProps {
   searchTerm: string
@@ -20,14 +22,22 @@ export function ContactFilters({
   relationshipFilter,
   setRelationshipFilter
 }: ContactFiltersProps) {
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm)
+  const debouncedSearchTerm = useDebounce(localSearchTerm, 300)
+
+  // Sincronizar el valor debounced con el estado padre
+  useEffect(() => {
+    setSearchTerm(debouncedSearchTerm)
+  }, [debouncedSearchTerm, setSearchTerm])
+
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar contactos..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={localSearchTerm}
+          onChange={(e) => setLocalSearchTerm(e.target.value)}
           className="pl-10"
         />
       </div>

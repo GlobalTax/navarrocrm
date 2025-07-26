@@ -1,8 +1,10 @@
 
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface FilterOption {
   label: string
@@ -33,6 +35,13 @@ export const StandardFilters = ({
   hasActiveFilters = false,
   children
 }: StandardFiltersProps) => {
+  const [localSearchValue, setLocalSearchValue] = useState(searchValue)
+  const debouncedSearchValue = useDebounce(localSearchValue, 300)
+
+  useEffect(() => {
+    onSearchChange(debouncedSearchValue)
+  }, [debouncedSearchValue, onSearchChange])
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -40,8 +49,8 @@ export const StandardFilters = ({
           <div className="flex-1">
             <Input
               placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
+              value={localSearchValue}
+              onChange={(e) => setLocalSearchValue(e.target.value)}
               className="max-w-sm"
             />
           </div>
