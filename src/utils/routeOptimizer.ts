@@ -103,8 +103,8 @@ export const initializeRouteOptimization = () => {
   document.addEventListener('mouseenter', (e) => {
     const target = e.target as HTMLElement
     
-    // Safety check - ensure target has closest method
-    if (!target || typeof target.closest !== 'function') return
+    // Safety check - ensure target is a valid element with closest method
+    if (!target || !target.nodeType || typeof target.closest !== 'function') return
     
     const link = target.closest('a[href]') as HTMLAnchorElement
     

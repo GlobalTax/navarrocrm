@@ -1,11 +1,21 @@
 
-import React, { ReactNode, useEffect } from 'react'
-import { QueryClientProvider } from '@tanstack/react-query'
+import React, { ReactNode } from 'react'
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { createOptimizedQueryClient, backgroundFetch } from '@/utils/cacheOptimizer'
 
-// Create optimized query client with persistent cache
-const queryClient = createOptimizedQueryClient()
+// Create simple query client without persistent cache for now
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+})
 
 interface QueryProviderProps {
   children: ReactNode
@@ -23,10 +33,4 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
       )}
     </QueryClientProvider>
   )
-}
-
-// Separate component that needs AppContext - will be used in App.tsx after AppProvider
-export const BackgroundDataManager: React.FC = () => {
-  // This will be imported and used in App.tsx where AppProvider is available
-  return null
 }
