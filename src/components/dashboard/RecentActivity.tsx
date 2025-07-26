@@ -19,6 +19,7 @@ export const RecentActivity = () => {
       const { data, error } = await supabase
         .from('contacts')
         .select('id, name, created_at')
+        .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
         .limit(3)
 
@@ -30,6 +31,7 @@ export const RecentActivity = () => {
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 1 * 60 * 1000, // Cache por 1 minuto
   })
 
   const { data: recentCases = [] } = useQuery({
@@ -45,6 +47,7 @@ export const RecentActivity = () => {
           created_at,
           contact:contacts(name)
         `)
+        .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
         .limit(3)
 
@@ -56,6 +59,7 @@ export const RecentActivity = () => {
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 1 * 60 * 1000, // Cache por 1 minuto
   })
 
   const { data: recentTimeEntries = [] } = useQuery({
@@ -75,6 +79,7 @@ export const RecentActivity = () => {
             contact:contacts(name)
           )
         `)
+        .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
         .limit(5)
 
@@ -86,6 +91,7 @@ export const RecentActivity = () => {
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 30 * 1000, // Cache por 30 segundos para tiempo real
   })
 
   const allActivity = [

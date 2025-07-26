@@ -145,7 +145,8 @@ export const useOptimizedDashboard = () => {
           .from('contacts')
           .select('id, name, created_at')
           .eq('org_id', user.org_id)
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
+          .limit(50), // Limitar a 50 contactos recientes
         
         supabase
           .from('time_entries')
