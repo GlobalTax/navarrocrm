@@ -1,6 +1,4 @@
-import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { QueryClient } from '@tanstack/react-query'
-import { persistQueryClient } from '@tanstack/react-query-persist-client'
 
 // Strategic cache configuration for different data types
 export const cacheConfig = {
@@ -57,30 +55,6 @@ export const createOptimizedQueryClient = () => {
     },
   })
 
-  // Configure persistent storage
-  const persister = createSyncStoragePersister({
-    storage: window.localStorage,
-    key: 'crm-cache-v1',
-    serialize: JSON.stringify,
-    deserialize: JSON.parse,
-  })
-
-  // Persist critical queries only
-  persistQueryClient({
-    queryClient,
-    persister,
-    maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    buster: process.env.NODE_ENV === 'development' ? Date.now().toString() : undefined,
-    hydrateOptions: {
-      // Only restore critical data on hydration
-      defaultOptions: {
-        queries: {
-          staleTime: 1000 * 60 * 5, // 5 minutes on hydration
-        },
-      },
-    },
-  })
-
   return queryClient
 }
 
@@ -133,12 +107,12 @@ export const backgroundFetch = {
       queryClient.prefetchQuery({
         queryKey: cacheKeys.dashboardMetrics(orgId),
         queryFn: () => fetch(`/api/dashboard/metrics?org_id=${orgId}`).then(r => r.json()),
-        ...cacheConfig.critical,
+        staleTime: cacheConfig.critical.staleTime,
       }),
       queryClient.prefetchQuery({
         queryKey: cacheKeys.dashboardActivity(orgId),
         queryFn: () => fetch(`/api/dashboard/activity?org_id=${orgId}`).then(r => r.json()),
-        ...cacheConfig.dynamic,
+        staleTime: cacheConfig.dynamic.staleTime,
       }),
     ])
   },
@@ -149,12 +123,12 @@ export const backgroundFetch = {
       queryClient.prefetchQuery({
         queryKey: cacheKeys.userTasks(userId),
         queryFn: () => fetch(`/api/tasks?user_id=${userId}&org_id=${orgId}`).then(r => r.json()),
-        ...cacheConfig.user,
+        staleTime: cacheConfig.user.staleTime,
       }),
       queryClient.prefetchQuery({
         queryKey: cacheKeys.activeTimer(userId),
         queryFn: () => fetch(`/api/time-entries/active?user_id=${userId}`).then(r => r.json()),
-        ...cacheConfig.realtime,
+        staleTime: cacheConfig.realtime.staleTime,
       }),
     ])
   },
