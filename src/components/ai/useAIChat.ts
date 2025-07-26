@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import { Message } from './types'
+import { aiLogger } from '@/utils/logging'
+import type { AIAction } from '@/types/features/ai'
 
 export const useAIChat = () => {
   const { user } = useApp()
@@ -25,10 +27,13 @@ export const useAIChat = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const sendMessage = async (content: string) => {
-    console.log('📤 AIChat - Enviando mensaje:', content)
+    aiLogger.info('Enviando mensaje', { contentLength: content.length, userId: user?.id })
     
     if (!content.trim() || isLoading) {
-      console.log('⚠️ AIChat - Mensaje bloqueado. Contenido vacío o cargando')
+      aiLogger.warn('Mensaje bloqueado', { 
+        reason: !content.trim() ? 'contenido_vacio' : 'cargando',
+        isLoading 
+      })
       return
     }
 
@@ -43,7 +48,11 @@ export const useAIChat = () => {
     setIsLoading(true)
 
     try {
-      console.log('🚀 AIChat - Llamando a función Edge...')
+      aiLogger.info('Llamando función Edge', { 
+        userId: user?.id, 
+        orgId: user?.org_id,
+        currentPage: window.location.pathname 
+      })
       
       const response = await supabase.functions.invoke('ai-assistant', {
         body: {
@@ -57,10 +66,16 @@ export const useAIChat = () => {
         }
       })
 
-      console.log('📥 AIChat - Respuesta recibida:', response)
+      aiLogger.info('Respuesta recibida', { 
+        hasData: !!response.data,
+        hasError: !!response.error 
+      })
 
       if (response.error) {
-        console.error('❌ AIChat - Error en respuesta:', response.error)
+        aiLogger.error('Error en respuesta de Edge Function', { 
+          error: response.error.message,
+          userId: user?.id 
+        })
         throw new Error(response.error.message)
       }
 
@@ -79,7 +94,11 @@ export const useAIChat = () => {
       }
 
     } catch (error) {
-      console.error('💥 AIChat - Error al enviar mensaje:', error)
+      aiLogger.error('Error al enviar mensaje', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        userId: user?.id,
+        messageLength: content.length 
+      })
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -93,8 +112,12 @@ export const useAIChat = () => {
     }
   }
 
-  const handleAIAction = (action: any) => {
-    console.log('🎬 AIChat - Ejecutando acción IA:', action)
+  const handleAIAction = (action: AIAction) => {
+    aiLogger.info('Ejecutando acción IA', { 
+      actionType: action.type,
+      hasPayload: !!action.payload,
+      userId: user?.id 
+    })
   }
 
   return {

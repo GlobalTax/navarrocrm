@@ -2,28 +2,30 @@
 import { supabase } from '@/integrations/supabase/client'
 import { UserRole } from '../types'
 import { createError, handleError } from '@/utils/errorHandler'
+import { authLogger } from '@/utils/logging'
 
 export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔑 [signIn] Iniciando proceso de autenticación para:', email)
-      console.log('🔐 [signIn] Password recibido:', { length: password.length, hasValue: !!password })
+      authLogger.info('Iniciando proceso de autenticación', { 
+        email, 
+        passwordLength: password.length 
+      })
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log('📡 [signIn] Respuesta de Supabase:', { 
+      authLogger.info('Respuesta de Supabase recibida', { 
         hasData: !!data, 
         hasUser: !!data?.user,
         hasSession: !!data?.session,
-        error: error?.message,
         userEmail: data?.user?.email 
       })
       
       if (error) {
-        console.error('❌ [signIn] Error de Supabase:', error)
+        authLogger.error('Error de Supabase', { errorMessage: error.message })
         
         // Crear error específico según el tipo
         let userMessage = 'Error al iniciar sesión'
@@ -35,7 +37,7 @@ export const useAuthActions = () => {
           userMessage = 'Demasiados intentos. Espere unos minutos'
         }
         
-        console.log('🚨 [signIn] Lanzando error con mensaje:', userMessage)
+        authLogger.warn('Lanzando error de autenticación', { userMessage, originalError: error.message })
         throw createError(error.message, {
           severity: 'medium',
           retryable: !error.message.includes('credentials'),

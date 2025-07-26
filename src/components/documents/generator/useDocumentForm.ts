@@ -1,18 +1,51 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
+import { documentsLogger } from '@/utils/logging'
+
+// Tipos flexibles para compatibilidad temporal
+interface DocumentTemplate {
+  id: string
+  name: string
+  variables: DocumentVariable[]
+}
+
+interface DocumentVariable {
+  name: string
+  label: string
+  required: boolean
+  default_value?: string | number | boolean
+}
 
 interface DocumentFormData {
   title: string
-  variables: Record<string, any>
+  variables: Record<string, string | number | boolean>
   caseId: string
   contactId: string
   useAI: boolean
 }
 
+interface CaseData {
+  id: string
+  title: string
+  case_number?: string
+  client_id?: string
+  case_type?: string
+}
+
+interface ContactData {
+  id: string
+  name: string
+  dni_nif?: string | null
+  address_street?: string | null
+  email?: string | null
+  phone?: string | null
+  address_city?: string | null
+}
+
 interface UseDocumentFormProps {
-  template: any
-  cases: any[]
-  contacts: any[]
+  template: DocumentTemplate
+  cases: CaseData[]
+  contacts: ContactData[]
   onSubmit: (data: DocumentFormData) => Promise<void>
 }
 
@@ -36,9 +69,15 @@ export const useDocumentForm = ({
   // Initialize form data when template changes
   useEffect(() => {
     if (template) {
-      const initialVariables: Record<string, any> = {}
-      template.variables.forEach((variable: any) => {
-        initialVariables[variable.name] = variable.default || ''
+      documentsLogger.info('Inicializando formulario de documento', { 
+        templateId: template.id,
+        templateName: template.name,
+        variablesCount: template.variables.length 
+      })
+      
+      const initialVariables: Record<string, string | number | boolean> = {}
+      template.variables.forEach((variable: DocumentVariable) => {
+        initialVariables[variable.name] = variable.default_value || ''
       })
       
       setFormData(prev => ({
@@ -49,7 +88,7 @@ export const useDocumentForm = ({
     }
   }, [template])
 
-  const updateFormData = useCallback((field: string, value: any) => {
+  const updateFormData = useCallback((field: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -65,7 +104,7 @@ export const useDocumentForm = ({
     }
   }, [errors])
 
-  const updateVariable = useCallback((variableName: string, value: any) => {
+  const updateVariable = useCallback((variableName: string, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       variables: {
@@ -93,7 +132,7 @@ export const useDocumentForm = ({
     }
     
     // Validate required variables
-    template?.variables.forEach((variable: any) => {
+    template?.variables.forEach((variable: DocumentVariable) => {
       if (variable.required) {
         const value = formData.variables[variable.name]
         if (!value || (typeof value === 'string' && !value.trim())) {
@@ -108,21 +147,29 @@ export const useDocumentForm = ({
 
   const autofillFromCase = useCallback((caseId: string) => {
     const selectedCase = cases.find(c => c.id === caseId)
-    if (!selectedCase) return
+    if (!selectedCase) {
+      documentsLogger.warn('Caso no encontrado para autofill', { caseId })
+      return
+    }
 
-    const updates: Record<string, any> = {}
-    template?.variables.forEach((variable: any) => {
+    documentsLogger.info('Autocompletando desde caso', { 
+      caseId,
+      caseTitle: selectedCase.title 
+    })
+
+    const updates: Record<string, string> = {}
+    template?.variables.forEach((variable: DocumentVariable) => {
       switch (variable.name) {
         case 'nombre_cliente':
         case 'cliente':
-          if (selectedCase.contact_id) {
-            const contact = contacts.find(c => c.id === selectedCase.contact_id)
+          if (selectedCase.client_id) {
+            const contact = contacts.find(c => c.id === selectedCase.client_id)
             if (contact) updates[variable.name] = contact.name
           }
           break
         case 'materia_legal':
         case 'materia':
-          updates[variable.name] = selectedCase.practice_area || ''
+          updates[variable.name] = selectedCase.case_type || ''
           break
         case 'fecha_contrato':
         case 'fecha':
@@ -134,7 +181,7 @@ export const useDocumentForm = ({
           break
         case 'numero_expediente':
         case 'expediente':
-          updates[variable.name] = selectedCase.matter_number || ''
+          updates[variable.name] = selectedCase.case_number || ''
           break
       }
     })
@@ -145,16 +192,28 @@ export const useDocumentForm = ({
     }))
     
     if (Object.keys(updates).length > 0) {
+      documentsLogger.info('Campos autocompletados desde caso', { 
+        count: Object.keys(updates).length,
+        fields: Object.keys(updates) 
+      })
       toast.success(`Autocompletado ${Object.keys(updates).length} campos desde el expediente`)
     }
   }, [cases, contacts, template])
 
   const autofillFromContact = useCallback((contactId: string) => {
     const selectedContact = contacts.find(c => c.id === contactId)
-    if (!selectedContact) return
+    if (!selectedContact) {
+      documentsLogger.warn('Contacto no encontrado para autofill', { contactId })
+      return
+    }
 
-    const updates: Record<string, any> = {}
-    template?.variables.forEach((variable: any) => {
+    documentsLogger.info('Autocompletando desde contacto', { 
+      contactId,
+      contactName: selectedContact.name 
+    })
+
+    const updates: Record<string, string> = {}
+    template?.variables.forEach((variable: DocumentVariable) => {
       switch (variable.name) {
         case 'nombre_cliente':
         case 'cliente':
@@ -190,6 +249,10 @@ export const useDocumentForm = ({
     }))
     
     if (Object.keys(updates).length > 0) {
+      documentsLogger.info('Campos autocompletados desde contacto', { 
+        count: Object.keys(updates).length,
+        fields: Object.keys(updates) 
+      })
       toast.success(`Autocompletado ${Object.keys(updates).length} campos desde el cliente`)
     }
   }, [contacts, template])
@@ -204,9 +267,17 @@ export const useDocumentForm = ({
     
     setIsSubmitting(true)
     try {
+      documentsLogger.info('Enviando formulario de documento', { 
+        templateId: template?.id,
+        hasVariables: Object.keys(formData.variables).length > 0,
+        useAI: formData.useAI 
+      })
       await onSubmit(formData)
     } catch (error) {
-      console.error('Error submitting form:', error)
+      documentsLogger.error('Error enviando formulario', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        templateId: template?.id 
+      })
       toast.error('Error al generar el documento')
     } finally {
       setIsSubmitting(false)
@@ -215,9 +286,13 @@ export const useDocumentForm = ({
 
   const resetForm = useCallback(() => {
     if (template) {
-      const initialVariables: Record<string, any> = {}
-      template.variables.forEach((variable: any) => {
-        initialVariables[variable.name] = variable.default || ''
+      documentsLogger.info('Reseteando formulario de documento', { 
+        templateId: template.id 
+      })
+      
+      const initialVariables: Record<string, string | number | boolean> = {}
+      template.variables.forEach((variable: DocumentVariable) => {
+        initialVariables[variable.name] = variable.default_value || ''
       })
       
       setFormData({
