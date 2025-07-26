@@ -1,4 +1,5 @@
 import { ValidationError } from '../BaseBulkUploadDialog'
+import type { BaseEntity } from '@/types/core'
 
 export interface ContactValidationData {
   name: string
@@ -34,8 +35,41 @@ export interface HubSpotValidationData {
   row: number
 }
 
+interface RawContactRow {
+  name?: string
+  email?: string
+  phone?: string
+  address_street?: string
+  address_city?: string
+  address_postal_code?: string
+  address_country?: string
+  client_type?: string
+  status?: string
+  relationship_type?: string
+}
+
+interface RawUserRow {
+  email?: string
+  role?: string
+  send_email?: string | boolean
+  message?: string
+}
+
+interface RawHubSpotRow {
+  firstname?: string
+  lastname?: string
+  email?: string
+  phone?: string
+  mobilephone?: string
+  company?: string
+  website?: string
+  industry?: string
+  lifecyclestage?: string
+  hs_lead_status?: string
+}
+
 export const useBulkUploadValidators = () => {
-  const validateContact = (row: any, index: number): { data: ContactValidationData | null; errors: ValidationError[] } => {
+  const validateContact = (row: RawContactRow, index: number): { data: ContactValidationData | null; errors: ValidationError[] } => {
     const errors: ValidationError[] = []
     
     // Validar nombre (requerido)
@@ -107,7 +141,7 @@ export const useBulkUploadValidators = () => {
     return { data: contact, errors: [] }
   }
 
-  const validateUser = (row: any, index: number): { data: UserValidationData | null; errors: ValidationError[] } => {
+  const validateUser = (row: RawUserRow, index: number): { data: UserValidationData | null; errors: ValidationError[] } => {
     const errors: ValidationError[] = []
     
     // Validar email (requerido)
@@ -171,7 +205,7 @@ export const useBulkUploadValidators = () => {
     return { data: user, errors: [] }
   }
 
-  const validateHubSpotContact = (row: any, index: number): { data: HubSpotValidationData | null; errors: ValidationError[] } => {
+  const validateHubSpotContact = (row: RawHubSpotRow, index: number): { data: HubSpotValidationData | null; errors: ValidationError[] } => {
     const errors: ValidationError[] = []
     
     // Validar campos requeridos básicos

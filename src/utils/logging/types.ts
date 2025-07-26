@@ -23,6 +23,7 @@ export type LogContext =
   | 'Memory'
   | 'Quantum'
   | 'Workflow'
+  | 'RecurringFees'
   | 'Global'
 
 export interface LogEntry {

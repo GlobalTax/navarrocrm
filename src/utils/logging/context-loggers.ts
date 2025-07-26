@@ -24,6 +24,7 @@ export const performanceLogger = createContextLogger('Performance')
 export const memoryLogger = createContextLogger('Memory')
 export const quantumLogger = createContextLogger('Quantum')
 export const workflowLogger = createContextLogger('Workflow')
+export const recurringFeesLogger = createContextLogger('RecurringFees')
 export const globalLogger = createContextLogger('Global')
 
 // Logger por defecto para casos generales

@@ -12,25 +12,37 @@ import { EmailInvitationPreview } from '@/components/integrations/EmailInvitatio
 import { OutlookSyncStatus } from '@/components/integrations/OutlookSyncStatus'
 import { AttendeeManager } from '@/components/integrations/AttendeeManager'
 
+interface Client {
+  id: string
+  name: string
+}
+
+interface Case {
+  id: string
+  title: string
+}
+
+interface ExtendedEventData extends CreateCalendarEventData {
+  date: string
+  time: string
+  end_date: string
+  end_time: string
+  attendees: string[]
+  matter: string
+  reminders: number[]
+  repeat: boolean
+  sync_with_outlook?: boolean
+  auto_send_invitations?: boolean
+  attendees_emails?: string[]
+}
+
 interface CalendarEventFormProps {
-  formData: CreateCalendarEventData & { 
-    date: string
-    time: string
-    end_date: string
-    end_time: string
-    attendees: string[]
-    matter: string
-    reminders: number[]
-    repeat: boolean
-    sync_with_outlook?: boolean
-    auto_send_invitations?: boolean
-    attendees_emails?: string[]
-  }
-  setFormData: (data: any) => void
+  formData: ExtendedEventData
+  setFormData: (data: ExtendedEventData | ((prev: ExtendedEventData) => ExtendedEventData)) => void
   onSubmit: () => void
   isCreating: boolean
-  clients: any[]
-  cases: any[]
+  clients: Client[]
+  cases: Case[]
 }
 
 export function CalendarEventForm({ 
@@ -44,35 +56,35 @@ export function CalendarEventForm({
   const [newAttendeeEmail, setNewAttendeeEmail] = useState('')
 
   const addReminder = () => {
-    setFormData((prev: any) => ({
+    setFormData(prev => ({
       ...prev,
       reminders: [...prev.reminders, 15]
     }))
   }
 
   const updateReminder = (index: number, value: number) => {
-    setFormData((prev: any) => ({
+    setFormData(prev => ({
       ...prev,
-      reminders: prev.reminders.map((r: number, i: number) => i === index ? value : r)
+      reminders: prev.reminders.map((r, i) => i === index ? value : r)
     }))
   }
 
   const removeReminder = (index: number) => {
-    setFormData((prev: any) => ({
+    setFormData(prev => ({
       ...prev,
-      reminders: prev.reminders.filter((_: any, i: number) => i !== index)
+      reminders: prev.reminders.filter((_, i) => i !== index)
     }))
   }
 
   const handleAttendeesChange = (newAttendees: string[]) => {
-    setFormData((prev: any) => ({
+    setFormData(prev => ({
       ...prev,
       attendees_emails: newAttendees
     }))
   }
 
   const handleInvitationToggle = (enabled: boolean) => {
-    setFormData((prev: any) => ({
+    setFormData(prev => ({
       ...prev,
       auto_send_invitations: enabled
     }))
@@ -221,7 +233,7 @@ export function CalendarEventForm({
         {/* Tipo de evento */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Tipo de evento</h3>
-          <Select value={formData.event_type} onValueChange={(value: any) => setFormData({...formData, event_type: value})}>
+          <Select value={formData.event_type} onValueChange={(value) => setFormData({...formData, event_type: value as ExtendedEventData['event_type']})}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

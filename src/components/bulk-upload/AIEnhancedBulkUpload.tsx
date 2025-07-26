@@ -22,19 +22,23 @@ interface AIEnhancedBulkUploadProps {
   title: string
 }
 
+interface ValidationError {
+  row: number
+  field: string
+  message: string
+  suggestion?: string
+}
+
+interface AISuggestion {
+  type: 'duplicate' | 'enhancement' | 'mapping'
+  message: string
+  data?: Record<string, unknown>
+}
+
 interface AIValidationResult {
-  validatedData: any[]
-  errors: Array<{
-    row: number
-    field: string
-    message: string
-    suggestion?: string
-  }>
-  suggestions: Array<{
-    type: 'duplicate' | 'enhancement' | 'mapping'
-    message: string
-    data?: any
-  }>
+  validatedData: Record<string, unknown>[]
+  errors: ValidationError[]
+  suggestions: AISuggestion[]
 }
 
 export function AIEnhancedBulkUpload({ 
@@ -47,7 +51,7 @@ export function AIEnhancedBulkUpload({
   const { getSignal, abort } = useAbortController()
   const { metrics } = usePerformanceMonitor('AIEnhancedBulkUpload')
   const [file, setFile] = useState<File | null>(null)
-  const [rawData, setRawData] = useState<any[]>([])
+  const [rawData, setRawData] = useState<Record<string, unknown>[]>([])
   const [columns, setColumns] = useState<string[]>([])
   const [aiValidation, setAiValidation] = useState<AIValidationResult | null>(null)
   const [isAIProcessing, setIsAIProcessing] = useState(false)
@@ -64,7 +68,7 @@ export function AIEnhancedBulkUpload({
       skipEmptyLines: true,
       complete: async (results) => {
         try {
-          const data = results.data as any[]
+          const data = results.data as Record<string, unknown>[]
           const detectedColumns = Object.keys(data[0] || {})
           
           setRawData(data)
@@ -83,9 +87,11 @@ export function AIEnhancedBulkUpload({
             }
           })
 
-          const { data: aiResult, error } = await Promise.race([aiPromise, timeoutPromise]) as any
-
-          if (error) throw error
+          const result = await Promise.race([aiPromise, timeoutPromise]) as { data: AIValidationResult; error: any }
+          
+          if (result.error) throw result.error
+          
+          const aiResult = result.data
 
           setAiValidation(aiResult)
           setUploadStatus('ready')
@@ -100,9 +106,9 @@ export function AIEnhancedBulkUpload({
           }
 
         } catch (error) {
-          console.error('Error en validación con IA:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
           setUploadStatus('error')
-          toast.error('Error al procesar con IA. Revisa la consola para más detalles.')
+          toast.error(`Error al procesar con IA: ${errorMessage}`)
         } finally {
           setIsAIProcessing(false)
         }
@@ -161,7 +167,7 @@ export function AIEnhancedBulkUpload({
         const itemsToInsert = batch.map(item => ({
           ...item,
           org_id: userData.org_id
-        }))
+        })) as any[] // TypeScript workaround for dynamic table insertion
 
         const tableName = dataType === 'users' ? 'user_invitations' : dataType
         const { error } = await supabase

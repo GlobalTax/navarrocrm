@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Plus, X, Loader2, AlertCircle } from 'lucide-react'
 import { useContacts } from '@/hooks/useContacts'
+import { contactsLogger } from '@/utils/logging'
 import type { ContactFormData } from './ContactFormTabs'
 
 interface SmartCompanySelectorProps {
@@ -18,81 +19,47 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   
   const { contacts = [], isLoading, error } = useContacts()
   
-  // Enhanced debugging
+  // Component state logging
   useEffect(() => {
-    console.log('🏢 [SmartCompanySelector] COMPONENT RENDER:', {
-      timestamp: new Date().toISOString(),
+    contactsLogger.debug('SmartCompanySelector render state', {
       clientType,
       selectedCompanyId,
       contactsCount: contacts.length,
       isLoading,
       error: error?.message,
-      shouldShow: clientType !== 'empresa',
-      formValues: form.getValues(),
-      contactTypes: contacts.map(c => ({ id: c.id, name: c.name, client_type: c.client_type }))
+      shouldShow: clientType !== 'empresa'
     })
-  }, [clientType, selectedCompanyId, contacts.length, isLoading, error, form])
+  }, [clientType, selectedCompanyId, contacts.length, isLoading, error])
   
-  // Filtrar solo empresas con debugging mejorado
+  // Filtrar solo empresas
   const companies = useMemo(() => {
-    const filtered = contacts.filter(contact => {
-      const isCompany = contact.client_type === 'empresa'
-      console.log(`🏢 [Filter] Contact ${contact.name} (${contact.id}):`, {
-        client_type: contact.client_type,
-        isCompany
-      })
-      return isCompany
-    })
+    const filtered = contacts.filter(contact => contact.client_type === 'empresa')
     
-    console.log('🏢 [Companies] Filtered result:', {
+    contactsLogger.debug('Companies filtered', {
       totalContacts: contacts.length,
-      companiesFound: filtered.length,
-      companies: filtered.map(c => ({ 
-        id: c.id, 
-        name: c.name, 
-        client_type: c.client_type,
-        dni_nif: c.dni_nif 
-      }))
+      companiesFound: filtered.length
     })
     return filtered
   }, [contacts])
   
   const selectedCompany = useMemo(() => {
-    if (!selectedCompanyId) {
-      console.log('🏢 [Selection] No company selected')
-      return null
-    }
+    if (!selectedCompanyId) return null
     
     const found = companies.find(company => company.id === selectedCompanyId)
-    console.log('🏢 [Selection] Company lookup:', { 
-      selectedCompanyId, 
-      found: !!found, 
-      companyName: found?.name,
-      availableCompanies: companies.length
-    })
+    if (!found) {
+      contactsLogger.warn('Selected company not found', { selectedCompanyId })
+    }
     return found
   }, [companies, selectedCompanyId])
   
-  // Determinar si debe mostrarse con debugging detallado
-  const shouldShow = useMemo(() => {
-    const show = clientType !== 'empresa'
-    console.log('🏢 [Visibility] Should show selector:', { 
-      clientType, 
-      shouldShow: show,
-      reason: show ? 'Client is not a company' : 'Client is a company - hiding selector'
-    })
-    return show
-  }, [clientType])
+  // Determinar si debe mostrarse
+  const shouldShow = useMemo(() => clientType !== 'empresa', [clientType])
   
-  // Early return con logging
-  if (!shouldShow) {
-    console.log('🏢 [Render] Selector hidden for client_type:', clientType)
-    return null
-  }
+  // Early return
+  if (!shouldShow) return null
   
   // Loading state
   if (isLoading) {
-    console.log('🏢 [Render] Showing loading state')
     return (
       <div className="space-y-3">
         <FormField
@@ -120,7 +87,7 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
   
   // Error state
   if (error) {
-    console.log('🏢 [Render] Showing error state:', error)
+    contactsLogger.error('Error loading companies', { error: error.message })
     return (
       <div className="space-y-3">
         <FormField
@@ -146,15 +113,13 @@ export const SmartCompanySelector = ({ form }: SmartCompanySelectorProps) => {
     )
   }
   
-  console.log('🏢 [Render] Showing full selector with', companies.length, 'companies')
-  
   const clearSelection = () => {
-    console.log('🏢 [Action] Clearing company selection')
+    contactsLogger.debug('Clearing company selection')
     form.setValue('company_id', '', { shouldValidate: true, shouldDirty: true })
   }
   
   const handleCompanySelect = (value: string) => {
-    console.log('🏢 [Action] Company selected:', value)
+    contactsLogger.debug('Company selected', { value })
     const finalValue = value === 'none' ? '' : value
     form.setValue('company_id', finalValue, { shouldValidate: true, shouldDirty: true })
   }

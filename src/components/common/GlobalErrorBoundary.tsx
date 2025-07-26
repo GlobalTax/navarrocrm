@@ -3,9 +3,10 @@ import { useErrorBoundary } from '@/hooks/useErrorBoundary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RotateCcw } from 'lucide-react'
+import { globalLogger } from '@/utils/logging'
 
 interface ErrorFallbackProps {
-  error: any
+  error: Error
   retry: () => void
   canRetry: boolean
 }
@@ -54,9 +55,16 @@ interface GlobalErrorBoundaryProps {
   children: React.ReactNode
 }
 
+interface ErrorBoundaryState {
+  hasError: boolean
+  error: Error | null
+  errorInfo: React.ErrorInfo | null
+  retryCount: number
+}
+
 export class GlobalErrorBoundary extends React.Component<
   GlobalErrorBoundaryProps,
-  { hasError: boolean; error: any; errorInfo: any; retryCount: number }
+  ErrorBoundaryState
 > {
   constructor(props: GlobalErrorBoundaryProps) {
     super(props)
@@ -68,18 +76,19 @@ export class GlobalErrorBoundary extends React.Component<
     }
   }
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: any, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ errorInfo })
     
-    // Log to external service in production
-    if (process.env.NODE_ENV === 'production') {
-      console.error('Global Error Boundary:', { error, errorInfo })
-      // TODO: Send to monitoring service
-    }
+    // Log error using professional logger
+    globalLogger.error('Global error boundary caught error', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    })
   }
 
   handleRetry = () => {

@@ -7,6 +7,7 @@ import { Mic, MicOff, Volume2, VolumeX, Brain } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import { aiLogger } from '@/utils/logging'
 
 export const VoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false)
@@ -39,7 +40,7 @@ export const VoiceAssistant = () => {
       mediaRecorder.start()
       setIsListening(true)
     } catch (error) {
-      console.error('Error accessing microphone:', error)
+      aiLogger.error('Error accessing microphone', { error: error instanceof Error ? error.message : 'Unknown error' })
       toast.error('No se pudo acceder al micrófono')
     }
   }
@@ -101,7 +102,7 @@ export const VoiceAssistant = () => {
       }
 
     } catch (error) {
-      console.error('Error processing audio:', error)
+      aiLogger.error('Error processing audio', { error: error instanceof Error ? error.message : 'Unknown error' })
       toast.error('No se pudo procesar el audio')
     } finally {
       setIsProcessing(false)
@@ -130,17 +131,25 @@ export const VoiceAssistant = () => {
       await audio.play()
 
     } catch (error) {
-      console.error('Error speaking response:', error)
+      aiLogger.error('Error speaking response', { error: error instanceof Error ? error.message : 'Unknown error' })
       setIsSpeaking(false)
     }
   }
 
-  const executeVoiceAction = (action: any) => {
-    console.log('Executing voice action:', action)
+  interface VoiceAction {
+    type: 'navigate' | 'create_task' | 'create_client' | 'schedule_meeting'
+    url?: string
+    data?: Record<string, unknown>
+  }
+
+  const executeVoiceAction = (action: VoiceAction) => {
+    aiLogger.info('Executing voice action', { actionType: action.type })
     
     switch (action.type) {
       case 'navigate':
-        window.location.href = action.url
+        if (action.url) {
+          window.location.href = action.url
+        }
         break
       case 'create_task':
         // Integration with task creation
@@ -152,7 +161,7 @@ export const VoiceAssistant = () => {
         // Integration with calendar
         break
       default:
-        console.log('Unknown action type:', action.type)
+        aiLogger.warn('Unknown voice action type', { actionType: action.type })
     }
   }
 

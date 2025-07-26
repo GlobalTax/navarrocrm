@@ -55,6 +55,7 @@ class ProfessionalLogger {
       Memory: '🧠',
       Quantum: '⚛️',
       Workflow: '🔄',
+      RecurringFees: '💰',
       Global: 'ℹ️'
     }
     
