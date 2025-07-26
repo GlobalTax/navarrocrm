@@ -1,0 +1,1 @@
+export { useContactsList } from './useContactsList'

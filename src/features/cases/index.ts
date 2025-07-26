@@ -11,6 +11,9 @@ export { default as CasesPage } from './pages/CasesPage'
 export { CaseTable } from './components/CaseTable'
 export { CasesFilters } from './components/CasesFilters'
 
+// Hooks
+export { useCasesList } from './hooks'
+
 // TODO: Create types for Cases feature
 // Types
 // export type {

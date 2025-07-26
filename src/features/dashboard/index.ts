@@ -10,6 +10,9 @@ export { default as DashboardPage } from './pages/DashboardPage'
 // Components
 export { DashboardMetrics } from './components/DashboardMetrics'
 export { RecentActivity } from './components/RecentActivity'
+
+// Hooks
+export { useDashboardMetrics } from './hooks'
 // export { QuickActions } from './components/QuickActions'
 // export { RecentActivity } from './components/RecentActivity'
 

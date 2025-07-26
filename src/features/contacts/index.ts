@@ -11,6 +11,9 @@ export { default as ContactsPage } from './pages/ContactsPage'
 export { ContactsList } from './components/ContactsList'
 export { ContactFilters } from './components/ContactFilters'
 
+// Hooks
+export { useContactsList } from './hooks'
+
 // TODO: Create types for Contacts feature
 // Types
 // export type {
