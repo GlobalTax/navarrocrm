@@ -69,9 +69,28 @@ export const useInfiniteCompanies = () => {
         throw companiesError
       }
 
-      // Procesar datos de contactos para cada empresa
+      // Filtrar duplicados de Quantum manteniendo solo el más reciente
+      const uniqueCompaniesData = (companiesData || []).reduce((acc: any[], company: any) => {
+        if (!company.quantum_customer_id) {
+          acc.push(company)
+          return acc
+        }
+        
+        const existingIndex = acc.findIndex(c => c.quantum_customer_id === company.quantum_customer_id)
+        if (existingIndex === -1) {
+          acc.push(company)
+        } else {
+          // Mantener el más reciente
+          if (new Date(company.created_at) > new Date(acc[existingIndex].created_at)) {
+            acc[existingIndex] = company
+          }
+        }
+        return acc
+      }, [])
+
+      // Procesar datos de contactos para cada empresa única
       const companiesWithContacts = await Promise.all(
-        (companiesData || []).map(async (company) => {
+        uniqueCompaniesData.map(async (company) => {
           try {
             const { data: contactsData } = await supabase
               .from('contacts')

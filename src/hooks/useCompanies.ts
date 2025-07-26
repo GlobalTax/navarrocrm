@@ -45,17 +45,31 @@ export const useCompanies = () => {
         throw companiesError
       }
 
-      // Para cada empresa, obtener información de contactos vinculados con manejo seguro de errores
-      const companiesWithContacts = await Promise.all(
-        (companiesData || []).map(async (company) => {
-          try {
-            // Verificar si es un contacto duplicado de Quantum
-            const isDuplicate = company.quantum_customer_id && 
-              companiesData.filter(c => c.quantum_customer_id === company.quantum_customer_id).length > 1
+      // Filtrar duplicados de Quantum manteniendo solo el más reciente por quantum_customer_id
+      const uniqueCompaniesData = (companiesData || []).reduce((acc: any[], company: any) => {
+        if (!company.quantum_customer_id) {
+          acc.push(company)
+          return acc
+        }
+        
+        const existingIndex = acc.findIndex(c => c.quantum_customer_id === company.quantum_customer_id)
+        if (existingIndex === -1) {
+          acc.push(company)
+        } else {
+          // Mantener el más reciente
+          if (new Date(company.created_at) > new Date(acc[existingIndex].created_at)) {
+            acc[existingIndex] = company
+          }
+        }
+        return acc
+      }, [])
 
-            if (isDuplicate) {
-              console.warn(`⚠️ Empresa duplicada detectada: ${company.name} (Quantum ID: ${company.quantum_customer_id})`)
-            }
+      console.log(`🔍 Empresas filtradas: ${(companiesData || []).length} → ${uniqueCompaniesData.length} (duplicados eliminados: ${(companiesData || []).length - uniqueCompaniesData.length})`)
+
+      // Para cada empresa única, obtener información de contactos vinculados
+      const companiesWithContacts = await Promise.all(
+        uniqueCompaniesData.map(async (company) => {
+          try {
 
             const { data: contactsData, error: contactsError } = await supabase
               .from('contacts')
@@ -80,8 +94,7 @@ export const useCompanies = () => {
               relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
               email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
               primary_contact: contactsData?.[0] || null,
-              total_contacts: totalContacts || 0,
-              isDuplicate: isDuplicate || false
+              total_contacts: totalContacts || 0
             }
           } catch (error) {
             console.error('❌ Error processing company', company.name, ':', error)
@@ -91,8 +104,7 @@ export const useCompanies = () => {
               relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
               email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
               primary_contact: null,
-              total_contacts: 0,
-              isDuplicate: false
+              total_contacts: 0
             }
           }
         })

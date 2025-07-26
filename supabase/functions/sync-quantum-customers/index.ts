@@ -155,57 +155,48 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         };
 
-        // Usar UPSERT con el constraint único para prevenir duplicados
-        const { data: upsertResult, error: upsertError } = await supabase
+        // Verificar si ya existe para evitar duplicados
+        const { data: existingContact } = await supabase
           .from('contacts')
-          .upsert(customerData, {
-            onConflict: 'quantum_customer_id,org_id',
-            ignoreDuplicates: false
-          })
-          .select('id, created_at, updated_at');
+          .select('id, created_at')
+          .eq('quantum_customer_id', customer.id)
+          .eq('org_id', defaultOrgId)
+          .single();
 
-        if (upsertError) {
-          // Si hay error de constraint, intentar actualizar manualmente
-          if (upsertError.code === '23505') {
-            console.log(`🔄 Actualizando cliente existente con constraint: ${customer.name}`);
-            
-            const { error: updateError } = await supabase
-              .from('contacts')
-              .update({
-                name: customerData.name,
-                email: customerData.email,
-                phone: customerData.phone,
-                address_street: customerData.address_street,
-                dni_nif: customerData.dni_nif,
-                business_sector: customerData.business_sector,
-                updated_at: customerData.updated_at
-              })
-              .eq('quantum_customer_id', customer.id)
-              .eq('org_id', defaultOrgId);
+        if (existingContact) {
+          // Actualizar registro existente
+          const { error: updateError } = await supabase
+            .from('contacts')
+            .update({
+              name: customerData.name,
+              email: customerData.email,
+              phone: customerData.phone,
+              address_street: customerData.address_street,
+              dni_nif: customerData.dni_nif,
+              business_sector: customerData.business_sector,
+              updated_at: customerData.updated_at
+            })
+            .eq('id', existingContact.id);
 
-            if (updateError) {
-              console.error('❌ Error al actualizar cliente:', customer.id, updateError);
-              errores.push(`Error actualizando cliente ${customer.id}: ${updateError.message}`);
-            } else {
-              registrosActualizados++;
-              console.log('✅ Cliente actualizado:', customer.id, customer.name);
-            }
-          } else {
-            console.error('❌ Error en upsert:', customer.id, upsertError);
-            errores.push(`Error en upsert cliente ${customer.id}: ${upsertError.message}`);
-          }
-        } else if (upsertResult && upsertResult.length > 0) {
-          // Determinar si fue creado o actualizado basándose en timestamps
-          const record = upsertResult[0];
-          const createdAt = new Date(record.created_at);
-          const updatedAt = new Date(record.updated_at);
-          
-          if (Math.abs(createdAt.getTime() - updatedAt.getTime()) < 1000) {
-            registrosNuevos++;
-            console.log('✅ Cliente creado:', customer.id, customer.name);
+          if (updateError) {
+            console.error('❌ Error al actualizar cliente:', customer.id, updateError);
+            errores.push(`Error actualizando cliente ${customer.id}: ${updateError.message}`);
           } else {
             registrosActualizados++;
             console.log('🔄 Cliente actualizado:', customer.id, customer.name);
+          }
+        } else {
+          // Crear nuevo registro
+          const { error: insertError } = await supabase
+            .from('contacts')
+            .insert(customerData);
+
+          if (insertError) {
+            console.error('❌ Error al crear cliente:', customer.id, insertError);
+            errores.push(`Error creando cliente ${customer.id}: ${insertError.message}`);
+          } else {
+            registrosNuevos++;
+            console.log('✅ Cliente creado:', customer.id, customer.name);
           }
         }
         
