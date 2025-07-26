@@ -5,15 +5,27 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Calendar, TrendingUp } from 'lucide-react'
 import { ProposalPhase, ProposalService } from '@/hooks/useProposalProfessional'
+import { Button as UIButton } from '@/components/ui/button'
+import { PhaseDashboard } from '@/components/phases/PhaseDashboard'
 
 interface PhaseManagerProps {
   phases: ProposalPhase[]
   onPhasesChange: (phases: ProposalPhase[]) => void
+  enableAdvancedMode?: boolean
 }
 
-export const PhaseManager: React.FC<PhaseManagerProps> = ({ phases, onPhasesChange }) => {
+export const PhaseManager: React.FC<PhaseManagerProps> = ({ 
+  phases, 
+  onPhasesChange, 
+  enableAdvancedMode = false 
+}) => {
+  
+  // Si el modo avanzado está habilitado, usar el nuevo dashboard
+  if (enableAdvancedMode) {
+    return <PhaseDashboard />
+  }
   const addPhase = () => {
     const newPhase: ProposalPhase = {
       id: crypto.randomUUID(),
@@ -103,11 +115,27 @@ export const PhaseManager: React.FC<PhaseManagerProps> = ({ phases, onPhasesChan
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Label className="text-base font-semibold">Fases del Proyecto</Label>
-        <Button onClick={addPhase} variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Añadir Fase
-        </Button>
+        <div>
+          <Label className="text-base font-semibold">Fases del Proyecto</Label>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gestión básica de fases. Para funciones avanzadas, activa el modo avanzado.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <UIButton 
+            variant="outline" 
+            size="sm"
+            onClick={() => onPhasesChange([])} // Reset to trigger advanced mode
+            className="text-primary"
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Modo Avanzado
+          </UIButton>
+          <Button onClick={addPhase} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Añadir Fase
+          </Button>
+        </div>
       </div>
 
       {phases.map((phase, phaseIndex) => (
