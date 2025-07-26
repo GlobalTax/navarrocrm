@@ -1,6 +1,6 @@
 
-import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
+import { tasksDAL, type CreateTaskData } from '@/lib/dal'
 import { TaskTemplate } from './types'
 
 export const useWorkflowTasks = () => {
@@ -28,16 +28,22 @@ export const useWorkflowTasks = () => {
     const templates = taskTemplates[practiceArea] || taskTemplates.fiscal
 
     for (const template of templates) {
-      await supabase.from('tasks').insert({
+      if (!user?.org_id || !user?.id) {
+        throw new Error('Usuario no autenticado')
+      }
+      
+      const taskData: CreateTaskData = {
         title: template.description,
         description: template.description,
         case_id: caseId,
         priority: template.priority,
-        estimated_hours: template.estimatedHours,
-        status: 'pending',
-        org_id: user?.org_id,
-        created_by: user?.id
-      })
+        estimated_hours: template.estimatedHours
+      }
+      
+      const response = await tasksDAL.createTask(taskData, user.org_id, user.id)
+      if (!response.success) {
+        throw response.error || new Error(`Failed to create task: ${template.description}`)
+      }
     }
   }
 

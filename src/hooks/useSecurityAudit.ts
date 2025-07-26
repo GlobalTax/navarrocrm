@@ -2,13 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-
-export interface SecurityEvent {
-  type: string
-  details: any
-  ip?: string
-  userAgent?: string
-}
+import { analyticsDAL, type SecurityEvent } from '@/lib/dal'
 
 export interface SecurityMetric {
   name: string
@@ -30,20 +24,11 @@ export function useSecurityAudit() {
         return
       }
 
-      await supabase.from('analytics_errors').insert({
-        org_id: user.org_id,
-        user_id: user.id,
-        error_type: 'security_event',
-        error_message: event.type,
-        session_id: crypto.randomUUID(),
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        context_data: {
-          event_details: event.details,
-          ip_address: event.ip,
-          timestamp: new Date().toISOString()
-        }
-      })
+      const response = await analyticsDAL.logSecurityEvent(event, user.org_id, user.id)
+      
+      if (!response.success) {
+        throw response.error || new Error('Failed to log security event')
+      }
     } catch (error) {
       console.error('Failed to log security event:', error)
     }

@@ -1,7 +1,8 @@
 
-import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
+import { tasksDAL, type CreateTaskData, casesDAL } from '@/lib/dal'
 import { WorkflowRule, WorkflowAction } from './types'
 
 export const useWorkflowExecution = () => {
@@ -70,15 +71,22 @@ export const useWorkflowExecution = () => {
   const executeWorkflowAction = async (action: WorkflowAction, data: any) => {
     switch (action.type) {
       case 'create_task':
-        await supabase.from('tasks').insert({
+        if (!user?.org_id || !user?.id) {
+          throw new Error('Usuario no autenticado')
+        }
+        
+        const taskData: CreateTaskData = {
           title: action.parameters.title,
           description: action.parameters.description,
           case_id: data.case_id,
           client_id: data.client_id,
-          priority: action.parameters.priority || 'medium',
-          org_id: user?.org_id,
-          created_by: user?.id
-        })
+          priority: action.parameters.priority || 'medium'
+        }
+        
+        const response = await tasksDAL.createTask(taskData, user.org_id, user.id)
+        if (!response.success) {
+          throw response.error || new Error('Failed to create task')
+        }
         break
 
       case 'send_email':
@@ -99,10 +107,12 @@ export const useWorkflowExecution = () => {
 
       case 'update_status':
         if (data.case_id) {
-          await supabase
-            .from('cases')
-            .update({ status: action.parameters.status })
-            .eq('id', data.case_id)
+          const response = await casesDAL.update(data.case_id, { 
+            status: action.parameters.status 
+          })
+          if (!response.success) {
+            throw response.error || new Error('Failed to update case status')
+          }
         }
         break
     }
