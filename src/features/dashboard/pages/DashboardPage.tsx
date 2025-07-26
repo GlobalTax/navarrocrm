@@ -9,6 +9,7 @@ import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
 import { useDashboardMetrics } from '../hooks'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { LazyWidget } from '@/components/ui/lazy-widget'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -81,41 +82,49 @@ export default function DashboardPage() {
         }
       />
 
-      {/* Timer de trabajo activo */}
-      <div className="mb-6">
+      {/* Timer de trabajo activo - Carga inmediata */}
+      <LazyWidget priority="immediate" className="mb-6">
         <EnhancedActiveTimer />
-      </div>
+      </LazyWidget>
 
       {/* Indicador de última actualización */}
       <div className="text-sm text-gray-500 mb-4">
         Última actualización: {formatTime(lastRefresh)}
       </div>
       
-      {/* Métricas principales optimizadas */}
+      {/* Métricas principales optimizadas - Carga inmediata */}
       {data && (
-        <OptimizedDashboardMetrics 
-          data={data} 
-          isLoading={isLoading}
-          error={error?.message || null}
-        />
+        <LazyWidget priority="immediate">
+          <OptimizedDashboardMetrics 
+            data={data} 
+            isLoading={isLoading}
+            error={error?.message || null}
+          />
+        </LazyWidget>
       )}
       
-      {/* Layout principal optimizado */}
+      {/* Layout principal optimizado con lazy loading */}
       {!isLoading && data && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Columna izquierda - Agenda */}
+          {/* Columna izquierda - Agenda con delay */}
           <div className="lg:col-span-4 space-y-6">
-            <TodayAgenda />
+            <LazyWidget priority="delayed">
+              <TodayAgenda />
+            </LazyWidget>
           </div>
           
-          {/* Columna central - Gráficos de rendimiento */}
+          {/* Columna central - Gráficos con intersección */}
           <div className="lg:col-span-5 space-y-6">
-            <OptimizedPerformanceChart data={data} isLoading={isLoading} />
+            <LazyWidget priority="intersection">
+              <OptimizedPerformanceChart data={data} isLoading={isLoading} />
+            </LazyWidget>
           </div>
           
-          {/* Columna derecha - Actividad reciente */}
+          {/* Columna derecha - Actividad con intersección */}
           <div className="lg:col-span-3">
-            <OptimizedRecentActivity data={data} isLoading={isLoading} />
+            <LazyWidget priority="intersection">
+              <OptimizedRecentActivity data={data} isLoading={isLoading} />
+            </LazyWidget>
           </div>
         </div>
       )}
