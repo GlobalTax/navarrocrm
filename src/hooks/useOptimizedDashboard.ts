@@ -197,9 +197,9 @@ export const useOptimizedDashboard = () => {
       }
     },
     enabled: !!user?.org_id,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    gcTime: 1000 * 60 * 5, // 5 minutes
+    refetchInterval: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   })
 }

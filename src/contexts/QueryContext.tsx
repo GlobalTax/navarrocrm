@@ -3,13 +3,16 @@ import React, { ReactNode } from 'react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-// Create simple query client without persistent cache for now
+// Basic and stable QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 10, // 10 minutes (was cacheTime)
       retry: 2,
       refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
     },
     mutations: {
       retry: 1,

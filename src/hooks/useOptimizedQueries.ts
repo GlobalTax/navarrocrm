@@ -1,4 +1,2 @@
-import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
-
-// Re-export the original hook to avoid breaking changes
-export { useOptimizedDashboard }
+// Simple re-export to maintain compatibility
+export { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
