@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { SubscriptionStats } from '@/components/subscriptions/SubscriptionStats'
 import { SubscriptionsList } from '@/components/subscriptions/SubscriptionsList'
 import { SubscriptionForm } from '@/components/subscriptions/SubscriptionForm'
+import { SubscriptionAlert } from '@/components/subscriptions/SubscriptionAlert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useSubscriptions, useSubscriptionStats } from '@/hooks/useSubscriptions'
 
@@ -30,11 +31,14 @@ const SubscriptionsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Gestión de Suscripciones</h1>
-            <p className="text-muted-foreground mt-2">
-              Administra las suscripciones mensuales de tus clientes
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Gestión de Suscripciones</h1>
+              <p className="text-muted-foreground mt-2">
+                Administra las suscripciones mensuales de tus clientes
+              </p>
+            </div>
+            <SubscriptionAlert size="lg" />
           </div>
 
           <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
