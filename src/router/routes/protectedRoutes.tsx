@@ -164,6 +164,10 @@ const SubscriptionsPage = createOptimizedLazy(
   () => import('@/pages/SubscriptionsPage'),
   RoutePriority.MEDIUM
 )
+const OutgoingSubscriptionsPage = createOptimizedLazy(
+  () => import('@/pages/OutgoingSubscriptionsPage'),
+  RoutePriority.MEDIUM
+)
 
 export const protectedRoutes: RouteModule = {
   routes: [
@@ -332,6 +336,14 @@ export const protectedRoutes: RouteModule = {
               element: (
                 <FeatureBoundary feature="Suscripciones">
                   <SubscriptionsPage />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/outgoing-subscriptions',
+              element: (
+                <FeatureBoundary feature="Suscripciones Externas">
+                  <OutgoingSubscriptionsPage />
                 </FeatureBoundary>
               )
             },

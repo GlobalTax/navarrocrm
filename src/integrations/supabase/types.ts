@@ -3257,6 +3257,63 @@ export type Database = {
         }
         Relationships: []
       }
+      outgoing_subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          category: string
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          next_renewal_date: string
+          notes: string | null
+          org_id: string
+          payment_method: string | null
+          provider_name: string
+          responsible_user_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle?: string
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          next_renewal_date: string
+          notes?: string | null
+          org_id: string
+          payment_method?: string | null
+          provider_name: string
+          responsible_user_id: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          next_renewal_date?: string
+          notes?: string | null
+          org_id?: string
+          payment_method?: string | null
+          provider_name?: string
+          responsible_user_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       practice_areas: {
         Row: {
           color: string | null

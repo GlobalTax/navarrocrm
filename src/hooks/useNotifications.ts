@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { useSubscriptionNotifications } from './useSubscriptionNotifications'
+import { useOutgoingSubscriptionNotifications } from './useOutgoingSubscriptions'
 
 export interface Notification {
   id: string
@@ -17,6 +18,7 @@ export interface Notification {
 export const useNotifications = () => {
   const { user } = useApp()
   const { data: subscriptionNotifications = [] } = useSubscriptionNotifications()
+  const { data: outgoingSubscriptionNotifications = [] } = useOutgoingSubscriptionNotifications()
 
   return useQuery({
     queryKey: ['notifications', user?.org_id],
@@ -82,10 +84,23 @@ export const useNotifications = () => {
         actionLabel: 'Ver Suscripciones'
       }))
 
+      // Convertir notificaciones de suscripciones externas
+      const outgoingSubscriptionNotificationItems: Notification[] = outgoingSubscriptionNotifications.map(sub => ({
+        id: sub.id,
+        type: 'warning' as const,
+        title: 'Renovación externa próxima',
+        message: `${sub.providerName} - Renovación en ${sub.daysUntilRenewal} días (${sub.amount}${sub.currency})`,
+        isRead: false,
+        createdAt: new Date(sub.nextRenewalDate),
+        actionUrl: '/outgoing-subscriptions',
+        actionLabel: 'Ver Suscripciones'
+      }))
+
       const allNotifications = [
         ...aiNotificationItems,
         ...taskNotifications,
-        ...subscriptionNotificationItems
+        ...subscriptionNotificationItems,
+        ...outgoingSubscriptionNotificationItems
       ]
 
       const unreadCount = allNotifications.filter(n => !n.isRead).length
