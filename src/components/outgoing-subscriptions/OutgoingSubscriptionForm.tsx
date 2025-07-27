@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,6 +15,7 @@ import { useSubscriptionTemplates } from '@/hooks/useSubscriptionTemplates'
 import { useApp } from '@/contexts/AppContext'
 import { SUBSCRIPTION_CATEGORIES, BILLING_CYCLES, CreateOutgoingSubscriptionData } from '@/types/outgoing-subscriptions'
 import { SubscriptionTemplateSelector } from '@/components/subscription-templates/SubscriptionTemplateSelector'
+import { calculateNextRenewalDate } from '@/lib/utils/dateUtils'
 import type { OutgoingSubscription } from '@/types/outgoing-subscriptions'
 import type { SubscriptionTemplate } from '@/types/subscription-templates'
 
@@ -62,6 +63,17 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
     }
   })
 
+  // Watch for changes in start_date and billing_cycle to auto-calculate renewal date
+  const startDate = form.watch('start_date')
+  const billingCycle = form.watch('billing_cycle')
+
+  useEffect(() => {
+    if (startDate && billingCycle) {
+      const newRenewalDate = calculateNextRenewalDate(startDate, billingCycle)
+      form.setValue('next_renewal_date', newRenewalDate)
+    }
+  }, [startDate, billingCycle, form])
+
   const onSubmit = async (data: FormData) => {
     try {
       if (subscription) {
@@ -79,6 +91,8 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
   }
 
   const handleSelectTemplate = (template: SubscriptionTemplate) => {
+    const currentStartDate = form.getValues('start_date')
+    
     form.setValue('provider_name', template.name)
     form.setValue('description', template.description || '')
     form.setValue('category', template.category as any)
@@ -87,6 +101,12 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
     form.setValue('currency', template.default_currency)
     form.setValue('payment_method', template.default_payment_method || '')
     form.setValue('notes', template.notes || '')
+    
+    // Auto-calculate renewal date based on template's billing cycle
+    if (currentStartDate) {
+      const newRenewalDate = calculateNextRenewalDate(currentStartDate, template.default_billing_cycle as any)
+      form.setValue('next_renewal_date', newRenewalDate)
+    }
   }
 
   const handleSaveAsTemplate = async () => {
@@ -291,7 +311,10 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="next_renewal_date">Próxima Renovación *</Label>
+                <Label htmlFor="next_renewal_date">
+                  Próxima Renovación *
+                  <span className="text-xs text-gray-500 ml-2">(calculada automáticamente)</span>
+                </Label>
                 <Input
                   id="next_renewal_date"
                   type="date"

@@ -58,3 +58,33 @@ export const addBusinessDays = (date: Date, days: number): Date => {
   
   return result
 }
+
+/**
+ * Calcula la próxima fecha de renovación basada en la fecha de inicio y el ciclo de facturación
+ */
+export const calculateNextRenewalDate = (startDate: string, billingCycle: 'MONTHLY' | 'YEARLY' | 'OTHER'): string => {
+  try {
+    const date = parseISO(startDate)
+    if (!isValid(date)) return startDate
+    
+    let nextRenewal: Date
+    
+    switch (billingCycle) {
+      case 'MONTHLY':
+        nextRenewal = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate())
+        break
+      case 'YEARLY':
+        nextRenewal = new Date(date.getFullYear() + 1, date.getMonth(), date.getDate())
+        break
+      case 'OTHER':
+      default:
+        // Por defecto, usar mensual
+        nextRenewal = new Date(date.getFullYear(), date.getMonth() + 1, date.getDate())
+        break
+    }
+    
+    return nextRenewal.toISOString().split('T')[0]
+  } catch {
+    return startDate
+  }
+}
