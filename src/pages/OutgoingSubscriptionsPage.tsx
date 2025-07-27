@@ -2,19 +2,25 @@ import React, { useState } from 'react'
 import { OutgoingSubscriptionsList } from '@/components/outgoing-subscriptions/OutgoingSubscriptionsList'
 import { OutgoingSubscriptionStats } from '@/components/outgoing-subscriptions/OutgoingSubscriptionStats'
 import { OutgoingSubscriptionsTable } from '@/components/outgoing-subscriptions/OutgoingSubscriptionsTable'
+import { UpcomingRenewalsDashboard } from '@/components/outgoing-subscriptions/UpcomingRenewalsDashboard'
+import { UpcomingRenewalsCalendar } from '@/components/outgoing-subscriptions/UpcomingRenewalsCalendar'
+import { OutgoingSubscriptionAlert } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAlert'
 import { Button } from '@/components/ui/button'
-import { LayoutGrid, Table } from 'lucide-react'
+import { LayoutGrid, Table, Calendar } from 'lucide-react'
 
 const OutgoingSubscriptionsPage = () => {
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table')
+  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'calendar'>('table')
 
   return (
     <div className="space-y-8 p-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Suscripciones Pagadas</h1>
-          <p className="text-muted-foreground">Gestiona todos los gastos recurrentes de tu empresa</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-3xl font-bold">Suscripciones Pagadas</h1>
+            <p className="text-muted-foreground">Gestiona todos los gastos recurrentes de tu empresa</p>
+          </div>
+          <OutgoingSubscriptionAlert size="lg" />
         </div>
         
         <div className="flex items-center gap-2 bg-muted p-1 rounded-[10px]">
@@ -36,13 +42,27 @@ const OutgoingSubscriptionsPage = () => {
             <LayoutGrid className="h-4 w-4 mr-2" />
             Cards
           </Button>
+          <Button
+            variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('calendar')}
+            className="rounded-[8px]"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Calendario
+          </Button>
         </div>
       </div>
 
       <OutgoingSubscriptionStats />
       
+      {/* Dashboard de próximas renovaciones */}
+      <UpcomingRenewalsDashboard />
+      
       {viewMode === 'table' ? (
         <OutgoingSubscriptionsTable />
+      ) : viewMode === 'calendar' ? (
+        <UpcomingRenewalsCalendar />
       ) : (
         <OutgoingSubscriptionsList />
       )}
