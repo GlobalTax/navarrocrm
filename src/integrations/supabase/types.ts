@@ -4481,6 +4481,92 @@ export type Database = {
           },
         ]
       }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          payment_date: string
+          payment_method: string | null
+          status: string
+          subscription_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          payment_date: string
+          payment_method?: string | null
+          status?: string
+          subscription_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          subscription_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          billing_frequency: string
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          billing_frequency?: string
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          billing_frequency?: string
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_services: {
         Row: {
           base_price: number
@@ -4524,6 +4610,77 @@ export type Database = {
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          auto_renew: boolean
+          billing_frequency: string
+          contact_id: string
+          created_at: string
+          created_by: string
+          end_date: string | null
+          id: string
+          last_payment_date: string | null
+          next_payment_due: string
+          notes: string | null
+          org_id: string
+          payment_method: string | null
+          plan_id: string | null
+          plan_name: string
+          price: number
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          billing_frequency?: string
+          contact_id: string
+          created_at?: string
+          created_by: string
+          end_date?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_due: string
+          notes?: string | null
+          org_id: string
+          payment_method?: string | null
+          plan_id?: string | null
+          plan_name: string
+          price: number
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_renew?: boolean
+          billing_frequency?: string
+          contact_id?: string
+          created_at?: string
+          created_by?: string
+          end_date?: string | null
+          id?: string
+          last_payment_date?: string | null
+          next_payment_due?: string
+          notes?: string | null
+          org_id?: string
+          payment_method?: string | null
+          plan_id?: string | null
+          plan_name?: string
+          price?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
             referencedColumns: ["id"]
           },
         ]

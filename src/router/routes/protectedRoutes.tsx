@@ -160,6 +160,10 @@ const Equipment = createOptimizedLazy(
   () => import('@/pages/EquipmentPage'),
   RoutePriority.LOW
 )
+const SubscriptionsPage = createOptimizedLazy(
+  () => import('@/pages/SubscriptionsPage'),
+  RoutePriority.MEDIUM
+)
 
 export const protectedRoutes: RouteModule = {
   routes: [
@@ -320,6 +324,14 @@ export const protectedRoutes: RouteModule = {
               element: (
                 <FeatureBoundary feature="Honorarios Recurrentes">
                   <RecurrentFees />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/subscriptions',
+              element: (
+                <FeatureBoundary feature="Suscripciones">
+                  <SubscriptionsPage />
                 </FeatureBoundary>
               )
             },
