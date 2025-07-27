@@ -107,8 +107,8 @@ export const OutgoingSubscriptionsList = () => {
       {/* Header con filtros */}
       <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
         <div>
-          <h1 className="text-2xl font-bold">Suscripciones Externas</h1>
-          <p className="text-gray-600">Gestiona los gastos recurrentes de tu empresa</p>
+          <h1 className="text-2xl font-bold">Vista de Cards</h1>
+          <p className="text-muted-foreground">Vista en tarjetas de las suscripciones</p>
         </div>
         
         <Button

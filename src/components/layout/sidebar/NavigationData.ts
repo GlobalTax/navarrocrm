@@ -1,4 +1,4 @@
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package } from 'lucide-react'
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package, CreditCard } from 'lucide-react'
 
 export interface NavigationItem {
   title: string
@@ -56,6 +56,11 @@ export const navigationData: NavigationSection[] = [
         title: "Suscripciones",
         url: "/subscriptions",
         icon: Package,
+      },
+      {
+        title: "Suscripciones Pagadas",
+        url: "/outgoing-subscriptions",
+        icon: CreditCard,
       },
     ]
   },
