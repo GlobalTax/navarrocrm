@@ -115,6 +115,25 @@ export const OutgoingSubscriptionsTable = () => {
     return <Badge className="bg-red-100 text-red-800 border-red-200 rounded-[10px]">Alto</Badge>
   }
 
+  // Función para obtener el color según días hasta renovación
+  const getRenewalUrgencyColor = (renewalDate: string) => {
+    const days = Math.ceil((new Date(renewalDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    if (days <= 1) return 'text-red-600 bg-red-50 border-red-200'
+    if (days <= 3) return 'text-orange-600 bg-orange-50 border-orange-200'  
+    if (days <= 7) return 'text-yellow-600 bg-yellow-50 border-yellow-200'
+    return 'text-gray-600'
+  }
+
+  // Función para obtener badge de urgencia
+  const getRenewalUrgencyBadge = (renewalDate: string) => {
+    const days = Math.ceil((new Date(renewalDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    if (days <= 0) return { variant: 'destructive' as const, text: 'Vencido', icon: '🚨' }
+    if (days <= 1) return { variant: 'destructive' as const, text: days === 0 ? 'Hoy' : 'Mañana', icon: '⚠️' }
+    if (days <= 3) return { variant: 'secondary' as const, text: `${days} días`, icon: '⏰' }
+    if (days <= 7) return { variant: 'outline' as const, text: `${days} días`, icon: '📅' }
+    return { variant: 'outline' as const, text: `${days} días`, icon: '' }
+  }
+
   const isRenewalSoon = (renewalDate: string) => {
     const renewal = parseISO(renewalDate)
     const today = new Date()
@@ -420,12 +439,17 @@ export const OutgoingSubscriptionsTable = () => {
                         <div className="space-y-1">
                           <div className="font-medium flex items-center gap-2">
                             {subscription.provider_name}
-                            {isRenewalSoon(subscription.next_renewal_date) && subscription.status === 'ACTIVE' && (
-                              <Badge className="bg-orange-100 text-orange-800 border-orange-200 rounded-[6px] text-xs">
-                                <AlertTriangle className="h-3 w-3 mr-1" />
-                                Próxima
-                              </Badge>
-                            )}
+                            {subscription.next_renewal_date && subscription.status === 'ACTIVE' && (() => {
+                              const urgencyBadge = getRenewalUrgencyBadge(subscription.next_renewal_date)
+                              return (
+                                <Badge 
+                                  variant={urgencyBadge.variant}
+                                  className="border-0.5 rounded-[10px] text-xs animate-pulse"
+                                >
+                                  {urgencyBadge.icon} {urgencyBadge.text}
+                                </Badge>
+                              )
+                            })()}
                           </div>
                           {subscription.description && (
                             <p className="text-sm text-muted-foreground truncate max-w-[200px]">
