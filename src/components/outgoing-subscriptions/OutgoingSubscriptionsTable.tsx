@@ -20,11 +20,13 @@ import {
   Filter,
   X,
   MoreHorizontal,
-  Users
+  Users,
+  FileText
 } from 'lucide-react'
 import { useOutgoingSubscriptions } from '@/hooks/useOutgoingSubscriptions'
 import { useApp } from '@/contexts/AppContext'
 import { OutgoingSubscriptionForm } from './OutgoingSubscriptionForm'
+import { OutgoingSubscriptionDocuments } from './OutgoingSubscriptionDocuments'
 import { SUBSCRIPTION_CATEGORIES } from '@/types/outgoing-subscriptions'
 import { format, parseISO, isWithinInterval, addDays } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -52,6 +54,7 @@ export const OutgoingSubscriptionsTable = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingSubscription, setEditingSubscription] = useState<OutgoingSubscription | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const [showDocuments, setShowDocuments] = useState<string | null>(null)
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -115,15 +118,6 @@ export const OutgoingSubscriptionsTable = () => {
     return <Badge className="bg-red-100 text-red-800 border-red-200 rounded-[10px]">Alto</Badge>
   }
 
-  // Función para obtener el color según días hasta renovación
-  const getRenewalUrgencyColor = (renewalDate: string) => {
-    const days = Math.ceil((new Date(renewalDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    if (days <= 1) return 'text-red-600 bg-red-50 border-red-200'
-    if (days <= 3) return 'text-orange-600 bg-orange-50 border-orange-200'  
-    if (days <= 7) return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-    return 'text-gray-600'
-  }
-
   // Función para obtener badge de urgencia
   const getRenewalUrgencyBadge = (renewalDate: string) => {
     const days = Math.ceil((new Date(renewalDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -132,13 +126,6 @@ export const OutgoingSubscriptionsTable = () => {
     if (days <= 3) return { variant: 'secondary' as const, text: `${days} días`, icon: '⏰' }
     if (days <= 7) return { variant: 'outline' as const, text: `${days} días`, icon: '📅' }
     return { variant: 'outline' as const, text: `${days} días`, icon: '' }
-  }
-
-  const isRenewalSoon = (renewalDate: string) => {
-    const renewal = parseISO(renewalDate)
-    const today = new Date()
-    const sevenDaysFromNow = addDays(today, 7)
-    return isWithinInterval(renewal, { start: today, end: sevenDaysFromNow })
   }
 
   // Filtrado y ordenamiento
@@ -497,6 +484,13 @@ export const OutgoingSubscriptionsTable = () => {
                           <DropdownMenuContent align="end" className="bg-background border-0.5 border-border rounded-[10px]">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => setShowDocuments(subscription.id)}
+                              className="cursor-pointer"
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Ver Documentos
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(subscription as OutgoingSubscription)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Editar
@@ -564,6 +558,33 @@ export const OutgoingSubscriptionsTable = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de documentos */}
+      {showDocuments && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-[10px] max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">
+                  Documentos - {subscriptions?.find(s => s.id === showDocuments)?.provider_name}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDocuments(null)}
+                  className="h-8 w-8 p-0 rounded-[6px]"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <OutgoingSubscriptionDocuments
+                subscriptionId={showDocuments}
+                subscriptionName={subscriptions?.find(s => s.id === showDocuments)?.provider_name || ''}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

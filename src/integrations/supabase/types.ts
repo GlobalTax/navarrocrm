@@ -3257,6 +3257,62 @@ export type Database = {
         }
         Relationships: []
       }
+      outgoing_subscription_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          org_id: string
+          subscription_id: string
+          updated_at: string
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          org_id: string
+          subscription_id: string
+          updated_at?: string
+          upload_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          org_id?: string
+          subscription_id?: string
+          updated_at?: string
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outgoing_subscription_documents_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "outgoing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       outgoing_subscriptions: {
         Row: {
           amount: number
