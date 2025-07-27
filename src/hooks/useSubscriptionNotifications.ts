@@ -36,11 +36,7 @@ export const useSubscriptionNotifications = () => {
           plan_name,
           next_payment_due,
           status,
-          price,
-          contacts (
-            id,
-            name
-          )
+          price
         `)
         .eq('org_id', user.org_id)
         .in('status', ['ACTIVE', 'PAUSED'])
@@ -52,6 +48,15 @@ export const useSubscriptionNotifications = () => {
       }
 
       if (!subscriptions) return []
+
+      // Obtener nombres de contactos
+      const contactIds = [...new Set(subscriptions.map(sub => sub.contact_id))]
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id, name')
+        .in('id', contactIds)
+
+      const contactsMap = new Map(contacts?.map(c => [c.id, c.name]) || [])
 
       // Filtrar suscripciones que vencen en los próximos 5 días
       const notifications: SubscriptionNotification[] = subscriptions
@@ -66,7 +71,7 @@ export const useSubscriptionNotifications = () => {
           return {
             id: `subscription-${sub.id}`,
             contactId: sub.contact_id,
-            contactName: sub.contacts?.name || 'Cliente sin nombre',
+            contactName: contactsMap.get(sub.contact_id) || 'Cliente sin nombre',
             subscriptionId: sub.id,
             planName: sub.plan_name,
             nextPaymentDue: sub.next_payment_due,

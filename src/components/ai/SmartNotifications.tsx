@@ -4,11 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Bell, Clock, AlertTriangle, CheckCircle, X } from 'lucide-react'
-import { useNotifications } from '@/hooks/useNotifications'
+import { useNotifications, useNotificationActions } from '@/hooks/useNotifications'
 import { toast } from 'sonner'
 
 export const SmartNotifications = () => {
-  const { notifications, unreadCount, markAsRead, removeNotification } = useNotifications()
+  const { data: notificationData } = useNotifications()
+  const { markAsRead } = useNotificationActions()
+  
+  const notifications = notificationData?.notifications || []
+  const unreadCount = notificationData?.unreadCount || 0
+  
+  const removeNotification = (notificationId: string) => {
+    // Para notificaciones temporales, simplemente marcar como leída
+    markAsRead(notificationId)
+  }
 
   const getPriorityColor = (type: string) => {
     switch (type) {

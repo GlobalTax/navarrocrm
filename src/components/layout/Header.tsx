@@ -6,11 +6,19 @@ import { useApp } from '@/contexts/AppContext'
 import { LogOut, User, Search, Bell } from 'lucide-react'
 import { HeaderClock } from './HeaderClock'
 import { NotificationsPanel } from '@/components/notifications/NotificationsPanel'
-import { useNotifications } from '@/hooks/useNotifications'
+import { useNotifications, useNotificationActions } from '@/hooks/useNotifications'
 
 export const Header = () => {
   const { user, signOut } = useApp()
-  const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } = useNotifications()
+  const { data: notificationData } = useNotifications()
+  const { markAsRead, markAllAsRead } = useNotificationActions()
+  
+  const notifications = notificationData?.notifications || []
+  const unreadCount = notificationData?.unreadCount || 0
+  
+  const removeNotification = (notificationId: string) => {
+    markAsRead(notificationId)
+  }
   const [showNotifications, setShowNotifications] = useState(false)
   const notificationRef = useRef<HTMLDivElement>(null)
 
