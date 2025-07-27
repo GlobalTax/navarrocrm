@@ -4727,6 +4727,63 @@ export type Database = {
           },
         ]
       }
+      subscription_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          default_billing_cycle: string
+          default_currency: string
+          default_payment_method: string | null
+          default_price: number
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          org_id: string
+          provider_website: string | null
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          default_billing_cycle?: string
+          default_currency?: string
+          default_payment_method?: string | null
+          default_price: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          org_id: string
+          provider_website?: string | null
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          default_billing_cycle?: string
+          default_currency?: string
+          default_payment_method?: string | null
+          default_price?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          org_id?: string
+          provider_website?: string | null
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean

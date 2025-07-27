@@ -1,18 +1,22 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { FileText, Save } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { useOutgoingSubscriptions } from '@/hooks/useOutgoingSubscriptions'
+import { useSubscriptionTemplates } from '@/hooks/useSubscriptionTemplates'
 import { useApp } from '@/contexts/AppContext'
 import { SUBSCRIPTION_CATEGORIES, BILLING_CYCLES, CreateOutgoingSubscriptionData } from '@/types/outgoing-subscriptions'
+import { SubscriptionTemplateSelector } from '@/components/subscription-templates/SubscriptionTemplateSelector'
 import type { OutgoingSubscription } from '@/types/outgoing-subscriptions'
+import type { SubscriptionTemplate } from '@/types/subscription-templates'
 
 const formSchema = z.object({
   provider_name: z.string().min(1, 'El nombre del proveedor es obligatorio'),
@@ -38,6 +42,8 @@ interface Props {
 export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
   const { user } = useApp()
   const { createSubscription, updateSubscription, isCreating, isUpdating } = useOutgoingSubscriptions()
+  const { createTemplate } = useSubscriptionTemplates()
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false)
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -72,6 +78,35 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
     }
   }
 
+  const handleSelectTemplate = (template: SubscriptionTemplate) => {
+    form.setValue('provider_name', template.name)
+    form.setValue('description', template.description || '')
+    form.setValue('category', template.category as any)
+    form.setValue('amount', template.default_price)
+    form.setValue('billing_cycle', template.default_billing_cycle as any)
+    form.setValue('currency', template.default_currency)
+    form.setValue('payment_method', template.default_payment_method || '')
+    form.setValue('notes', template.notes || '')
+  }
+
+  const handleSaveAsTemplate = async () => {
+    const formData = form.getValues()
+    try {
+      await createTemplate.mutateAsync({
+        name: formData.provider_name,
+        category: formData.category as any,
+        default_price: formData.amount,
+        default_billing_cycle: formData.billing_cycle as any,
+        default_currency: formData.currency || 'EUR',
+        default_payment_method: formData.payment_method,
+        description: formData.description,
+        notes: formData.notes
+      })
+    } catch (error) {
+      console.error('Error creating template:', error)
+    }
+  }
+
   const isLoading = isCreating || isUpdating
 
   return (
@@ -99,10 +134,38 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
       {/* Formulario */}
       <Card className="bg-white border-0.5 border-black rounded-[10px] shadow-sm">
         <CardHeader>
-          <CardTitle>Información de la Suscripción</CardTitle>
-          <CardDescription>
-            Completa los datos de la suscripción externa
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Información de la Suscripción</CardTitle>
+              <CardDescription>
+                Completa los datos de la suscripción externa
+              </CardDescription>
+            </div>
+            {!subscription && (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowTemplateSelector(true)}
+                  className="flex items-center gap-2 border-0.5 border-black rounded-[10px]"
+                >
+                  <FileText className="w-4 h-4" />
+                  Usar Plantilla
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSaveAsTemplate}
+                  className="flex items-center gap-2 rounded-[10px]"
+                  title="Guardar como plantilla"
+                >
+                  <Save className="w-4 h-4" />
+                  Guardar como Plantilla
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -285,6 +348,12 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
           </form>
         </CardContent>
       </Card>
+
+      <SubscriptionTemplateSelector
+        open={showTemplateSelector}
+        onOpenChange={setShowTemplateSelector}
+        onSelectTemplate={handleSelectTemplate}
+      />
     </div>
   )
 }
