@@ -5,11 +5,12 @@ import { OutgoingSubscriptionsTable } from '@/components/outgoing-subscriptions/
 import { UpcomingRenewalsDashboard } from '@/components/outgoing-subscriptions/UpcomingRenewalsDashboard'
 import { UpcomingRenewalsCalendar } from '@/components/outgoing-subscriptions/UpcomingRenewalsCalendar'
 import { OutgoingSubscriptionAlert } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAlert'
+import { OutgoingSubscriptionAnalytics } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAnalytics'
 import { Button } from '@/components/ui/button'
-import { LayoutGrid, Table, Calendar } from 'lucide-react'
+import { LayoutGrid, Table, Calendar, BarChart3 } from 'lucide-react'
 
 const OutgoingSubscriptionsPage = () => {
-  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'calendar'>('table')
+  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'calendar' | 'analytics'>('table')
 
   return (
     <div className="space-y-8 p-6">
@@ -51,6 +52,15 @@ const OutgoingSubscriptionsPage = () => {
             <Calendar className="h-4 w-4 mr-2" />
             Calendario
           </Button>
+          <Button
+            variant={viewMode === 'analytics' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('analytics')}
+            className="rounded-[8px]"
+          >
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Analítica
+          </Button>
         </div>
       </div>
 
@@ -63,6 +73,8 @@ const OutgoingSubscriptionsPage = () => {
         <OutgoingSubscriptionsTable />
       ) : viewMode === 'calendar' ? (
         <UpcomingRenewalsCalendar />
+      ) : viewMode === 'analytics' ? (
+        <OutgoingSubscriptionAnalytics />
       ) : (
         <OutgoingSubscriptionsList />
       )}

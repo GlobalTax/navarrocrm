@@ -55,8 +55,8 @@ export const useIntelligentAnalytics = () => {
       }
 
       try {
-        // Obtener datos básicos
-        const [casesData, contactsData, proposalsData] = await Promise.all([
+        // Obtener datos básicos incluyendo suscripciones
+        const [casesData, contactsData, proposalsData, subscriptionsData] = await Promise.all([
           supabase
             .from('cases')
             .select('id, status, practice_area, created_at, date_closed'),
@@ -65,7 +65,10 @@ export const useIntelligentAnalytics = () => {
             .select('id, created_at'),
           supabase
             .from('proposals')
-            .select('id, status, total_amount, created_at, accepted_at')
+            .select('id, status, total_amount, created_at, accepted_at'),
+          supabase
+            .from('outgoing_subscriptions')
+            .select('id, amount, billing_cycle, category, status, created_at')
         ])
 
         if (casesData.error) throw casesData.error
