@@ -1,6 +1,42 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Utility functions for normalization and duplicate detection
+const normalizeText = (text: string): string => {
+  if (!text) return ''
+  
+  return text
+    .toLowerCase()
+    .trim()
+    .normalize('NFD') // Descomponer caracteres acentuados
+    .replace(/[\u0300-\u036f]/g, '') // Remover diacríticos (tildes, acentos)
+    .replace(/[^\w\s]/g, '') // Remover caracteres especiales
+    .replace(/\s+/g, ' ') // Normalizar espacios múltiples
+}
+
+const normalizeNif = (nif: string): string => {
+  if (!nif) return ''
+  
+  return nif
+    .replace(/[\s-]/g, '') // Remover espacios y guiones
+    .toUpperCase()
+    .trim()
+}
+
+const normalizeEmail = (email: string): string => {
+  if (!email) return ''
+  
+  return email
+    .toLowerCase()
+    .trim()
+}
+
+const normalizePhone = (phone: string): string => {
+  if (!phone) return ''
+  
+  return phone.replace(/\D/g, '') // Solo números
+}
+
 interface QuantumCustomer {
   regid: string;
   nif: string;
@@ -103,44 +139,50 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
       throw new Error(`Error al obtener contactos existentes: ${contactsError.message}`);
     }
     
-    // Detectar contactos nuevos (no duplicados) con mejor lógica
+    // Detectar contactos nuevos (no duplicados) con lógica mejorada
     const newContacts = [];
     const skippedContacts = [];
     const entityTypeStats = { empresas: 0, particulares: 0 };
     
     for (const customer of customers) {
-      // Verificar duplicados con lógica mejorada
+      // Verificar duplicados con lógica mejorada usando normalización
       const isDuplicate = existingContacts.some(contact => {
+        // Normalizar datos para comparación
+        const customerEmail = normalizeEmail(customer.email || '');
+        const customerNif = normalizeNif(customer.nif || '');
+        const customerPhone = normalizePhone(customer.phone || '');
+        const customerName = normalizeText(customer.name || '');
+        
         // Prioridad 1: quantum_customer_id (más confiable)
         if (customer.customerId && contact.quantum_customer_id === customer.customerId) {
           return true;
         }
         
-        // Prioridad 2: DNI/NIF exacto (sin espacios ni guiones)
-        if (customer.nif && contact.dni_nif) {
-          const customerNif = customer.nif.replace(/[\s-]/g, '').toUpperCase();
-          const contactNif = contact.dni_nif.replace(/[\s-]/g, '').toUpperCase();
-          if (customerNif === contactNif && customerNif.length > 0) {
+        // Prioridad 2: DNI/NIF exacto con normalización
+        if (customerNif && contact.dni_nif) {
+          const contactNif = normalizeNif(contact.dni_nif);
+          if (customerNif === contactNif && customerNif.length > 3) {
             return true;
           }
         }
         
-        // Prioridad 3: Email exacto
-        if (customer.email && contact.email) {
-          if (customer.email.toLowerCase().trim() === contact.email.toLowerCase().trim()) {
+        // Prioridad 3: Email exacto con normalización
+        if (customerEmail && contact.email) {
+          const contactEmail = normalizeEmail(contact.email);
+          if (customerEmail === contactEmail && customerEmail.length > 5) {
             return true;
           }
         }
         
-        // Prioridad 4: Nombre exacto + teléfono (más estricto)
-        if (customer.name && contact.name && customer.phone && contact.phone) {
-          const customerName = customer.name.toLowerCase().trim();
-          const contactName = contact.name.toLowerCase().trim();
-          const customerPhone = customer.phone.replace(/\D/g, '');
-          const contactPhone = contact.phone.replace(/\D/g, '');
+        // Prioridad 4: Nombre exacto + teléfono con normalización
+        if (customerPhone && contact.phone && customerName && contact.name) {
+          const contactPhone = normalizePhone(contact.phone);
+          const contactName = normalizeText(contact.name);
           
-          if (customerName === contactName && customerPhone === contactPhone && 
-              customerName.length > 3 && customerPhone.length >= 9) {
+          if (customerPhone === contactPhone && 
+              customerName === contactName && 
+              customerPhone.length >= 9 && 
+              customerName.length > 3) {
             return true;
           }
         }

@@ -13,6 +13,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { useExistingContacts, detectDuplicate, type ExistingContact } from '@/hooks/useExistingContacts'
+import { getUserOrgId } from '@/lib/quantum/orgId'
+import { validateQuantumCustomer, validateContactForInsert } from '@/lib/quantum/validation'
+import { handleQuantumError, createQuantumError } from '@/lib/quantum/errors'
 import { 
   RefreshCw, 
   Download, 
@@ -164,24 +167,21 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
         selectedClients.includes(customer.customerId) && !customer.duplicateInfo.isDuplicate
       )
       
-      // Obtener el org_id del usuario actual
-      const { data: userData } = await supabase.auth.getUser()
-      if (!userData?.user) {
-        throw new Error('Usuario no autenticado')
-      }
+      // Obtener org_id de forma centralizada
+      const orgId = await getUserOrgId()
 
-      const { data: userProfile } = await supabase
-        .from('users')
-        .select('org_id')
-        .eq('id', userData.user.id)
-        .single()
+      // Validar y preparar datos para inserción
+      const contactsData = []
+      const validationErrors = []
 
-      if (!userProfile?.org_id) {
-        throw new Error('No se pudo obtener la organización del usuario')
-      }
+      for (const customer of customersToImport) {
+        // Validar customer de Quantum
+        const customerValidation = validateQuantumCustomer(customer)
+        if (!customerValidation.success) {
+          validationErrors.push(`${customer.name}: ${customerValidation.error.issues.map(i => i.message).join(', ')}`)
+          continue
+        }
 
-      // Preparar datos para inserción
-      const contactsData = customersToImport.map(customer => {
         // Determinar el tipo de cliente basado en el NIF (empresas suelen empezar con letras)
         const isCompany = customer.nif && /^[A-Z]/.test(customer.nif.trim())
         
@@ -196,7 +196,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
         
         const fullAddress = addressParts.length > 0 ? addressParts.join(' ') : null
         
-        return {
+        const contactData = {
           name: customer.name,
           email: customer.email || null,
           phone: customer.phone || null,
@@ -210,22 +210,50 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
           address_country: customer.countryISO === 'ES' ? 'España' : customer.countryISO || null,
           internal_notes: `Importado desde Quantum Economics - ID: ${customer.customerId} (RegID: ${customer.regid})`,
           tags: ['quantum-import'],
-          org_id: userProfile.org_id
+          org_id: orgId,
+          quantum_customer_id: customer.customerId,
+          source: 'quantum_import'
         }
-      })
+
+        // Validar datos de contacto
+        const contactValidation = validateContactForInsert(contactData)
+        if (!contactValidation.success) {
+          validationErrors.push(`${customer.name}: ${contactValidation.error.issues.map(i => i.message).join(', ')}`)
+          continue
+        }
+
+        contactsData.push(contactData)
+      }
+
+      // Mostrar errores de validación si los hay
+      if (validationErrors.length > 0) {
+        console.warn('Errores de validación:', validationErrors)
+        toast.error(`${validationErrors.length} contactos tienen errores de validación`)
+      }
+
+      if (contactsData.length === 0) {
+        throw createQuantumError('VALIDATION_ERROR', 'No hay contactos válidos para importar')
+      }
 
       const { error } = await supabase
         .from('contacts')
         .insert(contactsData)
 
-      if (error) throw error
+      if (error) {
+        throw createQuantumError('DATABASE_ERROR', `Error al insertar contactos: ${error.message}`)
+      }
 
-      toast.success(`${customersToImport.length} contactos importados correctamente`)
+      toast.success(`${contactsData.length} contactos importados correctamente`)
       setSelectedClients([])
       
     } catch (error) {
-      console.error('Error al importar:', error)
-      toast.error('Error al importar contactos')
+      const quantumError = handleQuantumError(error, {
+        component: 'QuantumClientImporter',
+        action: 'handleImport'
+      })
+      
+      console.error('Error al importar:', quantumError)
+      toast.error(quantumError.userMessage)
     } finally {
       setIsImporting(false)
     }
