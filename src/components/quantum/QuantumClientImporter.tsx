@@ -73,7 +73,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [mapping, setMapping] = useState<ImportMapping>({
     client_type: type === 'companies' ? 'empresa' : 'particular',
-    relationship_type: 'prospecto',
+    relationship_type: 'cliente', // CAMBIO: Por defecto cliente para Quantum
     status: 'activo'
   })
   const [isImporting, setIsImporting] = useState(false)

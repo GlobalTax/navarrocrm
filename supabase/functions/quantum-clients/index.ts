@@ -209,22 +209,22 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
     for (const customer of newContacts) {
       const entityType = detectEntityType(customer);
       
-      const contactData = {
-        org_id: orgId,
-        name: customer.name,
-        email: customer.email || null,
-        phone: customer.phone || null,
-        dni_nif: customer.nif || null,
-        address_street: [customer.streetType, customer.streetName, customer.streetNumber]
-          .filter(Boolean).join(' ') || null,
-        address_postal_code: customer.postCode || null,
-        client_type: entityType, // Usar detección automática de tipo
-        relationship_type: 'prospecto',
-        source: 'quantum_auto',
-        auto_imported_at: new Date().toISOString(),
-        quantum_customer_id: customer.customerId,
-        status: 'activo'
-      };
+        const contactData = {
+          org_id: orgId,
+          name: customer.name,
+          email: customer.email || null,
+          phone: customer.phone || null,
+          dni_nif: customer.nif || null,
+          address_street: [customer.streetType, customer.streetName, customer.streetNumber]
+            .filter(Boolean).join(' ') || null,
+          address_postal_code: customer.postCode || null,
+          client_type: entityType, // Usar detección automática de tipo
+          relationship_type: 'cliente', // CAMBIO: Todos los de Quantum son clientes
+          source: 'quantum_auto',
+          auto_imported_at: new Date().toISOString(),
+          quantum_customer_id: customer.customerId,
+          status: 'activo'
+        };
       
       const { data: insertedContact, error: insertError } = await supabase
         .from('contacts')
