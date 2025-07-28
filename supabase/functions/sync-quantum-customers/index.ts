@@ -155,49 +155,20 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         };
 
-        // Verificar si ya existe para evitar duplicados
-        const { data: existingContact } = await supabase
+        // Usar UPSERT para manejar duplicados automáticamente
+        const { error: upsertError } = await supabase
           .from('contacts')
-          .select('id, created_at')
-          .eq('quantum_customer_id', customer.id)
-          .eq('org_id', defaultOrgId)
-          .single();
+          .upsert(customerData, { 
+            onConflict: 'quantum_customer_id,org_id',
+            ignoreDuplicates: false 
+          });
 
-        if (existingContact) {
-          // Actualizar registro existente
-          const { error: updateError } = await supabase
-            .from('contacts')
-            .update({
-              name: customerData.name,
-              email: customerData.email,
-              phone: customerData.phone,
-              address_street: customerData.address_street,
-              dni_nif: customerData.dni_nif,
-              business_sector: customerData.business_sector,
-              updated_at: customerData.updated_at
-            })
-            .eq('id', existingContact.id);
-
-          if (updateError) {
-            console.error('❌ Error al actualizar cliente:', customer.id, updateError);
-            errores.push(`Error actualizando cliente ${customer.id}: ${updateError.message}`);
-          } else {
-            registrosActualizados++;
-            console.log('🔄 Cliente actualizado:', customer.id, customer.name);
-          }
+        if (upsertError) {
+          console.error('❌ Error al procesar cliente:', customer.id, upsertError);
+          errores.push(`Error procesando cliente ${customer.id}: ${upsertError.message}`);
         } else {
-          // Crear nuevo registro
-          const { error: insertError } = await supabase
-            .from('contacts')
-            .insert(customerData);
-
-          if (insertError) {
-            console.error('❌ Error al crear cliente:', customer.id, insertError);
-            errores.push(`Error creando cliente ${customer.id}: ${insertError.message}`);
-          } else {
-            registrosNuevos++;
-            console.log('✅ Cliente creado:', customer.id, customer.name);
-          }
+          registrosActualizados++;
+          console.log('✅ Cliente procesado:', customer.id, customer.name);
         }
         
         registrosProcesados++;
