@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { RefreshCw, Clock, CheckCircle, AlertCircle, Users, Calendar } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { handleQuantumError } from '@/lib/quantum/errors'
 
 interface SyncNotification {
   id: string
@@ -69,7 +70,11 @@ export function QuantumSyncStatus() {
         throw new Error(data?.error || 'Error desconocido')
       }
     } catch (error: any) {
-      toast.error(`Error en sincronización: ${error.message}`)
+      const quantumError = handleQuantumError(error, {
+        component: 'QuantumSyncStatus',
+        action: 'triggerManualSync'
+      })
+      toast.error(quantumError.userMessage)
     } finally {
       setIsSyncing(false)
     }
