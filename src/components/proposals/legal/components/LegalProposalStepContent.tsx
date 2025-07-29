@@ -128,11 +128,49 @@ export const LegalProposalStepContent: React.FC<LegalProposalStepContentProps> =
             selectedServices={proposalData.selectedServices}
             retainerConfig={proposalData.retainerConfig}
             validityDays={proposalData.validityDays}
-            onGeneratePDF={() => {
-              console.log('Generate PDF')
+            onGeneratePDF={async () => {
+              try {
+                // Preparar datos de la propuesta para PDF
+                const proposalPdfData = {
+                  title: proposalData.title,
+                  clientName: "Cliente seleccionado",
+                  practiceArea: proposalData.selectedArea,
+                  introduction: proposalData.introduction,
+                  terms: proposalData.terms,
+                  selectedServices: proposalData.selectedServices,
+                  retainerConfig: proposalData.retainerConfig,
+                  validityDays: proposalData.validityDays
+                }
+
+                const response = await fetch('/functions/v1/generate-proposal-pdf', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(proposalPdfData)
+                })
+
+                if (!response.ok) {
+                  throw new Error('Error generando PDF')
+                }
+
+                const blob = await response.blob()
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.style.display = 'none'
+                a.href = url
+                a.download = `propuesta-${proposalData.title || 'legal'}.pdf`
+                document.body.appendChild(a)
+                a.click()
+                window.URL.revokeObjectURL(url)
+                document.body.removeChild(a)
+              } catch (error) {
+                console.error('Error descargando PDF:', error)
+                alert('Error al generar el PDF. Por favor, intenta de nuevo.')
+              }
             }}
             onSendProposal={() => {
-              console.log('Send proposal')
+              alert('Funcionalidad de envío en desarrollo. El PDF se puede descargar usando el botón "Generar PDF".')
             }}
           />
         )
