@@ -93,7 +93,9 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
             <button
               onClick={async () => {
                 try {
-                  console.log('Iniciando generación de PDF para propuesta:', proposalId)
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('Iniciando generación de PDF para propuesta:', proposalId)
+                  }
                   
                   const proposalPdfData = {
                     proposalId,
@@ -102,18 +104,24 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                     lineItems
                   }
 
-                  console.log('Datos enviados a la función edge:', proposalPdfData)
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('Datos enviados a la función edge:', proposalPdfData)
+                  }
 
                   const { data, error } = await supabase.functions.invoke('generate-proposal-pdf', {
                     body: proposalPdfData
                   })
 
                   if (error) {
-                    console.error('Error en la función edge:', error)
+                    if (process.env.NODE_ENV === 'development') {
+                      console.error('Error en la función edge:', error)
+                    }
                     throw new Error(`Error generando PDF: ${error.message}`)
                   }
 
-                  console.log('Respuesta de la función edge:', data)
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('Respuesta de la función edge:', data)
+                  }
 
                   // Crear y descargar el archivo
                   const blob = new Blob([data], { type: 'text/html' })
@@ -127,9 +135,13 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                   window.URL.revokeObjectURL(url)
                   document.body.removeChild(a)
                   
-                  console.log('PDF generado y descargado correctamente')
+                  if (process.env.NODE_ENV === 'development') {
+                    console.log('PDF generado y descargado correctamente')
+                  }
                 } catch (error) {
-                  console.error('Error descargando PDF:', error)
+                  if (process.env.NODE_ENV === 'development') {
+                    console.error('Error descargando PDF:', error)
+                  }
                   alert(`Error al generar el PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`)
                 }
               }}

@@ -1,26 +1,38 @@
 
+import { useMemo, useCallback } from 'react'
 import { useProposals } from '@/hooks/useProposals'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { useApp } from '@/contexts/AppContext'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { useProposalsFilters } from '@/hooks/proposals/useProposalsFilters'
-import { useClients } from '@/hooks/useClients'
+import { useOptimizedClients } from '@/hooks/useOptimizedClients'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) => {
   const { proposals, isLoading, createProposal, updateProposalStatus, isCreating, error } = useProposals(onProposalWon)
   const { mutate: saveRecurrentProposal, isPending: isSavingRecurrent } = useSaveProposal()
   const { user } = useApp()
-  const { clients } = useClients()
+  const { clients } = useOptimizedClients()
   
   // Estados de la página
   const pageState = useProposalsPageState()
   const { filters, setFilters, filterProposals, categorizeProposals, getProposalMetrics } = useProposalsFilters()
 
-  // Filtrar y categorizar propuestas
-  const filteredProposals = filterProposals(proposals)
-  const categorizedProposals = categorizeProposals(filteredProposals)
-  const metrics = getProposalMetrics(filteredProposals)
+  // Filtrar y categorizar propuestas con memoización para evitar recálculos
+  const filteredProposals = useMemo(() => 
+    filterProposals(proposals), 
+    [proposals, filters, filterProposals]
+  )
+  
+  const categorizedProposals = useMemo(() => 
+    categorizeProposals(filteredProposals), 
+    [filteredProposals, categorizeProposals]
+  )
+  
+  const metrics = useMemo(() => 
+    getProposalMetrics(filteredProposals), 
+    [filteredProposals, getProposalMetrics]
+  )
 
   return {
     // Data

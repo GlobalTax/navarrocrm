@@ -1,4 +1,5 @@
 
+import { useMemo } from 'react'
 import { useContacts, type Contact } from './useContacts'
 import { Client } from '@/types/shared/clientTypes'
 
@@ -20,20 +21,25 @@ export const useClients = () => {
   
   // Filter contacts to only show those with relationship_type 'cliente'
   // Email ya no es requerido
-  const clients = contacts
-    .filter(contact => contact.relationship_type === 'cliente')
-    .map(contact => contact as Client)
+  const clients = useMemo(() => 
+    contacts
+      .filter(contact => contact.relationship_type === 'cliente')
+      .map(contact => contact as Client),
+    [contacts]
+  )
     
-  const filteredClients = filteredContacts
-    .filter(contact => contact.relationship_type === 'cliente')
-    .map(contact => contact as Client)
+  const filteredClients = useMemo(() =>
+    filteredContacts
+      .filter(contact => contact.relationship_type === 'cliente')
+      .map(contact => contact as Client),
+    [filteredContacts]
+  )
 
-  console.log('useClients - Total contacts:', contacts.length)
-  console.log('useClients - Filtered clients:', clients.length)
-  console.log('useClients - Contacts by relationship type:', contacts.reduce((acc, c) => {
-    acc[c.relationship_type] = (acc[c.relationship_type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>))
+  // Only log in development mode to reduce production overhead
+  if (process.env.NODE_ENV === 'development') {
+    console.log('useClients - Total contacts:', contacts.length)
+    console.log('useClients - Filtered clients:', clients.length)
+  }
 
   return {
     clients,

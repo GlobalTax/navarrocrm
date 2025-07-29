@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 export interface ProposalsFilters {
   status: string
@@ -18,7 +18,7 @@ export const useProposalsFilters = () => {
     type: 'all'
   })
 
-  const filterProposals = (proposals: any[]) => {
+  const filterProposals = useCallback((proposals: any[]) => {
     return proposals.filter(proposal => {
       // Filtro por estado
       if (filters.status && filters.status !== 'all' && proposal.status !== filters.status) return false
@@ -38,9 +38,9 @@ export const useProposalsFilters = () => {
       
       return true
     })
-  }
+  }, [filters])
 
-  const categorizeProposals = (filteredProposals: any[]) => {
+  const categorizeProposals = useCallback((filteredProposals: any[]) => {
     const recurringProposals = filteredProposals.filter(p => p.is_recurring)
     const oneTimeProposals = filteredProposals.filter(p => !p.is_recurring)
     
@@ -49,9 +49,9 @@ export const useProposalsFilters = () => {
       recurring: recurringProposals,
       oneTime: oneTimeProposals
     }
-  }
+  }, [])
 
-  const getProposalMetrics = (proposals: any[]) => {
+  const getProposalMetrics = useCallback((proposals: any[]) => {
     const recurrent = proposals.filter(p => p.is_recurring)
     const specific = proposals.filter(p => !p.is_recurring)
     
@@ -64,7 +64,7 @@ export const useProposalsFilters = () => {
       wonRecurrent: recurrent.filter(p => p.status === 'won').length,
       wonSpecific: specific.filter(p => p.status === 'won').length
     }
-  }
+  }, [])
 
   return {
     filters,

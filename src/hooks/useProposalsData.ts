@@ -16,14 +16,16 @@ export const useProposalsData = () => {
         .from('proposals')
         .select(`
           *,
-          contact:contacts!proposals_contact_id_fkey(id, name, email, phone, dni_nif),
+          contact:contacts!proposals_contact_id_fkey(id, name),
           line_items:proposal_line_items(*)
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching proposals:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching proposals:', error)
+        }
         throw error
       }
       
@@ -40,7 +42,9 @@ export const useProposalsData = () => {
         }
       })) as Proposal[]
     },
-    enabled: !!user?.org_id
+    enabled: !!user?.org_id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000 // 5 minutes
   })
 
   return {

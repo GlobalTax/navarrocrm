@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useProposalsPageLogic } from '@/components/proposals/ProposalsPageLogic'
@@ -18,7 +18,9 @@ import { ProposalsErrorBoundary } from '@/components/proposals/ProposalsErrorBou
 import { useOnboarding } from '@/contexts/OnboardingContext'
 
 export default function Proposals() {
-  console.log('Proposals page rendering')
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Proposals page rendering')
+  }
   
   const { startOnboardingFromProposal } = useOnboarding()
   const { updateProposal } = useProposalActions()
@@ -31,12 +33,12 @@ export default function Proposals() {
   })
 
   // Función para manejar propuesta ganada y mostrar diálogo de onboarding
-  const handleProposalWon = (proposal: any) => {
+  const handleProposalWon = useCallback((proposal: any) => {
     setOnboardingDialog({
       isOpen: true,
       proposal
     })
-  }
+  }, [])
 
   const {
     categorizedProposals,
@@ -72,13 +74,15 @@ export default function Proposals() {
     openEditProposal: pageState.openEditProposal, // Pasar la nueva función
   })
 
-  console.log('Current state:', { 
-    isRecurrentBuilderOpen: pageState.isRecurrentBuilderOpen, 
-    isSpecificBuilderOpen: pageState.isSpecificBuilderOpen, 
-    isLoading, 
-    user,
-    clientsCount: clients.length
-  })
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Current state:', { 
+      isRecurrentBuilderOpen: pageState.isRecurrentBuilderOpen, 
+      isSpecificBuilderOpen: pageState.isSpecificBuilderOpen, 
+      isLoading, 
+      user,
+      clientsCount: clients.length
+    })
+  }
 
   if (isLoading) {
     return <ProposalsLoadingState />
