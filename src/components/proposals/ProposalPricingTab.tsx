@@ -85,9 +85,54 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
           <Calculator className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold text-card-foreground">Estructura de Precios</h3>
         </div>
-        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-          {lineItems.length} elemento{lineItems.length !== 1 ? 's' : ''}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+            {lineItems.length} elemento{lineItems.length !== 1 ? 's' : ''}
+          </Badge>
+          {lineItems.length > 0 && (
+            <button
+              onClick={async () => {
+                try {
+                  const proposalPdfData = {
+                    proposalId,
+                    totalAmount: calculatedTotal,
+                    currency,
+                    lineItems
+                  }
+
+                  const response = await fetch('/functions/v1/generate-proposal-pdf', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(proposalPdfData)
+                  })
+
+                  if (!response.ok) {
+                    throw new Error('Error generando PDF')
+                  }
+
+                  const blob = await response.blob()
+                  const url = window.URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.style.display = 'none'
+                  a.href = url
+                  a.download = `propuesta-${proposalId}.pdf`
+                  document.body.appendChild(a)
+                  a.click()
+                  window.URL.revokeObjectURL(url)
+                  document.body.removeChild(a)
+                } catch (error) {
+                  console.error('Error descargando PDF:', error)
+                  alert('Error al generar el PDF. Por favor, intenta de nuevo.')
+                }
+              }}
+              className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
+            >
+              Generar PDF
+            </button>
+          )}
+        </div>
       </div>
 
       {lineItems.length === 0 ? (
