@@ -100,5 +100,68 @@ export const POPULAR_TEMPLATES = [
     default_payment_method: 'VISA',
     provider_website: 'https://slack.com',
     description: 'Plataforma de comunicación empresarial'
+  },
+  {
+    name: 'Pitch Pro',
+    category: 'SOFTWARE' as const,
+    default_price: 10.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://pitch.com',
+    description: 'Herramienta profesional de presentaciones con IA'
+  },
+  {
+    name: 'Google Gemini Advanced',
+    category: 'IA' as const,
+    default_price: 19.99,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://gemini.google.com',
+    description: 'Acceso ilimitado a Gemini Advanced con 2TB de almacenamiento'
+  },
+  {
+    name: 'Microsoft Teams Essentials',
+    category: 'COMUNICACION' as const,
+    default_price: 4.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://www.microsoft.com/microsoft-teams',
+    description: 'Solución de videoconferencias y colaboración para equipos'
+  },
+  {
+    name: 'Microsoft 365 Business Standard',
+    category: 'SOFTWARE' as const,
+    default_price: 12.50,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://www.microsoft.com/microsoft-365',
+    description: 'Suite completa de productividad con Office y Teams'
+  },
+  {
+    name: 'Webflow CMS',
+    category: 'SOFTWARE' as const,
+    default_price: 23.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://webflow.com',
+    description: 'Plataforma visual de desarrollo web con CMS integrado'
+  },
+  {
+    name: 'Flowbase Pro+',
+    category: 'DISENO' as const,
+    default_price: 39.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://flowbase.co',
+    description: 'Librería premium de componentes y templates para Webflow'
+  },
+  {
+    name: 'Cursor Pro',
+    category: 'SOFTWARE' as const,
+    default_price: 20.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://cursor.com',
+    description: 'Editor de código con IA integrada para desarrollo'
   }
 ]
