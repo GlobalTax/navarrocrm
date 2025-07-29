@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useOutgoingSubscriptions } from '@/hooks/useOutgoingSubscriptions'
 import { OutgoingSubscriptionForm } from './OutgoingSubscriptionForm'
+import { SubscriptionCard } from './SubscriptionCard'
 import { SUBSCRIPTION_CATEGORIES } from '@/types/outgoing-subscriptions'
 import { format, parseISO, isWithinInterval, addDays } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -211,99 +212,13 @@ export const OutgoingSubscriptionsList = () => {
       ) : (
         <div className="grid gap-4">
           {filteredSubscriptions.map((subscription) => (
-            <Card 
-              key={subscription.id} 
-              className="bg-white border-0.5 border-black rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-            >
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="mt-1">
-                        {getCategoryIcon(subscription.category)}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-lg">{subscription.provider_name}</h3>
-                          <Badge 
-                            variant={getStatusColor(subscription.status)}
-                            className="border-0.5 rounded-[10px]"
-                          >
-                            {subscription.status === 'ACTIVE' ? 'Activa' : 'Cancelada'}
-                          </Badge>
-                          {isRenewalSoon(subscription.next_renewal_date) && subscription.status === 'ACTIVE' && (
-                            <Badge variant="destructive" className="border-0.5 rounded-[10px]">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              Renovación próxima
-                            </Badge>
-                          )}
-                        </div>
-                        {subscription.description && (
-                          <p className="text-gray-600 text-sm">{subscription.description}</p>
-                        )}
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            <div className="flex flex-col">
-                              <span>
-                                {formatSubscriptionDetails(subscription).displayText}
-                                {subscription.billing_cycle === 'MONTHLY' ? '/mes' : '/año'}
-                              </span>
-                              {formatSubscriptionDetails(subscription).detailText && (
-                                <span className="text-xs text-gray-400">
-                                  {formatSubscriptionDetails(subscription).detailText}
-                                </span>
-                              )}
-                            </div>
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Próxima renovación: {format(parseISO(subscription.next_renewal_date), 'dd MMM yyyy', { locale: es })}
-                          </span>
-                          {subscription.payment_method && (
-                            <span className="flex items-center gap-1">
-                              <CreditCard className="h-3 w-3" />
-                              {subscription.payment_method}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(subscription)}
-                      className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    
-                    {subscription.status === 'ACTIVE' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCancel(subscription.id)}
-                        className="border-0.5 border-orange-500 text-orange-600 rounded-[10px] hover:bg-orange-50"
-                      >
-                        Cancelar
-                      </Button>
-                    )}
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(subscription.id)}
-                      className="border-0.5 border-red-500 text-red-600 rounded-[10px] hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SubscriptionCard
+              key={subscription.id}
+              subscription={subscription as any}
+              onEdit={handleEdit}
+              onCancel={handleCancel}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}

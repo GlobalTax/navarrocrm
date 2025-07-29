@@ -15,6 +15,7 @@ import { useSubscriptionTemplates } from '@/hooks/useSubscriptionTemplates'
 import { useApp } from '@/contexts/AppContext'
 import { SUBSCRIPTION_CATEGORIES, BILLING_CYCLES, CreateOutgoingSubscriptionData } from '@/types/outgoing-subscriptions'
 import { SubscriptionTemplateSelector } from '@/components/subscription-templates/SubscriptionTemplateSelector'
+import { LicenseManagement } from './LicenseManagement'
 import { calculateNextRenewalDate } from '@/lib/utils/dateUtils'
 import type { OutgoingSubscription } from '@/types/outgoing-subscriptions'
 import type { SubscriptionTemplate } from '@/types/subscription-templates'
@@ -440,6 +441,18 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
                 </div>
               </div>
             </div>
+
+            {/* Sección: Gestión de Licencias - Solo para suscripciones existentes con múltiples licencias */}
+            {subscription && (subscription as any).quantity > 1 && (
+              <div className="space-y-6">
+                <div className="border-l-4 border-blue-600 pl-4">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Gestión de Licencias</h3>
+                  <p className="text-sm text-muted-foreground">Asigna licencias a usuarios específicos</p>
+                </div>
+                
+                <LicenseManagement subscription={subscription as any} />
+              </div>
+            )}
 
             {/* Botones mejorados */}
             <div className="flex gap-4 pt-8 border-t border-border">

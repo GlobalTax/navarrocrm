@@ -6,6 +6,7 @@ import { UpcomingRenewalsDashboard } from '@/components/outgoing-subscriptions/U
 import { UpcomingRenewalsCalendar } from '@/components/outgoing-subscriptions/UpcomingRenewalsCalendar'
 import { OutgoingSubscriptionAlert } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAlert'
 import { OutgoingSubscriptionAnalytics } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAnalytics'
+import { LicenseStats } from '@/components/outgoing-subscriptions/LicenseStats'
 import { Button } from '@/components/ui/button'
 import { LayoutGrid, Table, Calendar, BarChart3 } from 'lucide-react'
 
@@ -65,6 +66,9 @@ const OutgoingSubscriptionsPage = () => {
       </div>
 
       <OutgoingSubscriptionStats />
+      
+      {/* License management stats */}
+      <LicenseStats />
       
       {/* Dashboard de próximas renovaciones */}
       <UpcomingRenewalsDashboard />
