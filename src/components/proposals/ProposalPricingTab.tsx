@@ -93,6 +93,8 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
             <button
               onClick={async () => {
                 try {
+                  console.log('Iniciando generación de PDF para propuesta:', proposalId)
+                  
                   const proposalPdfData = {
                     proposalId,
                     totalAmount: calculatedTotal,
@@ -100,31 +102,35 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                     lineItems
                   }
 
-                  const response = await fetch('/functions/v1/generate-proposal-pdf', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(proposalPdfData)
+                  console.log('Datos enviados a la función edge:', proposalPdfData)
+
+                  const { data, error } = await supabase.functions.invoke('generate-proposal-pdf', {
+                    body: proposalPdfData
                   })
 
-                  if (!response.ok) {
-                    throw new Error('Error generando PDF')
+                  if (error) {
+                    console.error('Error en la función edge:', error)
+                    throw new Error(`Error generando PDF: ${error.message}`)
                   }
 
-                  const blob = await response.blob()
+                  console.log('Respuesta de la función edge:', data)
+
+                  // Crear y descargar el archivo
+                  const blob = new Blob([data], { type: 'text/html' })
                   const url = window.URL.createObjectURL(blob)
                   const a = document.createElement('a')
                   a.style.display = 'none'
                   a.href = url
-                  a.download = `propuesta-${proposalId}.pdf`
+                  a.download = `propuesta-${proposalId}.html`
                   document.body.appendChild(a)
                   a.click()
                   window.URL.revokeObjectURL(url)
                   document.body.removeChild(a)
+                  
+                  console.log('PDF generado y descargado correctamente')
                 } catch (error) {
                   console.error('Error descargando PDF:', error)
-                  alert('Error al generar el PDF. Por favor, intenta de nuevo.')
+                  alert(`Error al generar el PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`)
                 }
               }}
               className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
