@@ -145,8 +145,16 @@ export const OutgoingSubscriptionsTable = () => {
 
     // Ordenamiento
     filtered.sort((a, b) => {
-      const aValue = a[sortBy]
-      const bValue = b[sortBy]
+      let aValue, bValue
+      
+      // Si ordenamos por amount, usar el total (quantity × amount)
+      if (sortBy === 'amount') {
+        aValue = a.quantity * a.amount
+        bValue = b.quantity * b.amount
+      } else {
+        aValue = a[sortBy]
+        bValue = b[sortBy]
+      }
       
       if (aValue === bValue) return 0
       
@@ -188,6 +196,24 @@ export const OutgoingSubscriptionsTable = () => {
       style: 'currency',
       currency: currency
     }).format(amount)
+  }
+
+  const formatSubscriptionAmount = (subscription: OutgoingSubscription) => {
+    const totalAmount = subscription.quantity * subscription.amount
+    const formattedTotal = formatCurrency(totalAmount, subscription.currency)
+    
+    if (subscription.quantity > 1) {
+      const formattedUnit = formatCurrency(subscription.amount, subscription.currency)
+      return {
+        total: formattedTotal,
+        detail: `${subscription.quantity} × ${formattedUnit}`
+      }
+    }
+    
+    return {
+      total: formattedTotal,
+      detail: null
+    }
   }
 
   const clearFilters = () => {
@@ -453,11 +479,23 @@ export const OutgoingSubscriptionsTable = () => {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">
-                            {formatCurrency(subscription.amount, subscription.currency)}
-                          </div>
+                          {(() => {
+                            const amountData = formatSubscriptionAmount(subscription as OutgoingSubscription)
+                            return (
+                              <div>
+                                <div className="font-medium">
+                                  {amountData.total}
+                                </div>
+                                {amountData.detail && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {amountData.detail}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })()}
                           <div className="flex gap-1">
-                            {getPriceRangeTag(subscription.amount)}
+                            {getPriceRangeTag(subscription.quantity * subscription.amount)}
                           </div>
                         </div>
                       </TableCell>
