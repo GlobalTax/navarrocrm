@@ -130,57 +130,60 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
   const isLoading = isCreating || isUpdating
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background p-6 space-y-8">
+      {/* Header mejorado */}
+      <div className="flex items-center gap-6">
         <Button
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={onClose}
-          className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
+          className="h-12 w-12 border-2 border-foreground/20 rounded-[10px] hover:bg-accent hover:border-foreground/40 transition-all duration-200"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-foreground">
             {subscription ? 'Editar Suscripción' : 'Nueva Suscripción Externa'}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-lg text-muted-foreground">
             {subscription ? 'Modifica los datos de la suscripción' : 'Añade una nueva suscripción a un proveedor externo'}
           </p>
         </div>
       </div>
 
-      {/* Formulario */}
-      <Card className="bg-white border-0.5 border-black rounded-[10px] shadow-sm">
-        <CardHeader>
+      {/* Formulario mejorado */}
+      <Card className="bg-card border-2 border-border rounded-[10px] shadow-lg">
+        <CardHeader className="pb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Información de la Suscripción</CardTitle>
-              <CardDescription>
-                Completa los datos de la suscripción externa
+            <div className="space-y-3">
+              <CardTitle className="text-2xl font-semibold text-card-foreground">
+                Información de la Suscripción
+              </CardTitle>
+              <CardDescription className="text-lg text-muted-foreground">
+                Completa los datos de la suscripción externa. Los campos marcados con * son obligatorios.
               </CardDescription>
             </div>
             {!subscription && (
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <Button
                   type="button"
                   variant="outline"
+                  size="lg"
                   onClick={() => setShowTemplateSelector(true)}
-                  className="flex items-center gap-2 border-0.5 border-black rounded-[10px]"
+                  className="flex items-center gap-3 px-6 py-3 border-2 border-border rounded-[10px] hover:bg-accent text-base font-medium transition-all duration-200"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-5 h-5" />
                   Usar Plantilla
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="lg"
                   onClick={handleSaveAsTemplate}
-                  className="flex items-center gap-2 rounded-[10px]"
+                  className="flex items-center gap-3 px-6 py-3 rounded-[10px] hover:bg-accent text-base font-medium transition-all duration-200"
                   title="Guardar como plantilla"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-5 h-5" />
                   Guardar como Plantilla
                 </Button>
               </div>
@@ -189,183 +192,225 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
         </CardHeader>
         <CardContent className="space-y-6">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Información básica */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="provider_name">Proveedor *</Label>
-                <Input
-                  id="provider_name"
-                  placeholder="ej. Google Workspace, Notion, Figma"
-                  className="border-0.5 border-black rounded-[10px]"
-                  {...form.register('provider_name')}
+            {/* Sección: Información Básica */}
+            <div className="space-y-6">
+              <div className="border-l-4 border-primary pl-4">
+                <h3 className="text-xl font-semibold text-foreground mb-2">Información Básica</h3>
+                <p className="text-sm text-muted-foreground">Datos principales del proveedor</p>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="provider_name" className="text-base font-medium text-foreground">
+                    Proveedor <span className="text-destructive text-lg">*</span>
+                  </Label>
+                  <Input
+                    id="provider_name"
+                    placeholder="ej. Google Workspace, Notion, Figma"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('provider_name')}
+                  />
+                  {form.formState.errors.provider_name && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.provider_name.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="category" className="text-base font-medium text-foreground">
+                    Categoría <span className="text-destructive text-lg">*</span>
+                  </Label>
+                  <Select
+                    value={form.watch('category')}
+                    onValueChange={(value) => form.setValue('category', value as any)}
+                  >
+                    <SelectTrigger className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background">
+                      <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-2 border-border rounded-[10px] shadow-lg z-50">
+                      {SUBSCRIPTION_CATEGORIES.map((category) => (
+                        <SelectItem key={category.value} value={category.value} className="text-base py-3 hover:bg-accent">
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.category && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.category.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="description" className="text-base font-medium text-foreground">Descripción</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe para qué se usa esta suscripción..."
+                  className="min-h-[100px] text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                  {...form.register('description')}
                 />
-                {form.formState.errors.provider_name && (
-                  <p className="text-sm text-red-600">{form.formState.errors.provider_name.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoría *</Label>
-                <Select
-                  value={form.watch('category')}
-                  onValueChange={(value) => form.setValue('category', value as any)}
-                >
-                  <SelectTrigger className="border-0.5 border-black rounded-[10px]">
-                    <SelectValue placeholder="Selecciona una categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUBSCRIPTION_CATEGORIES.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.category && (
-                  <p className="text-sm text-red-600">{form.formState.errors.category.message}</p>
-                )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe para qué se usa esta suscripción..."
-                className="border-0.5 border-black rounded-[10px]"
-                {...form.register('description')}
-              />
-            </div>
-
-            {/* Información financiera */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="amount">Monto *</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  className="border-0.5 border-black rounded-[10px]"
-                  {...form.register('amount', { valueAsNumber: true })}
-                />
-                {form.formState.errors.amount && (
-                  <p className="text-sm text-red-600">{form.formState.errors.amount.message}</p>
-                )}
+            {/* Sección: Información Financiera */}
+            <div className="space-y-6">
+              <div className="border-l-4 border-primary pl-4">
+                <h3 className="text-xl font-semibold text-foreground mb-2">Información Financiera</h3>
+                <p className="text-sm text-muted-foreground">Costes y facturación</p>
               </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="amount" className="text-base font-medium text-foreground">
+                    Monto <span className="text-destructive text-lg">*</span>
+                  </Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('amount', { valueAsNumber: true })}
+                  />
+                  {form.formState.errors.amount && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.amount.message}</p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="currency">Moneda</Label>
-                <Select
-                  value={form.watch('currency')}
-                  onValueChange={(value) => form.setValue('currency', value)}
-                >
-                  <SelectTrigger className="border-0.5 border-black rounded-[10px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-3">
+                  <Label htmlFor="currency" className="text-base font-medium text-foreground">Moneda</Label>
+                  <Select
+                    value={form.watch('currency')}
+                    onValueChange={(value) => form.setValue('currency', value)}
+                  >
+                    <SelectTrigger className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-2 border-border rounded-[10px] shadow-lg z-50">
+                      <SelectItem value="EUR" className="text-base py-3 hover:bg-accent">EUR (€)</SelectItem>
+                      <SelectItem value="USD" className="text-base py-3 hover:bg-accent">USD ($)</SelectItem>
+                      <SelectItem value="GBP" className="text-base py-3 hover:bg-accent">GBP (£)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="billing_cycle">Frecuencia de Cobro *</Label>
-                <Select
-                  value={form.watch('billing_cycle')}
-                  onValueChange={(value) => form.setValue('billing_cycle', value as any)}
-                >
-                  <SelectTrigger className="border-0.5 border-black rounded-[10px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BILLING_CYCLES.map((cycle) => (
-                      <SelectItem key={cycle.value} value={cycle.value}>
-                        {cycle.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.billing_cycle && (
-                  <p className="text-sm text-red-600">{form.formState.errors.billing_cycle.message}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Fechas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="start_date">Fecha de Inicio *</Label>
-                <Input
-                  id="start_date"
-                  type="date"
-                  className="border-0.5 border-black rounded-[10px]"
-                  {...form.register('start_date')}
-                />
-                {form.formState.errors.start_date && (
-                  <p className="text-sm text-red-600">{form.formState.errors.start_date.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="next_renewal_date">
-                  Próxima Renovación *
-                  <span className="text-xs text-gray-500 ml-2">(calculada automáticamente)</span>
-                </Label>
-                <Input
-                  id="next_renewal_date"
-                  type="date"
-                  className="border-0.5 border-black rounded-[10px]"
-                  {...form.register('next_renewal_date')}
-                />
-                {form.formState.errors.next_renewal_date && (
-                  <p className="text-sm text-red-600">{form.formState.errors.next_renewal_date.message}</p>
-                )}
+                <div className="space-y-3">
+                  <Label htmlFor="billing_cycle" className="text-base font-medium text-foreground">
+                    Frecuencia de Cobro <span className="text-destructive text-lg">*</span>
+                  </Label>
+                  <Select
+                    value={form.watch('billing_cycle')}
+                    onValueChange={(value) => form.setValue('billing_cycle', value as any)}
+                  >
+                    <SelectTrigger className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-2 border-border rounded-[10px] shadow-lg z-50">
+                      {BILLING_CYCLES.map((cycle) => (
+                        <SelectItem key={cycle.value} value={cycle.value} className="text-base py-3 hover:bg-accent">
+                          {cycle.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {form.formState.errors.billing_cycle && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.billing_cycle.message}</p>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Información adicional */}
-            <div className="space-y-2">
-              <Label htmlFor="payment_method">Método de Pago</Label>
-              <Input
-                id="payment_method"
-                placeholder="ej. VISA ****1234, Transferencia, PayPal"
-                className="border-0.5 border-black rounded-[10px]"
-                {...form.register('payment_method')}
-              />
+            {/* Sección: Fechas */}
+            <div className="space-y-6">
+              <div className="border-l-4 border-primary pl-4">
+                <h3 className="text-xl font-semibold text-foreground mb-2">Fechas Importantes</h3>
+                <p className="text-sm text-muted-foreground">Inicio y renovación de la suscripción</p>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="start_date" className="text-base font-medium text-foreground">
+                    Fecha de Inicio <span className="text-destructive text-lg">*</span>
+                  </Label>
+                  <Input
+                    id="start_date"
+                    type="date"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('start_date')}
+                  />
+                  {form.formState.errors.start_date && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.start_date.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="next_renewal_date" className="text-base font-medium text-foreground">
+                    Próxima Renovación <span className="text-destructive text-lg">*</span>
+                    <span className="text-sm text-muted-foreground ml-2 font-normal">(calculada automáticamente)</span>
+                  </Label>
+                  <Input
+                    id="next_renewal_date"
+                    type="date"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('next_renewal_date')}
+                  />
+                  {form.formState.errors.next_renewal_date && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.next_renewal_date.message}</p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notas</Label>
-              <Textarea
-                id="notes"
-                placeholder="Información adicional, recordatorios, etc."
-                className="border-0.5 border-black rounded-[10px]"
-                {...form.register('notes')}
-              />
+            {/* Sección: Información Adicional */}
+            <div className="space-y-6">
+              <div className="border-l-4 border-primary pl-4">
+                <h3 className="text-xl font-semibold text-foreground mb-2">Información Adicional</h3>
+                <p className="text-sm text-muted-foreground">Detalles opcionales</p>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="payment_method" className="text-base font-medium text-foreground">Método de Pago</Label>
+                  <Input
+                    id="payment_method"
+                    placeholder="ej. VISA ****1234, Transferencia, PayPal"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('payment_method')}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="notes" className="text-base font-medium text-foreground">Notas</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Información adicional, recordatorios, etc."
+                    className="min-h-[100px] text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('notes')}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Botones */}
-            <div className="flex gap-3 pt-4">
+            {/* Botones mejorados */}
+            <div className="flex gap-4 pt-8 border-t border-border">
               <Button
                 type="button"
                 variant="outline"
+                size="lg"
                 onClick={onClose}
-                className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
+                className="px-8 py-3 text-base font-medium border-2 border-border rounded-[10px] hover:bg-accent transition-all duration-200"
                 disabled={isLoading}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                className="bg-black text-white border-0.5 border-black rounded-[10px] hover:bg-gray-800"
+                size="lg"
+                className="px-8 py-3 text-base font-medium bg-primary text-primary-foreground border-2 border-primary rounded-[10px] hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
                 disabled={isLoading}
               >
-                <Save className="h-4 w-4 mr-2" />
-                {isLoading ? 'Guardando...' : subscription ? 'Actualizar' : 'Crear Suscripción'}
+                <Save className="h-5 w-5 mr-3" />
+                {isLoading ? 'Guardando...' : subscription ? 'Actualizar Suscripción' : 'Crear Suscripción'}
               </Button>
             </div>
           </form>
