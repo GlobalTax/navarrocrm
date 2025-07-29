@@ -90,6 +90,25 @@ export const OutgoingSubscriptionsList = () => {
     }).format(amount)
   }
 
+  const formatSubscriptionDetails = (subscription: any) => {
+    const quantity = subscription.quantity || 1
+    const unitDesc = subscription.unit_description || 'unidad'
+    const unitPrice = subscription.amount
+    const totalPrice = quantity * unitPrice
+    
+    if (quantity === 1) {
+      return {
+        displayText: `${formatCurrency(unitPrice, subscription.currency)}`,
+        detailText: null
+      }
+    } else {
+      return {
+        displayText: `${formatCurrency(totalPrice, subscription.currency)}`,
+        detailText: `${quantity} ${unitDesc} × ${formatCurrency(unitPrice, subscription.currency)}`
+      }
+    }
+  }
+
   if (showForm) {
     return (
       <OutgoingSubscriptionForm
@@ -225,8 +244,17 @@ export const OutgoingSubscriptionsList = () => {
                         <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <DollarSign className="h-3 w-3" />
-                            {formatCurrency(subscription.amount, subscription.currency)}
-                            {subscription.billing_cycle === 'MONTHLY' ? '/mes' : '/año'}
+                            <div className="flex flex-col">
+                              <span>
+                                {formatSubscriptionDetails(subscription).displayText}
+                                {subscription.billing_cycle === 'MONTHLY' ? '/mes' : '/año'}
+                              </span>
+                              {formatSubscriptionDetails(subscription).detailText && (
+                                <span className="text-xs text-gray-400">
+                                  {formatSubscriptionDetails(subscription).detailText}
+                                </span>
+                              )}
+                            </div>
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />

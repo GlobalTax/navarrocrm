@@ -13,6 +13,8 @@ export interface OutgoingSubscription {
   payment_method?: string
   responsible_user_id: string
   notes?: string
+  quantity: number
+  unit_description?: string
   created_at: string
   updated_at: string
 }
@@ -29,6 +31,8 @@ export interface CreateOutgoingSubscriptionData {
   payment_method?: string
   responsible_user_id: string
   notes?: string
+  quantity?: number
+  unit_description?: string
 }
 
 export interface OutgoingSubscriptionStats {

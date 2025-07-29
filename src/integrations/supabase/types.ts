@@ -3327,9 +3327,11 @@ export type Database = {
           org_id: string
           payment_method: string | null
           provider_name: string
+          quantity: number
           responsible_user_id: string
           start_date: string
           status: string
+          unit_description: string | null
           updated_at: string
         }
         Insert: {
@@ -3345,9 +3347,11 @@ export type Database = {
           org_id: string
           payment_method?: string | null
           provider_name: string
+          quantity?: number
           responsible_user_id: string
           start_date: string
           status?: string
+          unit_description?: string | null
           updated_at?: string
         }
         Update: {
@@ -3363,9 +3367,11 @@ export type Database = {
           org_id?: string
           payment_method?: string | null
           provider_name?: string
+          quantity?: number
           responsible_user_id?: string
           start_date?: string
           status?: string
+          unit_description?: string | null
           updated_at?: string
         }
         Relationships: []

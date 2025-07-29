@@ -30,7 +30,9 @@ const formSchema = z.object({
   next_renewal_date: z.string().min(1, 'La fecha de renovación es obligatoria'),
   payment_method: z.string().optional(),
   responsible_user_id: z.string().min(1, 'El usuario responsable es obligatorio'),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  quantity: z.number().min(1, 'La cantidad debe ser mayor a 0').default(1),
+  unit_description: z.string().optional()
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -59,7 +61,9 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
       next_renewal_date: subscription?.next_renewal_date || new Date().toISOString().split('T')[0],
       payment_method: subscription?.payment_method || '',
       responsible_user_id: subscription?.responsible_user_id || user?.id || '',
-      notes: subscription?.notes || ''
+      notes: subscription?.notes || '',
+      quantity: subscription?.quantity || 1,
+      unit_description: subscription?.unit_description || 'unidad'
     }
   })
 
@@ -258,10 +262,39 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
                 <p className="text-sm text-muted-foreground">Costes y facturación</p>
               </div>
               
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="quantity" className="text-base font-medium text-foreground">
+                    Cantidad <span className="text-destructive text-lg">*</span>
+                  </Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('quantity', { valueAsNumber: true })}
+                  />
+                  {form.formState.errors.quantity && (
+                    <p className="text-sm text-destructive font-medium">{form.formState.errors.quantity.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="unit_description" className="text-base font-medium text-foreground">Descripción de Unidad</Label>
+                  <Input
+                    id="unit_description"
+                    placeholder="ej. licencias, cuentas, usuarios"
+                    className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    {...form.register('unit_description')}
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="space-y-3">
                   <Label htmlFor="amount" className="text-base font-medium text-foreground">
-                    Monto <span className="text-destructive text-lg">*</span>
+                    Precio por Unidad <span className="text-destructive text-lg">*</span>
                   </Label>
                   <Input
                     id="amount"
@@ -318,6 +351,23 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
                   )}
                 </div>
               </div>
+
+              {/* Total Calculation Display */}
+              {form.watch('quantity') && form.watch('amount') && (
+                <div className="p-4 bg-accent/50 rounded-[10px] border-2 border-accent">
+                  <div className="flex justify-between items-center">
+                    <span className="text-base font-medium text-foreground">
+                      Total {form.watch('billing_cycle') === 'MONTHLY' ? 'Mensual' : form.watch('billing_cycle') === 'YEARLY' ? 'Anual' : ''}:
+                    </span>
+                    <span className="text-xl font-bold text-primary">
+                      {(form.watch('quantity') * form.watch('amount')).toFixed(2)} {form.watch('currency')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {form.watch('quantity')} {form.watch('unit_description') || 'unidades'} × {form.watch('amount')} {form.watch('currency')}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Sección: Fechas */}

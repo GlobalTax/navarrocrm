@@ -157,7 +157,7 @@ export const useOutgoingSubscriptionStats = () => {
 
       const { data: subscriptions, error } = await supabase
         .from('outgoing_subscriptions')
-        .select('status, amount, billing_cycle, next_renewal_date')
+        .select('status, amount, billing_cycle, next_renewal_date, quantity')
         .eq('org_id', user.org_id)
 
       if (error) throw error
@@ -165,12 +165,13 @@ export const useOutgoingSubscriptionStats = () => {
       const totalSubscriptions = subscriptions.length
       const activeSubscriptions = subscriptions.filter(s => s.status === 'ACTIVE').length
       
-      // Calcular gastos mensuales y anuales
+      // Calcular gastos mensuales y anuales considerando cantidad
       const monthlyTotal = subscriptions
         .filter(s => s.status === 'ACTIVE')
         .reduce((sum, s) => {
-          let monthlyAmount = s.amount
-          if (s.billing_cycle === 'YEARLY') monthlyAmount = s.amount / 12
+          const quantity = s.quantity || 1
+          let monthlyAmount = s.amount * quantity
+          if (s.billing_cycle === 'YEARLY') monthlyAmount = (s.amount * quantity) / 12
           return sum + monthlyAmount
         }, 0)
 
