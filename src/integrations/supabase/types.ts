@@ -4790,6 +4790,42 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_user_assignments: {
+        Row: {
+          assigned_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          status: string
+          subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          status?: string
+          subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          status?: string
+          subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           auto_renew: boolean
