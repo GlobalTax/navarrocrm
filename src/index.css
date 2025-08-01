@@ -82,10 +82,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground text-base;
+    @apply bg-background text-foreground;
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    font-size: 1rem;
-    line-height: 1.5;
   }
 }
 
