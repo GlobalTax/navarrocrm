@@ -3,6 +3,7 @@ import { JobOfferFormData } from '@/types/job-offers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, MapPin, Clock, Euro, Users, CheckCircle } from 'lucide-react'
+import { TemplatePreview } from './templates/TemplatePreview'
 
 interface JobOfferPreviewProps {
   data: JobOfferFormData
@@ -206,6 +207,9 @@ export function JobOfferPreview({ data }: JobOfferPreviewProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Plantillas de Integración */}
+      <TemplatePreview data={data} />
     </div>
   )
 }
