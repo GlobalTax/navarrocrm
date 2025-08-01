@@ -15,7 +15,7 @@ function App() {
           <OnboardingProvider>
             <Toaster position="top-right" />
             <Router>
-              <div className="min-h-screen bg-gray-50">
+              <div className="min-h-screen bg-background text-foreground font-sans">
                 <AppRouter />
               </div>
             </Router>
