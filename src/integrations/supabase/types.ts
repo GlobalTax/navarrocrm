@@ -2758,6 +2758,213 @@ export type Database = {
         }
         Relationships: []
       }
+      job_offer_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          job_offer_id: string
+          org_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          job_offer_id: string
+          org_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          job_offer_id?: string
+          org_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      job_offer_templates: {
+        Row: {
+          created_at: string
+          created_by: string
+          default_benefits: Json | null
+          default_probation_months: number | null
+          default_requirements: Json | null
+          default_responsibilities: Json | null
+          default_vacation_days: number | null
+          department: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          org_id: string
+          position_level: string | null
+          salary_range_max: number | null
+          salary_range_min: number | null
+          title_template: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          default_benefits?: Json | null
+          default_probation_months?: number | null
+          default_requirements?: Json | null
+          default_responsibilities?: Json | null
+          default_vacation_days?: number | null
+          department?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          org_id: string
+          position_level?: string | null
+          salary_range_max?: number | null
+          salary_range_min?: number | null
+          title_template?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          default_benefits?: Json | null
+          default_probation_months?: number | null
+          default_requirements?: Json | null
+          default_responsibilities?: Json | null
+          default_vacation_days?: number | null
+          department?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          org_id?: string
+          position_level?: string | null
+          salary_range_max?: number | null
+          salary_range_min?: number | null
+          title_template?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      job_offers: {
+        Row: {
+          access_token: string | null
+          additional_notes: string | null
+          benefits: Json | null
+          candidate_email: string
+          candidate_name: string
+          candidate_phone: string | null
+          created_at: string
+          created_by: string
+          department: string | null
+          employee_onboarding_id: string | null
+          expires_at: string | null
+          id: string
+          org_id: string
+          position_level: string | null
+          probation_period_months: number | null
+          remote_work_allowed: boolean | null
+          requirements: Json | null
+          responded_at: string | null
+          responsibilities: Json | null
+          salary_amount: number | null
+          salary_currency: string | null
+          salary_period: string | null
+          sent_at: string | null
+          start_date: string | null
+          status: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          vacation_days: number | null
+          viewed_at: string | null
+          work_location: string | null
+          work_schedule: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          additional_notes?: string | null
+          benefits?: Json | null
+          candidate_email: string
+          candidate_name: string
+          candidate_phone?: string | null
+          created_at?: string
+          created_by: string
+          department?: string | null
+          employee_onboarding_id?: string | null
+          expires_at?: string | null
+          id?: string
+          org_id: string
+          position_level?: string | null
+          probation_period_months?: number | null
+          remote_work_allowed?: boolean | null
+          requirements?: Json | null
+          responded_at?: string | null
+          responsibilities?: Json | null
+          salary_amount?: number | null
+          salary_currency?: string | null
+          salary_period?: string | null
+          sent_at?: string | null
+          start_date?: string | null
+          status?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          vacation_days?: number | null
+          viewed_at?: string | null
+          work_location?: string | null
+          work_schedule?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          additional_notes?: string | null
+          benefits?: Json | null
+          candidate_email?: string
+          candidate_name?: string
+          candidate_phone?: string | null
+          created_at?: string
+          created_by?: string
+          department?: string | null
+          employee_onboarding_id?: string | null
+          expires_at?: string | null
+          id?: string
+          org_id?: string
+          position_level?: string | null
+          probation_period_months?: number | null
+          remote_work_allowed?: boolean | null
+          requirements?: Json | null
+          responded_at?: string | null
+          responsibilities?: Json | null
+          salary_amount?: number | null
+          salary_currency?: string | null
+          salary_period?: string | null
+          sent_at?: string | null
+          start_date?: string | null
+          status?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          vacation_days?: number | null
+          viewed_at?: string | null
+          work_location?: string | null
+          work_schedule?: string | null
+        }
+        Relationships: []
+      }
       matter_notifications: {
         Row: {
           case_id: string
@@ -6052,6 +6259,10 @@ export type Database = {
         Returns: undefined
       }
       generate_invitation_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_job_offer_token: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
