@@ -47,6 +47,7 @@ export const BILLING_CYCLES = [
 ] as const
 
 export const POPULAR_TEMPLATES = [
+  // Desarrollo y Software
   {
     name: 'Lovable Pro',
     category: 'SOFTWARE' as const,
@@ -68,15 +69,6 @@ export const POPULAR_TEMPLATES = [
     notes: 'Incluye base de datos PostgreSQL, autenticación, APIs REST y realtime, storage y edge functions'
   },
   {
-    name: 'ChatGPT Plus',
-    category: 'IA' as const,
-    default_price: 20.00,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://openai.com',
-    description: 'Suscripción mensual a ChatGPT Plus con GPT-4'
-  },
-  {
     name: 'Notion Pro',
     category: 'SOFTWARE' as const,
     default_price: 10.00,
@@ -93,60 +85,6 @@ export const POPULAR_TEMPLATES = [
     default_payment_method: 'Transferencia',
     provider_website: 'https://workspace.google.com',
     description: 'Suite de productividad empresarial de Google'
-  },
-  {
-    name: 'Figma Pro',
-    category: 'DISENO' as const,
-    default_price: 12.00,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://figma.com',
-    description: 'Herramienta de diseño colaborativo profesional'
-  },
-  {
-    name: 'Canva Pro',
-    category: 'MARKETING' as const,
-    default_price: 11.99,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://canva.com',
-    description: 'Plataforma de diseño gráfico profesional'
-  },
-  {
-    name: 'Slack Pro',
-    category: 'COMUNICACION' as const,
-    default_price: 7.25,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://slack.com',
-    description: 'Plataforma de comunicación empresarial'
-  },
-  {
-    name: 'Pitch Pro',
-    category: 'SOFTWARE' as const,
-    default_price: 10.00,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://pitch.com',
-    description: 'Herramienta profesional de presentaciones con IA'
-  },
-  {
-    name: 'Google Gemini Advanced',
-    category: 'IA' as const,
-    default_price: 19.99,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://gemini.google.com',
-    description: 'Acceso ilimitado a Gemini Advanced con 2TB de almacenamiento'
-  },
-  {
-    name: 'Microsoft Teams Essentials',
-    category: 'COMUNICACION' as const,
-    default_price: 4.00,
-    default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://www.microsoft.com/microsoft-teams',
-    description: 'Solución de videoconferencias y colaboración para equipos'
   },
   {
     name: 'Microsoft 365 Business Standard',
@@ -167,13 +105,14 @@ export const POPULAR_TEMPLATES = [
     description: 'Plataforma visual de desarrollo web con CMS integrado'
   },
   {
-    name: 'Flowbase Pro+',
-    category: 'DISENO' as const,
-    default_price: 39.00,
+    name: 'Cursor Hobby',
+    category: 'SOFTWARE' as const,
+    default_price: 0.00,
     default_billing_cycle: 'MONTHLY' as const,
-    default_payment_method: 'VISA',
-    provider_website: 'https://flowbase.co',
-    description: 'Librería premium de componentes y templates para Webflow'
+    default_payment_method: 'GRATIS',
+    provider_website: 'https://cursor.com',
+    description: 'Editor de código con IA - Plan gratuito',
+    notes: '2000 completados, 50 requests premium lentos, trial de 2 semanas Pro'
   },
   {
     name: 'Cursor Pro',
@@ -182,6 +121,157 @@ export const POPULAR_TEMPLATES = [
     default_billing_cycle: 'MONTHLY' as const,
     default_payment_method: 'VISA',
     provider_website: 'https://cursor.com',
-    description: 'Editor de código con IA integrada para desarrollo'
+    description: 'Editor de código con IA - Plan profesional',
+    notes: 'Completados ilimitados, 500 requests premium rápidos/mes, 10 usos o1-mini/día'
+  },
+  {
+    name: 'Cursor Business',
+    category: 'SOFTWARE' as const,
+    default_price: 40.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://cursor.com',
+    description: 'Editor de código con IA - Plan empresarial',
+    notes: 'Todo lo de Pro + funciones empresariales avanzadas'
+  },
+
+  // Inteligencia Artificial
+  {
+    name: 'ChatGPT Plus',
+    category: 'IA' as const,
+    default_price: 20.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://openai.com',
+    description: 'Suscripción mensual a ChatGPT Plus con GPT-4'
+  },
+  {
+    name: 'Google Gemini Advanced',
+    category: 'IA' as const,
+    default_price: 19.99,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://gemini.google.com',
+    description: 'Acceso ilimitado a Gemini Advanced con 2TB de almacenamiento',
+    notes: 'Incluye Google One AI Premium, Gemini 2.0 Flash Experimental'
+  },
+  {
+    name: 'Gemini Ultra',
+    category: 'IA' as const,
+    default_price: 249.99,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://gemini.google.com',
+    description: 'Plan más potente de Google AI con límites máximos',
+    notes: 'Modelos más potentes, herramientas creativas avanzadas, límites de uso más altos'
+  },
+  {
+    name: 'Manus AI Starter',
+    category: 'IA' as const,
+    default_price: 39.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://manus.im',
+    description: 'Agente IA autónomo para tareas complejas - Plan básico',
+    notes: 'Agente IA que maneja tareas desde crear páginas web hasta automatizaciones complejas'
+  },
+  {
+    name: 'Manus AI Pro',
+    category: 'IA' as const,
+    default_price: 199.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://manus.im',
+    description: 'Agente IA autónomo para tareas complejas - Plan profesional',
+    notes: 'Plan avanzado con más capacidades y límites superiores para uso empresarial'
+  },
+
+  // Comunicación
+  {
+    name: 'Slack Pro',
+    category: 'COMUNICACION' as const,
+    default_price: 7.25,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://slack.com',
+    description: 'Plataforma de comunicación empresarial'
+  },
+  {
+    name: 'Microsoft Teams Essentials',
+    category: 'COMUNICACION' as const,
+    default_price: 4.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://www.microsoft.com/microsoft-teams',
+    description: 'Solución de videoconferencias y colaboración para equipos'
+  },
+  {
+    name: 'Nylas Starter',
+    category: 'COMUNICACION' as const,
+    default_price: 10.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://nylas.com',
+    description: 'API de email y calendario - Plan básico',
+    notes: 'Base mensual + 5 cuentas conectadas incluidas, $1/cuenta adicional'
+  },
+  {
+    name: 'Nylas Growth',
+    category: 'COMUNICACION' as const,
+    default_price: 15.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://nylas.com',
+    description: 'API de email y calendario - Plan crecimiento',
+    notes: 'Base mensual + 5 cuentas conectadas incluidas, $1.50/cuenta adicional, funciones avanzadas'
+  },
+  {
+    name: 'Resend Pro',
+    category: 'COMUNICACION' as const,
+    default_price: 20.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://resend.com',
+    description: 'API de email transaccional profesional',
+    notes: 'Email API para desarrolladores, hasta 50,000 emails/mes'
+  },
+  {
+    name: 'Pitch Pro',
+    category: 'SOFTWARE' as const,
+    default_price: 10.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://pitch.com',
+    description: 'Herramienta profesional de presentaciones colaborativas',
+    notes: 'Presentaciones colaborativas con IA, plantillas premium, análisis avanzado'
+  },
+
+  // Diseño
+  {
+    name: 'Figma Pro',
+    category: 'DISENO' as const,
+    default_price: 12.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://figma.com',
+    description: 'Herramienta de diseño colaborativo profesional'
+  },
+  {
+    name: 'Canva Pro',
+    category: 'MARKETING' as const,
+    default_price: 11.99,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://canva.com',
+    description: 'Plataforma de diseño gráfico profesional'
+  },
+  {
+    name: 'Flowbase Pro+',
+    category: 'DISENO' as const,
+    default_price: 39.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://flowbase.co',
+    description: 'Librería premium de componentes y templates para Webflow'
   }
 ]
