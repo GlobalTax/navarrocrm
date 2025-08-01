@@ -48,14 +48,24 @@ export const BILLING_CYCLES = [
 
 export const POPULAR_TEMPLATES = [
   {
-    name: 'Lovable + Supabase + Webflow + Flowbase Stack',
+    name: 'Lovable Pro',
     category: 'SOFTWARE' as const,
-    default_price: 149.99,
+    default_price: 20.00,
     default_billing_cycle: 'MONTHLY' as const,
     default_payment_method: 'VISA',
     provider_website: 'https://lovable.dev',
-    description: 'Stack completo de desarrollo: Lovable Pro ($20) + Supabase Pro ($25) + Webflow CMS ($23) + Flowbase Pro+ ($39) + integración y soporte',
-    notes: 'Incluye: Desarrollo con IA (Lovable), Backend completo (Supabase), Diseño visual (Webflow), Componentes premium (Flowbase) y configuración integrada'
+    description: 'Plataforma de desarrollo con IA para crear aplicaciones web',
+    notes: 'Desarrollo visual con inteligencia artificial, integración con bases de datos y despliegue automático'
+  },
+  {
+    name: 'Supabase Pro',
+    category: 'SOFTWARE' as const,
+    default_price: 25.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://supabase.com',
+    description: 'Backend as a Service con base de datos PostgreSQL, autenticación y APIs',
+    notes: 'Incluye base de datos PostgreSQL, autenticación, APIs REST y realtime, storage y edge functions'
   },
   {
     name: 'ChatGPT Plus',
