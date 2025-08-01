@@ -7,11 +7,12 @@ import { UpcomingRenewalsCalendar } from '@/components/outgoing-subscriptions/Up
 import { OutgoingSubscriptionAlert } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAlert'
 import { OutgoingSubscriptionAnalytics } from '@/components/outgoing-subscriptions/OutgoingSubscriptionAnalytics'
 import { LicenseStats } from '@/components/outgoing-subscriptions/LicenseStats'
+import { PricingAnalyzer } from '@/components/pricing/PricingAnalyzer'
 import { Button } from '@/components/ui/button'
-import { LayoutGrid, Table, Calendar, BarChart3 } from 'lucide-react'
+import { LayoutGrid, Table, Calendar, BarChart3, DollarSign } from 'lucide-react'
 
 const OutgoingSubscriptionsPage = () => {
-  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'calendar' | 'analytics'>('table')
+  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'calendar' | 'analytics' | 'pricing'>('table')
 
   return (
     <div className="space-y-8 p-6">
@@ -62,6 +63,15 @@ const OutgoingSubscriptionsPage = () => {
             <BarChart3 className="h-4 w-4 mr-2" />
             Analítica
           </Button>
+          <Button
+            variant={viewMode === 'pricing' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('pricing')}
+            className="rounded-[8px]"
+          >
+            <DollarSign className="h-4 w-4 mr-2" />
+            Pricing
+          </Button>
         </div>
       </div>
 
@@ -79,6 +89,8 @@ const OutgoingSubscriptionsPage = () => {
         <UpcomingRenewalsCalendar />
       ) : viewMode === 'analytics' ? (
         <OutgoingSubscriptionAnalytics />
+      ) : viewMode === 'pricing' ? (
+        <PricingAnalyzer />
       ) : (
         <OutgoingSubscriptionsList />
       )}
