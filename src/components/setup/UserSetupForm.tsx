@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { setupLogger } from '@/utils/logging'
 
 interface UserSetupFormProps {
   orgName: string
@@ -39,7 +40,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
     setLoading(true)
 
     try {
-      console.log('Iniciando creación de usuario:', userData.email)
+      setupLogger.info('Iniciando creación de usuario', { email: userData.email })
 
       // Obtener la organización creada
       const { data: orgData, error: orgError } = await supabase
@@ -53,7 +54,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
         throw new Error('No se pudo encontrar la organización. Por favor, vuelve al paso anterior.')
       }
 
-      console.log('Organización encontrada:', orgData)
+      setupLogger.info('Organización encontrada', { orgData })
 
       // Registrar usuario en Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -69,7 +70,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
         throw authError
       }
 
-      console.log('Usuario de auth creado:', authData.user?.id)
+      setupLogger.info('Usuario de auth creado', { userId: authData.user?.id })
 
       if (authData.user && orgData.id) {
         // Crear perfil de usuario
@@ -87,7 +88,7 @@ export const UserSetupForm = ({ orgName, onBack }: UserSetupFormProps) => {
           throw profileError
         }
 
-        console.log('Perfil de usuario creado exitosamente')
+        setupLogger.info('Perfil de usuario creado exitosamente')
         
         toast.success("Sistema configurado exitosamente. Ya puedes iniciar sesión.")
 

@@ -10,6 +10,7 @@ import { Play, Pause, Square, Clock } from 'lucide-react'
 import { useCases } from '@/hooks/useCases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { toast } from 'sonner'
+import { performanceLogger } from '@/utils/logging'
 
 export const Timer = () => {
   const [isRunning, setIsRunning] = useState(false)

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react'
+import { casesLogger } from '@/utils/logging'
 import { WizardFormData, WizardStep } from './types'
 import { CreateCaseData } from '@/hooks/cases/types'
 
@@ -34,7 +35,7 @@ export const useWizardState = (
   // Close wizard when creation is successful
   useEffect(() => {
     if (isSuccess) {
-      console.log('✅ Expediente creado exitosamente, cerrando wizard')
+      casesLogger.info('✅ Expediente creado exitosamente, cerrando wizard')
       handleClose()
     }
   }, [isSuccess])
@@ -83,7 +84,7 @@ export const useWizardState = (
   }
 
   const handleClose = () => {
-    console.log('🚪 Cerrando wizard y reseteando estado')
+    casesLogger.debug('🚪 Cerrando wizard y reseteando estado')
     
     // Reset form
     setCurrentStep(1)

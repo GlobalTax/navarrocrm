@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
+import { appLogger } from '@/utils/logging'
 
 export function EmailDiagnostics() {
   const [testEmail, setTestEmail] = useState('')
@@ -34,7 +35,7 @@ export function EmailDiagnostics() {
     setDiagnosticResults(null)
     
     try {
-      console.log('🔍 Iniciando diagnóstico completo de email...')
+      appLogger.info('🔍 Iniciando diagnóstico completo de email...')
       
       const results = {
         configTest: null,
@@ -44,7 +45,7 @@ export function EmailDiagnostics() {
       }
 
       // Test 1: Verificar configuración básica
-      console.log('🧪 Test 1: Verificación de configuración')
+      appLogger.debug('🧪 Test 1: Verificación de configuración')
       try {
         const { data: configData, error: configError } = await supabase.functions.invoke('send-email', {
           body: {

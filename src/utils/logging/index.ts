@@ -23,5 +23,6 @@ export {
   proposalsLogger,
   casesLogger,
   tasksLogger,
-  invoicesLogger
+  invoicesLogger,
+  quantumLogger
 } from './context-loggers'

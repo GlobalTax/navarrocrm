@@ -20,6 +20,7 @@ import {
 import { useDocumentTemplates, type GeneratedDocument } from '@/hooks/useDocumentTemplates'
 import { VirtualList } from '@/components/ui/virtual-list'
 import { useDebounce } from '@/hooks/useDebounce'
+import { documentsLogger } from '@/utils/logging'
 
 interface VirtualizedDocumentsListProps {
   documents: GeneratedDocument[]
@@ -69,23 +70,28 @@ export const VirtualizedDocumentsList = ({ documents }: VirtualizedDocumentsList
   }
 
   const handleDownload = (document: GeneratedDocument) => {
-    console.log('Downloading document:', document.id)
+    documentsLogger.info('Descargando documento', { documentId: document.id })
+    // TODO: Implementar descarga de documento
   }
 
   const handleSendEmail = (document: GeneratedDocument) => {
-    console.log('Sending document:', document.id)
+    documentsLogger.info('Enviando documento por email', { documentId: document.id })
+    // TODO: Implementar envío por email
   }
 
   const handleView = (document: GeneratedDocument) => {
-    console.log('Viewing document:', document.id)
+    documentsLogger.info('Visualizando documento', { documentId: document.id })
+    // TODO: Implementar vista de documento
   }
 
   const handleEdit = (document: GeneratedDocument) => {
-    console.log('Editing document:', document.id)
+    documentsLogger.info('Editando documento', { documentId: document.id })
+    // TODO: Implementar edición de documento
   }
 
   const handleDelete = (document: GeneratedDocument) => {
-    console.log('Deleting document:', document.id)
+    documentsLogger.info('Eliminando documento', { documentId: document.id })
+    // TODO: Implementar eliminación de documento
   }
 
   const renderDocumentItem = (document: GeneratedDocument, index: number) => (
