@@ -13,6 +13,8 @@ import { ClientServicesSection } from '@/components/clients/ClientServicesSectio
 import { ClientCommunicationsSection } from '@/components/clients/ClientCommunicationsSection'
 import { ClientDocumentsSection } from '@/components/clients/ClientDocumentsSection'
 import { ClientTimelineSection } from '@/components/clients/ClientTimelineSection'
+import { ClientTimer } from '@/components/clients/ClientTimer'
+import { ClientTaskAutomation } from '@/components/clients/ClientTaskAutomation'
 
 interface Client {
   id: string
@@ -186,16 +188,19 @@ const ClientDetail = () => {
             </div>
           </div>
           
-          <Button variant="outline" size="sm" className="border-slate-300 text-slate-700 hover:bg-slate-50">
-            <Edit className="h-4 w-4 mr-2" />
-            Editar Cliente
-          </Button>
+          <div className="flex items-center gap-3">
+            <ClientTimer clientId={client.id} clientName={client.name} />
+            <Button variant="outline" size="sm" className="border-slate-300 text-slate-700 hover:bg-slate-50">
+              <Edit className="h-4 w-4 mr-2" />
+              Editar Cliente
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Professional Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-slate-50 border border-slate-200">
+        <TabsList className="grid w-full grid-cols-7 bg-slate-50 border border-slate-200">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
             Resumen
           </TabsTrigger>
@@ -213,6 +218,9 @@ const ClientDetail = () => {
           </TabsTrigger>
           <TabsTrigger value="cases" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
             Casos ({cases.length})
+          </TabsTrigger>
+          <TabsTrigger value="automation" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Tareas Auto
           </TabsTrigger>
         </TabsList>
 
@@ -263,6 +271,10 @@ const ClientDetail = () => {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="automation" className="space-y-6 mt-6">
+          <ClientTaskAutomation clientId={client.id} clientName={client.name} />
         </TabsContent>
       </Tabs>
     </StandardPageContainer>
