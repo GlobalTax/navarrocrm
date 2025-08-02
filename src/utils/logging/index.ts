@@ -3,6 +3,21 @@
  * Reemplaza todos los console.log dispersos en la aplicación
  */
 
-export * from './logger'
-export * from './context-loggers'
-export * from './types'
+// Export primary logger
+export { logger, createLogger } from './production-logger'
+export type { LogLevel } from './production-logger'
+
+// Re-export context loggers
+export { 
+  authLogger, 
+  appLogger, 
+  routeLogger, 
+  profileLogger, 
+  sessionLogger, 
+  setupLogger,
+  performanceLogger,
+  aiLogger,
+  contactsLogger,
+  documentsLogger,
+  globalLogger
+} from './context-loggers'
