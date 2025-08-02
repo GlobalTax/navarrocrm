@@ -5,12 +5,12 @@ import { Badge } from '@/components/ui/badge'
 import { JobOfferBuilder } from '@/components/job-offers/JobOfferBuilder'
 import { useJobOffers } from '@/hooks/useJobOffers'
 import { JobOfferFormData, JobOfferStatus } from '@/types/job-offers'
-import { Plus, Send, Eye, Trash2, Calendar } from 'lucide-react'
+import { Plus, Send, Eye, Trash2, Calendar, FileSignature } from 'lucide-react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 export default function JobOffers() {
-  const { jobOffers, isLoading, isCreating, createJobOffer, sendJobOffer, deleteJobOffer } = useJobOffers()
+  const { jobOffers, isLoading, isCreating, createJobOffer, sendJobOffer, deleteJobOffer, createSignatureRequest } = useJobOffers()
   const [showBuilder, setShowBuilder] = useState(false)
 
   const handleCreateOffer = async (data: JobOfferFormData) => {
