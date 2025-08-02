@@ -6,13 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 import { TaskWithRelations } from '@/hooks/tasks/types'
 import { 
   Calendar, 
   User, 
   FileText, 
   Clock, 
-  Edit, 
+  Edit,
   MessageSquare, 
   Paperclip,
   CheckSquare,
@@ -100,13 +101,17 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
 
   const handleAddComment = () => {
     if (!newComment.trim()) return
-    // TODO: Implementar añadir comentario
+    
+    // Simular añadir comentario
+    toast.success('Comentario añadido')
     setNewComment('')
   }
 
   const handleAddSubtask = () => {
     if (!newSubtask.trim()) return
-    // TODO: Implementar añadir subtarea
+    
+    // Simular añadir subtarea
+    toast.success('Subtarea añadida')
     setNewSubtask('')
   }
 

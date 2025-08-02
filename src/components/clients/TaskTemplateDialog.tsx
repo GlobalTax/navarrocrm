@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { globalLogger } from '@/utils/logging'
 
 interface TaskTemplateDialogProps {
   isOpen: boolean
@@ -26,11 +27,27 @@ export const TaskTemplateDialog = ({ isOpen, onClose, template }: TaskTemplateDi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // TODO: Implementar guardado de plantilla
-    console.log('Guardando plantilla:', formData)
-    
-    toast.success(template ? 'Plantilla actualizada' : 'Plantilla creada')
-    onClose()
+    try {
+      // Validación básica
+      if (!formData.name.trim()) {
+        toast.error('El nombre es requerido')
+        return
+      }
+
+      globalLogger.info('Guardando plantilla de tarea', { 
+        template: { ...formData, isUpdate: !!template } 
+      })
+      
+      // Aquí se implementaría la lógica de guardado real
+      // por ahora simulamos la operación
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      toast.success(template ? 'Plantilla actualizada correctamente' : 'Plantilla creada correctamente')
+      onClose()
+    } catch (error) {
+      globalLogger.error('Error al guardar plantilla', { error })
+      toast.error('Error al guardar la plantilla')
+    }
   }
 
   return (

@@ -85,8 +85,8 @@ const RecurrentFees = () => {
   }
 
   const handleViewDetails = (fee) => {
-    // TODO: Implementar vista de detalles
-    toast.success('Próximamente: La vista de detalles estará disponible pronto')
+    // Navegar a vista de detalles (cuando esté implementada)
+    toast.info('Vista de detalles próximamente disponible')
   }
 
   const handleGenerateInvoices = async () => {

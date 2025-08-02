@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { performanceLogger } from '@/utils/logging'
 
 interface MemoryInfo {
   usedJSHeapSize: number
@@ -23,16 +24,26 @@ export const useMemoryTracker = (componentName: string, interval: number = 5000)
       const memoryMB = currentMemory / 1024 / 1024
       const diffMB = memoryDiff / 1024 / 1024
 
-      console.log(`🧠 [Memory] ${componentName}: ${memoryMB.toFixed(2)}MB (${diffMB > 0 ? '+' : ''}${diffMB.toFixed(2)}MB)`)
+      performanceLogger.info('Memoria actual', { 
+        component: componentName, 
+        memoryMB: Number(memoryMB.toFixed(2)), 
+        diffMB: Number(diffMB.toFixed(2)) 
+      })
 
       // Warning for memory leaks
       if (diffMB > 10) {
-        console.warn(`⚠️ [Memory Leak] ${componentName} increased memory by ${diffMB.toFixed(2)}MB`)
+        performanceLogger.warn('Posible memory leak', { 
+          component: componentName, 
+          memoryIncrease: Number(diffMB.toFixed(2)) 
+        })
       }
 
       // Critical warning
       if (memoryMB > 100) {
-        console.error(`🚨 [Memory Critical] ${componentName} using ${memoryMB.toFixed(2)}MB`)
+        performanceLogger.error('Uso crítico de memoria', { 
+          component: componentName, 
+          memoryMB: Number(memoryMB.toFixed(2)) 
+        })
       }
     }
 
@@ -49,7 +60,10 @@ export const useMemoryTracker = (componentName: string, interval: number = 5000)
         const leaked = finalMemory - initialMemory.current
         
         if (leaked > 1024 * 1024) { // More than 1MB
-          console.warn(`💧 [Memory Leak] ${componentName} may have leaked ${(leaked / 1024 / 1024).toFixed(2)}MB`)
+          performanceLogger.warn('Posible memory leak al desmontar', { 
+            component: componentName, 
+            leakedMB: Number((leaked / 1024 / 1024).toFixed(2)) 
+          })
         }
       }
     }
