@@ -22,19 +22,20 @@ import { Button } from '@/components/ui/button'
 import { ChatSuggestions } from './ChatSuggestions'
 import { useAIChat } from './useAIChat'
 import { AIAssistantProps } from './types'
+import { aiLogger } from '@/utils/logging'
 
 export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAssistantProps) => {
   const { messages, isLoading, sendMessage } = useAIChat()
   const [inputMessage, setInputMessage] = useState('')
 
   const handleSuggestionClick = (suggestion: string) => {
-    console.log('💡 AIAssistant - Clic en sugerencia:', suggestion)
+    aiLogger.debug('Clic en sugerencia', { suggestion })
     sendMessage(suggestion)
   }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    console.log('📝 AIAssistant - Submit formulario, mensaje:', inputMessage)
+    aiLogger.info('Submit formulario', { mensaje: inputMessage })
     sendMessage(inputMessage)
     setInputMessage('')
   }

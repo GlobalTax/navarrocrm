@@ -7,6 +7,7 @@ import { WizardStep3 } from './WizardStep3'
 import { WizardNavigation } from './WizardNavigation'
 import { MatterWizardProps } from './types'
 import { useWizardState } from './useWizardState'
+import { casesLogger } from '@/utils/logging'
 
 export function MatterWizard({ 
   open, 
@@ -33,7 +34,10 @@ export function MatterWizard({
     if (!validateStep(currentStep)) return
 
     const submitData = prepareSubmitData()
-    console.log('📤 Enviando datos del expediente:', submitData)
+    casesLogger.info('Enviando datos del expediente', { 
+      dataKeys: Object.keys(submitData),
+      stepCount: steps.length
+    })
     onSubmit(submitData)
   }
 

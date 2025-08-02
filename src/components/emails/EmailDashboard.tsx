@@ -15,12 +15,14 @@ import { useApp } from '@/contexts/AppContext'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
+import { logger } from '@/utils/logging'
 
 export function EmailDashboard() {
   const navigate = useNavigate()
   const { user, session, authLoading } = useApp()
   
-  console.log('📧 [EmailDashboard] Estado de autenticación:', {
+  logger.debug('Estado de autenticación', {
+    component: 'EmailDashboard',
     authLoading,
     hasUser: !!user,
     hasSession: !!session,
@@ -52,7 +54,7 @@ export function EmailDashboard() {
   
   // Si no hay sesión válida, redirigir al login
   if (!session || !user) {
-    console.log('⚠️ [EmailDashboard] Sesión no válida, redirigiendo al login')
+    logger.warn('Sesión no válida, redirigiendo al login', { component: 'EmailDashboard' })
     navigate('/login', { 
       replace: true,
       state: { from: { pathname: '/emails/dashboard' } }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { logger } from '@/utils/logging'
 
 export const useCollaborationHub = () => {
   const [activeCases] = useState([
@@ -22,19 +23,36 @@ export const useCollaborationHub = () => {
   ])
 
   const sendMessage = (caseId: string, content: string) => {
-    console.log(`Sending message to case ${caseId}: ${content}`)
+    logger.info('Enviando mensaje', { 
+      component: 'CollaborationHub',
+      caseId, 
+      contentLength: content.length 
+    })
   }
 
   const scheduleCall = (caseId: string, datetime: string) => {
-    console.log(`Scheduling call for case ${caseId} at ${datetime}`)
+    logger.info('Programando llamada', { 
+      component: 'CollaborationHub',
+      caseId, 
+      datetime 
+    })
   }
 
   const shareDocument = (caseId: string, document: any) => {
-    console.log(`Sharing document in case ${caseId}:`, document)
+    logger.info('Compartiendo documento', { 
+      component: 'CollaborationHub',
+      caseId, 
+      documentId: document?.id,
+      documentType: document?.type
+    })
   }
 
   const inviteCollaborator = (email: string, role: string) => {
-    console.log(`Inviting ${email} as ${role}`)
+    logger.info('Invitando colaborador', { 
+      component: 'CollaborationHub',
+      email, 
+      role 
+    })
   }
 
   return {

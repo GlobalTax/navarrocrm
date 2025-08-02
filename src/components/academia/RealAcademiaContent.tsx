@@ -9,6 +9,7 @@ import { QuickActions } from './QuickActions'
 import { EmptyState } from './EmptyState'
 import { LoadingState } from './LoadingState'
 import { ErrorState } from './ErrorState'
+import { logger } from '@/utils/logging'
 
 export function RealAcademiaContent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -20,7 +21,12 @@ export function RealAcademiaContent() {
   const { data: courses, isLoading: coursesLoading, error: coursesError } = usePublishedCourses(selectedCategory || undefined)
   const { data: userProgress, isLoading: progressLoading } = useUserProgress()
 
-  console.log('Academia Data:', { categories, courses, userProgress })
+  logger.debug('Academia Data cargada', { 
+    component: 'RealAcademiaContent',
+    categoriesCount: categories.length,
+    coursesCount: courses.length,
+    userProgressCount: userProgress.length
+  })
 
   // Mostrar estado de carga
   if (categoriesLoading || coursesLoading || progressLoading) {
