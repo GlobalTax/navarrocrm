@@ -134,6 +134,17 @@ export default function JobOffers() {
                       Enviar
                     </Button>
                   )}
+                  {(offer.status === 'sent' || offer.status === 'viewed') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => createSignatureRequest(offer.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <FileSignature className="h-4 w-4" />
+                      Crear Enlace Firma
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" className="flex items-center gap-2">
                     <Eye className="h-4 w-4" />
                     Ver Detalles

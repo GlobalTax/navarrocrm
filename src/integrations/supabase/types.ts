@@ -2794,6 +2794,60 @@ export type Database = {
         }
         Relationships: []
       }
+      job_offer_signatures: {
+        Row: {
+          candidate_email: string
+          candidate_name: string
+          created_at: string
+          document_url: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          job_offer_id: string
+          org_id: string
+          signature_data: string | null
+          signature_token: string
+          signed_at: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          candidate_email: string
+          candidate_name: string
+          created_at?: string
+          document_url?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          job_offer_id: string
+          org_id: string
+          signature_data?: string | null
+          signature_token?: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          candidate_email?: string
+          candidate_name?: string
+          created_at?: string
+          document_url?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          job_offer_id?: string
+          org_id?: string
+          signature_data?: string | null
+          signature_token?: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       job_offer_templates: {
         Row: {
           created_at: string
@@ -3656,6 +3710,83 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: []
+      }
+      pricing_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          org_id: string
+          provider_name: string
+          threshold_percentage: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_id: string
+          provider_name: string
+          threshold_percentage?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_id?: string
+          provider_name?: string
+          threshold_percentage?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pricing_change_history: {
+        Row: {
+          change_percentage: number | null
+          change_type: string
+          detected_at: string
+          id: string
+          new_pricing_data: Json
+          old_pricing_data: Json | null
+          org_id: string
+          pricing_intelligence_id: string
+        }
+        Insert: {
+          change_percentage?: number | null
+          change_type: string
+          detected_at?: string
+          id?: string
+          new_pricing_data: Json
+          old_pricing_data?: Json | null
+          org_id: string
+          pricing_intelligence_id: string
+        }
+        Update: {
+          change_percentage?: number | null
+          change_type?: string
+          detected_at?: string
+          id?: string
+          new_pricing_data?: Json
+          old_pricing_data?: Json | null
+          org_id?: string
+          pricing_intelligence_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_change_history_pricing_intelligence_id_fkey"
+            columns: ["pricing_intelligence_id"]
+            isOneToOne: false
+            referencedRelation: "saas_pricing_intelligence"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proposal_audit_log: {
         Row: {
@@ -4699,6 +4830,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saas_pricing_intelligence: {
+        Row: {
+          created_at: string
+          id: string
+          last_scraped_at: string | null
+          org_id: string
+          pricing_data: Json
+          pricing_model: string
+          provider_name: string
+          provider_website: string
+          scraping_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_scraped_at?: string | null
+          org_id: string
+          pricing_data?: Json
+          pricing_model: string
+          provider_name: string
+          provider_website: string
+          scraping_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_scraped_at?: string | null
+          org_id?: string
+          pricing_data?: Json
+          pricing_model?: string
+          provider_name?: string
+          provider_website?: string
+          scraping_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       scheduled_reports: {
         Row: {

@@ -85,6 +85,16 @@ const generateJobOfferHTML = (data: JobOfferData): string => {
             margin-bottom: 40px;
             padding-bottom: 20px;
             border-bottom: 3px solid #0061FF;
+            position: relative;
+        }
+        
+        .header-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .header h1 {
@@ -183,6 +193,45 @@ const generateJobOfferHTML = (data: JobOfferData): string => {
             margin-bottom: 10px;
         }
         
+        .work-environment {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .work-environment img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .signature-section {
+            margin-top: 60px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid #0061FF;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .signature-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .signature-line {
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            text-align: center;
+            margin-top: 40px;
+            min-height: 80px;
+        }
+        
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -203,11 +252,15 @@ const generateJobOfferHTML = (data: JobOfferData): string => {
                 margin-bottom: 20px;
                 page-break-inside: avoid;
             }
+            .signature-section {
+                page-break-inside: avoid;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
+        <img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=200&fit=crop" alt="Ambiente profesional" class="header-image" />
         <h1>Propuesta de Incorporación</h1>
         <p>Oferta de trabajo para ${data.candidate_name}</p>
     </div>
@@ -283,6 +336,16 @@ const generateJobOfferHTML = (data: JobOfferData): string => {
         </div>
     </div>
 
+    <div class="section">
+        <h2>🏢 Ambiente de Trabajo</h2>
+        <p>Únete a nuestro equipo en un ambiente moderno y colaborativo:</p>
+        <div class="work-environment">
+            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=150&fit=crop" alt="Trabajo colaborativo" />
+            <img src="https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=300&h=150&fit=crop" alt="Tecnología moderna" />
+            <img src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=300&h=150&fit=crop" alt="Equipo dinámico" />
+        </div>
+    </div>
+
     ${data.responsibilities && data.responsibilities.length > 0 ? `
     <div class="section">
         <h2>Responsabilidades Principales</h2>
@@ -324,6 +387,32 @@ const generateJobOfferHTML = (data: JobOfferData): string => {
         </div>
     </div>
     ` : ''}
+
+    <div class="signature-section">
+        <h2 style="text-align: center; margin-bottom: 20px; color: #0061FF;">📝 Aceptación de la Oferta</h2>
+        <p style="text-align: center; margin-bottom: 30px;">Al firmar este documento, confirmo que acepto los términos y condiciones de esta oferta de trabajo:</p>
+        
+        <div class="signature-box">
+            <div>
+                <div class="signature-line">
+                    <strong>Firma del Candidato</strong><br>
+                    <small style="color: #666; margin-top: 5px; display: block;">${data.candidate_name}</small><br>
+                    <small style="color: #666; margin-top: 5px; display: block;">Fecha: _______________</small>
+                </div>
+            </div>
+            <div>
+                <div class="signature-line">
+                    <strong>Firma de la Empresa</strong><br>
+                    <small style="color: #666; margin-top: 5px; display: block;">Recursos Humanos</small><br>
+                    <small style="color: #666; margin-top: 5px; display: block;">Fecha: _______________</small>
+                </div>
+            </div>
+        </div>
+        
+        <p style="margin-top: 30px; font-size: 0.9em; color: #666; text-align: center; background: white; padding: 15px; border-radius: 6px;">
+            💡 <strong>Firma Digital:</strong> Para firmar digitalmente esta oferta, utilice el enlace de firma electrónica que se le proporcionará por correo electrónico.
+        </p>
+    </div>
 
     <div class="footer">
         <p>Documento generado automáticamente el ${new Date().toLocaleDateString('es-ES')}</p>
