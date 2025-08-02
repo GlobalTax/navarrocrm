@@ -21,6 +21,7 @@ import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboarding
 import { DocumentTemplateManager } from '@/components/employee-onboarding/DocumentTemplateManager'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { EmployeeManagement } from '@/components/employees/EmployeeManagement'
+import { DepartmentManagement } from '@/components/departments/DepartmentManagement'
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -139,7 +140,7 @@ const Users = () => {
 
       {/* Tabs para diferentes vistas */}
       <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-5 border-0.5 border-black rounded-[10px]">
+        <TabsList className="grid w-full grid-cols-6 border-0.5 border-black rounded-[10px]">
           <TabsTrigger value="users" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UsersIcon className="h-4 w-4" />
             Usuarios ({users.length})
@@ -147,6 +148,10 @@ const Users = () => {
           <TabsTrigger value="employees" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Building className="h-4 w-4" />
             Empleados
+          </TabsTrigger>
+          <TabsTrigger value="departments" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
+            <Building className="h-4 w-4" />
+            Departamentos
           </TabsTrigger>
           <TabsTrigger value="invitations" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Mail className="h-4 w-4" />
@@ -183,6 +188,10 @@ const Users = () => {
 
         <TabsContent value="employees" className="mt-6">
           <EmployeeManagement />
+        </TabsContent>
+
+        <TabsContent value="departments" className="mt-6">
+          <DepartmentManagement />
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-6">
