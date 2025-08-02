@@ -1,21 +1,12 @@
 /**
- * Features Barrel Export
- * FASE 6: Migración a arquitectura basada en features
+ * Central exports for all features
  */
 
-// Auth Feature (Completado)
+// Auth feature
 export * from './auth'
 
-// Documents Feature (Estructura base)
+// Documents feature  
 export * from './documents'
 
-// TODO: Features pendientes de migración completa:
-// - time-tracking
-// - calendar  
-// - cases
-// - contacts
-// - invoices
-// - proposals
-// - tasks
-// - reports
-// - settings
+// Time Tracking feature
+export * from './time-tracking'
