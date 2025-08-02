@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import { casesLogger } from '@/utils/logging'
 import type { CreateCaseData, UpdateCaseData } from './types'
 
 export const useCasesMutations = () => {
@@ -58,7 +59,7 @@ export const useCasesMutations = () => {
       toast.success('Caso creado exitosamente')
     },
     onError: (error) => {
-      console.error('❌ Error al crear caso:', error)
+      casesLogger.error('Error al crear caso', { error })
       toast.error('Error al crear el caso')
     },
   })
@@ -83,7 +84,7 @@ export const useCasesMutations = () => {
         .maybeSingle()
 
       if (error) {
-        console.error('❌ Error updating case:', error)
+        casesLogger.error('Error updating case', { error })
         throw error
       }
 
@@ -95,7 +96,7 @@ export const useCasesMutations = () => {
       toast.success('Caso actualizado exitosamente')
     },
     onError: (error) => {
-      console.error('❌ Error al actualizar caso:', error)
+      casesLogger.error('Error al actualizar caso', { error })
       toast.error('Error al actualizar el caso')
     },
   })
@@ -110,25 +111,25 @@ export const useCasesMutations = () => {
         .eq('id', caseId)
 
       if (error) {
-        console.error('❌ Error deleting case:', error)
+        casesLogger.error('Error deleting case', { error })
         throw error
       }
 
-      console.log('✅ Caso eliminado:', caseId)
+      casesLogger.info('Caso eliminado', { caseId })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
       toast.success('Caso eliminado exitosamente')
     },
     onError: (error) => {
-      console.error('❌ Error al eliminar caso:', error)
+      casesLogger.error('Error al eliminar caso', { error })
       toast.error('Error al eliminar el caso')
     },
   })
 
   const archiveCaseMutation = useMutation({
     mutationFn: async (caseId: string) => {
-      console.log('📋 Archivando caso:', caseId)
+      casesLogger.info('Archivando caso', { caseId })
 
       // Get current case status first
       const { data: currentCase } = await supabase
@@ -146,18 +147,18 @@ export const useCasesMutations = () => {
         .eq('id', caseId)
 
       if (error) {
-        console.error('❌ Error archiving case:', error)
+        casesLogger.error('Error archiving case', { error })
         throw error
       }
 
-      console.log('✅ Caso archivado:', caseId)
+      casesLogger.info('Caso archivado', { caseId })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cases'] })
       toast.success('Estado del caso actualizado exitosamente')
     },
     onError: (error) => {
-      console.error('❌ Error al cambiar estado del caso:', error)
+      casesLogger.error('Error al cambiar estado del caso', { error })
       toast.error('Error al cambiar el estado del caso')
     },
   })

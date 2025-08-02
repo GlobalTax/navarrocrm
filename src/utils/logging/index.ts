@@ -19,5 +19,9 @@ export {
   aiLogger,
   contactsLogger,
   documentsLogger,
-  globalLogger
+  globalLogger,
+  proposalsLogger,
+  casesLogger,
+  tasksLogger,
+  invoicesLogger
 } from './context-loggers'

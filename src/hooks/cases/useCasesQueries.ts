@@ -2,6 +2,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
+import { casesLogger } from '@/utils/logging'
 import type { Case } from './types'
 
 interface CasesQueryResult {
@@ -25,11 +26,11 @@ export const useCasesQueries = (filters: CasesFilters = {}) => {
     queryKey: ['cases', user?.org_id, filters],
     queryFn: async (): Promise<Case[]> => {
       if (!user?.org_id) {
-        console.log('📋 No org_id disponible para obtener casos')
+        casesLogger.debug('No org_id disponible para obtener casos')
         return []
       }
       
-      console.log('📋 Obteniendo casos para org:', user.org_id, 'con filtros:', filters)
+      casesLogger.info('Obteniendo casos', { orgId: user.org_id, filters })
       
       let query = supabase
         .from('cases')
@@ -65,11 +66,11 @@ export const useCasesQueries = (filters: CasesFilters = {}) => {
         .limit(1000) // Límite temporal hasta implementar paginación completa
 
       if (error) {
-        console.error('❌ Error fetching cases:', error)
+        casesLogger.error('Error obteniendo casos', { error })
         throw error
       }
-      
-      console.log('✅ Casos obtenidos:', data?.length || 0)
+
+      casesLogger.info('Casos obtenidos exitosamente', { count: data?.length || 0 })
       return (data || []) as unknown as Case[]
     },
     enabled: !!user?.org_id,
