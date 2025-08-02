@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Case } from '@/features/cases'
+import { Case } from '@/hooks/useCases'
 import { Archive } from 'lucide-react'
 
 interface CaseArchiveDialogProps {

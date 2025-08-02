@@ -4,7 +4,7 @@ import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
 import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
 import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
 import { CasesLoadingState } from '@/components/cases/CasesLoadingState'
-import { useCasesList, type Case } from '@/features/cases'
+import { useCases, type Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
 import { useMatterTemplates } from '@/hooks/useMatterTemplates'
@@ -35,7 +35,7 @@ export default function Cases() {
     isDeleting,
     archiveCase,
     isArchiving
-  } = useCasesList()
+  } = useCases()
 
   const { practiceAreas = [] } = usePracticeAreas()
   const { users = [] } = useUsers()
