@@ -29,7 +29,7 @@ import {
   User
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Case } from '@/features/cases'
+import { Case } from '@/hooks/useCases'
 
 interface CaseTableProps {
   cases: Case[]

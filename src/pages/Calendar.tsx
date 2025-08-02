@@ -5,7 +5,7 @@ import { CalendarEventDialog } from '@/components/calendar/CalendarEventDialog'
 import { Loader2 } from 'lucide-react'
 import { useCalendarEvents, CreateCalendarEventData } from '@/hooks/useCalendarEvents'
 import { useClients } from '@/hooks/useClients'
-import { useCasesList } from '@/features/cases'
+import { useCases } from '@/hooks/useCases'
 import { format } from 'date-fns'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
@@ -16,7 +16,7 @@ export default function Calendar() {
   
   const { events, isLoading, createEvent, isCreating } = useCalendarEvents()
   const { clients = [] } = useClients()
-  const { cases = [] } = useCasesList()
+  const { cases = [] } = useCases()
 
   // Transformar eventos para el componente FullScreenCalendar
   const calendarData = useMemo(() => {

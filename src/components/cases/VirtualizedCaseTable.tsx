@@ -28,7 +28,7 @@ import {
   User
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Case } from '@/features/cases'
+import { Case } from '@/hooks/useCases'
 import { VirtualList } from '@/components/ui/virtual-list'
 
 interface VirtualizedCaseTableProps {

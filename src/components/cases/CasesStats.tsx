@@ -1,7 +1,7 @@
 
 import { FileText, FolderOpen, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Case } from '@/features/cases'
+import { Case } from '@/hooks/useCases'
 
 interface CasesStatsProps {
   cases: Case[]

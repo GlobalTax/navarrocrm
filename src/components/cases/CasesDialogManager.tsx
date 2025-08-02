@@ -4,7 +4,7 @@ import { MatterWizard } from './wizard/MatterWizard'
 import { CaseDeleteDialog } from './CaseDeleteDialog'
 import { CaseArchiveDialog } from './CaseArchiveDialog'
 import { NewTemplateDialog } from './NewTemplateDialog'
-import { Case, CreateCaseData } from '@/features/cases'
+import { Case, CreateCaseData } from '@/hooks/useCases'
 
 interface CasesDialogManagerProps {
   // Detail dialog

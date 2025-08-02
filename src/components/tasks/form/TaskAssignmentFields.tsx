@@ -2,7 +2,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { useContacts } from '@/hooks/useContacts'
-import { useCasesList } from '@/features/cases'
+import { useCases } from '@/hooks/useCases'
 
 interface TaskAssignmentFieldsProps {
   formData: {
@@ -14,7 +14,7 @@ interface TaskAssignmentFieldsProps {
 
 export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignmentFieldsProps) => {
   const { contacts } = useContacts()
-  const { cases } = useCasesList()
+  const { cases } = useCases()
 
   const handleCaseChange = (value: string) => {
     const finalValue = value === 'none' ? '' : value

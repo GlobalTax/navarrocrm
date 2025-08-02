@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Clock, Edit, Trash2, Zap } from 'lucide-react'
-import { useCasesList } from '@/features/cases'
+import { useCases } from '@/hooks/useCases'
 
 interface TimeTemplate {
   id: string
@@ -56,7 +56,7 @@ export const TimeTemplateManager = ({ onUseTemplate }: TimeTemplateManagerProps)
   
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const { cases } = useCasesList()
+  const { cases } = useCases()
 
   const [newTemplate, setNewTemplate] = useState<Partial<TimeTemplate>>({
     name: '',
