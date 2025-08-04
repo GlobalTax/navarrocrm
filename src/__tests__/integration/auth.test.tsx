@@ -1,7 +1,7 @@
 
 import { render, screen, waitFor } from '@/test-utils/test-helpers'
 import { describe, it, expect, vi } from 'vitest'
-import App from '@/App'
+import EmergencyApp from '@/EmergencyApp'
 
 // Mock de Supabase
 vi.mock('@/integrations/supabase/client', () => ({
@@ -17,7 +17,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 describe('Authentication Flow', () => {
   it('should show login page when user is not authenticated', async () => {
-    render(<App />)
+    render(<EmergencyApp />)
     
     await waitFor(() => {
       expect(screen.getByText(/iniciar sesión/i)).toBeInTheDocument()
@@ -44,7 +44,7 @@ describe('Authentication Flow', () => {
       }
     }))
 
-    render(<App />)
+    render(<EmergencyApp />)
     
     await waitFor(() => {
       // Verificar que no se muestra la página de login

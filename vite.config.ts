@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
-// Minimal Vite config to fix React corruption
+// EMERGENCY CONFIG - Force complete cache clear
 export default defineConfig({
   server: {
     host: "::",
@@ -12,20 +12,21 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // Force single React instance
-      "react": path.resolve(__dirname, "./node_modules/react"),
-      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
-    dedupe: ["react", "react-dom"],
   },
   optimizeDeps: {
+    force: true, // Force re-optimization of all dependencies
     include: ["react", "react-dom"],
-    force: true, // Force re-optimization of dependencies
   },
-  clearScreen: false,
   build: {
     rollupOptions: {
-      external: [],
-    },
+      // Force new chunk names to break cache
+      output: {
+        entryFileNames: `emergency-[name]-${Date.now()}.js`,
+        chunkFileNames: `emergency-[name]-${Date.now()}.js`,
+      }
+    }
   },
+  clearScreen: false,
+  cacheDir: '.vite-emergency', // Use different cache directory
 });
