@@ -1,148 +1,66 @@
 /**
- * Production-ready logger that replaces all console.* calls
- * Provides structured logging with levels, context, and filtering
+ * Sistema de logging optimizado para producción
+ * Elimina overhead de console.log en producción
  */
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
-interface LogContext {
-  component?: string
-  module?: string
-  action?: string
-  userId?: string
-  orgId?: string
-  error?: any
-  metadata?: Record<string, any>
-  // Allow any additional context properties
-  [key: string]: any
+interface Logger {
+  debug: (message: string, data?: any) => void
+  info: (message: string, data?: any) => void
+  warn: (message: string, data?: any) => void
+  error: (message: string, data?: any) => void
 }
 
-interface LogEntry {
-  level: LogLevel
-  message: string
-  context?: LogContext
-  timestamp: string
-  sessionId: string
-  url: string
-  userAgent: string
-}
+const isDevelopment = import.meta.env.DEV
 
-class ProductionLogger {
-  private isDevelopment = import.meta.env.DEV
-  private sessionId = crypto.randomUUID()
-  private maxStoredLogs = 100
-
+class ProductionLogger implements Logger {
   private shouldLog(level: LogLevel): boolean {
-    // In production, skip debug logs
-    if (!this.isDevelopment && level === 'debug') return false
+    // En producción solo loggear errores críticos
+    if (!isDevelopment) {
+      return level === 'error'
+    }
     return true
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
-    const timestamp = new Date().toISOString()
-    const prefix = context?.component ? `[${context.component}]` : ''
-    const contextStr = context ? this.formatContext(context) : ''
-    
-    return `${timestamp} ${level.toUpperCase()} ${prefix} ${message}${contextStr}`
+  private formatMessage(level: LogLevel, message: string, data?: any): string {
+    const timestamp = new Date().toISOString().split('T')[1].slice(0, 8)
+    const dataStr = data ? ` ${JSON.stringify(data)}` : ''
+    return `[${timestamp}] ${level.toUpperCase()}: ${message}${dataStr}`
   }
 
-  private formatContext(context: LogContext): string {
-    const filteredContext = Object.entries(context)
-      .filter(([key, value]) => key !== 'component' && value !== undefined)
-      .map(([key, value]) => `${key}:${typeof value === 'object' ? JSON.stringify(value) : value}`)
-      .join(', ')
-    
-    return filteredContext ? ` {${filteredContext}}` : ''
-  }
-
-  private log(level: LogLevel, message: string, context?: LogContext) {
-    if (!this.shouldLog(level)) return
-
-    const formattedMessage = this.formatMessage(level, message, context)
-    
-    // Console output with appropriate method
-    switch (level) {
-      case 'debug':
-        console.debug(formattedMessage)
-        break
-      case 'info':
-        console.info(formattedMessage)
-        break
-      case 'warn':
-        console.warn(formattedMessage)
-        break
-      case 'error':
-        console.error(formattedMessage)
-        break
-    }
-
-    // Store critical logs in production
-    if (!this.isDevelopment && (level === 'error' || level === 'warn')) {
-      this.storeLog(level, message, context)
+  debug(message: string, data?: any): void {
+    if (this.shouldLog('debug')) {
+      console.debug(this.formatMessage('debug', message, data))
     }
   }
 
-  private storeLog(level: LogLevel, message: string, context?: LogContext) {
-    try {
-      const logEntry: LogEntry = {
-        level,
-        message,
-        context,
-        timestamp: new Date().toISOString(),
-        sessionId: this.sessionId,
-        url: window.location.href,
-        userAgent: navigator.userAgent
-      }
-      
-      const logs = JSON.parse(localStorage.getItem('app_logs') || '[]')
-      logs.push(logEntry)
-      
-      // Keep only the latest logs
-      if (logs.length > this.maxStoredLogs) {
-        logs.splice(0, logs.length - this.maxStoredLogs)
-      }
-      
-      localStorage.setItem('app_logs', JSON.stringify(logs))
-    } catch (error) {
-      // Silently fail - don't break the app for logging issues
+  info(message: string, data?: any): void {
+    if (this.shouldLog('info')) {
+      console.info(this.formatMessage('info', message, data))
     }
   }
 
-  debug = (message: string, context?: LogContext) => this.log('debug', message, context)
-  info = (message: string, context?: LogContext) => this.log('info', message, context)
-  warn = (message: string, context?: LogContext) => this.log('warn', message, context)
-  error = (message: string, context?: LogContext) => this.log('error', message, context)
-
-  // Utility methods
-  getStoredLogs(): LogEntry[] {
-    try {
-      return JSON.parse(localStorage.getItem('app_logs') || '[]')
-    } catch {
-      return []
+  warn(message: string, data?: any): void {
+    if (this.shouldLog('warn')) {
+      console.warn(this.formatMessage('warn', message, data))
     }
   }
 
-  clearStoredLogs(): void {
-    localStorage.removeItem('app_logs')
-  }
-
-  // Create context-specific loggers
-  createContextLogger(component: string) {
-    return {
-      debug: (message: string, additionalContext?: LogContext) => 
-        this.debug(message, { component, ...additionalContext }),
-      info: (message: string, additionalContext?: LogContext) => 
-        this.info(message, { component, ...additionalContext }),
-      warn: (message: string, additionalContext?: LogContext) => 
-        this.warn(message, { component, ...additionalContext }),
-      error: (message: string, additionalContext?: LogContext) => 
-        this.error(message, { component, ...additionalContext })
+  error(message: string, data?: any): void {
+    if (this.shouldLog('error')) {
+      console.error(this.formatMessage('error', message, data))
     }
   }
 }
 
-// Global instance
+// Logger principal
 export const logger = new ProductionLogger()
 
-// Create context-specific loggers
-export const createLogger = (component: string) => logger.createContextLogger(component)
+// Factory para crear loggers con contexto
+export const createLogger = (context: string): Logger => ({
+  debug: (message: string, data?: any) => logger.debug(`[${context}] ${message}`, data),
+  info: (message: string, data?: any) => logger.info(`[${context}] ${message}`, data),
+  warn: (message: string, data?: any) => logger.warn(`[${context}] ${message}`, data),
+  error: (message: string, data?: any) => logger.error(`[${context}] ${message}`, data),
+})

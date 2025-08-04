@@ -5,7 +5,7 @@ import { AuthUser, UserRole } from '../types'
 
 // Cache de datos de usuario para evitar consultas repetidas
 const userDataCache = new Map<string, { data: any; timestamp: number }>()
-const CACHE_DURATION = 15 * 60 * 1000 // 15 minutos
+const CACHE_DURATION = 60 * 60 * 1000 // 1 hora - cache más largo
 
 export const enrichUserProfileAsync = async (
   authUser: User, 
@@ -13,14 +13,18 @@ export const enrichUserProfileAsync = async (
   profileEnrichmentInProgress: React.MutableRefObject<boolean>
 ) => {
   if (profileEnrichmentInProgress.current) {
-    console.log('👤 [ProfileHandler] Enriquecimiento ya en progreso')
+    if (import.meta.env.DEV) {
+      console.log('👤 [ProfileHandler] Enriquecimiento ya en progreso')
+    }
     return
   }
 
   // Verificar cache primero
   const cached = userDataCache.get(authUser.id)
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log('👤 [ProfileHandler] Usando datos de cache')
+    if (import.meta.env.DEV) {
+      console.log('👤 [ProfileHandler] Usando datos de cache')
+    }
     const enrichedUser: AuthUser = {
       ...authUser,
       role: cached.data.role as UserRole,
@@ -32,7 +36,9 @@ export const enrichUserProfileAsync = async (
 
   try {
     profileEnrichmentInProgress.current = true
-    console.log('👤 [ProfileHandler] Enriqueciendo perfil:', authUser.id)
+    if (import.meta.env.DEV) {
+      console.log('👤 [ProfileHandler] Enriqueciendo perfil:', authUser.id)
+    }
     
     const { data, error } = await Promise.race([
       supabase
@@ -55,15 +61,21 @@ export const enrichUserProfileAsync = async (
         org_id: data.org_id
       }
       
-      console.log('✅ [ProfileHandler] Perfil enriquecido:', { role: data.role, org_id: data.org_id })
+      if (import.meta.env.DEV) {
+        console.log('✅ [ProfileHandler] Perfil enriquecido:', { role: data.role, org_id: data.org_id })
+      }
       setUser(enrichedUser)
     } else {
-      console.log('⚠️ [ProfileHandler] Manteniendo usuario básico:', error?.message || 'Sin datos')
+      if (import.meta.env.DEV) {
+        console.log('⚠️ [ProfileHandler] Manteniendo usuario básico:', error?.message || 'Sin datos')
+      }
       // Usar usuario básico si falla
       setUser(authUser as AuthUser)
     }
   } catch (error: any) {
-    console.log('⚠️ [ProfileHandler] Error enriqueciendo perfil:', error.message)
+    if (import.meta.env.DEV) {
+      console.log('⚠️ [ProfileHandler] Error enriqueciendo perfil:', error.message)
+    }
     // Usar usuario básico si falla
     setUser(authUser as AuthUser)
   } finally {
