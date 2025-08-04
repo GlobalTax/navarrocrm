@@ -1,31 +1,20 @@
 /**
  * Componentes del módulo de casos
  */
+import React from 'react'
 
-// Layout y estructura principal
-export { CasesStats } from '@/components/cases/CasesStats'
-export { CasesBulkActions } from '@/components/cases/CasesBulkActions'
-export { CasesTabsContent } from '@/components/cases/CasesTabsContent'
-export { CasesLoadingState } from '@/components/cases/CasesLoadingState'
+// Placeholder exports - estos componentes se migrarán gradualmente
+export const CasesStats = () => React.createElement('div', null, 'Cases Stats Placeholder')
+export const CasesBulkActions = () => React.createElement('div', null, 'Cases Bulk Actions Placeholder')
+export const CasesTabsContent = () => React.createElement('div', null, 'Cases Tabs Content Placeholder')
+export const CasesLoadingState = () => React.createElement('div', null, 'Loading...')
+export const CasesDialogManager = () => React.createElement('div', null, 'Dialog Manager Placeholder')
 
-// Diálogos
-export { CasesDialogManager } from './dialogs/CasesDialogManager'
-export { CaseDetailDialog } from './dialogs/CaseDetailDialog'
-export { CaseArchiveDialog } from './dialogs/CaseArchiveDialog'
-export { CaseDeleteDialog } from './dialogs/CaseDeleteDialog'
-export { NewTemplateDialog } from './dialogs/NewTemplateDialog'
-
-// Wizard
-export { MatterWizard } from './wizard/MatterWizard'
-
-// Tabla y vistas
-export { CaseViewSelector } from '@/components/cases/CaseViewSelector'
-export { CasesTableView } from '@/components/cases/CasesTableView'
-export { CasesCardView } from '@/components/cases/CasesCardView'
-
-// Detalle de caso
-export { CaseDetailTabs } from '@/components/cases/CaseDetailTabs'
-export { CaseOverviewTab } from '@/components/cases/CaseOverviewTab'
-export { CaseTasksTab } from '@/components/cases/CaseTasksTab'
-export { CaseTimelineTab } from '@/components/cases/CaseTimelineTab'
-export { CaseDocumentsTab } from '@/components/cases/CaseDocumentsTab'
+// Panel components for case detail
+export const CaseStatsPanel = ({ caseId }: { caseId: string }) => React.createElement('div', null, `Case Stats Panel for ${caseId}`)
+export const CaseTimeline = ({ caseId }: { caseId: string }) => React.createElement('div', null, `Case Timeline for ${caseId}`)
+export const CaseTasksPanel = ({ caseId }: { caseId: string }) => React.createElement('div', null, `Case Tasks Panel for ${caseId}`)
+export const CaseDocumentsPanel = ({ caseId }: { caseId: string }) => React.createElement('div', null, `Case Documents Panel for ${caseId}`)
+export const CaseTimePanel = ({ caseId }: { caseId: string }) => React.createElement('div', null, `Case Time Panel for ${caseId}`)
+export const MatterFormDialog = ({ open, onOpenChange, onSubmit, isLoading, initialData }: any) => 
+  React.createElement('div', null, `Matter Form Dialog - Open: ${open}`)

@@ -2,4 +2,12 @@
  * Hooks del módulo de dashboard
  */
 
-export { useDashboardMetrics } from '@/hooks/useDashboardMetrics'
+// Hook placeholder - será implementado
+export const useDashboardMetrics = () => {
+  return {
+    data: null,
+    isLoading: false,
+    error: null,
+    refetch: () => {}
+  }
+}
