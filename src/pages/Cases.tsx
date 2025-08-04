@@ -249,33 +249,34 @@ export default function Cases() {
         />
 
       <CasesDialogManager
-        selectedCase={selectedCase}
-        isDetailOpen={isDetailOpen}
+        detailCase={selectedCase}
+        detailOpen={isDetailOpen}
         onDetailClose={() => setIsDetailOpen(false)}
-        isWizardOpen={isWizardOpen}
-        onWizardOpenChange={setIsWizardOpen}
-        onSubmit={createCase}
+        onDetailEdit={handleEditCase}
+        wizardOpen={isWizardOpen}
+        onWizardClose={() => setIsWizardOpen(false)}
+        onWizardSubmit={createCase}
         isCreating={isCreating}
         isCreateSuccess={isCreateSuccess}
         onResetCreate={createCaseReset}
-        caseToDelete={caseToDelete}
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        onDeleteDialogClose={() => {
+        deleteCase={caseToDelete}
+        deleteOpen={isDeleteDialogOpen}
+        onDeleteClose={() => {
           setIsDeleteDialogOpen(false)
           setCaseToDelete(null)
         }}
-        onConfirmDelete={handleConfirmDelete}
+        onDeleteConfirm={handleConfirmDelete}
         isDeleting={isDeleting}
-        caseToArchive={caseToArchive}
-        isArchiveDialogOpen={isArchiveDialogOpen}
-        onArchiveDialogClose={() => {
+        archiveCase={caseToArchive}
+        archiveOpen={isArchiveDialogOpen}
+        onArchiveClose={() => {
           setIsArchiveDialogOpen(false)
           setCaseToArchive(null)
         }}
-        onConfirmArchive={handleConfirmArchive}
+        onArchiveConfirm={handleConfirmArchive}
         isArchiving={isArchiving}
-        isNewTemplateOpen={isNewTemplateOpen}
-        onNewTemplateOpenChange={setIsNewTemplateOpen}
+        newTemplateOpen={isNewTemplateOpen}
+        onNewTemplateClose={() => setIsNewTemplateOpen(false)}
         onNewTemplateSubmit={handleNewTemplateSubmit}
         isCreatingTemplate={isCreatingTemplate}
       />
