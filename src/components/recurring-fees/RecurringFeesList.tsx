@@ -3,7 +3,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { FileText, Plus } from 'lucide-react'
 import { RecurringFeeCard } from './RecurringFeeCard'
-import type { RecurringFee } from '@/hooks/useRecurringFees'
+import type { RecurringFee } from '@/features/billing'
 
 interface RecurringFeesListProps {
   fees: RecurringFee[]

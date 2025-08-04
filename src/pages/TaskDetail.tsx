@@ -12,7 +12,7 @@ import { useApp } from '@/contexts/AppContext'
 import { TaskWithRelations, STATUS_COLORS, STATUS_LABELS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/hooks/tasks/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
-import { useTasks } from '@/hooks/useTasks'
+import { useTasks } from '@/features/tasks'
 
 export default function TaskDetail() {
   const { id } = useParams<{ id: string }>()

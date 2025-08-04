@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useCases } from '@/hooks/useCases'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/features/time-tracking'
 import { toast } from 'sonner'
 
 interface HeaderTimerDialogProps {

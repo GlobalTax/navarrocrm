@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Target, TrendingUp, Calendar, Award, Zap } from 'lucide-react'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/features/time-tracking'
 
 export function ModernTimeTrackingDashboard() {
   const { timeEntries } = useTimeEntries()

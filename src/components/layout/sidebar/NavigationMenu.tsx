@@ -2,7 +2,7 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from "@/lib/utils"
 import { navigationData } from './NavigationData'
-import { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
+import { useRecurringFeesOverdue } from '@/features/billing'
 
 export const NavigationMenu = () => {
   const { data: overdueCount = 0 } = useRecurringFeesOverdue()

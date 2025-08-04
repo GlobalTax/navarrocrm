@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Play, Pause, Square, Clock } from 'lucide-react'
 import { useCases } from '@/hooks/useCases'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/features/time-tracking'
 import { toast } from 'sonner'
 import { performanceLogger } from '@/utils/logging'
 

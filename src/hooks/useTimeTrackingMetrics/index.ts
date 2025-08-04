@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/features/time-tracking'
 import { useTimeTrackingPermissions } from '@/hooks/useTimeTrackingPermissions'
 import { useTeams } from '@/hooks/useTeams'
 import { useUsers } from '@/hooks/useUsers'

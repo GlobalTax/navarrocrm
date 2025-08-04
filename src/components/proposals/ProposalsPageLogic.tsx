@@ -1,6 +1,6 @@
 
 import { useMemo, useCallback } from 'react'
-import { useProposals } from '@/hooks/useProposals'
+import { useProposals } from '@/features/proposals'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { useApp } from '@/contexts/AppContext'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'

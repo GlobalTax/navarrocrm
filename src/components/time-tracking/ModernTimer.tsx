@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Play, Pause, Square, Clock, Zap, Coffee, Target } from 'lucide-react'
 import { useCases } from '@/hooks/useCases'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/features/time-tracking'
 import { toast } from 'sonner'
 
 export const ModernTimer = () => {

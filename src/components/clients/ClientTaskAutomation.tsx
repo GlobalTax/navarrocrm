@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Plus, Settings, Calendar, CheckCircle, AlertCircle } from 'lucide-react'
-import { useRecurringFees } from '@/hooks/useRecurringFees'
+import { useRecurringFees } from '@/features/billing'
 import { TaskTemplateDialog } from './TaskTemplateDialog'
 import type { RecurringFee } from '@/types/recurringFees'
 

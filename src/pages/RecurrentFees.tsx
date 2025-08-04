@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { format, isAfter } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/hooks/useRecurringFees'
+import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/features/billing'
 import { RecurringFeeForm } from '@/components/recurring-fees/RecurringFeeForm'
 import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesMetrics'
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'

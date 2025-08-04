@@ -9,7 +9,7 @@ import { OptimizedTimeEntriesTable } from '@/components/time-tracking/OptimizedT
 import { AdvancedTimeTrackingFilters } from '@/components/time-tracking/AdvancedTimeTrackingFilters'
 import { TimeTrackingSummary } from '@/components/time-tracking/TimeTrackingSummary'
 import { HeaderTimerDialog } from '@/components/layout/HeaderTimerDialog'
-import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useTimeEntries } from '@/features/time-tracking'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'

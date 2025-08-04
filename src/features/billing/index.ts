@@ -13,16 +13,17 @@ export { BillingStats } from './components'
 export { BillingReports } from './components'
 
 // Re-exports de hooks
-export { useBilling } from './hooks'
-export { useInvoices } from './hooks'
-export { useRecurringFees } from './hooks'
-export { usePayments } from './hooks'
+export * from './hooks'
 
-// Re-exports de tipos
+// Re-exports de tipos específicos para evitar conflictos
 export type {
   Invoice,
-  RecurringFee,
+  InvoiceLineItem,
   Payment,
   BillingMetrics,
-  InvoiceLineItem
+  BillingFilters,
+  INVOICE_STATUSES,
+  PAYMENT_METHODS,
+  RECURRING_FREQUENCIES,
+  RECURRING_FEE_STATUSES
 } from './types'

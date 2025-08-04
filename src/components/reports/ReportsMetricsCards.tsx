@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Euro, Clock, TrendingUp, Calendar } from 'lucide-react'
 import { useRevenueMetrics } from '@/hooks/useRevenueMetrics'
 import { useTimeTrackingMetrics } from '@/hooks/useTimeTrackingMetrics'
-import { useRecurringRevenue } from '@/hooks/useRecurringRevenue'
+import { useRecurringRevenue } from '@/features/billing'
 
 interface MetricCardProps {
   title: string

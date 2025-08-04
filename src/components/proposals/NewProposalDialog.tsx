@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { useClients } from '@/hooks/useClients'
 import { useServiceCatalog } from '@/hooks/useServiceCatalog'
-import { CreateProposalData, ProposalLineItem } from '@/hooks/useProposals'
+import { CreateProposalData, ProposalLineItem } from '@/features/proposals'
 import { toast } from 'sonner'
 
 interface NewProposalDialogProps {
