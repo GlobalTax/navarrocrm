@@ -1,15 +1,17 @@
 
-import { useTasks } from '@/hooks/useTasks'
-import { useTasksPageState } from '@/hooks/tasks/useTasksPageState'
-import { useTasksFilters } from '@/hooks/tasks/useTasksFilters'
-import { TasksStats } from '@/components/tasks/TasksStats'
-import { TasksBoardKanban } from '@/components/tasks/TasksBoardKanban'
-import { TasksList } from '@/components/tasks/TasksList'
-import { TaskFormDialog } from '@/components/tasks/TaskFormDialog'
-import { TasksEmptyState } from '@/components/tasks/TasksEmptyState'
-import { TasksErrorState } from '@/components/tasks/TasksErrorState'
-import { TasksLoadingState } from '@/components/tasks/TasksLoadingState'
-import { TasksViewSelector } from '@/components/tasks/TasksViewSelector'
+import { 
+  useTasks, 
+  useTasksPageState, 
+  useTasksFilters,
+  TasksStats,
+  TasksBoardKanban,
+  TasksList,
+  TaskFormDialog,
+  TasksEmptyState,
+  TasksErrorState,
+  TasksLoadingState,
+  TasksViewSelector
+} from '@/features/tasks'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { StandardFilters } from '@/components/layout/StandardFilters'
 
