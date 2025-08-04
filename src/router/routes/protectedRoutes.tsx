@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { RouteModule } from '../types'
 import { createOptimizedLazy, RoutePriority } from '@/utils/routeOptimizer'
+import { LazyRouteWrapper, createLazyRoute } from '@/components/routing/LazyRouteWrapper'
 import { 
   FeatureBoundary, 
   ClientFeatureBoundary, 
@@ -15,11 +16,12 @@ import {
 // Página index - no lazy (crítica)
 import Index from '@/pages/Index'
 
-// CRITICAL ROUTES - Preloaded
+// CRITICAL ROUTES - Preloaded with enhanced lazy loading
 const Dashboard = createOptimizedLazy(
   () => import('@/pages/Dashboard'),
   RoutePriority.CRITICAL
 )
+const EnhancedDashboard = createLazyRoute(Dashboard, 'Dashboard', 'critical')
 
 // HIGH PRIORITY - Client Management Bundle
 const Contacts = createOptimizedLazy(
@@ -39,6 +41,12 @@ const ClientDetail = createOptimizedLazy(
   RoutePriority.HIGH
 )
 
+// Enhanced components with lazy route wrappers
+const EnhancedContacts = createLazyRoute(Contacts, 'Contacts', 'high')
+const EnhancedContactDetail = createLazyRoute(ContactDetail, 'ContactDetail', 'high')
+const EnhancedClients = createLazyRoute(Clients, 'Clients', 'high')
+const EnhancedClientDetail = createLazyRoute(ClientDetail, 'ClientDetail', 'high')
+
 // HIGH PRIORITY - Case Management Bundle
 const Cases = createOptimizedLazy(
   () => import('@/pages/Cases'),
@@ -56,6 +64,12 @@ const TaskDetail = createOptimizedLazy(
   () => import('@/pages/TaskDetail'),
   RoutePriority.HIGH
 )
+
+// Enhanced components with lazy route wrappers
+const EnhancedCases = createLazyRoute(Cases, 'Cases', 'high')
+const EnhancedCaseDetail = createLazyRoute(CaseDetail, 'CaseDetail', 'high')
+const EnhancedTasks = createLazyRoute(Tasks, 'Tasks', 'high')
+const EnhancedTaskDetail = createLazyRoute(TaskDetail, 'TaskDetail', 'high')
 
 // MEDIUM PRIORITY - Communication Bundle
 const Emails = createOptimizedLazy(
@@ -80,6 +94,7 @@ const TimeTracking = createOptimizedLazy(
   () => import('@/pages/TimeTracking'),
   RoutePriority.MEDIUM
 )
+const EnhancedTimeTracking = createLazyRoute(TimeTracking, 'TimeTracking', 'medium')
 const Documents = createOptimizedLazy(
   () => import('@/pages/Documents'),
   RoutePriority.MEDIUM
@@ -197,7 +212,7 @@ export const protectedRoutes: RouteModule = {
               path: '/dashboard',
               element: (
                 <FeatureBoundary feature="Dashboard">
-                  <Dashboard />
+                  <EnhancedDashboard />
                 </FeatureBoundary>
               )
             },
@@ -207,7 +222,7 @@ export const protectedRoutes: RouteModule = {
               path: '/contacts',
               element: (
                 <ClientFeatureBoundary>
-                  <Contacts />
+                  <EnhancedContacts />
                 </ClientFeatureBoundary>
               )
             },
@@ -215,7 +230,7 @@ export const protectedRoutes: RouteModule = {
               path: '/contacts/:id',
               element: (
                 <ClientFeatureBoundary>
-                  <ContactDetail />
+                  <EnhancedContactDetail />
                 </ClientFeatureBoundary>
               )
             },
@@ -223,7 +238,7 @@ export const protectedRoutes: RouteModule = {
               path: '/clients',
               element: (
                 <ClientFeatureBoundary>
-                  <Clients />
+                  <EnhancedClients />
                 </ClientFeatureBoundary>
               )
             },
@@ -231,7 +246,7 @@ export const protectedRoutes: RouteModule = {
               path: '/client/:id',
               element: (
                 <ClientFeatureBoundary>
-                  <ClientDetail />
+                  <EnhancedClientDetail />
                 </ClientFeatureBoundary>
               )
             },
@@ -241,7 +256,7 @@ export const protectedRoutes: RouteModule = {
               path: '/cases',
               element: (
                 <CaseFeatureBoundary>
-                  <Cases />
+                  <EnhancedCases />
                 </CaseFeatureBoundary>
               )
             },
@@ -249,7 +264,7 @@ export const protectedRoutes: RouteModule = {
               path: '/cases/:id',
               element: (
                 <CaseFeatureBoundary>
-                  <CaseDetail />
+                  <EnhancedCaseDetail />
                 </CaseFeatureBoundary>
               )
             },
@@ -257,7 +272,7 @@ export const protectedRoutes: RouteModule = {
               path: '/tasks',
               element: (
                 <CaseFeatureBoundary>
-                  <Tasks />
+                  <EnhancedTasks />
                 </CaseFeatureBoundary>
               )
             },
@@ -265,7 +280,7 @@ export const protectedRoutes: RouteModule = {
               path: '/tasks/:id',
               element: (
                 <CaseFeatureBoundary>
-                  <TaskDetail />
+                  <EnhancedTaskDetail />
                 </CaseFeatureBoundary>
               )
             },
@@ -311,7 +326,7 @@ export const protectedRoutes: RouteModule = {
               path: '/time-tracking',
               element: (
                 <FeatureBoundary feature="Control de Tiempo">
-                  <TimeTracking />
+                  <EnhancedTimeTracking />
                 </FeatureBoundary>
               )
             },

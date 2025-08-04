@@ -6,6 +6,15 @@ import { QueryProvider } from '@/contexts/QueryContext'
 import { OnboardingProvider } from '@/components/onboarding'
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
 import { AppRouter } from '@/router'
+import { useGlobalMemoryTracker } from '@/hooks/performance/useMemoryTracker'
+import { useCriticalRoutePreloader } from '@/hooks/performance/useRoutePreloader'
+
+// Component to initialize performance monitoring
+const PerformanceInitializer = () => {
+  useGlobalMemoryTracker()
+  useCriticalRoutePreloader()
+  return null
+}
 
 function App() {
   return (
@@ -15,6 +24,7 @@ function App() {
           <OnboardingProvider>
             <Toaster position="top-right" />
             <Router>
+              <PerformanceInitializer />
               <div className="min-h-screen bg-background text-foreground font-sans">
                 <AppRouter />
               </div>
