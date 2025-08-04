@@ -20,7 +20,9 @@ export const useCases = () => {
       
       let query = supabase
         .from('cases')
-        .select('*')
+        .select(`*, 
+          contact:contacts(*)
+        `)
         .eq('org_id', user.org_id)
 
       if (statusFilter === 'active') {

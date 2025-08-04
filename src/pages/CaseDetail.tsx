@@ -78,7 +78,7 @@ export default function CaseDetail() {
 
   const handleEditSubmit = (formData: any) => {
     if (!case_?.id) return
-    updateCase({ id: case_.id, ...formData })
+    updateCase(case_.id, formData)
     setIsEditDialogOpen(false)
   }
 

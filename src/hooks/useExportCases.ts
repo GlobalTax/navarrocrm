@@ -1,7 +1,6 @@
-
 import { toast } from 'sonner'
 import Papa from 'papaparse'
-import type { Case } from '@/hooks/useCases'
+import type { Case } from '@/types/features/cases'
 
 export const useExportCases = () => {
   const exportCasesToCSV = (cases: Case[], filename: string = 'expedientes') => {
