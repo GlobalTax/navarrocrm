@@ -15,6 +15,7 @@ export * from './time-tracking'
 export * from './cases'
 
 // Contacts feature - explicit exports to avoid conflicts  
-export { ContactsService, contactsService } from './contacts'
-export { useContacts, useContactsList, useContactsMutations } from './contacts'
+export { contactsService } from './contacts'
+export { useContacts, useContactsList, usePersons, useCompanies } from './contacts'
 export type { Contact, Person, Company, ContactFormData, ContactSearchParams } from './contacts'
+export { validateNifCif, formatNifCif, getContactDisplayName } from './contacts'
