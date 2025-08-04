@@ -11,25 +11,23 @@ interface PreloadConfig {
 // Cache para componentes precargados
 const preloadCache = new Map<string, Promise<any>>()
 
-// Mapa de rutas a funciones de importación
+// Mapa de rutas a funciones de importación (solo rutas que existen)
 const routeImportMap: Record<string, () => Promise<any>> = {
   '/contacts': () => import('@/pages/Contacts'),
   '/cases': () => import('@/pages/Cases'),
   '/tasks': () => import('@/pages/Tasks'),
   '/time-tracking': () => import('@/pages/TimeTracking'),
   '/dashboard': () => import('@/pages/Dashboard'),
-  '/proposals': () => import('@/pages/Proposals'),
-  '/documents': () => import('@/pages/Documents'),
-  '/calendar': () => import('@/pages/Calendar'),
-  '/emails': () => import('@/pages/Emails'),
-  '/users': () => import('@/pages/Users'),
-  '/reports': () => import('@/pages/Reports')
+  '/proposals': () => import('@/pages/Proposals')
+  // Removidas rutas que causan 404: documents, calendar, emails, users, reports
 }
 
 export const useRoutePreloader = (config: PreloadConfig) => {
   const location = useLocation()
   const logger = useLogger('RoutePreloader')
   const preloadTimerRef = useRef<NodeJS.Timeout>()
+  const lastLocationRef = useRef<string>()
+  const debounceTimerRef = useRef<NodeJS.Timeout>()
 
   const preloadRoute = async (route: string) => {
     if (preloadCache.has(route)) {
@@ -83,23 +81,40 @@ export const useRoutePreloader = (config: PreloadConfig) => {
 
   useEffect(() => {
     const { routes, delay = 1000 } = config
+    const currentPath = location.pathname
 
-    // Clear any existing timer
+    // Only preload if location actually changed
+    if (lastLocationRef.current === currentPath) {
+      return
+    }
+
+    // Clear any existing timers
     if (preloadTimerRef.current) {
       clearTimeout(preloadTimerRef.current)
     }
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
 
-    // Start preloading after delay
-    preloadTimerRef.current = setTimeout(() => {
-      preloadRoutes(routes)
-    }, delay)
+    // Debounce to prevent excessive preloading
+    debounceTimerRef.current = setTimeout(() => {
+      lastLocationRef.current = currentPath
+      
+      // Start preloading after additional delay
+      preloadTimerRef.current = setTimeout(() => {
+        preloadRoutes(routes)
+      }, delay)
+    }, 500) // 500ms debounce
 
     return () => {
       if (preloadTimerRef.current) {
         clearTimeout(preloadTimerRef.current)
       }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
     }
-  }, [location.pathname]) // Re-run when route changes
+  }, [location.pathname])
 
   // Preload on interaction
   const preloadOnHover = (route: string) => {
@@ -134,9 +149,9 @@ export const useContextualPreloader = () => {
   const location = useLocation()
 
   const getRelatedRoutes = (currentPath: string): string[] => {
-    // Preload related routes based on current location
+    // Preload only existing related routes
     if (currentPath.startsWith('/contacts')) {
-      return ['/cases', '/tasks', '/clients']
+      return ['/cases', '/tasks']
     }
     
     if (currentPath.startsWith('/cases')) {
@@ -148,7 +163,7 @@ export const useContextualPreloader = () => {
     }
     
     if (currentPath === '/dashboard' || currentPath === '/') {
-      return ['/contacts', '/cases', '/tasks', '/time-tracking']
+      return ['/contacts', '/cases', '/tasks']
     }
     
     return []
@@ -156,7 +171,7 @@ export const useContextualPreloader = () => {
 
   return useRoutePreloader({
     routes: getRelatedRoutes(location.pathname),
-    delay: 2000,
-    condition: () => !document.hidden // Don't preload if tab is hidden
+    delay: 3000, // Increased delay to reduce aggressive preloading
+    condition: () => !document.hidden && !document.hasFocus() === false // Only when tab is active and focused
   })
 }
