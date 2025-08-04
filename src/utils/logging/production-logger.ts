@@ -20,6 +20,15 @@ class ProductionLogger implements Logger {
     if (!isDevelopment) {
       return level === 'error'
     }
+    
+    // Filtrar errores de extensiones del navegador
+    if (typeof window !== 'undefined') {
+      const stack = new Error().stack
+      if (stack && (stack.includes('SyncoRedux') || stack.includes('classifier.js') || stack.includes('content.js'))) {
+        return false
+      }
+    }
+    
     return true
   }
 

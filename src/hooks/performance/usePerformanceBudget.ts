@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useLogger } from '@/hooks/useLogger'
 
 interface CoreWebVitals {
@@ -32,11 +32,14 @@ export const usePerformanceBudget = (budget: Partial<PerformanceBudget> = {}) =>
   const [vitals, setVitals] = useState<CoreWebVitals>({})
   const [violations, setViolations] = useState<string[]>([])
   const observerRef = useRef<PerformanceObserver>()
+  const processedRef = useRef(false)
   
-  const fullBudget = { ...DEFAULT_BUDGET, ...budget }
+  // Memoize budget to prevent unnecessary re-renders
+  const fullBudget = useMemo(() => ({ ...DEFAULT_BUDGET, ...budget }), [budget])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || processedRef.current) return
+    processedRef.current = true
 
     // Observe Core Web Vitals
     const observeWebVitals = () => {
@@ -149,8 +152,9 @@ export const usePerformanceBudget = (budget: Partial<PerformanceBudget> = {}) =>
     return () => {
       observerRef.current?.disconnect()
       window.removeEventListener('load', checkBudgets)
+      processedRef.current = false
     }
-  }, [fullBudget, logger])
+  }, []) // Remove dependencies to prevent re-runs
 
   const generateReport = () => {
     const report = {

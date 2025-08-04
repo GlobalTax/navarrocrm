@@ -10,20 +10,22 @@ import { useGlobalMemoryTracker } from '@/hooks/performance/useMemoryTracker'
 import { useCriticalRoutePreloader } from '@/hooks/performance/useRoutePreloader'
 import { usePerformanceBudget } from '@/hooks/performance/usePerformanceBudget'
 
-// Component to initialize performance monitoring
+// Component to initialize performance monitoring (only in development)
 const PerformanceInitializer = () => {
   useGlobalMemoryTracker()
   useCriticalRoutePreloader()
   
-  // Monitor performance budget with realistic thresholds for development
-  usePerformanceBudget({
-    maxBundleSize: 5,     // 5MB for dev build
-    maxLoadTime: 15000,   // 15s for dev with HMR
-    maxMemoryUsage: 500,  // 500MB for dev
-    maxLCP: 5000,         // 5s for dev
-    maxFID: 300,          // 300ms for dev
-    maxCLS: 0.25          // 0.25 score for dev
-  })
+  // Only monitor performance budget in development to avoid loops
+  if (import.meta.env.DEV) {
+    usePerformanceBudget({
+      maxBundleSize: 5,     // 5MB for dev build
+      maxLoadTime: 15000,   // 15s for dev with HMR
+      maxMemoryUsage: 500,  // 500MB for dev
+      maxLCP: 5000,         // 5s for dev
+      maxFID: 300,          // 300ms for dev
+      maxCLS: 0.25          // 0.25 score for dev
+    })
+  }
   
   return null
 }
