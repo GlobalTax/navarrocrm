@@ -15,6 +15,9 @@ export { BillingReports } from './components'
 // Re-exports de hooks
 export * from './hooks'
 
+// Explicit re-export to ensure proper module resolution
+export { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
+
 // Re-exports de tipos específicos para evitar conflictos
 export type {
   Invoice,
