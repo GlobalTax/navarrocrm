@@ -5,7 +5,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client'
-import { Contact, Person, Company, ContactFormData, ContactSearchParams } from '../types'
+import { Contact, Person, Company, ContactFormData, ContactSearchParams, ContactType, ContactStatus, ContactPreference, PaymentMethod, Language, RelationshipType, EmailPreferences } from '../types'
 import { DEFAULT_EMAIL_PREFERENCES } from '../constants'
 
 export class ContactsService {
@@ -192,9 +192,15 @@ export class ContactsService {
     
     const contactData = this.mapFormDataToContact(data, orgId)
     
+    // Convertir email_preferences a JSON
+    const insertData: any = { ...contactData }
+    if (insertData.email_preferences && typeof insertData.email_preferences === 'object') {
+      insertData.email_preferences = JSON.stringify(insertData.email_preferences)
+    }
+    
     const { data: newContact, error } = await supabase
       .from('contacts')
-      .insert(contactData as any)
+      .insert(insertData)
       .select()
       .single()
 
@@ -204,10 +210,7 @@ export class ContactsService {
     }
 
     console.log('✅ [ContactsService] Contact created:', newContact.id)
-    return {
-      ...newContact,
-      email_preferences: this.parseEmailPreferences(newContact.email_preferences)
-    }
+    return this.mapDbContactToContact(newContact)
   }
 
   /**
@@ -218,12 +221,15 @@ export class ContactsService {
     
     const contactData = data.name ? this.mapFormDataToContact(data as ContactFormData, orgId) : data
     
+    // Convertir email_preferences a JSON si existe
+    const updateData: any = { ...contactData, updated_at: new Date().toISOString() }
+    if (updateData.email_preferences && typeof updateData.email_preferences === 'object') {
+      updateData.email_preferences = JSON.stringify(updateData.email_preferences)
+    }
+    
     const { data: updatedContact, error } = await supabase
       .from(this.tableName)
-      .update({
-        ...contactData,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .eq('org_id', orgId)
       .select()
@@ -235,10 +241,7 @@ export class ContactsService {
     }
 
     console.log('✅ [ContactsService] Contact updated:', id)
-    return {
-      ...updatedContact,
-      email_preferences: this.parseEmailPreferences(updatedContact.email_preferences)
-    }
+    return this.mapDbContactToContact(updatedContact)
   }
 
   /**
@@ -311,10 +314,7 @@ export class ContactsService {
     }
 
     console.log('✅ [ContactsService] Contacts found:', data?.length || 0)
-    return (data || []).map(contact => ({
-      ...contact,
-      email_preferences: this.parseEmailPreferences(contact.email_preferences)
-    }))
+    return (data || []).map(contact => this.mapDbContactToContact(contact))
   }
 
   /**
@@ -335,10 +335,7 @@ export class ContactsService {
 
     if (!data) return null
 
-    return {
-      ...data,
-      email_preferences: this.parseEmailPreferences(data.email_preferences)
-    }
+    return this.mapDbContactToContact(data)
   }
 
   /**
@@ -357,10 +354,23 @@ export class ContactsService {
       throw new Error(`Error fetching clients: ${error.message}`)
     }
 
-    return (data || []).map(contact => ({
-      ...contact,
-      email_preferences: this.parseEmailPreferences(contact.email_preferences)
-    }))
+    return (data || []).map(contact => this.mapDbContactToContact(contact))
+  }
+
+  /**
+   * Mapear datos de BD a tipo Contact
+   */
+  private mapDbContactToContact(dbContact: any): Contact {
+    return {
+      ...dbContact,
+      client_type: dbContact.client_type as ContactType,
+      status: dbContact.status as ContactStatus,
+      contact_preference: dbContact.contact_preference as ContactPreference,
+      payment_method: dbContact.payment_method as PaymentMethod,
+      preferred_language: dbContact.preferred_language as Language,
+      relationship_type: dbContact.relationship_type as RelationshipType,
+      email_preferences: this.parseEmailPreferences(dbContact.email_preferences)
+    }
   }
 
   /**
