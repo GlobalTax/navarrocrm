@@ -1,6 +1,10 @@
+/**
+ * useCasesFilters - Hook para filtros de casos
+ */
+
 import { useState, useMemo } from 'react'
 import { useDebounced } from '@/hooks/useDebounced'
-import type { Case } from './types'
+import { Case } from '../types'
 
 export const useCasesFilters = (cases: Case[]) => {
   const [searchTerm, setSearchTerm] = useState('')
