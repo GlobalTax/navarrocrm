@@ -190,7 +190,7 @@ export function VirtualizedCaseTable({
                 <Checkbox
                   checked={allSelected}
                   ref={(el) => {
-                    if (el) el.indeterminate = someSelected
+                    if (el) (el as any).indeterminate = someSelected
                   }}
                   onCheckedChange={(checked) => onSelectAll(!!checked)}
                 />
@@ -208,7 +208,7 @@ export function VirtualizedCaseTable({
               items={cases}
               renderItem={renderCaseRow}
               itemHeight={72}
-              height={600}
+              containerHeight={600}
               emptyState={emptyState}
             />
           </TableBody>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CaseTable } from './CaseTable'
-import { CaseStagesView } from '@/components/stages/CaseStagesView'
+import { CaseStagesView } from '@/components/cases/stages/CaseStagesView'
 import { Case } from '@/features/cases'
 
 interface CasesTabsContentProps {

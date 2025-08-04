@@ -112,7 +112,7 @@ export function CaseTable({
                 <Checkbox
                   checked={allSelected}
                   ref={(el) => {
-                    if (el) el.indeterminate = someSelected
+                    if (el) (el as any).indeterminate = someSelected
                   }}
                   onCheckedChange={(checked) => onSelectAll(!!checked)}
                 />

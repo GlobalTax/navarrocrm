@@ -90,7 +90,7 @@ export function CasesFilters({
               <SelectItem value="all">Todos los asesores</SelectItem>
               {users.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
-                  {user.full_name || user.email}
+                  {user.email}
                 </SelectItem>
               ))}
             </SelectContent>

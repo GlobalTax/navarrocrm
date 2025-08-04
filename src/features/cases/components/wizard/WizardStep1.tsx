@@ -30,7 +30,7 @@ export function WizardStep1({
       if (template) {
         updateFormData({
           practice_area: template.practice_area?.name || '',
-          billing_method: template.default_billing_method || 'hourly'
+          billing_method: (template.default_billing_method as 'hourly' | 'fixed' | 'contingency' | 'retainer') || 'hourly'
         })
       }
     }
