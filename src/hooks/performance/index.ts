@@ -7,6 +7,13 @@ export { usePerformanceMonitor } from './usePerformanceMonitor'
 export { useMemoryTracker } from './useMemoryTracker'
 export { useAdvancedPerformanceMonitor } from './useAdvancedPerformanceMonitor'
 
+// Export route preloader hooks (disabled to fix React context issues)
+export { 
+  useRoutePreloader, 
+  useCriticalRoutePreloader, 
+  useContextualPreloader 
+} from './useRoutePreloader'
+
 // Re-export utilities
 export { 
   createDebounce, 

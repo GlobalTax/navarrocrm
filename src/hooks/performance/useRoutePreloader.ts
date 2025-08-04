@@ -139,8 +139,8 @@ export const useRoutePreloader = (config: PreloadConfig) => {
 export const useCriticalRoutePreloader = () => {
   return useRoutePreloader({
     routes: ['/dashboard', '/contacts', '/cases'],
-    delay: 500,
-    condition: () => true // Always preload critical routes
+    delay: 2000, // Increased delay to prevent conflicts
+    condition: () => false // Disable aggressive preloading to fix hook errors
   })
 }
 
@@ -171,7 +171,7 @@ export const useContextualPreloader = () => {
 
   return useRoutePreloader({
     routes: getRelatedRoutes(location.pathname),
-    delay: 3000, // Increased delay to reduce aggressive preloading
-    condition: () => !document.hidden && !document.hasFocus() === false // Only when tab is active and focused
+    delay: 5000, // Further increased delay to prevent hook conflicts
+    condition: () => false // Disable contextual preloading to fix React context issues
   })
 }
