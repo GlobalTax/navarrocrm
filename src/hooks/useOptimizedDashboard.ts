@@ -160,7 +160,8 @@ export const useOptimizedDashboard = () => {
             case:cases(title, contact:contacts(name))
           `)
           .eq('org_id', user.org_id)
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
+          .limit(100), // Limitar a 100 entradas más recientes
         
         supabase
           .from('tasks')
@@ -197,9 +198,9 @@ export const useOptimizedDashboard = () => {
       }
     },
     enabled: !!user?.org_id,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    gcTime: 1000 * 60 * 5, // 5 minutes
-    refetchInterval: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes - mayor tiempo de cache
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    refetchInterval: 1000 * 60 * 10, // 10 minutes - menor frecuencia
     refetchOnWindowFocus: false,
   })
 }

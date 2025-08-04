@@ -3,6 +3,10 @@ import { User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AuthUser, UserRole } from '../types'
 
+// Cache de datos de usuario para evitar consultas repetidas
+const userDataCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 15 * 60 * 1000 // 15 minutos
+
 export const enrichUserProfileAsync = async (
   authUser: User, 
   setUser: (user: AuthUser) => void,
@@ -10,6 +14,19 @@ export const enrichUserProfileAsync = async (
 ) => {
   if (profileEnrichmentInProgress.current) {
     console.log('👤 [ProfileHandler] Enriquecimiento ya en progreso')
+    return
+  }
+
+  // Verificar cache primero
+  const cached = userDataCache.get(authUser.id)
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log('👤 [ProfileHandler] Usando datos de cache')
+    const enrichedUser: AuthUser = {
+      ...authUser,
+      role: cached.data.role as UserRole,
+      org_id: cached.data.org_id
+    }
+    setUser(enrichedUser)
     return
   }
 
@@ -24,11 +41,14 @@ export const enrichUserProfileAsync = async (
         .eq('id', authUser.id)
         .maybeSingle(),
       new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('TIMEOUT')), 2000) // Reducido timeout
+        setTimeout(() => reject(new Error('TIMEOUT')), 2000)
       })
     ])
 
     if (!error && data) {
+      // Guardar en cache
+      userDataCache.set(authUser.id, { data, timestamp: Date.now() })
+      
       const enrichedUser: AuthUser = {
         ...authUser,
         role: data.role as UserRole,

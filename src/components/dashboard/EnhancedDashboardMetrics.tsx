@@ -1,8 +1,10 @@
 
 import React from 'react'
-import { CompactMetricWidget } from './CompactMetricWidget'
-import { Clock, Users, FileText, Target, TrendingUp, Euro, AlertTriangle, CheckCircle } from 'lucide-react'
+import { MemoizedCompactMetricWidget } from './MemoizedCompactMetricWidget'
+import { DashboardIcons } from '@/utils/iconOptimizer'
 import { OptimizedDashboardData } from '@/hooks/useOptimizedDashboard'
+
+const { Clock, Users, FileText, Target, TrendingUp, Euro, AlertTriangle, CheckCircle } = DashboardIcons
 
 interface EnhancedDashboardMetricsProps {
   data: OptimizedDashboardData
@@ -63,7 +65,7 @@ export const EnhancedDashboardMetrics = React.memo(({
     <div className="space-y-6 mb-6">
       {/* Métricas principales - Grid compacto */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Horas Facturables"
           value={formatHours(stats.totalBillableHours)}
           change={`${stats.totalTimeEntries} registros`}
@@ -71,13 +73,13 @@ export const EnhancedDashboardMetrics = React.memo(({
           icon={Clock}
         />
         
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Clientes Activos"
           value={stats.totalContacts}
           icon={Users}
         />
         
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Expedientes"
           value={`${stats.activeCases}/${stats.totalCases}`}
           change="Activos/Total"
@@ -85,7 +87,7 @@ export const EnhancedDashboardMetrics = React.memo(({
           icon={FileText}
         />
         
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Utilización"
           value={`${utilizationRate}%`}
           changeType={utilizationRate >= 75 ? 'positive' : utilizationRate >= 50 ? 'neutral' : 'negative'}
@@ -95,7 +97,7 @@ export const EnhancedDashboardMetrics = React.memo(({
 
       {/* Métricas secundarias - Grid más compacto */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Este Mes"
           value={formatHours(stats.thisMonthHours)}
           change="Horas registradas"
@@ -104,7 +106,7 @@ export const EnhancedDashboardMetrics = React.memo(({
           size="sm"
         />
         
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Ingresos Est."
           value={formatCurrency(totalRevenue)}
           change="Basado en horas"
@@ -113,7 +115,7 @@ export const EnhancedDashboardMetrics = React.memo(({
           size="sm"
         />
         
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Tareas Pendientes"
           value={data.quickStats.overdueItems}
           changeType={data.quickStats.overdueItems > 10 ? 'negative' : 'neutral'}
@@ -121,7 +123,7 @@ export const EnhancedDashboardMetrics = React.memo(({
           size="sm"
         />
         
-        <CompactMetricWidget
+        <MemoizedCompactMetricWidget
           title="Casos Nuevos"
           value={stats.thisMonthCases}
           changeType="positive"
