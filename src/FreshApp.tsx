@@ -1,10 +1,10 @@
-import React from 'react'
+import { useState } from 'react'
 import { FreshQueryProvider } from '@/providers/FreshQueryProvider'
 
 // Phase 2: Progressive Provider Test
 const FreshApp = () => {
-  const [step, setStep] = React.useState(1)
-  const [status, setStatus] = React.useState('Testing Fresh QueryProvider...')
+  const [step, setStep] = useState(1)
+  const [status, setStatus] = useState('Testing Fresh QueryProvider...')
 
   console.log('🔧 FRESH_APP: Starting with step', step)
 
