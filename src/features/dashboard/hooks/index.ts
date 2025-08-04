@@ -1,1 +1,5 @@
-export { useDashboardMetrics } from './useDashboardMetrics'
+/**
+ * Hooks del módulo de dashboard
+ */
+
+export { useDashboardMetrics } from '@/hooks/useDashboardMetrics'

@@ -1,12 +1,7 @@
 /**
- * Contacts Hooks Barrel Export
+ * Hooks del módulo de contactos
  */
 
-export { useContacts } from './useContacts'
-export { usePersons } from './usePersons'
-export { useCompanies } from './useCompanies'
-export { useContactsList } from './useContactsList'
-export { useContactSearch, useContactByEmail, useClients } from './useContacts'
-
-// Re-export types for convenience
-export type { Contact, Person, Company, ContactFormData } from '../types'
+// Re-export de hooks existentes
+export { useContacts } from '@/hooks/useContacts'
+export { useOptimizedClients } from '@/hooks/useOptimizedClients'

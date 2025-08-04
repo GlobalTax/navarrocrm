@@ -1,8 +1,7 @@
 /**
- * Cases Hooks - Barrel Export
+ * Hooks del módulo de casos
  */
 
-export { useCases } from './useCases'
-export { useCasesQueries } from './useCasesQueries'
-export { useCasesMutations } from './useCasesMutations'
-export { useCasesFilters } from './useCasesFilters'
+// Re-export de hooks existentes
+export { useCases } from '@/hooks/useCases'
+export { useCasesPageData } from '@/hooks/useCasesPageData'
