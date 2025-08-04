@@ -34,16 +34,23 @@ export { WizardNavigation } from './wizard/WizardNavigation'
 export { useWizardState } from './wizard/useWizardState'
 export type { WizardFormData, WizardStep, MatterWizardProps } from './wizard/types'
 
-// Timeline components
-export { CaseTimeline } from '@/components/cases/timeline/CaseTimeline'
-export { CaseTimelineEvent } from '@/components/cases/timeline/CaseTimelineEvent'
+// Stages
+export { CaseStagesView } from './stages/CaseStagesView'
 
-// Stages components  
-export { StageCard } from '@/components/cases/stages/StageCard'
-export { StageFormDialog } from '@/components/cases/stages/StageFormDialog'
+// Documents
+export { CaseDocumentsPanel } from './documents/CaseDocumentsPanel'
 
-// Tasks components
-export { CaseTasksPanel } from '@/components/cases/tasks/CaseTasksPanel'
+// Time
+export { CaseTimePanel } from './time/CaseTimePanel'
 
-// Stats components
-export { CaseStatsPanel } from '@/components/cases/stats/CaseStatsPanel'
+// Timeline
+export { CaseTimeline } from './timeline/CaseTimeline'
+
+// Tasks
+export { CaseTasksPanel } from './tasks/CaseTasksPanel'
+
+// Stats
+export { CaseStatsPanel } from './stats/CaseStatsPanel'
+
+// Forms
+export { MatterFormDialog } from './forms/MatterFormDialog'

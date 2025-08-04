@@ -18,5 +18,8 @@ export { useCases, useCasesMutations, useCasesQueries, useCasesFilters } from '.
 // Utils
 export { calculateCaseStats, formatCaseStatus, getCasePriorityColor, getCaseStatusColor } from './utils'
 
+// Components
+export * from './components'
+
 // Re-export legacy hooks for compatibility
 export type { Case, CreateCaseData, UpdateCaseData, CaseFilters } from './types'

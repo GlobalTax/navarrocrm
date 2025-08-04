@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CaseTable } from './CaseTable'
-import { CaseStagesView } from '@/components/cases/stages/CaseStagesView'
+import { CaseStagesView } from './stages/CaseStagesView'
 import { Case } from '@/features/cases'
 
 interface CasesTabsContentProps {
@@ -73,7 +73,6 @@ export function CasesTabsContent({
             {selectedCaseForStages ? (
               <CaseStagesView 
                 caseId={selectedCaseForStages.id}
-                caseTitle={selectedCaseForStages.title}
               />
             ) : (
               <div className="text-center py-12">

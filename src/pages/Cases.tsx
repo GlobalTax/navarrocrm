@@ -1,9 +1,11 @@
 import { useState, useMemo, useCallback } from 'react'
-import { CasesStats } from '@/components/cases/CasesStats'
-import { CasesBulkActions } from '@/components/cases/CasesBulkActions'
-import { CasesTabsContent } from '@/components/cases/CasesTabsContent'
-import { CasesDialogManager } from '@/components/cases/CasesDialogManager'
-import { CasesLoadingState } from '@/components/cases/CasesLoadingState'
+import { 
+  CasesStats,
+  CasesBulkActions, 
+  CasesTabsContent,
+  CasesDialogManager,
+  CasesLoadingState 
+} from '@/features/cases/components'
 import { useCases, type Case } from '@/hooks/useCases'
 import { usePracticeAreas } from '@/hooks/usePracticeAreas'
 import { useUsers } from '@/hooks/useUsers'
@@ -234,16 +236,17 @@ export default function Cases() {
 
       <CasesBulkActions selectedCases={selectedCases} />
 
-      <CasesTabsContent
-        filteredCases={filteredCases}
-        onViewCase={handleViewCase}
-        onEditCase={handleEditCase}
-        onDeleteCase={handleDeleteCase}
-        onArchiveCase={handleArchiveCase}
-        selectedCases={selectedCases}
-        onSelectCase={handleSelectCase}
-        onSelectAll={handleSelectAll}
-      />
+        <CasesTabsContent
+          filteredCases={filteredCases}
+          onView={handleViewCase}
+          onEdit={handleEditCase}
+          onDelete={handleDeleteCase}
+          onArchive={handleArchiveCase}
+          onStagesView={handleViewCase}
+          selectedCases={selectedCases}
+          onSelectCase={handleSelectCase}
+          onSelectAll={handleSelectAll}
+        />
 
       <CasesDialogManager
         selectedCase={selectedCase}
