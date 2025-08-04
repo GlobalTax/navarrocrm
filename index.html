@@ -29,6 +29,24 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/emergency-isolation.tsx"></script>
+    <!-- CRITICAL CACHE BUSTER: Force fresh build -->
+    <script type="module" src="/src/critical-recovery-1754335827103.tsx?v=1754335827103&cache=break"></script>
+    <script>
+      // Emergency cache clearing
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      // Clear all browser caches
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      console.log('🚨 EMERGENCY: All caches cleared, forcing fresh load');
+    </script>
   </body>
 </html>
