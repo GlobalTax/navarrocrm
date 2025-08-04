@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
 
 // Mock window.performance for performance tests
 Object.defineProperty(window, 'performance', {
@@ -54,11 +54,13 @@ const localStorageMock = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
+  length: 0,
+  key: vi.fn()
 }
-global.localStorage = localStorageMock
+global.localStorage = localStorageMock as any
 
-// Mock sessionStorage
-global.sessionStorage = localStorageMock
+// Mock sessionStorage  
+global.sessionStorage = localStorageMock as any
 
 // Mock fetch
 global.fetch = vi.fn()

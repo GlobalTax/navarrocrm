@@ -12,6 +12,7 @@ export const createMockContact = (overrides = {}) => ({
   first_name: 'John',
   last_name: 'Doe',
   email: 'john@example.com',
+  company: 'Test Company',
   ...overrides
 })
 
