@@ -1,51 +1,50 @@
-
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { AppProvider } from '@/contexts/AppContext'
-import { QueryProvider } from '@/contexts/QueryContext'
-import { OnboardingProvider } from '@/components/onboarding'
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
-import { AppRouter } from '@/router'
-import { useGlobalMemoryTracker } from '@/hooks/performance/useMemoryTracker'
-import { useCriticalRoutePreloader } from '@/hooks/performance/useRoutePreloader'
-import { usePerformanceBudget } from '@/hooks/performance/usePerformanceBudget'
 
-// Component to initialize performance monitoring (only in development)
-const PerformanceInitializer = () => {
-  useGlobalMemoryTracker()
-  useCriticalRoutePreloader()
+// Test React hooks functionality first
+const ReactHooksTest = () => {
+  const [count, setCount] = useState(0)
   
-  // Only monitor performance budget in development to avoid loops
-  if (import.meta.env.DEV) {
-    usePerformanceBudget({
-      maxBundleSize: 5,     // 5MB for dev build
-      maxLoadTime: 15000,   // 15s for dev with HMR
-      maxMemoryUsage: 500,  // 500MB for dev
-      maxLCP: 5000,         // 5s for dev
-      maxFID: 300,          // 300ms for dev
-      maxCLS: 0.25          // 0.25 score for dev
-    })
-  }
+  useEffect(() => {
+    console.log('✅ useEffect working, count:', count)
+  }, [count])
   
-  return null
+  return (
+    <div className="p-4 border rounded-lg">
+      <h2 className="text-lg font-semibold mb-2">React Hooks Test</h2>
+      <p>Count: {count}</p>
+      <button 
+        onClick={() => setCount(c => c + 1)}
+        className="px-4 py-2 bg-blue-500 text-white rounded mt-2"
+      >
+        Test useState & useEffect
+      </button>
+    </div>
+  )
 }
 
 function App() {
+  console.log('🚀 App rendering with React:', React.version)
+  
   return (
     <GlobalErrorBoundary>
-      <QueryProvider>
-        <AppProvider>
-          <OnboardingProvider>
-            <Toaster position="top-right" />
-            <Router>
-              <PerformanceInitializer />
-              <div className="min-h-screen bg-background text-foreground font-sans">
-                <AppRouter />
-              </div>
-            </Router>
-          </OnboardingProvider>
-        </AppProvider>
-      </QueryProvider>
+      <Router>
+        <div className="min-h-screen bg-background text-foreground font-sans p-8">
+          <h1 className="text-2xl font-bold mb-4">Navarro CRM - Progressive Testing</h1>
+          <div className="space-y-4">
+            <div>
+              <strong>React Version:</strong> {React.version}
+            </div>
+            <ReactHooksTest />
+            <div className="text-green-600">
+              ✅ If you see this and can click the button above, React is working properly.
+            </div>
+          </div>
+          <Toaster position="top-right" />
+        </div>
+      </Router>
     </GlobalErrorBoundary>
   )
 }
