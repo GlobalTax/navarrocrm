@@ -1,52 +1,32 @@
-import React, { useState, useEffect } from 'react'
-import { BrowserRouter as Router } from 'react-router-dom'
-import { Toaster } from 'sonner'
-import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
+import React from 'react'
 
-// Test React hooks functionality first
-const ReactHooksTest = () => {
-  const [count, setCount] = useState(0)
-  
-  useEffect(() => {
-    console.log('✅ useEffect working, count:', count)
-  }, [count])
+// Brand new minimal component to break any caching
+const MinimalApp = () => {
+  console.log('🚀 MinimalApp starting...')
   
   return (
-    <div className="p-4 border rounded-lg">
-      <h2 className="text-lg font-semibold mb-2">React Hooks Test</h2>
-      <p>Count: {count}</p>
-      <button 
-        onClick={() => setCount(c => c + 1)}
-        className="px-4 py-2 bg-blue-500 text-white rounded mt-2"
-      >
-        Test useState & useEffect
-      </button>
+    <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
+      <h1 style={{ color: '#333', marginBottom: '20px' }}>
+        🔧 Navarro CRM - React Recovery Mode
+      </h1>
+      
+      <div style={{ 
+        padding: '20px', 
+        border: '2px solid #4CAF50', 
+        borderRadius: '8px',
+        backgroundColor: '#f0f8f0'
+      }}>
+        <h2>✅ React Status: Working</h2>
+        <p>If you can see this message, React is functioning correctly.</p>
+        <p><strong>Next step:</strong> We can now progressively add back the application features.</p>
+      </div>
+      
+      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '4px' }}>
+        <strong>⚠️ Recovery Mode Active</strong><br/>
+        This is a minimal React app to test basic functionality after fixing the hook corruption issue.
+      </div>
     </div>
   )
 }
 
-function App() {
-  console.log('🚀 App rendering with React:', React.version)
-  
-  return (
-    <GlobalErrorBoundary>
-      <Router>
-        <div className="min-h-screen bg-background text-foreground font-sans p-8">
-          <h1 className="text-2xl font-bold mb-4">Navarro CRM - Progressive Testing</h1>
-          <div className="space-y-4">
-            <div>
-              <strong>React Version:</strong> {React.version}
-            </div>
-            <ReactHooksTest />
-            <div className="text-green-600">
-              ✅ If you see this and can click the button above, React is working properly.
-            </div>
-          </div>
-          <Toaster position="top-right" />
-        </div>
-      </Router>
-    </GlobalErrorBoundary>
-  )
-}
-
-export default App
+export default MinimalApp
