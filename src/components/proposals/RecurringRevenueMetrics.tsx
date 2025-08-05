@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useRecurringRevenue } from '@/features/billing'
+import { useRecurringRevenue } from '@/hooks/useRecurringRevenue'
 import { TrendingUp, Users, Calendar, DollarSign } from 'lucide-react'
 
 export function RecurringRevenueMetrics() {

@@ -10,23 +10,21 @@ export type CasePriority = 'low' | 'medium' | 'high' | 'urgent'
 export type CaseType = 'legal' | 'fiscal' | 'laboral' | 'mercantil' | 'other'
 
 export interface Case extends BaseEntity {
+  case_number: string
   title: string
-  description: string | null
-  contact_id: string
-  status: string
-  practice_area: string | null
-  matter_number: string | null
-  billing_method: string | null
-  estimated_budget: number | null
-  originating_solicitor_id: string | null
-  responsible_solicitor_id: string | null
-  date_opened: string | null
-  date_closed: string | null
-  last_email_sent_at: string | null
-  communication_preferences: any | null
-  template_id: string | null
-  primary_contact_email: string | null
-  contact?: any
+  description: string
+  client_id: string
+  assigned_user_id: string | null
+  status: CaseStatus
+  priority: CasePriority
+  case_type: CaseType
+  due_date: string | null
+  estimated_hours: number | null
+  actual_hours: number | null
+  hourly_rate: number | null
+  tags: string[] | null
+  internal_notes: string | null
+  client?: Contact
   assigned_user?: User
 }
 

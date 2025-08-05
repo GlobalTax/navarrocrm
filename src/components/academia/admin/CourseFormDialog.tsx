@@ -15,7 +15,6 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AcademyCourse, AcademyCategory, CourseFormData } from '@/types/academy'
 import { COURSE_LEVELS } from '@/types/academy'
-import { logger } from '@/utils/logging'
 
 const courseSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio').max(255, 'El título es muy largo'),
@@ -51,12 +50,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
 
   const onSubmit = async (data: CourseFormData) => {
     try {
-      logger.info('Submitting course form', { 
-        component: 'CourseFormDialog',
-        courseTitle: data.title,
-        categoryId: data.category_id,
-        isEditing
-      })
+      console.log('📤 Submitting course form with data:', data)
 
       // Validación adicional en el frontend
       if (!data.category_id) {
@@ -71,32 +65,18 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
       }
 
       if (isEditing && course) {
-        logger.info('Updating existing course', { 
-          component: 'CourseFormDialog',
-          courseId: course.id,
-          title: data.title
-        })
+        console.log('📝 Updating existing course:', course.id)
         await updateCourse.mutateAsync({ 
           id: course.id, 
           ...data
         })
       } else {
-        logger.info('Creating new course', { 
-          component: 'CourseFormDialog',
-          title: data.title
-        })
+        console.log('🆕 Creating new course')
         const result = await createCourse.mutateAsync(data)
-        logger.info('Course created successfully', { 
-          component: 'CourseFormDialog',
-          courseId: result?.id,
-          title: data.title
-        })
+        console.log('✅ Course created with result:', result)
       }
       
-      logger.info('Course operation completed successfully', { 
-        component: 'CourseFormDialog',
-        isEditing 
-      })
+      console.log('✅ Course operation completed successfully')
       handleClose()
     } catch (error) {
       console.error('❌ Error saving course:', error)
@@ -122,11 +102,7 @@ export function CourseFormDialog({ open, onClose, course, categories }: CourseFo
         estimated_duration: course?.estimated_duration || undefined,
         is_published: course?.is_published || false
       }
-      logger.debug('Resetting form with data', { 
-        component: 'CourseFormDialog',
-        title: formData.title,
-        categoryId: formData.category_id
-      })
+      console.log('🔄 Resetting form with data:', formData)
       form.reset(formData)
     }
   }, [open, course, form])

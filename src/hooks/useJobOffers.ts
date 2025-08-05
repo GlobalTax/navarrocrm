@@ -174,31 +174,6 @@ export const useJobOffers = () => {
     }
   }
 
-  const createSignatureRequest = async (id: string): Promise<string | null> => {
-    try {
-      const jobOffer = jobOffers.find(offer => offer.id === id);
-      if (!jobOffer) throw new Error('Job offer not found');
-
-      const { data, error } = await supabase.functions.invoke('create-signature-request', {
-        body: {
-          jobOfferId: id,
-          candidateName: jobOffer.candidate_name,
-          candidateEmail: jobOffer.candidate_email,
-          orgId: jobOffer.org_id
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success('Enlace de firma creado exitosamente');
-      return data.signingUrl;
-    } catch (error: any) {
-      console.error('Error creating signature request:', error);
-      toast.error('Error al crear el enlace de firma');
-      return null;
-    }
-  };
-
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
@@ -218,7 +193,6 @@ export const useJobOffers = () => {
     updateJobOfferStatus,
     deleteJobOffer,
     sendJobOffer,
-    createSignatureRequest,
     refetch: () => Promise.all([fetchJobOffers(), fetchTemplates()])
   }
 }

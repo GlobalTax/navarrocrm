@@ -1,5 +1,5 @@
 
-import { useCases } from '@/features/cases'
+import { useCases } from './useCases'
 
 export const useCasesPageData = () => {
   const casesHook = useCases()

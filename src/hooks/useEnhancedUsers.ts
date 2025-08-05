@@ -1,9 +1,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
-import { usersDAL } from '@/lib/dal'
-import { logger } from '@/utils/logging'
 
 export interface UserFilters {
   search: string
@@ -16,8 +15,8 @@ export interface EnhancedUser {
   email: string
   role: string
   org_id: string
-  created_at?: string
-  updated_at?: string
+  created_at: string
+  updated_at: string
   is_active: boolean
   last_login_at?: string
   deleted_at?: string
@@ -33,87 +32,84 @@ export const useEnhancedUsers = (filters: UserFilters) => {
     queryFn: async (): Promise<EnhancedUser[]> => {
       if (!user?.org_id) return []
       
-      const queryOptions: any = {
-        sort: [{ column: 'email', ascending: true }]
+      let query = supabase
+        .from('users')
+        .select('*')
+        .eq('org_id', user.org_id)
+
+      // Aplicar filtros
+      if (filters.search) {
+        query = query.ilike('email', `%${filters.search}%`)
       }
 
-      // Build filters object
-      const dalFilters: any = { org_id: user.org_id }
-
       if (filters.role !== 'all') {
-        dalFilters.role = filters.role
+        query = query.eq('role', filters.role)
       }
 
       if (filters.status === 'active') {
-        dalFilters.is_active = true
+        query = query.eq('is_active', true)
       } else if (filters.status === 'inactive') {
-        dalFilters.is_active = false
+        query = query.eq('is_active', false)
       }
 
-      queryOptions.filters = dalFilters
+      const { data, error } = await query.order('email', { ascending: true })
 
-      const result = await usersDAL.findMany(queryOptions)
-      
-      if (!result.success) {
-        logger.error('Error fetching users', { error: result.error, filters })
-        throw result.error
-      }
-
-      // Apply search filter client-side for now
-      let filteredUsers = result.data
-      if (filters.search) {
-        filteredUsers = result.data.filter(user => 
-          user.email?.toLowerCase().includes(filters.search.toLowerCase())
-        )
-      }
-
-      return filteredUsers
+      if (error) throw error
+      return data || []
     },
     enabled: !!user?.org_id,
   })
 
   const activateUser = useMutation({
     mutationFn: async (userId: string) => {
-      const updateData: any = { 
-        is_active: true, 
-        deleted_at: null, 
-        deleted_by: null,
-        updated_at: new Date().toISOString()
-      }
-      const result = await usersDAL.update(userId, updateData)
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+          is_active: true, 
+          deleted_at: null, 
+          deleted_by: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single()
 
-      if (!result.success) throw result.error
-      return result.data
+      if (error) throw error
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-users'] })
       toast.success('Usuario reactivado correctamente')
     },
     onError: (error: any) => {
-      logger.error('Error reactivando usuario', { error, userId: user?.id })
+      console.error('Error reactivando usuario:', error)
       toast.error('Error al reactivar el usuario')
     },
   })
 
   const deactivateUser = useMutation({
     mutationFn: async (userId: string) => {
-      const updateData: any = { 
-        is_active: false,
-        deleted_at: new Date().toISOString(),
-        deleted_by: user?.id,
-        updated_at: new Date().toISOString()
-      }
-      const result = await usersDAL.update(userId, updateData)
+      const { data, error } = await supabase
+        .from('users')
+        .update({ 
+          is_active: false,
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()
+        .single()
 
-      if (!result.success) throw result.error
-      return result.data
+      if (error) throw error
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enhanced-users'] })
       toast.success('Usuario desactivado correctamente')
     },
     onError: (error: any) => {
-      logger.error('Error desactivando usuario', { error, userId: user?.id })
+      console.error('Error desactivando usuario:', error)
       toast.error('Error al desactivar el usuario')
     },
   })

@@ -1,16 +1,5 @@
-import { useOptimizedDashboard } from '@/hooks/useOptimizedDashboard'
+import { useOptimizedDashboard } from '@/hooks/useOptimizedQueries'
 
-/**
- * Hook unificado que conecta con el hook optimizado existente
- * Proporciona interfaz consistente para el dashboard
- */
 export const useDashboardMetrics = () => {
-  const { data, isLoading, error, refetch } = useOptimizedDashboard()
-  
-  return {
-    data,
-    isLoading,
-    error,
-    refetch
-  }
+  return useOptimizedDashboard()
 }

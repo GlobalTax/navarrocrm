@@ -5,12 +5,12 @@ import { Badge } from '@/components/ui/badge'
 import { JobOfferBuilder } from '@/components/job-offers/JobOfferBuilder'
 import { useJobOffers } from '@/hooks/useJobOffers'
 import { JobOfferFormData, JobOfferStatus } from '@/types/job-offers'
-import { Plus, Send, Eye, Trash2, Calendar, FileSignature } from 'lucide-react'
+import { Plus, Send, Eye, Trash2, Calendar } from 'lucide-react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 export default function JobOffers() {
-  const { jobOffers, isLoading, isCreating, createJobOffer, sendJobOffer, deleteJobOffer, createSignatureRequest } = useJobOffers()
+  const { jobOffers, isLoading, isCreating, createJobOffer, sendJobOffer, deleteJobOffer } = useJobOffers()
   const [showBuilder, setShowBuilder] = useState(false)
 
   const handleCreateOffer = async (data: JobOfferFormData) => {
@@ -132,17 +132,6 @@ export default function JobOffers() {
                     >
                       <Send className="h-4 w-4" />
                       Enviar
-                    </Button>
-                  )}
-                  {(offer.status === 'sent' || offer.status === 'viewed') && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => createSignatureRequest(offer.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <FileSignature className="h-4 w-4" />
-                      Crear Enlace Firma
                     </Button>
                   )}
                   <Button variant="outline" size="sm" className="flex items-center gap-2">

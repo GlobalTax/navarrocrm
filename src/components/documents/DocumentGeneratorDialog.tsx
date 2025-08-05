@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Eye, Brain } from 'lucide-react'
 import { useDocumentTemplates } from '@/hooks/useDocumentTemplates'
-import { useCases } from '@/hooks/useCases'
+import { useCasesList } from '@/features/cases'
 import { useContacts } from '@/hooks/useContacts'
 import { DocumentFormWizard } from './advanced/DocumentFormWizard'
 import { AIDocumentAnalyzer } from './ai/AIDocumentAnalyzer'
@@ -29,7 +29,7 @@ export const DocumentGeneratorDialog = ({
   templateId
 }: DocumentGeneratorDialogProps) => {
   const { templates, generateDocument } = useDocumentTemplates()
-  const { cases } = useCases()
+  const { cases } = useCasesList()
   const { contacts } = useContacts()
   
   const [preview, setPreview] = useState('')

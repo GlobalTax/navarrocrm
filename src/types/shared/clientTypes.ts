@@ -59,26 +59,3 @@ export const isProspect = (contact: Contact): boolean => {
 export const isExClient = (contact: Contact): boolean => {
   return contact.relationship_type === 'ex_cliente'
 }
-
-// Tipos adicionales
-export type ContactType = string
-export type ContactStatus = string
-
-export interface ContactFilters {
-  search?: string
-  relationship_type?: string
-  status?: string
-  client_type?: string
-}
-
-export interface CreateContactData {
-  name: string
-  email?: string
-  phone?: string
-  client_type?: string
-  relationship_type?: string
-}
-
-export interface UpdateContactData extends Partial<CreateContactData> {
-  id: string
-}

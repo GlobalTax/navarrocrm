@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Euro, Calendar, AlertCircle, TrendingUp, Clock, FileText } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import type { RecurringFee } from '@/features/billing'
+import type { RecurringFee } from '@/hooks/useRecurringFees'
 
 interface RecurringFeesDashboardProps {
   fees: RecurringFee[]

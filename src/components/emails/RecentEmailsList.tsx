@@ -128,7 +128,7 @@ export function RecentEmailsList() {
               className="text-xs"
               onClick={() => {
                 // TODO: Navegar al thread del email
-                // TODO: Implementar navegación al email
+                console.log('Ver email:', email.id)
               }}
             >
               Ver

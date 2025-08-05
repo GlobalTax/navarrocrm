@@ -1,8 +1,24 @@
 /**
- * Casos/Expedientes Feature Module
- * Gestión completa de casos legales y expedientes
+ * Cases Feature Module
+ * 
+ * Gestión de expedientes y casos legales
  */
 
-export * from './types'
-export * from './hooks'
-export * from './components'
+// Components (pages)
+export { default as CasesPage } from './pages/CasesPage'
+
+// Components
+export { CaseTable } from './components/CaseTable'
+export { CasesFilters } from './components/CasesFilters'
+
+// Hooks
+export { useCasesList } from './hooks'
+
+export type { Case, CreateCaseData } from '@/hooks/useCases'
+// Types
+// export type {
+//   Case,
+//   CaseStatus,
+//   CaseForm,
+//   CaseTemplate
+// } from './types'

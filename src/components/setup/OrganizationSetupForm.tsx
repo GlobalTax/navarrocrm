@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
-import { setupLogger } from '@/utils/logging'
 
 interface OrganizationSetupFormProps {
   onSuccess: (orgName: string) => void
@@ -26,7 +25,7 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
     setLoading(true)
 
     try {
-      setupLogger.info('Creando organización', { orgName })
+      console.log('Creando organización:', orgName)
       
       // Crear la organización directamente (sin verificar duplicados por ahora)
       const { data: orgResult, error: orgError } = await supabase
@@ -49,7 +48,7 @@ export const OrganizationSetupForm = ({ onSuccess }: OrganizationSetupFormProps)
         throw new Error(`Error al crear organización: ${orgError.message}`)
       }
 
-      setupLogger.info('Organización creada exitosamente', { orgResult })
+      console.log('Organización creada exitosamente:', orgResult)
       
       toast.success(`${orgName} ha sido creada exitosamente`)
       

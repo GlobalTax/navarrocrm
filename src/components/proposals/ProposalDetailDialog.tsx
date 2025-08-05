@@ -23,7 +23,7 @@ import {
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getStatusColor, getStatusLabel, getFrequencyLabel, formatCurrency, formatDate } from './utils/proposalFormatters'
-import { useRecurringFees } from '@/features/billing'
+import { useRecurringFees } from '@/hooks/useRecurringFees'
 
 interface ProposalDetailDialogProps {
   proposal: any

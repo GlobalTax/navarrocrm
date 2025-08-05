@@ -1,6 +1,6 @@
 
 import { Routes, Route } from 'react-router-dom'
-import { authRoutes, publicRoutes } from './routes'
+import { authRoutes, publicRoutes, protectedRoutes } from './routes'
 import { RouteConfig } from './types'
 import NotFound from '@/pages/NotFound'
 
@@ -24,6 +24,9 @@ export const AppRouter = () => {
       
       {/* Rutas de autenticación */}
       {renderRoutes(authRoutes.routes)}
+      
+      {/* Rutas protegidas */}
+      {renderRoutes(protectedRoutes.routes)}
       
       {/* 404 - no lazy */}
       <Route path="*" element={<NotFound />} />

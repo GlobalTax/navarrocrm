@@ -5,7 +5,7 @@ import { TaskDetailDrawer } from './TaskDetailDrawer'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { TaskWithRelations, TaskStatus, STATUS_LABELS } from '@/hooks/tasks/types'
-import { useTasks } from '@/features/tasks'
+import { useTasks } from '@/hooks/useTasks'
 
 interface TasksBoardKanbanProps {
   tasks: TaskWithRelations[]

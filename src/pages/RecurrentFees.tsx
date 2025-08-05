@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { format, isAfter } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/features/billing'
+import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/hooks/useRecurringFees'
 import { RecurringFeeForm } from '@/components/recurring-fees/RecurringFeeForm'
 import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesMetrics'
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'
@@ -85,8 +85,8 @@ const RecurrentFees = () => {
   }
 
   const handleViewDetails = (fee) => {
-    // Navegar a vista de detalles (cuando esté implementada)
-    toast.info('Vista de detalles próximamente disponible')
+    // TODO: Implementar vista de detalles
+    toast.success('Próximamente: La vista de detalles estará disponible pronto')
   }
 
   const handleGenerateInvoices = async () => {

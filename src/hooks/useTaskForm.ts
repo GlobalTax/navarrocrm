@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { useApp } from '@/contexts/AppContext'
-import { useTasks } from '@/features/tasks'
+import { useTasks } from '@/hooks/useTasks'
 import { TaskStatus, TaskPriority } from '@/hooks/tasks/types'
 import { supabase } from '@/integrations/supabase/client'
 

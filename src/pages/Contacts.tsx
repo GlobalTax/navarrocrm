@@ -1,62 +1,201 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+import { useState } from 'react'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Plus, Search } from 'lucide-react'
+import { UserPlus, Database } from 'lucide-react'
+import { useContactsList, type Contact } from '@/features/contacts'
+import { Person } from '@/hooks/usePersons'
+import { Company } from '@/hooks/useCompanies'
+import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
+import { ContactsDialogManager } from '@/components/contacts/ContactsDialogManager'
+import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
+import { PersonFormDialog } from '@/components/contacts/PersonFormDialog'
+import { ContactQuickMetrics } from '@/components/contacts/ContactQuickMetrics'
+import { QuantumSyncStatus } from '@/components/contacts/QuantumSyncStatus'
+import { DuplicateAlert } from '@/components/contacts/DuplicateAlert'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { useOnboarding } from '@/components/onboarding'
+import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
+
+import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 const Contacts = () => {
+  const [isCreatePersonDialogOpen, setIsCreatePersonDialogOpen] = useState(false)
+  const [isEditPersonDialogOpen, setIsEditPersonDialogOpen] = useState(false)
+  const [isCreateCompanyDialogOpen, setIsCreateCompanyDialogOpen] = useState(false)
+  const [isEditCompanyDialogOpen, setIsEditCompanyDialogOpen] = useState(false)
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false)
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+  const [isImprovedOnboardingOpen, setIsImprovedOnboardingOpen] = useState(false)
+  const [isQuantumImportOpen, setIsQuantumImportOpen] = useState(false)
+  const [showMigrationDashboard, setShowMigrationDashboard] = useState(false)
+  
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
+  const [activeTab, setActiveTab] = useState('persons')
+
+  const { contacts, refetch } = useContactsList()
+  const { startOnboarding } = useOnboarding()
+
+  const handleCreatePerson = () => {
+    setSelectedPerson(null)
+    setIsCreatePersonDialogOpen(true)
+  }
+
+  const handleCreateCompany = () => {
+    setSelectedCompany(null)
+    setIsCreateCompanyDialogOpen(true)
+  }
+
+  const handleEditPerson = (person: Person) => {
+    setSelectedPerson(person)
+    setIsEditPersonDialogOpen(true)
+  }
+
+  const handleEditCompany = (company: Company) => {
+    setSelectedCompany(company)
+    setIsEditCompanyDialogOpen(true)
+  }
+
+  const handleDialogClose = () => {
+    setIsCreatePersonDialogOpen(false)
+    setIsEditPersonDialogOpen(false)
+    setIsCreateCompanyDialogOpen(false)
+    setIsEditCompanyDialogOpen(false)
+    setSelectedContact(null)
+    setSelectedPerson(null)
+    setSelectedCompany(null)
+    refetch()
+  }
+
+  const handleBulkUploadSuccess = () => {
+    refetch()
+  }
+
+  const handleStartImprovedOnboarding = () => {
+    setIsImprovedOnboardingOpen(true)
+  }
+
+  const handleCloseImprovedOnboarding = () => {
+    setIsImprovedOnboardingOpen(false)
+    refetch() // Refrescar datos después del onboarding
+  }
+
+  const handleQuantumImportClose = () => {
+    setIsQuantumImportOpen(false)
+    refetch() // Refrescar datos después de la importación
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Contactos</h2>
-          <p className="text-muted-foreground">
-            Gestiona tu base de datos de clientes
-          </p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Contacto
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Contactos"
+        description="Gestiona personas físicas y empresas de tu cartera"
+      />
+      
+      {/* Botones de Onboarding */}
+      <div className="mb-6 flex gap-3">
+        <Button 
+          onClick={handleStartImprovedOnboarding}
+          className="border-0.5 border-black rounded-[10px] bg-primary text-white hover:bg-primary/90"
+        >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Onboarding Inteligente
+        </Button>
+        <Button 
+          onClick={() => setIsQuantumImportOpen(true)}
+          variant="outline"
+          className="border-0.5 border-black rounded-[10px] hover:bg-gray-50"
+        >
+          <Database className="h-4 w-4 mr-2" />
+          Importar Quantum
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Contactos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                placeholder="Buscar contactos..."
-                className="pl-8 w-full p-2 border rounded-md"
-              />
-            </div>
+      {/* Métricas rápidas y estado de sincronización */}
+      <div className="space-y-6 mb-6">
+        <ContactQuickMetrics contacts={contacts} />
+        <DuplicateAlert />
+        <QuantumSyncStatus />
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="persons">
+            Personas Físicas
+          </TabsTrigger>
+          <TabsTrigger value="companies">
+            Empresas
+          </TabsTrigger>
+          <TabsTrigger value="migration">
+            Migración
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        <ContactsTabsContent
+          contacts={contacts}
+          onBulkUpload={() => setIsBulkUploadOpen(true)}
+          onExport={() => setIsExportDialogOpen(true)}
+          onCreatePerson={handleCreatePerson}
+          onCreateCompany={handleCreateCompany}
+          onEditPerson={handleEditPerson}
+          onEditCompany={handleEditCompany}
+        />
+
+        {/* Tab de Migración */}
+        {activeTab === 'migration' && (
+          <div className="mt-6">
+            <MigrationDashboard />
           </div>
-          
-          <div className="space-y-4">
-            {[
-              { name: 'Ana Martínez', email: 'ana@email.com', phone: '+34 600 123 456', type: 'Cliente' },
-              { name: 'Carlos Ruiz', email: 'carlos@empresa.com', phone: '+34 611 234 567', type: 'Empresa' },
-              { name: 'María González', email: 'maria@gmail.com', phone: '+34 622 345 678', type: 'Cliente' },
-            ].map((contact, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">{contact.name}</h3>
-                  <p className="text-sm text-muted-foreground">{contact.email}</p>
-                  <p className="text-sm text-muted-foreground">{contact.phone}</p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {contact.type}
-                  </span>
-                </div>
-              </div>
-            ))}
+        )}
+      </Tabs>
+
+      {/* Diálogos para Personas Físicas */}
+      <PersonFormDialog
+        person={selectedPerson}
+        open={isCreatePersonDialogOpen || isEditPersonDialogOpen}
+        onClose={handleDialogClose}
+      />
+
+      {/* Diálogos para Empresas */}
+      <ContactsDialogManager
+        selectedContact={selectedContact}
+        isCreateDialogOpen={isCreateCompanyDialogOpen}
+        isEditDialogOpen={isEditCompanyDialogOpen}
+        isBulkUploadOpen={isBulkUploadOpen}
+        isExportDialogOpen={isExportDialogOpen}
+        isQuantumImportOpen={isQuantumImportOpen}
+        contacts={contacts}
+        onClose={handleDialogClose}
+        onBulkUploadClose={() => setIsBulkUploadOpen(false)}
+        onExportClose={() => setIsExportDialogOpen(false)}
+        onQuantumImportClose={handleQuantumImportClose}
+        onBulkUploadSuccess={handleBulkUploadSuccess}
+      />
+
+      {/* Diálogo de Onboarding Mejorado */}
+      <Dialog open={isImprovedOnboardingOpen} onOpenChange={setIsImprovedOnboardingOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] p-0 overflow-hidden border-0.5 border-black rounded-[10px]">
+          <DialogHeader className="px-6 py-4 border-b border-gray-200">
+            <DialogTitle className="text-xl font-semibold">
+              Onboarding Inteligente de Clientes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <ImprovedClientOnboarding onClose={handleCloseImprovedOnboarding} />
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </DialogContent>
+      </Dialog>
+
+
+    </StandardPageContainer>
   )
 }
 

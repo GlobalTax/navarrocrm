@@ -11,43 +11,39 @@ export const useLazyComponent = ({
   rootMargin = '100px',
   threshold = 0.1 
 }: UseLazyComponentOptions = {}) => {
-  const [isVisible, setIsVisible] = useState(delay === 0)
+  const [shouldLoad, setShouldLoad] = useState(delay === 0)
+  const [isVisible, setIsVisible] = useState(false)
   const elementRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Si delay es 0, cargar inmediatamente sin intersection observer
-    if (delay === 0) {
-      setIsVisible(true)
-      return
+    if (delay > 0) {
+      const timer = setTimeout(() => {
+        setShouldLoad(true)
+      }, delay)
+      return () => clearTimeout(timer)
     }
+  }, [delay])
 
-    // Para delay > 0, usar timer + intersection observer
-    const timer = setTimeout(() => {
-      if (!elementRef.current) {
-        setIsVisible(true)
-        return
-      }
+  useEffect(() => {
+    if (!shouldLoad || !elementRef.current) return
 
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setIsVisible(true)
-            observer.disconnect()
-          }
-        },
-        { rootMargin, threshold }
-      )
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin, threshold }
+    )
 
-      observer.observe(elementRef.current)
-      return () => observer.disconnect()
-    }, delay)
-
-    return () => clearTimeout(timer)
-  }, [delay, rootMargin, threshold])
+    observer.observe(elementRef.current)
+    return () => observer.disconnect()
+  }, [shouldLoad, rootMargin, threshold])
 
   return {
     elementRef,
-    shouldLoad: isVisible,
+    shouldLoad: shouldLoad && (delay > 0 ? true : isVisible),
     isInViewport: isVisible
   }
 }

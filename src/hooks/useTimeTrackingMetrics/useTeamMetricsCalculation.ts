@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react'
-import type { TimeEntry } from '@/features/time-tracking'
+import type { TimeEntry } from '@/hooks/useTimeEntries'
 import type { TeamMetrics, TeamMemberMetrics } from './types'
 
 interface UseTeamMetricsCalculationProps {

@@ -1,14 +1,12 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { useApp } from '@/contexts/AppContext'
 import { AdvancedProposalPhase, PhaseStatus, PhaseTemplate, PhaseMetrics } from '@/types/phase.types'
 
 export const useAdvancedPhases = () => {
-  const { user } = useApp()
   const [phases, setPhases] = useState<AdvancedProposalPhase[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
-  const updatePhaseStatus = (phaseId: string, status: PhaseStatus) => {
+  const updatePhaseStatus = useCallback((phaseId: string, status: PhaseStatus) => {
     setPhases(prev => prev.map(phase => {
       if (phase.id === phaseId) {
         const updatedPhase = { ...phase, status }
@@ -29,9 +27,9 @@ export const useAdvancedPhases = () => {
     }))
     
     toast.success(`Estado de fase actualizado a ${status}`)
-  }
+  }, [])
 
-  const updatePhaseProgress = (phaseId: string, completionPercentage: number) => {
+  const updatePhaseProgress = useCallback((phaseId: string, completionPercentage: number) => {
     setPhases(prev => prev.map(phase => 
       phase.id === phaseId 
         ? { 
@@ -43,22 +41,22 @@ export const useAdvancedPhases = () => {
           }
         : phase
     ))
-  }
+  }, [])
 
-  const addPhaseFromTemplate = (template: PhaseTemplate) => {
+  const addPhaseFromTemplate = useCallback((template: PhaseTemplate) => {
     const newPhases: AdvancedProposalPhase[] = template.phases.map(templatePhase => ({
       ...templatePhase,
       id: crypto.randomUUID(),
-      createdBy: user?.id || 'unknown',
+      createdBy: 'current-user', // TODO: get from auth
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }))
     
     setPhases(prev => [...prev, ...newPhases])
     toast.success(`${newPhases.length} fases añadidas desde plantilla`)
-  }
+  }, [])
 
-  const validatePhaseDependencies = (phases: AdvancedProposalPhase[]) => {
+  const validatePhaseDependencies = useCallback((phases: AdvancedProposalPhase[]) => {
     const issues: string[] = []
     
     phases.forEach(phase => {
@@ -78,9 +76,9 @@ export const useAdvancedPhases = () => {
     })
     
     return issues
-  }
+  }, [])
 
-  const calculatePhaseMetrics = (phases: AdvancedProposalPhase[]): PhaseMetrics => {
+  const calculatePhaseMetrics = useCallback((phases: AdvancedProposalPhase[]): PhaseMetrics => {
     const totalPhases = phases.length
     const completedPhases = phases.filter(p => p.status === 'completed').length
     const onTimePhases = phases.filter(p => {
@@ -118,9 +116,9 @@ export const useAdvancedPhases = () => {
       averageDuration,
       budgetVariance
     }
-  }
+  }, [])
 
-  const exportPhaseReport = (phases: AdvancedProposalPhase[]) => {
+  const exportPhaseReport = useCallback((phases: AdvancedProposalPhase[]) => {
     const report = {
       generatedAt: new Date().toISOString(),
       metrics: calculatePhaseMetrics(phases),
@@ -143,7 +141,7 @@ export const useAdvancedPhases = () => {
     URL.revokeObjectURL(url)
     
     toast.success('Reporte de fases exportado')
-  }
+  }, [calculatePhaseMetrics])
 
   return {
     phases,

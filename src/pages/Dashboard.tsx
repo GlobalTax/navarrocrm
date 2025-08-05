@@ -1,135 +1,138 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Briefcase, Mail, TrendingUp } from 'lucide-react'
 
-const Dashboard = () => {
+import { useEffect, useState } from 'react'
+import { useApp } from '@/contexts/AppContext'
+import { OptimizedDashboardMetrics } from '@/components/dashboard/OptimizedDashboardMetrics'
+import { OptimizedPerformanceChart } from '@/components/dashboard/OptimizedPerformanceChart'
+import { OptimizedRecentActivity } from '@/components/dashboard/OptimizedRecentActivity'
+import { TodayAgenda } from '@/components/dashboard/TodayAgenda'
+import { DashboardError } from '@/components/dashboard/DashboardError'
+import { EnhancedActiveTimer } from '@/components/dashboard/EnhancedActiveTimer'
+import { useDashboardMetrics } from '@/features/dashboard'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { LazyWidget } from '@/components/ui/lazy-widget'
+import { RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
+
+export default function Dashboard() {
+  const { user } = useApp()
+  const { data, isLoading, error, refetch } = useDashboardMetrics()
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
+
+  useEffect(() => {
+    if (user?.org_id) {
+      setLastRefresh(new Date())
+    }
+  }, [user])
+
+  const handleRefresh = async () => {
+    try {
+      await refetch()
+      setLastRefresh(new Date())
+      toast.success('Dashboard actualizado', {
+        description: 'Los datos se han actualizado correctamente'
+      })
+    } catch (error) {
+      toast.error('Error al actualizar', {
+        description: 'No se pudieron actualizar los datos'
+      })
+    }
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const welcomeMessage = user?.email?.split('@')[0] || 'Usuario'
+  const formatTime = (date: Date) => date.toLocaleTimeString('es-ES', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  })
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">
-          Vista general de tu asesoría legal
-        </p>
-      </div>
+    <StandardPageContainer>
+      <StandardPageHeader
+        title={`Bienvenido, ${welcomeMessage}`}
+        description="Panel de control optimizado con métricas en tiempo real"
+        badges={[
+          {
+            label: `Rol: ${user.role}`,
+            variant: 'outline',
+            color: 'text-blue-600 border-blue-200 bg-blue-50'
+          }
+        ]}
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        }
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Clientes
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">254</div>
-            <p className="text-xs text-muted-foreground">
-              +12% desde el mes pasado
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Casos Activos
-            </CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-muted-foreground">
-              +3 nuevos esta semana
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Emails Pendientes
-            </CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">18</div>
-            <p className="text-xs text-muted-foreground">
-              -5 desde ayer
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Ingresos del Mes
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">€32,450</div>
-            <p className="text-xs text-muted-foreground">
-              +18% vs mes anterior
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Timer de trabajo activo - Carga inmediata */}
+      <LazyWidget priority="immediate" className="mb-6">
+        <EnhancedActiveTimer />
+      </LazyWidget>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Actividad Reciente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-4"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Nuevo cliente registrado</p>
-                  <p className="text-xs text-muted-foreground">María González - hace 2 horas</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-4"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Caso cerrado exitosamente</p>
-                  <p className="text-xs text-muted-foreground">Divorcio express - hace 4 horas</p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-4"></div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Recordatorio de pago</p>
-                  <p className="text-xs text-muted-foreground">Cliente ABC S.L. - hace 1 día</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Casos por Estado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">En progreso</span>
-                <span className="text-sm font-medium">28</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Pendiente revisión</span>
-                <span className="text-sm font-medium">14</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Cerrados</span>
-                <span className="text-sm font-medium">86</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Indicador de última actualización */}
+      <div className="text-sm text-gray-500 mb-4">
+        Última actualización: {formatTime(lastRefresh)}
       </div>
-    </div>
+      
+      {/* Métricas principales optimizadas - Carga inmediata */}
+      {data && (
+        <LazyWidget priority="immediate">
+          <OptimizedDashboardMetrics 
+            data={data} 
+            isLoading={isLoading}
+            error={error?.message || null}
+          />
+        </LazyWidget>
+      )}
+      
+      {/* Layout principal optimizado con lazy loading */}
+      {!isLoading && data && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Columna izquierda - Agenda con delay */}
+          <div className="lg:col-span-4 space-y-6">
+            <LazyWidget priority="delayed">
+              <TodayAgenda />
+            </LazyWidget>
+          </div>
+          
+          {/* Columna central - Gráficos con intersección */}
+          <div className="lg:col-span-5 space-y-6">
+            <LazyWidget priority="intersection">
+              <OptimizedPerformanceChart data={data} isLoading={isLoading} />
+            </LazyWidget>
+          </div>
+          
+          {/* Columna derecha - Actividad con intersección */}
+          <div className="lg:col-span-3">
+            <LazyWidget priority="intersection">
+              <OptimizedRecentActivity data={data} isLoading={isLoading} />
+            </LazyWidget>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <DashboardError error={error.message || 'Error desconocido'} onRetry={refetch} />
+      )}
+    </StandardPageContainer>
   )
 }
-
-export default Dashboard

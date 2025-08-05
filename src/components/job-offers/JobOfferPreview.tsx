@@ -1,19 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { JobOfferFormData } from '@/types/job-offers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Calendar, MapPin, Clock, Euro, Users, CheckCircle, Download, FileText } from 'lucide-react'
-import { toast } from 'sonner'
-import { supabase } from '@/integrations/supabase/client'
+import { Calendar, MapPin, Clock, Euro, Users, CheckCircle } from 'lucide-react'
+import { TemplatePreview } from './templates/TemplatePreview'
 
 interface JobOfferPreviewProps {
   data: JobOfferFormData
 }
 
 export function JobOfferPreview({ data }: JobOfferPreviewProps) {
-  
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const formatSalary = () => {
     const amount = data.salary_amount || 0
     const currency = data.salary_currency === 'EUR' ? '€' : '$'
@@ -37,36 +33,6 @@ export function JobOfferPreview({ data }: JobOfferPreviewProps) {
       case 'manager': return 'Manager'
       case 'director': return 'Director'
       default: return data.position_level
-    }
-  }
-
-  const handleGeneratePDF = async () => {
-    setIsGeneratingPDF(true)
-    try {
-      const { data: result, error } = await supabase.functions.invoke('generate-job-offer-pdf', {
-        body: { jobOfferData: data }
-      })
-
-      if (error) {
-        throw error
-      }
-
-      if (result?.documentUrl) {
-        // Create a temporary download link
-        const link = document.createElement('a')
-        link.href = result.documentUrl
-        link.download = result.fileName || 'propuesta-incorporacion.html'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        toast.success("La propuesta de incorporación se ha generado correctamente.")
-      }
-    } catch (error) {
-      console.error('Error generating PDF:', error)
-      toast.error("No se pudo generar el PDF. Inténtalo de nuevo.")
-    } finally {
-      setIsGeneratingPDF(false)
     }
   }
 
@@ -242,41 +208,8 @@ export function JobOfferPreview({ data }: JobOfferPreviewProps) {
         </CardContent>
       </Card>
 
-      {/* Generar PDF */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Generar Documento</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Genera un documento PDF profesional con todos los detalles de la propuesta de incorporación
-              </p>
-              <p className="text-xs text-muted-foreground">
-                El documento incluirá información del puesto, candidato, salario, beneficios y condiciones
-              </p>
-            </div>
-            <Button 
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
-              className="ml-4"
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <FileText className="h-4 w-4 mr-2 animate-spin" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4 mr-2" />
-                  Generar PDF
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Plantillas de Integración */}
+      <TemplatePreview data={data} />
     </div>
   )
 }

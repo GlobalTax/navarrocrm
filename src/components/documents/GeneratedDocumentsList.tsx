@@ -17,8 +17,6 @@ import {
   Filter,
   Calendar
 } from 'lucide-react'
-import { toast } from 'sonner'
-import { documentsLogger } from '@/utils/logging'
 import { useDocumentTemplates, type GeneratedDocument } from '@/hooks/useDocumentTemplates'
 
 interface GeneratedDocumentsListProps {
@@ -67,34 +65,28 @@ export const GeneratedDocumentsList = ({ documents }: GeneratedDocumentsListProp
   }
 
   const handleDownload = (document: GeneratedDocument) => {
-    documentsLogger.info('Descargando documento', { documentId: document.id })
-    toast.info('Funcionalidad de descarga en desarrollo')
+    // TODO: Implementar generación y descarga de PDF
+    console.log('Downloading document:', document.id)
   }
 
   const handleSendEmail = (document: GeneratedDocument) => {
-    documentsLogger.info('Enviando documento por email', { documentId: document.id })
-    toast.info('Funcionalidad de envío por email en desarrollo')
+    // TODO: Implementar envío por email
+    console.log('Sending document:', document.id)
   }
 
   const handleView = (document: GeneratedDocument) => {
-    documentsLogger.info('Visualizando documento', { documentId: document.id })
-    toast.info('Vista de documento en desarrollo')
+    // TODO: Implementar vista completa del documento
+    console.log('Viewing document:', document.id)
   }
 
   const handleEdit = (document: GeneratedDocument) => {
-    documentsLogger.info('Editando documento', { documentId: document.id })
-    toast.info('Editor de documentos en desarrollo')
+    // TODO: Implementar edición del documento
+    console.log('Editing document:', document.id)
   }
 
-  const handleDelete = async (document: GeneratedDocument) => {
-    try {
-      documentsLogger.info('Eliminando documento', { documentId: document.id })
-      // Aquí se implementaría la eliminación real
-      toast.success('Documento eliminado correctamente')
-    } catch (error) {
-      documentsLogger.error('Error al eliminar documento', { error, documentId: document.id })
-      toast.error('Error al eliminar el documento')
-    }
+  const handleDelete = (document: GeneratedDocument) => {
+    // TODO: Implementar eliminación del documento
+    console.log('Deleting document:', document.id)
   }
 
   if (documents.length === 0) {

@@ -61,7 +61,7 @@ export const QuickActions = () => {
       title: 'Factura',
       description: 'Generar factura',
       icon: DollarSign,
-      action: () => navigate('/invoices'),
+      action: () => {}, // TODO: Implementar facturación
       color: 'bg-indigo-500 hover:bg-indigo-600'
     }
   ]

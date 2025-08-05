@@ -4,7 +4,6 @@ import { useInterval } from '@/hooks/performance/useInterval'
 import { Clock, Play, Pause, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeaderTimerDialog } from './HeaderTimerDialog'
-import { logger } from '@/utils/logging'
 
 export const HeaderClock = () => {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -45,17 +44,17 @@ export const HeaderClock = () => {
   const handleTimerStart = () => {
     setIsTimerRunning(true)
     setIsTimerPaused(false)
-    logger.debug('Timer iniciado desde header', { component: 'HeaderClock' })
+    console.log('⏱️ Timer iniciado desde header')
   }
 
   const handleTimerPause = () => {
     setIsTimerPaused(true)
-    logger.debug('Timer pausado desde header', { component: 'HeaderClock' })
+    console.log('⏱️ Timer pausado desde header')
   }
 
   const handleTimerResume = () => {
     setIsTimerPaused(false)
-    logger.debug('Timer reanudado desde header', { component: 'HeaderClock' })
+    console.log('⏱️ Timer reanudado desde header')
   }
 
   const handleTimerStop = () => {
@@ -72,7 +71,7 @@ export const HeaderClock = () => {
     setIsTimerRunning(false)
     setIsTimerPaused(false)
     setTimerSeconds(0)
-    logger.debug('Timer reiniciado desde header', { component: 'HeaderClock' })
+    console.log('⏱️ Timer reiniciado desde header')
   }
 
   const handleTimerSaved = () => {

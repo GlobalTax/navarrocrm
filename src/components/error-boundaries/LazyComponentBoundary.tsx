@@ -28,16 +28,10 @@ export class LazyComponentBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Check for React hook errors and handle gracefully
-    const isHookError = error.message.includes('Cannot read properties of null') ||
-                       error.message.includes('Invalid hook call') ||
-                       error.message.includes('useMemo') ||
-                       error.message.includes('useState')
-    
     return { 
       hasError: true, 
       error,
-      retryCount: isHookError ? 3 : 0 // Skip retries for hook errors
+      retryCount: 0 
     }
   }
 
@@ -46,12 +40,6 @@ export class LazyComponentBoundary extends Component<Props, State> {
     
     console.error(`🚨 [LazyComponentBoundary] Error in ${componentName}:`, error)
     console.error('Error Info:', errorInfo)
-    
-    // Special handling for React hook errors
-    if (error.message.includes('Cannot read properties of null') ||
-        error.message.includes('Invalid hook call')) {
-      console.warn('🔧 React hook error detected - this may be due to multiple React copies or corrupted context')
-    }
 
     // Log to error tracking service if available
     if (typeof (window as any).gtag === 'function') {

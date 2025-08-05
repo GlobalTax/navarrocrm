@@ -1,32 +1,48 @@
-import React from 'react'
+
 import { Header } from './Header'
-import { NavigationMenu } from './sidebar/NavigationMenu'
-import { QuickActionsSection } from './sidebar/QuickActionsSection'
-import { AIAssistantSection } from './sidebar/AIAssistantSection'
+import { Sidebar } from './Sidebar'
+import { AIAssistant } from '@/components/ai/AIAssistant'
+import { OnboardingDialog } from '@/components/onboarding'
+import { useAIAssistant } from '@/hooks/useAIAssistant'
+import { PerformanceMonitor } from '@/components/performance/PerformanceMonitor'
+import { useLogger } from '@/hooks/useLogger'
+import { memo } from 'react'
 
 interface MainLayoutProps {
   children: React.ReactNode
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayoutComponent: React.FC<MainLayoutProps> = ({ children }) => {
+  const { isOpen, isMinimized, toggle, minimize } = useAIAssistant()
+  const logger = useLogger('MainLayout')
+
+  logger.debug('MainLayout render')
+
   return (
-    <div className="min-h-screen bg-background flex">
-      <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-        <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-900">CRM Legal Pro</h1>
-        </div>
-        <div className="px-4 pb-4">
-          <NavigationMenu />
-          <QuickActionsSection />
-          <AIAssistantSection />
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
         <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
       </div>
+      
+      {/* AI Assistant */}
+      <AIAssistant
+        isOpen={isOpen}
+        isMinimized={isMinimized}
+        onToggle={toggle}
+        onMinimize={minimize}
+      />
+      
+      {/* Onboarding Dialog */}
+      <OnboardingDialog />
+      
+      {/* Performance Monitor - Solo en desarrollo */}
+      {import.meta.env.DEV && <PerformanceMonitor />}
     </div>
   )
 }
+
+export const MainLayout = memo(MainLayoutComponent)

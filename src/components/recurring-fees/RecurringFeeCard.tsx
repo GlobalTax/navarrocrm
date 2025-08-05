@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
-import { type RecurringFee } from '@/features/billing'
+import { type RecurringFee } from '@/hooks/useRecurringFees'
 import { 
   MoreHorizontal, 
   Edit, 

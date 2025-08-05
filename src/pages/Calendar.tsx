@@ -1,104 +1,119 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Plus, Calendar as CalendarIcon, Clock, Users } from 'lucide-react'
 
-const Calendar = () => {
+import { useState, useMemo } from 'react'
+import { FullScreenCalendar } from '@/components/ui/fullscreen-calendar'
+import { CalendarEventDialog } from '@/components/calendar/CalendarEventDialog'
+import { Loader2 } from 'lucide-react'
+import { useCalendarEvents, CreateCalendarEventData } from '@/hooks/useCalendarEvents'
+import { useClients } from '@/hooks/useClients'
+import { useCasesList } from '@/features/cases'
+import { format } from 'date-fns'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+
+export default function Calendar() {
+  const [isNewEventOpen, setIsNewEventOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  
+  const { events, isLoading, createEvent, isCreating } = useCalendarEvents()
+  const { clients = [] } = useClients()
+  const { cases = [] } = useCasesList()
+
+  // Transformar eventos para el componente FullScreenCalendar
+  const calendarData = useMemo(() => {
+    if (!events.length) return []
+
+    const eventsByDate = events.reduce((acc, event) => {
+      const eventDate = new Date(event.start_datetime)
+      const dateKey = format(eventDate, 'yyyy-MM-dd')
+      
+      if (!acc[dateKey]) {
+        acc[dateKey] = []
+      }
+      
+      acc[dateKey].push({
+        id: event.id,
+        name: event.title,
+        time: format(eventDate, 'HH:mm'),
+        datetime: event.start_datetime,
+        type: event.event_type as 'meeting' | 'deadline' | 'task' | 'court',
+        client: event.contact?.name,
+        description: event.description,
+        location: event.location,
+        status: event.status
+      })
+      
+      return acc
+    }, {} as Record<string, any[]>)
+
+    return Object.entries(eventsByDate).map(([date, events]) => ({
+      day: new Date(date),
+      events
+    }))
+  }, [events])
+
+  const handleNewEvent = (date?: Date) => {
+    // Validate and safely set the selected date
+    if (date && date instanceof Date && !isNaN(date.getTime())) {
+      setSelectedDate(date)
+    } else {
+      setSelectedDate(new Date()) // fallback to current date
+    }
+    setIsNewEventOpen(true)
+  }
+
+  const handleEventClick = (event: any) => {
+    console.log('Clicked event:', event)
+    // TODO: Abrir modal de detalles/edición del evento
+  }
+
+  const handleCreateEvent = (eventData: CreateCalendarEventData) => {
+    createEvent(eventData, {
+      onSuccess: () => {
+        setIsNewEventOpen(false)
+        setSelectedDate(null)
+      }
+    })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Cargando calendario...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calendario</h1>
-          <p className="text-gray-600">Gestiona citas, reuniones y eventos importantes</p>
-        </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Nueva Cita
-        </Button>
+    <StandardPageContainer>
+      <StandardPageHeader
+        title="Calendario"
+        description="Gestiona citas, plazos y eventos importantes del despacho"
+        primaryAction={{
+          label: 'Nuevo Evento',
+          onClick: () => handleNewEvent()
+        }}
+      />
+
+      <div className="bg-white rounded-lg shadow-sm">
+        <FullScreenCalendar 
+          data={calendarData}
+          onNewEvent={handleNewEvent}
+          onEventClick={handleEventClick}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Citas Hoy</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">4</div>
-            <p className="text-xs text-muted-foreground">2 reuniones, 2 llamadas</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Esta Semana</CardTitle>
-            <Clock className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">18</div>
-            <p className="text-xs text-muted-foreground">+3 más que la anterior</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próxima Cita</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">15:30</div>
-            <p className="text-xs text-muted-foreground">Reunión con cliente</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vista Semanal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
-                <div className="text-center">
-                  <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-500">Vista de calendario</p>
-                  <p className="text-sm text-gray-400">Integración de calendario próximamente</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Próximas Citas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
-                  <p className="font-medium">Consulta legal</p>
-                  <p className="text-sm text-gray-600">Empresa ABC</p>
-                  <p className="text-xs text-gray-500">Hoy 15:30 - 16:30</p>
-                </div>
-                <div className="p-3 border-l-4 border-green-500 bg-green-50">
-                  <p className="font-medium">Reunión de seguimiento</p>
-                  <p className="text-sm text-gray-600">Consultoría XYZ</p>
-                  <p className="text-xs text-gray-500">Mañana 10:00 - 11:00</p>
-                </div>
-                <div className="p-3 border-l-4 border-purple-500 bg-purple-50">
-                  <p className="font-medium">Firma de contrato</p>
-                  <p className="text-sm text-gray-600">Cliente DEF</p>
-                  <p className="text-xs text-gray-500">Viernes 14:00 - 15:00</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+      <CalendarEventDialog
+        open={isNewEventOpen}
+        onOpenChange={setIsNewEventOpen}
+        onSubmit={handleCreateEvent}
+        isCreating={isCreating}
+        clients={clients}
+        cases={cases}
+        selectedDate={selectedDate}
+      />
+    </StandardPageContainer>
   )
 }
-
-export default Calendar

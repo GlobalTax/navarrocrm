@@ -3,7 +3,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Calendar, DollarSign, TrendingUp } from 'lucide-react'
-import { useTimeEntries } from '@/features/time-tracking'
+import { useTimeEntries } from '@/hooks/useTimeEntries'
 
 export function TimeTrackingDashboard() {
   const { timeEntries } = useTimeEntries()

@@ -42,27 +42,25 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
     if (initializationStarted.current) return
     initializationStarted.current = true
 
-    // Timeout de emergencia reducido - después de 3s forzar carga
-    emergencyTimeout.current = setTimeout(() => {
-      setAuthLoading(false)
-      setSetupLoading(false)
-      if (isSetup === null) setIsSetup(true)
-    }, 3000)
+  // Timeout de emergencia global - después de 8s forzar carga
+  emergencyTimeout.current = setTimeout(() => {
+    setAuthLoading(false)
+    setSetupLoading(false)
+    if (isSetup === null) setIsSetup(true)
+  }, 8000)
     
     // Inicializar setup de forma no bloqueante
     initializeSystemSetup(setIsSetup, setSetupLoading)
     
     // Configurar listener de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (import.meta.env.DEV) {
-        console.log('🔐 [AppContext] Auth state change:', {
-          event,
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id,
-          userEmail: session?.user?.email
-        })
-      }
+      console.log('🔐 [AppContext] Auth state change:', {
+        event,
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email
+      })
       
       // Limpiar timeout de emergencia al recibir evento de auth
       if (emergencyTimeout.current) {
@@ -73,12 +71,10 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
       setSession(session)
       
       if (session?.user) {
-        if (import.meta.env.DEV) {
-          console.log('👤 [AppContext] Setting user from session:', {
-            userId: session.user.id,
-            email: session.user.email
-          })
-        }
+        console.log('👤 [AppContext] Setting user from session:', {
+          userId: session.user.id,
+          email: session.user.email
+        })
         
         // Configurar usuario básico inmediatamente
         const basicUser = session.user as AuthUser
@@ -87,27 +83,21 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
         // Enriquecer perfil en segundo plano sin bloquear
         enrichUserProfileAsync(session.user, setUser, profileEnrichmentInProgress)
       } else {
-        if (import.meta.env.DEV) {
-          console.log('🚪 [AppContext] No session user, clearing user state')
-        }
+        console.log('🚪 [AppContext] No session user, clearing user state')
         setUser(null)
       }
       
       setAuthLoading(false)
-      if (import.meta.env.DEV) {
-        console.log('✅ [AppContext] Auth loading set to false')
-      }
+      console.log('✅ [AppContext] Auth loading set to false')
     })
 
     // Obtener sesión inicial
     getInitialSession(setSession, setAuthLoading).then((session) => {
-      if (import.meta.env.DEV) {
-        console.log('🚀 [AppContext] Initial session loaded:', {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userId: session?.user?.id
-        })
-      }
+      console.log('🚀 [AppContext] Initial session loaded:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id
+      })
       
       if (session?.user) {
         const basicUser = session.user as AuthUser

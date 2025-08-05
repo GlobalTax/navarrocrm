@@ -4,7 +4,6 @@ import { useApp } from '@/contexts/AppContext'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Calculator, Package } from 'lucide-react'
-import { proposalsLogger } from '@/utils/logging'
 
 interface ProposalPricingTabProps {
   proposalId: string
@@ -95,7 +94,7 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
               onClick={async () => {
                 try {
                   if (process.env.NODE_ENV === 'development') {
-                    proposalsLogger.debug('Iniciando generación de PDF para propuesta', { proposalId })
+                    console.log('Iniciando generación de PDF para propuesta:', proposalId)
                   }
                   
                   const proposalPdfData = {
@@ -106,7 +105,7 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                   }
 
                   if (process.env.NODE_ENV === 'development') {
-                    proposalsLogger.debug('Datos enviados a la función edge', { proposalPdfData })
+                    console.log('Datos enviados a la función edge:', proposalPdfData)
                   }
 
                   const { data, error } = await supabase.functions.invoke('generate-proposal-pdf', {
@@ -121,7 +120,7 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                   }
 
                   if (process.env.NODE_ENV === 'development') {
-                    proposalsLogger.debug('Respuesta de la función edge', { data })
+                    console.log('Respuesta de la función edge:', data)
                   }
 
                   // Crear y descargar el archivo

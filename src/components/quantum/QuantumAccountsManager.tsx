@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, RefreshCw, AlertCircle, CheckCircle, TrendingUp, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
-import { quantumLogger } from '@/utils/logging'
 
 // Utility function for formatting currency
 const formatCurrency = (amount: number) => {
@@ -77,7 +76,7 @@ export function QuantumAccountsManager() {
   const syncQuantumAccounts = async () => {
     setSyncing(true);
     try {
-      quantumLogger.info('🚀 Iniciando sincronización con Quantum Economics via Edge Function');
+      console.log('🚀 Iniciando sincronización con Quantum Economics via Edge Function');
       
       // Llamar a la Edge Function mejorada
       const { data, error } = await supabase.functions.invoke('sync-quantum-accounts');
@@ -91,7 +90,7 @@ export function QuantumAccountsManager() {
         throw new Error(data.error || 'Error desconocido en la sincronización');
       }
 
-      quantumLogger.info('✅ Sincronización completada', { data });
+      console.log('✅ Sincronización completada:', data);
       toast.success(data.message || "Las cuentas se han sincronizado correctamente");
 
       // Refrescar los datos
