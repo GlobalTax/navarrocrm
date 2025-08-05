@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -28,11 +27,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { X, Plus } from 'lucide-react'
-import { supabase } from '@/integrations/supabase/client'
+import { X, Plus, Loader2 } from 'lucide-react'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 import { type CreateCandidateData, CANDIDATE_STATUS_LABELS } from '@/types/recruitment'
+import { useCreateCandidate, useUpdateCandidate } from '@/hooks/recruitment/useCandidates'
 
 const candidateSchema = z.object({
   first_name: z.string().min(1, 'Nombre requerido'),
@@ -62,11 +61,16 @@ interface CandidateFormDialogProps {
 
 export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormDialogProps) {
   const { user } = useApp()
-  const queryClient = useQueryClient()
   const [skills, setSkills] = useState<string[]>(candidate?.skills || [])
   const [languages, setLanguages] = useState<string[]>(candidate?.languages || [])
   const [newSkill, setNewSkill] = useState('')
   const [newLanguage, setNewLanguage] = useState('')
+  
+  // Hooks de mutación
+  const createCandidateMutation = useCreateCandidate()
+  const updateCandidateMutation = useUpdateCandidate()
+  
+  const isLoading = createCandidateMutation.isPending || updateCandidateMutation.isPending
 
   const form = useForm<CandidateFormData>({
     resolver: zodResolver(candidateSchema),
@@ -89,83 +93,76 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
     }
   })
 
-  const createCandidateMutation = useMutation({
-    mutationFn: async (data: CreateCandidateData) => {
-      const { error } = await supabase
-        .from('candidates')
-        .insert({
-          ...data,
-          org_id: user?.org_id,
-          created_by: user?.id,
-          skills,
-          languages
-        })
-      
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['candidates'] })
-      queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
-      toast.success('Candidato creado correctamente')
-      onClose()
-    },
-    onError: (error) => {
-      toast.error('No se pudo crear el candidato')
-      console.error(error)
-    }
-  })
-
-  const updateCandidateMutation = useMutation({
-    mutationFn: async (data: CreateCandidateData) => {
-      const { error } = await supabase
-        .from('candidates')
-        .update({
-          ...data,
-          skills,
-          languages
-        })
-        .eq('id', candidate.id)
-      
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['candidates'] })
-      queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
-      toast.success('Candidato actualizado correctamente')
-      onClose()
-    },
-    onError: (error) => {
-      toast.error('No se pudo actualizar el candidato')
-      console.error(error)
-    }
-  })
 
   const onSubmit = (data: CandidateFormData) => {
-    // Asegurar que los campos requeridos estén presentes
-    const candidateData: CreateCandidateData = {
-      first_name: data.first_name!,
-      last_name: data.last_name!,
-      email: data.email!,
-      phone: data.phone,
-      linkedin_url: data.linkedin_url,
-      current_position: data.current_position,
-      current_company: data.current_company,
-      years_experience: data.years_experience,
-      expected_salary: data.expected_salary,
-      salary_currency: data.salary_currency,
-      location: data.location,
-      source: data.source,
-      remote_work_preference: data.remote_work_preference,
-      cover_letter: data.cover_letter,
-      notes: data.notes,
+    console.log('🚀 [CandidateFormDialog] onSubmit triggered with data:', data)
+    console.log('👤 [CandidateFormDialog] User context:', { 
+      userId: user?.id, 
+      orgId: user?.org_id,
+      isAuthenticated: !!user 
+    })
+    console.log('🏷️ [CandidateFormDialog] Skills and languages:', { skills, languages })
+
+    // Validar usuario autenticado
+    if (!user?.id || !user?.org_id) {
+      console.error('❌ [CandidateFormDialog] User not authenticated or missing org_id')
+      toast.error('Usuario no autenticado. Por favor, vuelve a iniciar sesión.')
+      return
+    }
+
+    // Validar campos requeridos
+    if (!data.first_name || !data.last_name || !data.email) {
+      console.error('❌ [CandidateFormDialog] Missing required fields:', {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email
+      })
+      toast.error('Por favor, completa todos los campos obligatorios')
+      return
+    }
+
+    // Preparar datos del candidato
+    const candidateData: CreateCandidateData & { skills?: string[], languages?: string[] } = {
+      first_name: data.first_name,
+      last_name: data.last_name,
+      email: data.email,
+      phone: data.phone || undefined,
+      linkedin_url: data.linkedin_url || undefined,
+      current_position: data.current_position || undefined,
+      current_company: data.current_company || undefined,
+      years_experience: data.years_experience || 0,
+      expected_salary: data.expected_salary || undefined,
+      salary_currency: data.salary_currency || 'EUR',
+      location: data.location || undefined,
+      source: data.source || 'manual',
+      remote_work_preference: data.remote_work_preference || 'hybrid',
+      cover_letter: data.cover_letter || undefined,
+      notes: data.notes || undefined,
       skills: skills,
       languages: languages
     }
 
+    console.log('📝 [CandidateFormDialog] Final candidateData:', candidateData)
+
     if (candidate) {
-      updateCandidateMutation.mutate(candidateData)
+      console.log('✏️ [CandidateFormDialog] Updating existing candidate:', candidate.id)
+      updateCandidateMutation.mutate({ 
+        id: candidate.id, 
+        data: candidateData 
+      }, {
+        onSuccess: () => {
+          console.log('✅ [CandidateFormDialog] Update successful, closing dialog')
+          onClose()
+        }
+      })
     } else {
-      createCandidateMutation.mutate(candidateData)
+      console.log('🆕 [CandidateFormDialog] Creating new candidate')
+      createCandidateMutation.mutate(candidateData, {
+        onSuccess: () => {
+          console.log('✅ [CandidateFormDialog] Creation successful, closing dialog')
+          onClose()
+        }
+      })
     }
   }
 
@@ -538,14 +535,11 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-[10px] border-0.5 border-foreground">
+              <Button type="button" variant="outline" onClick={onClose} className="rounded-[10px] border-0.5 border-foreground" disabled={isLoading}>
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                disabled={createCandidateMutation.isPending || updateCandidateMutation.isPending}
-                className="rounded-[10px]"
-              >
+              <Button type="submit" className="rounded-[10px]" disabled={isLoading}>
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {candidate ? 'Actualizar' : 'Crear'} Candidato
               </Button>
             </div>
