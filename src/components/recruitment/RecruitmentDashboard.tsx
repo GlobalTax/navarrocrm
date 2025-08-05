@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,9 +18,20 @@ import { InterviewsCalendar } from './InterviewsCalendar'
 import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
 import { type Candidate, type Interview, type RecruitmentStats } from '@/types/recruitment'
+import { CandidateFormDialog } from './CandidateFormDialog'
+import { CandidateDetailDialog } from './CandidateDetailDialog'
+import { InterviewFormDialog } from './InterviewFormDialog'
+import { JobOfferFormDialog } from './JobOfferFormDialog'
 
 export function RecruitmentDashboard() {
   const { user } = useApp()
+  
+  // Estados para modales
+  const [candidateFormOpen, setCandidateFormOpen] = useState(false)
+  const [candidateDetailOpen, setCandidateDetailOpen] = useState(false)
+  const [interviewFormOpen, setInterviewFormOpen] = useState(false)
+  const [jobOfferFormOpen, setJobOfferFormOpen] = useState(false)
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
 
   // Query para obtener candidatos
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
@@ -128,23 +140,28 @@ export function RecruitmentDashboard() {
   })
 
   const handleViewCandidate = (candidate: Candidate) => {
-    // TODO: Abrir modal de detalles del candidato
-    console.log('Ver candidato:', candidate)
+    setSelectedCandidate(candidate)
+    setCandidateDetailOpen(true)
   }
 
   const handleScheduleInterview = (candidate: Candidate) => {
-    // TODO: Abrir modal para programar entrevista
-    console.log('Programar entrevista para:', candidate)
+    setSelectedCandidate(candidate)
+    setInterviewFormOpen(true)
   }
 
   const handleCreateOffer = (candidate: Candidate) => {
-    // TODO: Abrir modal para crear oferta
-    console.log('Crear oferta para:', candidate)
+    setSelectedCandidate(candidate)
+    setJobOfferFormOpen(true)
   }
 
   const handleAddCandidate = () => {
-    // TODO: Abrir modal para añadir candidato
-    console.log('Añadir candidato')
+    setSelectedCandidate(null)
+    setCandidateFormOpen(true)
+  }
+
+  const handleEditCandidate = (candidate: Candidate) => {
+    setSelectedCandidate(candidate)
+    setCandidateFormOpen(true)
   }
 
   return (
@@ -311,6 +328,33 @@ export function RecruitmentDashboard() {
           )}
         </div>
       </div>
+
+      {/* Modales */}
+      <CandidateFormDialog
+        open={candidateFormOpen}
+        onClose={() => setCandidateFormOpen(false)}
+        candidate={selectedCandidate}
+      />
+
+      <CandidateDetailDialog
+        open={candidateDetailOpen}
+        onClose={() => setCandidateDetailOpen(false)}
+        candidate={selectedCandidate}
+        onEdit={handleEditCandidate}
+        onScheduleInterview={handleScheduleInterview}
+      />
+
+      <InterviewFormDialog
+        open={interviewFormOpen}
+        onClose={() => setInterviewFormOpen(false)}
+        candidate={selectedCandidate}
+      />
+
+      <JobOfferFormDialog
+        open={jobOfferFormOpen}
+        onClose={() => setJobOfferFormOpen(false)}
+        candidate={selectedCandidate}
+      />
     </div>
   )
 }
