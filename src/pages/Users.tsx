@@ -21,7 +21,7 @@ import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
 import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboardingManager'
 import { DocumentTemplateManager } from '@/components/employee-onboarding/DocumentTemplateManager'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
-import { EmployeesManagement } from '@/components/employees/EmployeesManagement'
+import { SimpleEmployeesManagement } from '@/components/employees/SimpleEmployeesManagement'
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -185,7 +185,7 @@ const Users = () => {
 
         <TabsContent value="employees" className="mt-6">
           {user?.org_id ? (
-            <EmployeesManagement orgId={user.org_id} />
+            <SimpleEmployeesManagement orgId={user.org_id} />
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <UserCog className="h-12 w-12 mx-auto mb-4 opacity-50" />
