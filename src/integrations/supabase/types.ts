@@ -2379,6 +2379,66 @@ export type Database = {
           },
         ]
       }
+      employee_document_uploads: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          mime_type: string
+          onboarding_id: string
+          org_id: string
+          updated_at: string
+          upload_status: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          mime_type: string
+          onboarding_id: string
+          org_id: string
+          updated_at?: string
+          upload_status?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          onboarding_id?: string
+          org_id?: string
+          updated_at?: string
+          upload_status?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_document_uploads_onboarding_id_fkey"
+            columns: ["onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "employee_onboarding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_document_uploads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_onboarding: {
         Row: {
           banking_data: Json | null

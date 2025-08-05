@@ -21,6 +21,8 @@ import { StepNavigation } from '@/components/employee-onboarding/StepNavigation'
 import { PersonalDataStep } from '@/components/employee-onboarding/steps/PersonalDataStep'
 import { ContactDataStep } from '@/components/employee-onboarding/steps/ContactDataStep'
 import { BankingDataStep } from '@/components/employee-onboarding/steps/BankingDataStep'
+import { DocumentsStep } from '@/components/employee-onboarding/steps/DocumentsStep'
+import { FinalStep } from '@/components/employee-onboarding/steps/FinalStep'
 
 interface OnboardingData {
   id: string
@@ -272,18 +274,20 @@ export default function EmployeeOnboarding() {
         )
       case 4:
         return (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">Funcionalidad de documentos en desarrollo</p>
-          </div>
+          <DocumentsStep
+            data={{ ...formData, onboarding_id: onboardingData?.id }}
+            onDataChange={handleStepDataChange(4)}
+            onValidationChange={handleStepValidationChange(4)}
+            onSave={saveStep}
+          />
         )
       case 5:
         return (
-          <DocumentSigningStep 
-            onboardingId={onboardingData.id}
-            onAllDocumentsSigned={() => {
-              setFormData(prev => ({ ...prev, all_documents_signed: true }))
-            }}
+          <FinalStep
+            data={formData}
+            onDataChange={handleStepDataChange(5)}
+            onValidationChange={handleStepValidationChange(5)}
+            onSave={saveStep}
           />
         )
       default:
