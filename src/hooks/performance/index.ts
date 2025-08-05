@@ -12,6 +12,7 @@ export { useRenderOptimization, useOptimizedCallback, useSmartMemo, getRenderSta
 export { useLoadingOptimization } from '../useLoadingOptimization'
 export { useOptimizedEffect, useOnceEffect, useDebouncedEffect } from '../useOptimizedEffect'
 export { useLogger, getStoredLogs, clearStoredLogs } from '../useLogger'
+export { useLazyComponent } from '../useLazyComponent'
 
 // Re-export utilities
 export { 
