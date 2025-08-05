@@ -6,6 +6,13 @@ import Contacts from './pages/Contacts'
 import Cases from './pages/Cases'
 import Emails from './pages/Emails'
 import Reports from './pages/Reports'
+import Proposals from './pages/Proposals'
+import RecurringFees from './pages/RecurringFees'
+import Subscriptions from './pages/Subscriptions'
+import OutgoingSubscriptions from './pages/OutgoingSubscriptions'
+import Tasks from './pages/Tasks'
+import TimeTracking from './pages/TimeTracking'
+import Calendar from './pages/Calendar'
 
 const App = () => {
   return (
@@ -15,6 +22,11 @@ const App = () => {
         <Route path="/dashboard" element={
           <MainLayout>
             <Dashboard />
+          </MainLayout>
+        } />
+        <Route path="/emails" element={
+          <MainLayout>
+            <Emails />
           </MainLayout>
         } />
         <Route path="/contacts" element={
@@ -27,9 +39,39 @@ const App = () => {
             <Cases />
           </MainLayout>
         } />
-        <Route path="/emails" element={
+        <Route path="/proposals" element={
           <MainLayout>
-            <Emails />
+            <Proposals />
+          </MainLayout>
+        } />
+        <Route path="/recurring-fees" element={
+          <MainLayout>
+            <RecurringFees />
+          </MainLayout>
+        } />
+        <Route path="/subscriptions" element={
+          <MainLayout>
+            <Subscriptions />
+          </MainLayout>
+        } />
+        <Route path="/outgoing-subscriptions" element={
+          <MainLayout>
+            <OutgoingSubscriptions />
+          </MainLayout>
+        } />
+        <Route path="/tasks" element={
+          <MainLayout>
+            <Tasks />
+          </MainLayout>
+        } />
+        <Route path="/time-tracking" element={
+          <MainLayout>
+            <TimeTracking />
+          </MainLayout>
+        } />
+        <Route path="/calendar" element={
+          <MainLayout>
+            <Calendar />
           </MainLayout>
         } />
         <Route path="/reports" element={
