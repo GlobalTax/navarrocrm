@@ -28,15 +28,11 @@
   </head>
 
   <body>
-    <!-- EMERGENCY BYPASS SYSTEM - Phase 1 Visual Test -->
-    <div style="position: fixed; top: 0; left: 0; background: red; color: white; padding: 10px; z-index: 99998; font-family: monospace;">
-      🚨 EMERGENCY HTML LOADED - Timestamp: 1754337298171
-    </div>
     
     <div id="root"></div>
     
-    <!-- Load clean application -->
-    <script type="module" src="/src/clean-main.tsx"></script>
+    <!-- Load main application -->
+    <script type="module" src="/src/main.tsx"></script>
     <script>
       // Emergency cache clearing
       if ('serviceWorker' in navigator) {
