@@ -142,7 +142,7 @@ export class EmployeeProfilesDAL extends BaseDAL<EmployeeProfile> {
       .from('employee_profiles')
       .select(`
         *,
-        users!inner(first_name, last_name, email, phone, role)
+        users!employee_profiles_user_id_fkey(first_name, last_name, email, phone, role)
       `)
       .eq('org_id', orgId)
       .eq('is_active', true)
@@ -159,7 +159,7 @@ export class EmployeeProfilesDAL extends BaseDAL<EmployeeProfile> {
       .from('employee_profiles')
       .select(`
         *,
-        users!inner(department_id)
+        users!employee_profiles_user_id_fkey(department_id)
       `)
       .eq('org_id', orgId)
       .eq('users.department_id', departmentId)

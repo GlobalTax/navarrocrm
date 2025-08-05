@@ -17,7 +17,7 @@ export const useSubscriptionAssignments = (subscriptionId?: string) => {
         .from('subscription_user_assignments')
         .select(`
           *,
-          users (
+          users!subscription_user_assignments_user_id_fkey (
             id,
             email,
             role
@@ -32,7 +32,10 @@ export const useSubscriptionAssignments = (subscriptionId?: string) => {
 
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching subscription assignments:', error)
+        return []
+      }
       return data || []
     },
     enabled: !!user?.org_id,
