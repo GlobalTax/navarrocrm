@@ -13,6 +13,8 @@ export { useLoadingOptimization } from '../useLoadingOptimization'
 export { useOptimizedEffect, useOnceEffect, useDebouncedEffect } from '../useOptimizedEffect'
 export { useLogger, getStoredLogs, clearStoredLogs } from '../useLogger'
 export { useLazyComponent } from '../useLazyComponent'
+export { useVirtualTable } from '../useVirtualTable'
+export { useBulkOperations } from '../useBulkOperations'
 
 // Re-export utilities
 export { 
