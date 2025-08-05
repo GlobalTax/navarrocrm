@@ -36,7 +36,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { type Candidate } from '@/types/recruitment'
 import { cn } from '@/lib/utils'
 
@@ -44,7 +44,6 @@ const jobOfferSchema = z.object({
   candidate_id: z.string().min(1, 'Candidato requerido'),
   title: z.string().min(1, 'Título del puesto requerido'),
   department: z.string().optional(),
-  description: z.string().optional(),
   salary_offered: z.number().min(0, 'Salario debe ser mayor a 0'),
   salary_currency: z.string().default('EUR'),
   start_date: z.date({ required_error: 'Fecha de inicio requerida' }),
@@ -68,7 +67,6 @@ interface JobOfferFormDialogProps {
 export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDialogProps) {
   const { user } = useApp()
   const queryClient = useQueryClient()
-  const { toast } = useToast()
 
   // Query para obtener candidatos (si no se proporciona uno específico)
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
@@ -110,7 +108,6 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
       candidate_id: candidate?.id || '',
       title: '',
       department: '',
-      description: '',
       salary_offered: 0,
       salary_currency: 'EUR',
       contract_type: 'indefinido',
@@ -131,22 +128,21 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
           org_id: user?.org_id,
           candidate_id: data.candidate_id,
           candidate_email: candidates.find(c => c.id === data.candidate_id)?.email || candidate?.email,
+          candidate_name: `${candidates.find(c => c.id === data.candidate_id)?.first_name || candidate?.first_name} ${candidates.find(c => c.id === data.candidate_id)?.last_name || candidate?.last_name}`,
           title: data.title,
           department: data.department || null,
-          description: data.description || null,
-          salary_offered: data.salary_offered,
+          salary_amount: data.salary_offered,
           salary_currency: data.salary_currency,
           start_date: data.start_date.toISOString().split('T')[0],
-          contract_type: data.contract_type,
           work_schedule: data.work_schedule,
-          remote_work: data.remote_work,
-          benefits: data.benefits || null,
-          requirements: data.requirements || null,
-          offer_expiry_date: data.offer_expiry_date?.toISOString().split('T')[0] || null,
-          notes: data.notes || null,
+          work_location: data.remote_work,
+          remote_work_allowed: data.remote_work !== 'presencial',
+          benefits: data.benefits ? JSON.parse(`["${data.benefits}"]`) : null,
+          requirements: data.requirements ? JSON.parse(`["${data.requirements}"]`) : null,
+          expires_at: data.offer_expiry_date?.toISOString() || null,
+          additional_notes: data.notes || null,
           status: 'draft',
-          created_by: user?.id,
-          token: null // Se generará automáticamente por la función de la base de datos
+          created_by: user?.id
         })
         .select()
         .single()
@@ -167,19 +163,12 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
       queryClient.invalidateQueries({ queryKey: ['candidates'] })
       queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
       queryClient.invalidateQueries({ queryKey: ['job-offers'] })
-      toast({
-        title: 'Oferta creada',
-        description: 'La oferta de trabajo se ha creado correctamente'
-      })
+      toast.success('Oferta creada correctamente')
       onClose()
       form.reset()
     },
     onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'No se pudo crear la oferta de trabajo',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo crear la oferta de trabajo')
       console.error(error)
     }
   })
@@ -283,25 +272,7 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
               />
             </div>
 
-            {/* Descripción */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción del Puesto</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      className="rounded-[10px] border-0.5 border-foreground" 
-                      rows={4}
-                      placeholder="Describe las responsabilidades y funciones del puesto..."
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Descripción - Removido ya que no existe en la tabla */}
 
             {/* Salario */}
             <div className="grid grid-cols-3 gap-4">

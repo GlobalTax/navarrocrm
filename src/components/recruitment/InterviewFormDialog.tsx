@@ -36,7 +36,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { type Candidate, type CreateInterviewData, INTERVIEW_TYPE_LABELS } from '@/types/recruitment'
 import { cn } from '@/lib/utils'
 
@@ -62,7 +62,6 @@ interface InterviewFormDialogProps {
 export function InterviewFormDialog({ open, onClose, candidate }: InterviewFormDialogProps) {
   const { user } = useApp()
   const queryClient = useQueryClient()
-  const { toast } = useToast()
 
   // Query para obtener usuarios que pueden ser entrevistadores
   const { data: interviewers = [], isLoading: interviewersLoading } = useQuery({
@@ -127,19 +126,12 @@ export function InterviewFormDialog({ open, onClose, candidate }: InterviewFormD
       queryClient.invalidateQueries({ queryKey: ['upcoming-interviews'] })
       queryClient.invalidateQueries({ queryKey: ['candidate-interviews'] })
       queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
-      toast({
-        title: 'Entrevista programada',
-        description: 'La entrevista se ha programado correctamente'
-      })
+      toast.success('Entrevista programada correctamente')
       onClose()
       form.reset()
     },
     onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'No se pudo programar la entrevista',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo programar la entrevista')
       console.error(error)
     }
   })

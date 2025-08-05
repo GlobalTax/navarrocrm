@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { type Candidate, type Interview, CANDIDATE_STATUS_LABELS, INTERVIEW_TYPE_LABELS } from '@/types/recruitment'
 
 interface CandidateDetailDialogProps {
@@ -52,7 +52,6 @@ export function CandidateDetailDialog({
 }: CandidateDetailDialogProps) {
   const { user } = useApp()
   const queryClient = useQueryClient()
-  const { toast } = useToast()
   const [newStatus, setNewStatus] = useState<string>('')
 
   // Query para obtener entrevistas del candidato
@@ -112,17 +111,10 @@ export function CandidateDetailDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidates'] })
       queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
-      toast({
-        title: 'Estado actualizado',
-        description: 'El estado del candidato se ha actualizado correctamente'
-      })
+      toast.success('Estado actualizado correctamente')
     },
     onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el estado',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo actualizar el estado')
       console.error(error)
     }
   })

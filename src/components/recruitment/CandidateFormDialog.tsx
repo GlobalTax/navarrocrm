@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge'
 import { X, Plus } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { type CreateCandidateData, CANDIDATE_STATUS_LABELS } from '@/types/recruitment'
 
 const candidateSchema = z.object({
@@ -63,7 +63,6 @@ interface CandidateFormDialogProps {
 export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormDialogProps) {
   const { user } = useApp()
   const queryClient = useQueryClient()
-  const { toast } = useToast()
   const [skills, setSkills] = useState<string[]>(candidate?.skills || [])
   const [languages, setLanguages] = useState<string[]>(candidate?.languages || [])
   const [newSkill, setNewSkill] = useState('')
@@ -107,18 +106,11 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidates'] })
       queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
-      toast({
-        title: 'Candidato creado',
-        description: 'El candidato se ha añadido correctamente'
-      })
+      toast.success('Candidato creado correctamente')
       onClose()
     },
     onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'No se pudo crear el candidato',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo crear el candidato')
       console.error(error)
     }
   })
@@ -139,27 +131,41 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['candidates'] })
       queryClient.invalidateQueries({ queryKey: ['recruitment-stats'] })
-      toast({
-        title: 'Candidato actualizado',
-        description: 'Los datos se han guardado correctamente'
-      })
+      toast.success('Candidato actualizado correctamente')
       onClose()
     },
     onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el candidato',
-        variant: 'destructive'
-      })
+      toast.error('No se pudo actualizar el candidato')
       console.error(error)
     }
   })
 
   const onSubmit = (data: CandidateFormData) => {
+    // Asegurar que los campos requeridos estén presentes
+    const candidateData: CreateCandidateData = {
+      first_name: data.first_name!,
+      last_name: data.last_name!,
+      email: data.email!,
+      phone: data.phone,
+      linkedin_url: data.linkedin_url,
+      current_position: data.current_position,
+      current_company: data.current_company,
+      years_experience: data.years_experience,
+      expected_salary: data.expected_salary,
+      salary_currency: data.salary_currency,
+      location: data.location,
+      source: data.source,
+      remote_work_preference: data.remote_work_preference,
+      cover_letter: data.cover_letter,
+      notes: data.notes,
+      skills: skills,
+      languages: languages
+    }
+
     if (candidate) {
-      updateCandidateMutation.mutate(data)
+      updateCandidateMutation.mutate(candidateData)
     } else {
-      createCandidateMutation.mutate(data)
+      createCandidateMutation.mutate(candidateData)
     }
   }
 
