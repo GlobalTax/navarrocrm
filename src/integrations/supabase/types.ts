@@ -6332,13 +6332,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_subscription_user_assignments_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "subscription_user_assignments_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false

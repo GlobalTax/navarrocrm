@@ -13,24 +13,53 @@ export const useSubscriptionAssignments = (subscriptionId?: string) => {
     queryFn: async () => {
       if (!user?.org_id) return []
 
-      // Primero intentamos la consulta con foreign key
-      let query = supabase
-        .from('subscription_user_assignments')
-        .select('*')
-        .eq('org_id', user.org_id)
-        .order('assigned_date', { ascending: false })
+      try {
+        // Obtener asignaciones básicas
+        let assignmentsQuery = supabase
+          .from('subscription_user_assignments')
+          .select('*')
+          .eq('org_id', user.org_id)
+          .order('assigned_date', { ascending: false })
 
-      if (subscriptionId) {
-        query = query.eq('subscription_id', subscriptionId)
-      }
+        if (subscriptionId) {
+          assignmentsQuery = assignmentsQuery.eq('subscription_id', subscriptionId)
+        }
 
-      const { data, error } = await query
+        const { data: assignmentsData, error: assignmentsError } = await assignmentsQuery
 
-      if (error) {
-        console.error('Error fetching subscription assignments:', error)
+        if (assignmentsError) {
+          console.error('Error fetching subscription assignments:', assignmentsError)
+          return []
+        }
+
+        if (!assignmentsData || assignmentsData.length === 0) {
+          return []
+        }
+
+        // Obtener información de usuarios por separado
+        const userIds = [...new Set(assignmentsData.map(a => a.user_id))]
+        const { data: usersData, error: usersError } = await supabase
+          .from('users')
+          .select('id, email, role')
+          .in('id', userIds)
+
+        if (usersError) {
+          console.error('Error fetching users data:', usersError)
+          // Retornar asignaciones sin datos de usuario si falla
+          return assignmentsData
+        }
+
+        // Combinar datos manualmente
+        const enrichedAssignments = assignmentsData.map(assignment => ({
+          ...assignment,
+          user: usersData?.find(user => user.id === assignment.user_id) || null
+        }))
+
+        return enrichedAssignments
+      } catch (error) {
+        console.error('Unexpected error fetching subscription assignments:', error)
         return []
       }
-      return data || []
     },
     enabled: !!user?.org_id,
   })
