@@ -5605,52 +5605,103 @@ export type Database = {
       }
       simple_employees: {
         Row: {
+          address_city: string | null
+          address_country: string | null
+          address_postal_code: string | null
+          address_street: string | null
+          avatar_url: string | null
+          bank_account: string | null
+          birth_date: string | null
+          contract_type: string | null
           created_at: string
           created_by: string | null
           department: string | null
+          dni_nie: string | null
+          education_level: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          employee_number: string | null
           hire_date: string
           id: string
+          languages: string[] | null
           name: string
           notes: string | null
           org_id: string
           phone: string | null
           position: string
           salary: number | null
+          skills: string[] | null
+          social_security_number: string | null
           status: string
           updated_at: string
+          working_hours_per_week: number | null
         }
         Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_street?: string | null
+          avatar_url?: string | null
+          bank_account?: string | null
+          birth_date?: string | null
+          contract_type?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
+          dni_nie?: string | null
+          education_level?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employee_number?: string | null
           hire_date?: string
           id?: string
+          languages?: string[] | null
           name: string
           notes?: string | null
           org_id: string
           phone?: string | null
           position: string
           salary?: number | null
+          skills?: string[] | null
+          social_security_number?: string | null
           status?: string
           updated_at?: string
+          working_hours_per_week?: number | null
         }
         Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_street?: string | null
+          avatar_url?: string | null
+          bank_account?: string | null
+          birth_date?: string | null
+          contract_type?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
+          dni_nie?: string | null
+          education_level?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employee_number?: string | null
           hire_date?: string
           id?: string
+          languages?: string[] | null
           name?: string
           notes?: string | null
           org_id?: string
           phone?: string | null
           position?: string
           salary?: number | null
+          skills?: string[] | null
+          social_security_number?: string | null
           status?: string
           updated_at?: string
+          working_hours_per_week?: number | null
         }
         Relationships: []
       }
@@ -7126,6 +7177,10 @@ export type Database = {
       cleanup_expired_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_employee_number: {
+        Args: { org_uuid: string }
+        Returns: string
       }
       generate_invitation_token: {
         Args: Record<PropertyKey, never>
