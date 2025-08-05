@@ -22,6 +22,7 @@ import { CandidateFormDialog } from './CandidateFormDialog'
 import { CandidateDetailDialog } from './CandidateDetailDialog'
 import { InterviewFormDialog } from './InterviewFormDialog'
 import { JobOfferFormDialog } from './JobOfferFormDialog'
+import { CreateSampleCandidates } from './CreateSampleCandidates'
 
 export function RecruitmentDashboard() {
   const { user } = useApp()
@@ -325,6 +326,11 @@ export function RecruitmentDashboard() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Perfiles de prueba - solo mostrar si no hay candidatos */}
+          {stats?.total_candidates === 0 && (
+            <CreateSampleCandidates />
           )}
         </div>
       </div>

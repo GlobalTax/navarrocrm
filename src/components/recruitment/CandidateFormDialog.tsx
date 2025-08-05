@@ -27,9 +27,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { X, Plus, Loader2 } from 'lucide-react'
+import { X, Plus, Loader2, Upload, FileText } from 'lucide-react'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
 import { type CreateCandidateData, CANDIDATE_STATUS_LABELS } from '@/types/recruitment'
 import { useCreateCandidate, useUpdateCandidate } from '@/hooks/recruitment/useCandidates'
 
@@ -65,6 +66,9 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
   const [languages, setLanguages] = useState<string[]>(candidate?.languages || [])
   const [newSkill, setNewSkill] = useState('')
   const [newLanguage, setNewLanguage] = useState('')
+  const [cvFile, setCvFile] = useState<File | null>(null)
+  const [cvUploading, setCvUploading] = useState(false)
+  const [currentCvPath, setCurrentCvPath] = useState<string | null>(candidate?.cv_file_path || null)
   
   // Hooks de mutación
   const createCandidateMutation = useCreateCandidate()
@@ -122,7 +126,7 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
     }
 
     // Preparar datos del candidato
-    const candidateData: CreateCandidateData & { skills?: string[], languages?: string[] } = {
+    const candidateData: CreateCandidateData & { skills?: string[], languages?: string[], cv_file_path?: string } = {
       first_name: data.first_name,
       last_name: data.last_name,
       email: data.email,
@@ -139,7 +143,8 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
       cover_letter: data.cover_letter || undefined,
       notes: data.notes || undefined,
       skills: skills,
-      languages: languages
+      languages: languages,
+      cv_file_path: currentCvPath || undefined
     }
 
     console.log('📝 [CandidateFormDialog] Final candidateData:', candidateData)
@@ -186,6 +191,69 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
 
   const removeLanguage = (langToRemove: string) => {
     setLanguages(languages.filter(lang => lang !== langToRemove))
+  }
+
+  const handleCvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !user?.org_id) return
+
+    // Validar tipo de archivo
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Solo se permiten archivos PDF, DOC o DOCX')
+      return
+    }
+
+    // Validar tamaño (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('El archivo no puede superar los 10MB')
+      return
+    }
+
+    setCvUploading(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${user.org_id}/${crypto.randomUUID()}.${fileExt}`
+
+      const { data, error } = await supabase.storage
+        .from('candidate-cvs')
+        .upload(fileName, file)
+
+      if (error) throw error
+
+      setCvFile(file)
+      setCurrentCvPath(data.path)
+      toast.success('CV subido correctamente')
+    } catch (error) {
+      console.error('Error subiendo CV:', error)
+      toast.error('Error al subir el CV')
+    } finally {
+      setCvUploading(false)
+    }
+  }
+
+  const handleDownloadCv = async () => {
+    if (!currentCvPath) return
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('candidate-cvs')
+        .download(currentCvPath)
+
+      if (error) throw error
+
+      const url = URL.createObjectURL(data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = currentCvPath.split('/').pop() || 'cv.pdf'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error descargando CV:', error)
+      toast.error('Error al descargar el CV')
+    }
   }
 
   return (
@@ -499,6 +567,57 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
                     </FormItem>
                   )}
                 />
+              </div>
+            </div>
+
+            {/* CV */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Curriculum Vitae</h3>
+              
+              <div className="space-y-3">
+                <div className="border-2 border-dashed border-border rounded-[10px] p-6 text-center">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleCvUpload}
+                    className="hidden"
+                    id="cv-upload"
+                    disabled={cvUploading}
+                  />
+                  <label htmlFor="cv-upload" className="cursor-pointer">
+                    <div className="space-y-2">
+                      <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">
+                          {cvUploading ? 'Subiendo...' : 'Subir CV'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PDF, DOC o DOCX (máx. 10MB)
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {currentCvPath && (
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-[10px] border-0.5">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium">
+                        {cvFile?.name || currentCvPath.split('/').pop()}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadCv}
+                      className="rounded-[10px] border-0.5"
+                    >
+                      Descargar
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 

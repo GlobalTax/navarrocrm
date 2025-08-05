@@ -135,6 +135,7 @@ export interface CreateCandidateData {
   email: string
   phone?: string
   linkedin_url?: string
+  cv_file_path?: string
   cover_letter?: string
   current_position?: string
   current_company?: string
