@@ -112,8 +112,11 @@ export function CreateSampleCandidates() {
 
     try {
       for (const candidate of sampleCandidates) {
+        // Filtrar campos que no existen en la tabla candidates
+        const { level, description, ...validCandidateData } = candidate
+        
         const candidateData = {
-          ...candidate,
+          ...validCandidateData,
           availability_date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Fecha aleatoria en los próximos 30 días
         }
 
