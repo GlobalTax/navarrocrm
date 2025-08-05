@@ -13,16 +13,10 @@ export const useSubscriptionAssignments = (subscriptionId?: string) => {
     queryFn: async () => {
       if (!user?.org_id) return []
 
+      // Primero intentamos la consulta con foreign key
       let query = supabase
         .from('subscription_user_assignments')
-        .select(`
-          *,
-          users!subscription_user_assignments_user_id_fkey (
-            id,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .eq('org_id', user.org_id)
         .order('assigned_date', { ascending: false })
 
