@@ -7,7 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Users, UserCheck, Building, Clock, Calendar } from 'lucide-react'
-// TODO: Import components when implemented
+import { EmployeeCreateDialog } from './EmployeeCreateDialog'
+import { EmployeesList } from './EmployeesList'
+import { EmployeeDashboard } from './EmployeeDashboard'
 
 interface EmployeesManagementProps {
   orgId: string
@@ -151,35 +153,14 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Dashboard de Empleados</CardTitle>
-              <CardDescription>Vista general del equipo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Dashboard de empleados en desarrollo</p>
-                <p className="text-sm">Se implementará en la Fase 2</p>
-              </div>
-            </CardContent>
-          </Card>
+          <EmployeeDashboard orgId={orgId} />
         </TabsContent>
 
         <TabsContent value="employees" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Lista de Empleados</CardTitle>
-              <CardDescription>Total: {employees.length} empleados</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Lista de empleados en desarrollo</p>
-                <p className="text-sm">Se implementará en la Fase 2</p>
-              </div>
-            </CardContent>
-          </Card>
+          <EmployeesList 
+            employees={employees}
+            onRefresh={() => window.location.reload()} 
+          />
         </TabsContent>
 
         <TabsContent value="collaborators" className="space-y-6">
@@ -235,20 +216,14 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
         </TabsContent>
       </Tabs>
 
-      {/* TODO: Dialog para crear empleado - implementar en Fase 2 */}
-      {showCreateDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Crear Empleado</h3>
-            <p className="text-muted-foreground mb-4">
-              La funcionalidad de creación de empleados se implementará en la Fase 2.
-            </p>
-            <Button onClick={() => setShowCreateDialog(false)}>
-              Cerrar
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Dialog para crear empleado */}
+      <EmployeeCreateDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSubmit={handleCreateEmployee}
+        isSubmitting={isCreating}
+        orgId={orgId}
+      />
     </StandardPageContainer>
   )
 }

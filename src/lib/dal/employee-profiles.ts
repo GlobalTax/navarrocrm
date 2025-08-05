@@ -7,6 +7,13 @@ export interface EmployeeProfile {
   user_id: string
   org_id: string
   
+  // Información del usuario relacionado (join)
+  first_name?: string
+  last_name?: string
+  email?: string
+  phone?: string
+  role?: string
+  
   // Información personal extendida
   employee_number?: string
   date_of_birth?: string
@@ -131,10 +138,17 @@ export class EmployeeProfilesDAL extends BaseDAL<EmployeeProfile> {
   }
 
   async findActiveEmployees(orgId: string): Promise<DALListResponse<EmployeeProfile>> {
-    return this.findMany({
-      filters: { org_id: orgId, is_active: true },
-      sort: [{ column: 'hire_date', ascending: false }]
-    })
+    const query = supabase
+      .from('employee_profiles')
+      .select(`
+        *,
+        users!inner(first_name, last_name, email, phone, role)
+      `)
+      .eq('org_id', orgId)
+      .eq('is_active', true)
+      .order('hire_date', { ascending: false })
+    
+    return this.handleListResponse<EmployeeProfile>(query)
   }
 
   async findByDepartment(
