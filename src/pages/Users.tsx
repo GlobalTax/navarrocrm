@@ -4,9 +4,10 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Users as UsersIcon, Mail, Upload, Building, FileText } from 'lucide-react'
+import { Users as UsersIcon, Mail, Upload, Building, FileText, UserCog } from 'lucide-react'
 
 // Hooks y componentes refactorizados
+import { useApp } from '@/contexts/AppContext'
 import { useEnhancedUsers } from '@/hooks/useEnhancedUsers'
 import { UserAdvancedFilters, UserFilters } from '@/components/users/UserAdvancedFilters'
 import { UserTableSkeleton } from '@/components/users/skeleton/UserTableSkeleton'
@@ -20,6 +21,7 @@ import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
 import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboardingManager'
 import { DocumentTemplateManager } from '@/components/employee-onboarding/DocumentTemplateManager'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
+import { EmployeesManagement } from '@/components/employees/EmployeesManagement'
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -28,6 +30,7 @@ const Users = () => {
     status: 'all'
   })
 
+  const { user } = useApp()
   const { users, isLoading, activateUser, getFilteredStats } = useEnhancedUsers(filters)
   const { invitationCount, pendingInvitations } = useUsersPageStats()
   
@@ -138,10 +141,14 @@ const Users = () => {
 
       {/* Tabs para diferentes vistas */}
       <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-4 border-0.5 border-black rounded-[10px]">
+        <TabsList className="grid w-full grid-cols-5 border-0.5 border-black rounded-[10px]">
           <TabsTrigger value="users" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UsersIcon className="h-4 w-4" />
             Usuarios ({users.length})
+          </TabsTrigger>
+          <TabsTrigger value="employees" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
+            <UserCog className="h-4 w-4" />
+            Empleados
           </TabsTrigger>
           <TabsTrigger value="invitations" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Mail className="h-4 w-4" />
@@ -174,6 +181,17 @@ const Users = () => {
             onInviteUser={handleInviteUser}
             onClearFilters={handleClearFilters}
           />
+        </TabsContent>
+
+        <TabsContent value="employees" className="mt-6">
+          {user?.org_id ? (
+            <EmployeesManagement orgId={user.org_id} />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <UserCog className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No se pudo cargar la información de la organización</p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-6">
