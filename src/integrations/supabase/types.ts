@@ -2156,6 +2156,167 @@ export type Database = {
           },
         ]
       }
+      employee_benefits: {
+        Row: {
+          benefit_name: string
+          benefit_type: string
+          benefit_value: number | null
+          contract_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean
+          org_id: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          benefit_name: string
+          benefit_type: string
+          benefit_value?: number | null
+          contract_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          org_id: string
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          benefit_name?: string
+          benefit_type?: string
+          benefit_value?: number | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          org_id?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_benefits_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "employee_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_benefits_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_benefits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_contracts: {
+        Row: {
+          contract_document_url: string | null
+          contract_type: string
+          created_at: string
+          created_by: string
+          department_id: string | null
+          end_date: string | null
+          id: string
+          org_id: string
+          position: string
+          salary_amount: number
+          salary_frequency: string
+          start_date: string
+          status: string
+          termination_date: string | null
+          termination_reason: string | null
+          updated_at: string
+          user_id: string
+          vacation_days: number
+          working_hours: number
+        }
+        Insert: {
+          contract_document_url?: string | null
+          contract_type?: string
+          created_at?: string
+          created_by: string
+          department_id?: string | null
+          end_date?: string | null
+          id?: string
+          org_id: string
+          position: string
+          salary_amount: number
+          salary_frequency?: string
+          start_date: string
+          status?: string
+          termination_date?: string | null
+          termination_reason?: string | null
+          updated_at?: string
+          user_id: string
+          vacation_days?: number
+          working_hours?: number
+        }
+        Update: {
+          contract_document_url?: string | null
+          contract_type?: string
+          created_at?: string
+          created_by?: string
+          department_id?: string | null
+          end_date?: string | null
+          id?: string
+          org_id?: string
+          position?: string
+          salary_amount?: number
+          salary_frequency?: string
+          start_date?: string
+          status?: string
+          termination_date?: string | null
+          termination_reason?: string | null
+          updated_at?: string
+          user_id?: string
+          vacation_days?: number
+          working_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_contracts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_contracts_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_contracts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_document_templates: {
         Row: {
           created_at: string
@@ -2368,6 +2529,83 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "employee_document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_salaries: {
+        Row: {
+          approved_by: string | null
+          change_reason: string | null
+          change_type: string
+          contract_id: string
+          created_at: string
+          created_by: string
+          effective_date: string
+          id: string
+          new_salary: number
+          org_id: string
+          previous_salary: number | null
+          salary_frequency: string
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          change_reason?: string | null
+          change_type: string
+          contract_id: string
+          created_at?: string
+          created_by: string
+          effective_date: string
+          id?: string
+          new_salary: number
+          org_id: string
+          previous_salary?: number | null
+          salary_frequency?: string
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          change_reason?: string | null
+          change_type?: string
+          contract_id?: string
+          created_at?: string
+          created_by?: string
+          effective_date?: string
+          id?: string
+          new_salary?: number
+          org_id?: string
+          previous_salary?: number | null
+          salary_frequency?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_salaries_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_salaries_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "employee_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_salaries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_salaries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -2791,6 +3029,60 @@ export type Database = {
           org_id?: string
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      job_offer_signatures: {
+        Row: {
+          candidate_email: string
+          candidate_name: string
+          created_at: string
+          document_url: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          job_offer_id: string
+          org_id: string
+          signature_data: string | null
+          signature_token: string
+          signed_at: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+        }
+        Insert: {
+          candidate_email: string
+          candidate_name: string
+          created_at?: string
+          document_url?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          job_offer_id: string
+          org_id: string
+          signature_data?: string | null
+          signature_token?: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+        }
+        Update: {
+          candidate_email?: string
+          candidate_name?: string
+          created_at?: string
+          document_url?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          job_offer_id?: string
+          org_id?: string
+          signature_data?: string | null
+          signature_token?: string
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -3656,6 +3948,83 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: []
+      }
+      pricing_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          org_id: string
+          provider_name: string
+          threshold_percentage: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_id: string
+          provider_name: string
+          threshold_percentage?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_id?: string
+          provider_name?: string
+          threshold_percentage?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pricing_change_history: {
+        Row: {
+          change_percentage: number | null
+          change_type: string
+          detected_at: string
+          id: string
+          new_pricing_data: Json
+          old_pricing_data: Json | null
+          org_id: string
+          pricing_intelligence_id: string
+        }
+        Insert: {
+          change_percentage?: number | null
+          change_type: string
+          detected_at?: string
+          id?: string
+          new_pricing_data: Json
+          old_pricing_data?: Json | null
+          org_id: string
+          pricing_intelligence_id: string
+        }
+        Update: {
+          change_percentage?: number | null
+          change_type?: string
+          detected_at?: string
+          id?: string
+          new_pricing_data?: Json
+          old_pricing_data?: Json | null
+          org_id?: string
+          pricing_intelligence_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_change_history_pricing_intelligence_id_fkey"
+            columns: ["pricing_intelligence_id"]
+            isOneToOne: false
+            referencedRelation: "saas_pricing_intelligence"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       proposal_audit_log: {
         Row: {
@@ -4699,6 +5068,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saas_pricing_intelligence: {
+        Row: {
+          created_at: string
+          id: string
+          last_scraped_at: string | null
+          org_id: string
+          pricing_data: Json
+          pricing_model: string
+          provider_name: string
+          provider_website: string
+          scraping_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_scraped_at?: string | null
+          org_id: string
+          pricing_data?: Json
+          pricing_model: string
+          provider_name: string
+          provider_website: string
+          scraping_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_scraped_at?: string | null
+          org_id?: string
+          pricing_data?: Json
+          pricing_model?: string
+          provider_name?: string
+          provider_website?: string
+          scraping_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       scheduled_reports: {
         Row: {
