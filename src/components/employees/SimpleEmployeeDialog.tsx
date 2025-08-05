@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { CreateEmployeeData, SimpleEmployee } from '@/hooks/useSimpleEmployees'
+import { useTeams } from '@/hooks/useTeams'
 
 interface SimpleEmployeeDialogProps {
   open: boolean
@@ -22,6 +23,7 @@ export function SimpleEmployeeDialog({
   employee,
   isSubmitting
 }: SimpleEmployeeDialogProps) {
+  const { departments, isLoading: loadingDepartments } = useTeams()
   const [formData, setFormData] = useState<CreateEmployeeData>({
     name: '',
     email: '',
@@ -128,11 +130,23 @@ export function SimpleEmployeeDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="department">Departamento</Label>
-              <Input
-                id="department"
-                value={formData.department}
-                onChange={(e) => handleInputChange('department', e.target.value)}
-              />
+              <Select 
+                value={formData.department} 
+                onValueChange={(value) => handleInputChange('department', value)}
+                disabled={loadingDepartments}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingDepartments ? "Cargando..." : "Seleccionar departamento"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin departamento</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.name}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
