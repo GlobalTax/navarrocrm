@@ -28,9 +28,15 @@
   </head>
 
   <body>
+    <!-- EMERGENCY BYPASS SYSTEM - Phase 1 Visual Test -->
+    <div style="position: fixed; top: 0; left: 0; background: red; color: white; padding: 10px; z-index: 99998; font-family: monospace;">
+      🚨 EMERGENCY HTML LOADED - Timestamp: 1754337298171
+    </div>
+    
     <div id="root"></div>
-    <!-- CRITICAL CACHE BUSTER: Force fresh build -->
-    <script type="module" src="/src/ultra-minimal-main.tsx?v=1754337298170&cache=break"></script>
+    
+    <!-- COMPLETE BYPASS: Pure JavaScript first, then React -->
+    <script type="module" src="/src/emergency-bypass-1754337298171.js?v=1754337298171&cache=break&force=reload"></script>
     <script>
       // Emergency cache clearing
       if ('serviceWorker' in navigator) {
