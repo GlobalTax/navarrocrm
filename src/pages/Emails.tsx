@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, Inbox, Send, Archive } from 'lucide-react'
 
-export const Emails = () => {
+const Emails = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -113,3 +113,5 @@ export const Emails = () => {
     </div>
   )
 }
+
+export default Emails

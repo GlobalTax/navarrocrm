@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, Search } from 'lucide-react'
 
-export const Contacts = () => {
+const Contacts = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -59,3 +59,5 @@ export const Contacts = () => {
     </div>
   )
 }
+
+export default Contacts

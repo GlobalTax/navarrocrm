@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Briefcase, Mail, TrendingUp } from 'lucide-react'
 
-export const Dashboard = () => {
+const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
@@ -131,3 +131,5 @@ export const Dashboard = () => {
     </div>
   )
 }
+
+export default Dashboard
