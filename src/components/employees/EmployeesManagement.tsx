@@ -13,6 +13,7 @@ import { EmployeeDashboard } from './EmployeeDashboard'
 import { AttendanceControl } from '../hr/AttendanceControl'
 import { LeaveManagement } from '../hr/LeaveManagement'
 import { CollaboratorManagement } from '../hr/CollaboratorManagement'
+import { RecruitmentToEmployee } from '../hr/RecruitmentToEmployee'
 
 interface EmployeesManagementProps {
   orgId: string
@@ -132,7 +133,7 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
 
       {/* Contenido principal */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Dashboard
@@ -140,6 +141,10 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
           <TabsTrigger value="employees" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
             Empleados
+          </TabsTrigger>
+          <TabsTrigger value="recruitment" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Reclutamiento
           </TabsTrigger>
           <TabsTrigger value="collaborators" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
@@ -164,6 +169,10 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
             employees={employees}
             onRefresh={() => window.location.reload()} 
           />
+        </TabsContent>
+
+        <TabsContent value="recruitment" className="space-y-6">
+          <RecruitmentToEmployee orgId={orgId} />
         </TabsContent>
 
         <TabsContent value="collaborators" className="space-y-6">
