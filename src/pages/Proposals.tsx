@@ -18,9 +18,7 @@ import { ProposalsErrorBoundary } from '@/components/proposals/ProposalsErrorBou
 import { useOnboarding } from '@/contexts/OnboardingContext'
 
 export default function Proposals() {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Proposals page rendering')
-  }
+  // Removed console.log to prevent render loop
   
   const { startOnboardingFromProposal } = useOnboarding()
   const { updateProposal } = useProposalActions()

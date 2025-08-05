@@ -17,7 +17,7 @@ export const useSubscriptionAssignments = (subscriptionId?: string) => {
         .from('subscription_user_assignments')
         .select(`
           *,
-          users:user_id (
+          users!user_id (
             id,
             email,
             role
