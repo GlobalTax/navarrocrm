@@ -56,7 +56,7 @@ export const usePerformanceMonitor = (componentName: string) => {
         }
       }
     }
-  }, [componentName, isDevMode]) // Add dependencies to prevent infinite loop
+  }, [componentName, isDevMode])
 
   const logMetrics = () => {
     if (!isDevMode) return

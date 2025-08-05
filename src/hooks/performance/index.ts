@@ -6,6 +6,13 @@ export { useCleanupEffect } from './useCleanupEffect'
 export { usePerformanceMonitor } from './usePerformanceMonitor'
 export { useMemoryTracker } from './useMemoryTracker'
 
+// Optimization hooks
+export { useOptimizedMemo, getMemoStats, clearMemoStats } from '../useOptimizedMemo'
+export { useRenderOptimization, useOptimizedCallback, useSmartMemo, getRenderStats, clearRenderStats } from '../useRenderOptimization'
+export { useLoadingOptimization } from '../useLoadingOptimization'
+export { useOptimizedEffect, useOnceEffect, useDebouncedEffect } from '../useOptimizedEffect'
+export { useLogger, getStoredLogs, clearStoredLogs } from '../useLogger'
+
 // Re-export utilities
 export { 
   createDebounce, 
