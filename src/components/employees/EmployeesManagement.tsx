@@ -235,14 +235,20 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog para crear empleado */}
-      <EmployeeCreateDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSubmit={handleCreateEmployee}
-        isSubmitting={isCreating}
-        orgId={orgId}
-      />
+      {/* TODO: Dialog para crear empleado - implementar en Fase 2 */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Crear Empleado</h3>
+            <p className="text-muted-foreground mb-4">
+              La funcionalidad de creación de empleados se implementará en la Fase 2.
+            </p>
+            <Button onClick={() => setShowCreateDialog(false)}>
+              Cerrar
+            </Button>
+          </div>
+        </div>
+      )}
     </StandardPageContainer>
   )
 }
