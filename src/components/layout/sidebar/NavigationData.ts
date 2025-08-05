@@ -1,4 +1,4 @@
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package, CreditCard } from 'lucide-react'
+import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package, CreditCard, UserPlus } from 'lucide-react'
 
 export interface NavigationItem {
   title: string
@@ -101,6 +101,16 @@ export const navigationData: NavigationSection[] = [
         title: "Documentos",
         url: "/documents",
         icon: FolderOpen,
+      },
+    ]
+  },
+  {
+    title: "Recursos Humanos",
+    items: [
+      {
+        title: "Reclutamiento",
+        url: "/recruitment",
+        icon: UserPlus,
       },
     ]
   },

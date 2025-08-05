@@ -169,6 +169,12 @@ const OutgoingSubscriptionsPage = createOptimizedLazy(
   RoutePriority.MEDIUM
 )
 
+// MEDIUM PRIORITY - HR Bundle
+const RecruitmentPage = createOptimizedLazy(
+  () => import('@/pages/RecruitmentPage'),
+  RoutePriority.MEDIUM
+)
+
 export const protectedRoutes: RouteModule = {
   routes: [
     {
@@ -344,6 +350,16 @@ export const protectedRoutes: RouteModule = {
               element: (
                 <FeatureBoundary feature="Suscripciones Externas">
                   <OutgoingSubscriptionsPage />
+                </FeatureBoundary>
+              )
+            },
+            
+            // MEDIUM PRIORITY - HR Bundle
+            {
+              path: '/recruitment',
+              element: (
+                <FeatureBoundary feature="Reclutamiento">
+                  <RecruitmentPage />
                 </FeatureBoundary>
               )
             },

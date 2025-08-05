@@ -832,6 +832,90 @@ export type Database = {
           },
         ]
       }
+      candidates: {
+        Row: {
+          availability_date: string | null
+          cover_letter: string | null
+          created_at: string
+          created_by: string
+          current_company: string | null
+          current_position: string | null
+          cv_file_path: string | null
+          email: string
+          expected_salary: number | null
+          first_name: string
+          id: string
+          languages: string[] | null
+          last_name: string
+          linkedin_url: string | null
+          location: string | null
+          notes: string | null
+          org_id: string
+          phone: string | null
+          remote_work_preference: string | null
+          salary_currency: string | null
+          skills: string[] | null
+          source: string | null
+          status: string
+          updated_at: string
+          years_experience: number | null
+        }
+        Insert: {
+          availability_date?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          created_by: string
+          current_company?: string | null
+          current_position?: string | null
+          cv_file_path?: string | null
+          email: string
+          expected_salary?: number | null
+          first_name: string
+          id?: string
+          languages?: string[] | null
+          last_name: string
+          linkedin_url?: string | null
+          location?: string | null
+          notes?: string | null
+          org_id: string
+          phone?: string | null
+          remote_work_preference?: string | null
+          salary_currency?: string | null
+          skills?: string[] | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Update: {
+          availability_date?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          created_by?: string
+          current_company?: string | null
+          current_position?: string | null
+          cv_file_path?: string | null
+          email?: string
+          expected_salary?: number | null
+          first_name?: string
+          id?: string
+          languages?: string[] | null
+          last_name?: string
+          linkedin_url?: string | null
+          location?: string | null
+          notes?: string | null
+          org_id?: string
+          phone?: string | null
+          remote_work_preference?: string | null
+          salary_currency?: string | null
+          skills?: string[] | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
       cases: {
         Row: {
           billing_method: string | null
@@ -3056,6 +3140,158 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_feedback: {
+        Row: {
+          communication_rating: number | null
+          created_at: string
+          cultural_fit_rating: number | null
+          detailed_feedback: string | null
+          experience_level_rating: number | null
+          id: string
+          interview_id: string
+          interviewer_id: string
+          next_steps: string | null
+          org_id: string
+          overall_rating: number
+          technical_skills_rating: number | null
+          updated_at: string
+          would_hire: boolean | null
+        }
+        Insert: {
+          communication_rating?: number | null
+          created_at?: string
+          cultural_fit_rating?: number | null
+          detailed_feedback?: string | null
+          experience_level_rating?: number | null
+          id?: string
+          interview_id: string
+          interviewer_id: string
+          next_steps?: string | null
+          org_id: string
+          overall_rating: number
+          technical_skills_rating?: number | null
+          updated_at?: string
+          would_hire?: boolean | null
+        }
+        Update: {
+          communication_rating?: number | null
+          created_at?: string
+          cultural_fit_rating?: number | null
+          detailed_feedback?: string | null
+          experience_level_rating?: number | null
+          id?: string
+          interview_id?: string
+          interviewer_id?: string
+          next_steps?: string | null
+          org_id?: string
+          overall_rating?: number
+          technical_skills_rating?: number | null
+          updated_at?: string
+          would_hire?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_feedback_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: false
+            referencedRelation: "interviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interviews: {
+        Row: {
+          candidate_id: string
+          concerns: string[] | null
+          created_at: string
+          created_by: string
+          cultural_fit_notes: string | null
+          duration_minutes: number | null
+          evaluation_notes: string | null
+          evaluation_score: number | null
+          feedback_shared_with_candidate: boolean | null
+          id: string
+          interview_round: number | null
+          interview_type: string
+          interviewer_id: string
+          job_offer_id: string | null
+          location: string | null
+          meeting_url: string | null
+          org_id: string
+          recommendation: string | null
+          scheduled_at: string
+          status: string
+          strengths: string[] | null
+          technical_assessment: Json | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          concerns?: string[] | null
+          created_at?: string
+          created_by: string
+          cultural_fit_notes?: string | null
+          duration_minutes?: number | null
+          evaluation_notes?: string | null
+          evaluation_score?: number | null
+          feedback_shared_with_candidate?: boolean | null
+          id?: string
+          interview_round?: number | null
+          interview_type?: string
+          interviewer_id: string
+          job_offer_id?: string | null
+          location?: string | null
+          meeting_url?: string | null
+          org_id: string
+          recommendation?: string | null
+          scheduled_at: string
+          status?: string
+          strengths?: string[] | null
+          technical_assessment?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          concerns?: string[] | null
+          created_at?: string
+          created_by?: string
+          cultural_fit_notes?: string | null
+          duration_minutes?: number | null
+          evaluation_notes?: string | null
+          evaluation_score?: number | null
+          feedback_shared_with_candidate?: boolean | null
+          id?: string
+          interview_round?: number | null
+          interview_type?: string
+          interviewer_id?: string
+          job_offer_id?: string | null
+          location?: string | null
+          meeting_url?: string | null
+          org_id?: string
+          recommendation?: string | null
+          scheduled_at?: string
+          status?: string
+          strengths?: string[] | null
+          technical_assessment?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_job_offer_id_fkey"
+            columns: ["job_offer_id"]
+            isOneToOne: false
+            referencedRelation: "job_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_offer_activities: {
         Row: {
           activity_type: string
@@ -3218,6 +3454,7 @@ export type Database = {
           additional_notes: string | null
           benefits: Json | null
           candidate_email: string
+          candidate_id: string | null
           candidate_name: string
           candidate_phone: string | null
           created_at: string
@@ -3229,6 +3466,7 @@ export type Database = {
           org_id: string
           position_level: string | null
           probation_period_months: number | null
+          recruitment_process_id: string | null
           remote_work_allowed: boolean | null
           requirements: Json | null
           responded_at: string | null
@@ -3252,6 +3490,7 @@ export type Database = {
           additional_notes?: string | null
           benefits?: Json | null
           candidate_email: string
+          candidate_id?: string | null
           candidate_name: string
           candidate_phone?: string | null
           created_at?: string
@@ -3263,6 +3502,7 @@ export type Database = {
           org_id: string
           position_level?: string | null
           probation_period_months?: number | null
+          recruitment_process_id?: string | null
           remote_work_allowed?: boolean | null
           requirements?: Json | null
           responded_at?: string | null
@@ -3286,6 +3526,7 @@ export type Database = {
           additional_notes?: string | null
           benefits?: Json | null
           candidate_email?: string
+          candidate_id?: string | null
           candidate_name?: string
           candidate_phone?: string | null
           created_at?: string
@@ -3297,6 +3538,7 @@ export type Database = {
           org_id?: string
           position_level?: string | null
           probation_period_months?: number | null
+          recruitment_process_id?: string | null
           remote_work_allowed?: boolean | null
           requirements?: Json | null
           responded_at?: string | null
@@ -3315,7 +3557,22 @@ export type Database = {
           work_location?: string | null
           work_schedule?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "job_offers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_offers_recruitment_process_id_fkey"
+            columns: ["recruitment_process_id"]
+            isOneToOne: false
+            referencedRelation: "recruitment_processes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matter_notifications: {
         Row: {
@@ -4535,6 +4792,77 @@ export type Database = {
           sync_date?: string
         }
         Relationships: []
+      }
+      recruitment_processes: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          candidate_id: string
+          created_at: string
+          created_by: string
+          current_stage: string | null
+          department: string | null
+          hiring_manager_id: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          position_title: string
+          priority: string | null
+          recruiter_id: string | null
+          stage_deadline: string | null
+          status: string
+          target_start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          candidate_id: string
+          created_at?: string
+          created_by: string
+          current_stage?: string | null
+          department?: string | null
+          hiring_manager_id?: string | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          position_title: string
+          priority?: string | null
+          recruiter_id?: string | null
+          stage_deadline?: string | null
+          status?: string
+          target_start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          candidate_id?: string
+          created_at?: string
+          created_by?: string
+          current_stage?: string | null
+          department?: string | null
+          hiring_manager_id?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          position_title?: string
+          priority?: string | null
+          recruiter_id?: string | null
+          stage_deadline?: string | null
+          status?: string
+          target_start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruitment_processes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recurring_fee_hours: {
         Row: {
