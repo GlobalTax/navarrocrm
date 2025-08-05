@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// EMERGENCY BUILD CACHE RESET - Force complete rebuild
+// CLEAN BUILD - Final recovery
 const CACHE_BUSTER = Date.now();
 
 export default defineConfig(({ mode }) => ({
