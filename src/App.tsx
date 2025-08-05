@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Contacts from './pages/Contacts'
 import Cases from './pages/Cases'
 import Emails from './pages/Emails'
+import Reports from './pages/Reports'
 
 const App = () => {
   return (
@@ -29,6 +30,11 @@ const App = () => {
         <Route path="/emails" element={
           <MainLayout>
             <Emails />
+          </MainLayout>
+        } />
+        <Route path="/reports" element={
+          <MainLayout>
+            <Reports />
           </MainLayout>
         } />
       </Routes>
