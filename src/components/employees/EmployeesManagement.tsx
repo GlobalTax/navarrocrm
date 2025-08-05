@@ -10,6 +10,9 @@ import { Plus, Users, UserCheck, Building, Clock, Calendar } from 'lucide-react'
 import { EmployeeCreateDialog } from './EmployeeCreateDialog'
 import { EmployeesList } from './EmployeesList'
 import { EmployeeDashboard } from './EmployeeDashboard'
+import { AttendanceControl } from '../hr/AttendanceControl'
+import { LeaveManagement } from '../hr/LeaveManagement'
+import { CollaboratorManagement } from '../hr/CollaboratorManagement'
 
 interface EmployeesManagementProps {
   orgId: string
@@ -164,55 +167,15 @@ export function EmployeesManagement({ orgId }: EmployeesManagementProps) {
         </TabsContent>
 
         <TabsContent value="collaborators" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Colaboradores Autónomos</CardTitle>
-              <CardDescription>Gestión de freelancers y autónomos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Building className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Gestión de colaboradores en desarrollo</p>
-                <p className="text-sm">Se implementará en la Fase 2</p>
-              </div>
-            </CardContent>
-          </Card>
+          <CollaboratorManagement orgId={orgId} />
         </TabsContent>
 
         <TabsContent value="attendance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Control de Asistencia</CardTitle>
-              <CardDescription>
-                Sistema de fichaje y control horario
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Funcionalidad de asistencia en desarrollo</p>
-                <p className="text-sm">Se implementará en la siguiente fase</p>
-              </div>
-            </CardContent>
-          </Card>
+          <AttendanceControl orgId={orgId} />
         </TabsContent>
 
         <TabsContent value="leave" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestión de Permisos</CardTitle>
-              <CardDescription>
-                Solicitudes de vacaciones y permisos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Gestión de permisos en desarrollo</p>
-                <p className="text-sm">Se implementará en la siguiente fase</p>
-              </div>
-            </CardContent>
-          </Card>
+          <LeaveManagement orgId={orgId} />
         </TabsContent>
       </Tabs>
 
