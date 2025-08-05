@@ -43,7 +43,7 @@ export function SimpleEmployeeDialog({
         email: employee.email,
         phone: employee.phone || '',
         position: employee.position,
-        department: employee.department || '',
+        department: employee.department || 'none',
         hire_date: employee.hire_date,
         salary: employee.salary,
         status: employee.status,
@@ -55,7 +55,7 @@ export function SimpleEmployeeDialog({
         email: '',
         phone: '',
         position: '',
-        department: '',
+        department: 'none',
         hire_date: new Date().toISOString().split('T')[0],
         salary: undefined,
         status: 'active',
@@ -66,7 +66,12 @@ export function SimpleEmployeeDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    // Convert "none" back to empty string for database
+    const submitData = {
+      ...formData,
+      department: formData.department === 'none' ? '' : formData.department
+    }
+    onSubmit(submitData)
   }
 
   const handleInputChange = (field: keyof CreateEmployeeData, value: any) => {
@@ -139,7 +144,7 @@ export function SimpleEmployeeDialog({
                   <SelectValue placeholder={loadingDepartments ? "Cargando..." : "Seleccionar departamento"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin departamento</SelectItem>
+                  <SelectItem value="none">Sin departamento</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.name}>
                       {dept.name}
