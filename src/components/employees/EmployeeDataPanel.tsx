@@ -15,14 +15,13 @@ import { useEmployeeNotes } from '@/hooks/employees/useEmployeeNotes'
 interface Employee {
   id: string
   employee_number: string
-  first_name: string
-  last_name: string
+  name: string
   email: string
   phone?: string
   position: string
   department?: string
   hire_date: string
-  employment_status: string
+  status: string
   salary?: number
   avatar_url?: string
 }
@@ -61,12 +60,12 @@ export function EmployeeDataPanel({ employee, open, onOpenChange }: EmployeeData
             <Avatar className="w-12 h-12">
               <AvatarImage src={employee.avatar_url} />
               <AvatarFallback>
-                {employee.first_name[0]}{employee.last_name[0]}
+                {employee.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'NN'}
               </AvatarFallback>
             </Avatar>
             <div>
               <h2 className="text-xl font-bold">
-                {employee.first_name} {employee.last_name}
+                {employee.name}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {employee.position} • {employee.employee_number}
@@ -130,8 +129,8 @@ export function EmployeeDataPanel({ employee, open, onOpenChange }: EmployeeData
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm font-medium">Estado:</span>
-                    <Badge className={getStatusColor(employee.employment_status)}>
-                      {employee.employment_status}
+                    <Badge className={getStatusColor(employee.status)}>
+                      {employee.status}
                     </Badge>
                   </div>
                 </CardContent>
