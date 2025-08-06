@@ -178,6 +178,10 @@ const EmployeesPage = createOptimizedLazy(
   () => import('@/pages/EmployeesPage'),
   RoutePriority.MEDIUM
 )
+const EmployeeDetailPage = createOptimizedLazy(
+  () => import('@/pages/EmployeeDetailPage'),
+  RoutePriority.MEDIUM
+)
 const EmployeeOnboardingPage = createOptimizedLazy(
   () => import('@/pages/EmployeeOnboardingPage'),
   RoutePriority.MEDIUM
@@ -376,6 +380,14 @@ export const protectedRoutes: RouteModule = {
               element: (
                 <FeatureBoundary feature="Empleados">
                   <EmployeesPage />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/employees/:id',
+              element: (
+                <FeatureBoundary feature="Empleados">
+                  <EmployeeDetailPage />
                 </FeatureBoundary>
               )
             },

@@ -4,8 +4,6 @@ import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useState } from 'react'
 
 export default function EmployeesPage() {
-  // TODO: Get orgId from auth context
-  const orgId = "temp-org-id" // Placeholder
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   return (
@@ -20,7 +18,6 @@ export default function EmployeesPage() {
       />
       
       <EnhancedEmployeesManagement 
-        orgId={orgId} 
         showCreateDialog={showCreateDialog}
         setShowCreateDialog={setShowCreateDialog}
       />

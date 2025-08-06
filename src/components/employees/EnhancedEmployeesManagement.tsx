@@ -8,24 +8,21 @@ import { Plus, Users, UserCheck, UserX, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdvancedEmployeeDialog } from './AdvancedEmployeeDialog'
 import { EmployeeFilters, EmployeeFilters as FilterType } from './EmployeeFilters'
-import { EmployeeFixedDataPanel } from './EmployeeFixedDataPanel'
-import { EmployeeCompactList } from './EmployeeCompactList'
+import { EmployeeTable } from './EmployeeTable'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface EnhancedEmployeesManagementProps {
-  orgId: string
   showCreateDialog: boolean
   setShowCreateDialog: (show: boolean) => void
 }
 
 export function EnhancedEmployeesManagement({ 
-  orgId, 
   showCreateDialog, 
   setShowCreateDialog 
 }: EnhancedEmployeesManagementProps) {
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null)
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null)
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
+  
   const [filters, setFilters] = useState<FilterType>({
     search: '',
     department: 'all',
@@ -178,59 +175,42 @@ export function EnhancedEmployeesManagement({
         employeeCount={employees.length}
       />
 
-      {/* Layout de 2 columnas: Lista compacta + Panel fijo */}
-      <div className="grid grid-cols-12 gap-6 min-h-[600px]">
-        {/* Panel izquierdo: Lista compacta de empleados */}
-        <div className="col-span-5 space-y-4">
-          <Card className="border-0.5 border-black rounded-[10px]">
-            <CardHeader>
-              <CardTitle>
-                Empleados ({employees.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="max-h-[600px] overflow-y-auto">
-              {employees.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    {allEmployees.length === 0 ? 'No hay empleados registrados' : 'No se encontraron empleados'}
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    {allEmployees.length === 0 
-                      ? 'Comienza agregando tu primer empleado'
-                      : 'Intenta ajustar los filtros de búsqueda'
-                    }
-                  </p>
-                  {allEmployees.length === 0 && (
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Agregar Primer Empleado
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <EmployeeCompactList
-                  employees={employees}
-                  selectedEmployeeId={selectedEmployee?.id || null}
-                  onSelectEmployee={setSelectedEmployee}
-                  onEditEmployee={setEmployeeToEdit}
-                  onDeleteEmployee={(employee) => setEmployeeToDelete(employee.id)}
-                  isLoading={isLoading}
-                />
+      {/* Tabla de empleados */}
+      <Card className="border-0.5 border-black rounded-[10px]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-medium text-foreground flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Empleados ({employees.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {employees.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {allEmployees.length === 0 ? 'No hay empleados registrados' : 'No se encontraron empleados'}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {allEmployees.length === 0 
+                  ? 'Comienza agregando tu primer empleado'
+                  : 'Intenta ajustar los filtros de búsqueda'
+                }
+              </p>
+              {allEmployees.length === 0 && (
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Primer Empleado
+                </Button>
               )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Panel derecho: Datos del empleado seleccionado */}
-        <div className="col-span-7">
-          <Card className="border-0.5 border-black rounded-[10px]">
-            <CardContent className="p-6 max-h-[600px] overflow-y-auto">
-              <EmployeeFixedDataPanel employee={selectedEmployee} />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          ) : (
+            <EmployeeTable
+              employees={employees}
+              onEditEmployee={setEmployeeToEdit}
+            />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Dialogs */}
       <AdvancedEmployeeDialog
