@@ -18,10 +18,8 @@ import { InvitationNotifications } from '@/components/users/InvitationNotificati
 import { UserMetrics } from '@/components/users/UserMetrics'
 import { UserTable } from '@/components/users/UserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
-import { EmployeeOnboardingManager } from '@/components/users/EmployeeOnboardingManager'
-import { DocumentTemplateManager } from '@/components/employee-onboarding/DocumentTemplateManager'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
-import { EnhancedEmployeesManagement } from '@/components/employees/EnhancedEmployeesManagement'
+
 
 const Users = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -141,14 +139,10 @@ const Users = () => {
 
       {/* Tabs para diferentes vistas */}
       <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-5 border-0.5 border-black rounded-[10px]">
+        <TabsList className="grid w-full grid-cols-2 border-0.5 border-black rounded-[10px]">
           <TabsTrigger value="users" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UsersIcon className="h-4 w-4" />
             Usuarios ({users.length})
-          </TabsTrigger>
-          <TabsTrigger value="employees" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
-            <UserCog className="h-4 w-4" />
-            Empleados
           </TabsTrigger>
           <TabsTrigger value="invitations" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Mail className="h-4 w-4" />
@@ -158,14 +152,6 @@ const Users = () => {
                 {pendingInvitations}
               </span>
             )}
-          </TabsTrigger>
-          <TabsTrigger value="onboarding" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
-            <Building className="h-4 w-4" />
-            Onboarding
-          </TabsTrigger>
-          <TabsTrigger value="document-templates" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
-            <FileText className="h-4 w-4" />
-            Templates
           </TabsTrigger>
         </TabsList>
 
@@ -183,27 +169,9 @@ const Users = () => {
           />
         </TabsContent>
 
-        <TabsContent value="employees" className="mt-6">
-          {user?.org_id ? (
-            <EnhancedEmployeesManagement orgId={user.org_id} />
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <UserCog className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No se pudo cargar la información de la organización</p>
-            </div>
-          )}
-        </TabsContent>
-
         <TabsContent value="invitations" className="mt-6">
           <InvitationNotifications />
           <UserInvitationsTable onInviteUser={handleInviteUser} />
-        </TabsContent>
-
-        <TabsContent value="onboarding" className="mt-6">
-          <EmployeeOnboardingManager />
-        </TabsContent>
-        <TabsContent value="document-templates" className="mt-6">
-          <DocumentTemplateManager />
         </TabsContent>
       </Tabs>
 

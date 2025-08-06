@@ -174,6 +174,22 @@ const RecruitmentPage = createOptimizedLazy(
   () => import('@/pages/RecruitmentPage'),
   RoutePriority.MEDIUM
 )
+const EmployeesPage = createOptimizedLazy(
+  () => import('@/pages/EmployeesPage'),
+  RoutePriority.MEDIUM
+)
+const EmployeeOnboardingPage = createOptimizedLazy(
+  () => import('@/pages/EmployeeOnboardingPage'),
+  RoutePriority.MEDIUM
+)
+const DocumentTemplatesPage = createOptimizedLazy(
+  () => import('@/pages/DocumentTemplatesPage'),
+  RoutePriority.LOW
+)
+const SystemUsersPage = createOptimizedLazy(
+  () => import('@/pages/SystemUsersPage'),
+  RoutePriority.LOW
+)
 
 export const protectedRoutes: RouteModule = {
   routes: [
@@ -356,6 +372,30 @@ export const protectedRoutes: RouteModule = {
             
             // MEDIUM PRIORITY - HR Bundle
             {
+              path: '/employees',
+              element: (
+                <FeatureBoundary feature="Empleados">
+                  <EmployeesPage />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/employees/onboarding',
+              element: (
+                <FeatureBoundary feature="Onboarding de Empleados">
+                  <EmployeeOnboardingPage />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/employees/templates',
+              element: (
+                <FeatureBoundary feature="Plantillas de Documentos">
+                  <DocumentTemplatesPage />
+                </FeatureBoundary>
+              )
+            },
+            {
               path: '/recruitment',
               element: (
                 <FeatureBoundary feature="Reclutamiento">
@@ -370,6 +410,14 @@ export const protectedRoutes: RouteModule = {
               element: (
                 <AdminFeatureBoundary>
                   <Users />
+                </AdminFeatureBoundary>
+              )
+            },
+            {
+              path: '/system-users',
+              element: (
+                <AdminFeatureBoundary>
+                  <SystemUsersPage />
                 </AdminFeatureBoundary>
               )
             },
