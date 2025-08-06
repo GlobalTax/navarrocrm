@@ -248,97 +248,10 @@ export function RecruitmentDashboard() {
         </div>
       </div>
 
-      {/* Panel lateral inferior con entrevistas próximas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-0.5 border-foreground rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-200">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Próximas Entrevistas
-              <Button variant="outline" size="sm" className="rounded-[10px] border-0.5 border-foreground">
-                <Plus className="w-4 h-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {interviewsLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-16 bg-muted rounded-[10px]" />
-                  </div>
-                ))}
-              </div>
-            ) : upcomingInterviews.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingInterviews.map((interview) => (
-                  <div key={interview.id} className="p-3 border border-border rounded-[10px] hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">
-                          {interview.candidate?.first_name} {interview.candidate?.last_name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(interview.scheduled_at).toLocaleDateString('es-ES', {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="rounded-[10px] border-0.5">
-                        {interview.interview_type === 'technical' ? 'Técnica' :
-                         interview.interview_type === 'cultural' ? 'Cultural' :
-                         interview.interview_type === 'management' ? 'Gerencial' : 'RH'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No hay entrevistas programadas
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Resumen por estado */}
-        <div className="space-y-6">
-          {stats && (
-            <Card className="border-0.5 border-foreground rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-200">
-              <CardHeader>
-                <CardTitle>Estado de Candidatos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {Object.entries(stats.by_status).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between">
-                      <span className="text-sm">
-                        {status === 'new' ? 'Nuevos' :
-                         status === 'screening' ? 'En evaluación' :
-                         status === 'interviewing' ? 'En entrevistas' :
-                         status === 'offer_sent' ? 'Oferta enviada' :
-                         status === 'hired' ? 'Contratados' :
-                         status === 'rejected' ? 'Rechazados' : 'Se retiraron'}
-                      </span>
-                      <Badge variant="outline" className="rounded-[10px] border-0.5">
-                        {count}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Perfiles de prueba - solo mostrar si no hay candidatos */}
-          {stats?.total_candidates === 0 && (
-            <CreateSampleCandidates />
-          )}
-        </div>
-      </div>
+      {/* Perfiles de prueba - solo mostrar si no hay candidatos */}
+      {stats?.total_candidates === 0 && (
+        <CreateSampleCandidates />
+      )}
 
       {/* Modales */}
       <CandidateFormDialog
