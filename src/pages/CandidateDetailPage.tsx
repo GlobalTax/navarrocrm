@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { DetailPageHeader } from '@/components/layout/DetailPageHeader'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
-import { CandidateFixedDataPanel } from '@/components/recruitment/CandidateFixedDataPanel'
+import { CandidateDetailsPanel } from '@/components/recruitment/CandidateDetailsPanel'
 import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
 import { type Candidate } from '@/types/recruitment'
@@ -67,7 +67,7 @@ export default function CandidateDetailPage() {
       />
       
       <div className="mt-6">
-        <CandidateFixedDataPanel candidate={candidate} />
+        <CandidateDetailsPanel candidate={candidate} />
       </div>
     </StandardPageContainer>
   )
