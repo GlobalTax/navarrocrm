@@ -179,16 +179,16 @@ export function EnhancedEmployeesManagement({
       />
 
       {/* Layout de 2 columnas: Lista compacta + Panel fijo */}
-      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-400px)]">
+      <div className="grid grid-cols-12 gap-6 min-h-[600px]">
         {/* Panel izquierdo: Lista compacta de empleados */}
         <div className="col-span-5 space-y-4">
-          <Card className="border-0.5 border-black rounded-[10px] h-full">
+          <Card className="border-0.5 border-black rounded-[10px]">
             <CardHeader>
               <CardTitle>
                 Empleados ({employees.length})
               </CardTitle>
             </CardHeader>
-            <CardContent className="h-[calc(100%-80px)] overflow-y-auto">
+            <CardContent className="max-h-[600px] overflow-y-auto">
               {employees.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -224,8 +224,8 @@ export function EnhancedEmployeesManagement({
 
         {/* Panel derecho: Datos del empleado seleccionado */}
         <div className="col-span-7">
-          <Card className="border-0.5 border-black rounded-[10px] h-full">
-            <CardContent className="p-6 h-full">
+          <Card className="border-0.5 border-black rounded-[10px]">
+            <CardContent className="p-6 max-h-[600px] overflow-y-auto">
               <EmployeeFixedDataPanel employee={selectedEmployee} />
             </CardContent>
           </Card>

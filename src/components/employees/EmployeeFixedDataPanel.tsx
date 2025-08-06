@@ -68,8 +68,8 @@ export const EmployeeFixedDataPanel = ({ employee }: EmployeeFixedDataPanelProps
   }
 
   return (
-    <div className="h-full overflow-y-auto">
-      <Card className="border-0.5 border-black rounded-[10px] mb-6">
+    <div className="space-y-6">
+      <Card className="border-0.5 border-black rounded-[10px]">
         <CardHeader className="pb-4">
           <div className="flex items-center space-x-4">
             <Avatar className="w-12 h-12">
