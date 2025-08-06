@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Users, 
   Calendar, 
@@ -11,17 +12,21 @@ import {
   ClipboardList,
   TrendingUp,
   Plus,
-  Eye
+  Eye,
+  BarChart3,
+  List
 } from 'lucide-react'
 import { CandidateCompactList } from './CandidateCompactList'
 import { CandidateFixedDataPanel } from './CandidateFixedDataPanel'
+import { RecruitmentPipeline } from './RecruitmentPipeline'
+import { JobOfferBuilder } from './JobOfferBuilder'
 import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
 import { type Candidate, type Interview, type RecruitmentStats } from '@/types/recruitment'
 import { CandidateFormDialog } from './CandidateFormDialog'
 import { InterviewFormDialog } from './InterviewFormDialog'
-import { JobOfferFormDialog } from './JobOfferFormDialog'
 import { CreateSampleCandidates } from './CreateSampleCandidates'
+import { useCreateJobOffer } from '@/hooks/recruitment/useJobOffers'
 
 export function RecruitmentDashboard() {
   const { user } = useApp()
@@ -29,8 +34,12 @@ export function RecruitmentDashboard() {
   // Estados para modales
   const [candidateFormOpen, setCandidateFormOpen] = useState(false)
   const [interviewFormOpen, setInterviewFormOpen] = useState(false)
-  const [jobOfferFormOpen, setJobOfferFormOpen] = useState(false)
+  const [jobOfferBuilderOpen, setJobOfferBuilderOpen] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
+  const [activeView, setActiveView] = useState('overview')
+
+  // Hook para crear ofertas de trabajo
+  const createJobOfferMutation = useCreateJobOffer()
 
   // Query para obtener candidatos
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
@@ -44,6 +53,23 @@ export function RecruitmentDashboard() {
       
       if (error) throw error
       return data as Candidate[]
+    },
+    enabled: !!user?.org_id
+  })
+
+  // Query para obtener departamentos
+  const { data: departments = [] } = useQuery({
+    queryKey: ['departments', user?.org_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('departments')
+        .select('id, name')
+        .eq('org_id', user?.org_id)
+        .eq('is_active', true)
+        .order('name')
+      
+      if (error) throw error
+      return data
     },
     enabled: !!user?.org_id
   })
@@ -153,7 +179,16 @@ export function RecruitmentDashboard() {
 
   const handleCreateOffer = (candidate: Candidate) => {
     setSelectedCandidate(candidate)
-    setJobOfferFormOpen(true)
+    setJobOfferBuilderOpen(true)
+  }
+
+  const handleJobOfferSubmit = (data: any) => {
+    createJobOfferMutation.mutate(data, {
+      onSuccess: () => {
+        setJobOfferBuilderOpen(false)
+        setSelectedCandidate(null)
+      }
+    })
   }
 
   const handleAddCandidate = () => {
@@ -231,26 +266,50 @@ export function RecruitmentDashboard() {
         </Card>
       </div>
 
-      {/* Layout principal de dos columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Panel izquierdo: Lista compacta de candidatos (40%) */}
-        <div className="lg:col-span-2 h-[600px]">
-          <CandidateCompactList
-            candidates={candidates}
-            isLoading={candidatesLoading}
-            selectedCandidate={selectedCandidate}
+      {/* Navegación de vistas */}
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview" className="rounded-[10px]">
+            <List className="w-4 h-4 mr-2" />
+            Vista General
+          </TabsTrigger>
+          <TabsTrigger value="pipeline" className="rounded-[10px]">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Pipeline Visual
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          {/* Layout principal de dos columnas */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Panel izquierdo: Lista compacta de candidatos (40%) */}
+            <div className="lg:col-span-2 h-[600px]">
+              <CandidateCompactList
+                candidates={candidates}
+                isLoading={candidatesLoading}
+                selectedCandidate={selectedCandidate}
+                onSelectCandidate={handleSelectCandidate}
+                onScheduleInterview={handleScheduleInterview}
+                onCreateOffer={handleCreateOffer}
+                onAddCandidate={handleAddCandidate}
+              />
+            </div>
+
+            {/* Panel derecho: Datos detallados del candidato (60%) */}
+            <div className="lg:col-span-3 h-[600px]">
+              <CandidateFixedDataPanel candidate={selectedCandidate} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="pipeline" className="space-y-6 mt-6">
+          <RecruitmentPipeline
             onSelectCandidate={handleSelectCandidate}
             onScheduleInterview={handleScheduleInterview}
             onCreateOffer={handleCreateOffer}
-            onAddCandidate={handleAddCandidate}
           />
-        </div>
-
-        {/* Panel derecho: Datos detallados del candidato (60%) */}
-        <div className="lg:col-span-3 h-[600px]">
-          <CandidateFixedDataPanel candidate={selectedCandidate} />
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Perfiles de prueba - solo mostrar si no hay candidatos */}
       {stats?.total_candidates === 0 && (
@@ -264,17 +323,20 @@ export function RecruitmentDashboard() {
         candidate={selectedCandidate}
       />
 
-
       <InterviewFormDialog
         open={interviewFormOpen}
         onClose={() => setInterviewFormOpen(false)}
         candidate={selectedCandidate}
       />
 
-      <JobOfferFormDialog
-        open={jobOfferFormOpen}
-        onClose={() => setJobOfferFormOpen(false)}
+      <JobOfferBuilder
+        open={jobOfferBuilderOpen}
+        onClose={() => setJobOfferBuilderOpen(false)}
         candidate={selectedCandidate}
+        candidates={candidates}
+        departments={departments}
+        onSubmit={handleJobOfferSubmit}
+        isLoading={createJobOfferMutation.isPending}
       />
     </div>
   )
