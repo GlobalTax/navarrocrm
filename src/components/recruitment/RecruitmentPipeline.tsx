@@ -7,6 +7,7 @@ import { usePipelineAnalytics } from '@/hooks/recruitment/usePipelineAnalytics'
 import { usePipelineStages } from '@/hooks/recruitment/usePipelineStages'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
+import { getUserOrgId } from '@/lib/quantum/orgId'
 import { Candidate } from '@/types/recruitment'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,18 +34,24 @@ export function RecruitmentPipeline({
 
   // Fetch pipeline analytics and stages
   const { data: metrics } = usePipelineAnalytics()
-  const { stages, updateCandidateStage, getCandidatesByStage } = usePipelineStages()
+  const { stages, updateCandidateStage, getCandidatesByStage, isLoading: stagesLoading } = usePipelineStages()
 
-  // Fetch candidates
-  const { data: candidates = [], isLoading } = useQuery({
+  // Fetch candidates with org_id filter
+  const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
     queryKey: ['candidates'],
     queryFn: async () => {
+      const orgId = await getUserOrgId()
+      
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
+        .eq('org_id', orgId)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching candidates:', error)
+        throw error
+      }
       return data as Candidate[]
     }
   })
@@ -81,8 +88,20 @@ export function RecruitmentPipeline({
     }
   }
 
-  if (isLoading) {
+  if (candidatesLoading || stagesLoading) {
     return <div className="flex justify-center p-8">Cargando pipeline...</div>
+  }
+
+  if (stages.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <p className="text-muted-foreground">No hay etapas configuradas para el pipeline.</p>
+        <Button onClick={() => setViewMode('settings')}>
+          <Settings className="h-4 w-4 mr-2" />
+          Configurar Etapas
+        </Button>
+      </div>
+    )
   }
 
   return (
