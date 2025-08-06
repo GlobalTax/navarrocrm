@@ -5279,48 +5279,6 @@ export type Database = {
         }
         Relationships: []
       }
-      recruitment_pipeline_stages: {
-        Row: {
-          color: string
-          created_at: string
-          description: string | null
-          icon: string | null
-          id: string
-          is_active: boolean
-          is_default: boolean
-          name: string
-          org_id: string
-          sort_order: number
-          updated_at: string
-        }
-        Insert: {
-          color?: string
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          is_active?: boolean
-          is_default?: boolean
-          name: string
-          org_id: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Update: {
-          color?: string
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          is_active?: boolean
-          is_default?: boolean
-          name?: string
-          org_id?: string
-          sort_order?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
       recruitment_processes: {
         Row: {
           budget_max: number | null
