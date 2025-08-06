@@ -47,7 +47,7 @@ export function usePipelineAnalytics() {
       // Obtener entrevistas para análisis adicional
       const { data: interviews, error: interviewsError } = await supabase
         .from('interviews')
-        .select('candidate_id, scheduled_at, status, duration_minutes')
+        .select('candidate_id, scheduled_at, status, duration')
         .eq('org_id', user.org_id)
 
       if (interviewsError) {
