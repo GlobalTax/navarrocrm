@@ -14,10 +14,15 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface EnhancedEmployeesManagementProps {
   orgId: string
+  showCreateDialog: boolean
+  setShowCreateDialog: (show: boolean) => void
 }
 
-export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManagementProps) {
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
+export function EnhancedEmployeesManagement({ 
+  orgId, 
+  showCreateDialog, 
+  setShowCreateDialog 
+}: EnhancedEmployeesManagementProps) {
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null)
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null)
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
@@ -104,30 +109,17 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
 
   if (isLoading) {
     return (
-      <StandardPageContainer>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Cargando empleados...</p>
-          </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando empleados...</p>
         </div>
-      </StandardPageContainer>
+      </div>
     )
   }
 
   return (
-    <StandardPageContainer>
-      <StandardPageHeader
-        title="Gestión de Empleados"
-        description="Sistema completo de gestión de recursos humanos"
-        actions={
-          <Button onClick={() => setShowCreateDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Empleado
-          </Button>
-        }
-      />
-
+    <div className="space-y-6">
       {/* Métricas mejoradas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card className="border-0.5 border-black rounded-[10px] hover-lift transition-all duration-200">
@@ -263,7 +255,7 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
         onConfirm={handleDeleteEmployee}
         title="Eliminar Empleado"
         description="¿Estás seguro de que deseas eliminar este empleado? Esta acción no se puede deshacer."
-      />
-    </StandardPageContainer>
+        />
+    </div>
   )
 }
