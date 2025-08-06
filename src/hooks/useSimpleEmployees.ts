@@ -206,7 +206,7 @@ export function useSimpleEmployees() {
     }
 
     // Filtro por departamento
-    if (filters.department) {
+    if (filters.department && filters.department !== 'all') {
       if (filters.department === 'none') {
         filtered = filtered.filter(emp => !emp.department)
       } else {
@@ -215,12 +215,12 @@ export function useSimpleEmployees() {
     }
 
     // Filtro por estado
-    if (filters.status) {
+    if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(emp => emp.status === filters.status)
     }
 
     // Filtro por tipo de contrato
-    if (filters.contract_type) {
+    if (filters.contract_type && filters.contract_type !== 'all') {
       filtered = filtered.filter(emp => emp.contract_type === filters.contract_type)
     }
 
@@ -232,7 +232,7 @@ export function useSimpleEmployees() {
     }
 
     // Filtro por nivel de educación
-    if (filters.education_level) {
+    if (filters.education_level && filters.education_level !== 'all') {
       filtered = filtered.filter(emp => emp.education_level === filters.education_level)
     }
 

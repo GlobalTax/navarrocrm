@@ -99,8 +99,7 @@ export const EmployeeOnboardingManager = () => {
         .from('employee_onboarding')
         .select(`
           *,
-          department:departments(name),
-          created_by_user:users!employee_onboarding_created_by_fkey(email)
+          department:departments(name)
         `)
         .eq('org_id', user.org_id)
         .order('created_at', { ascending: false })

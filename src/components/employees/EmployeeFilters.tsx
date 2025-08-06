@@ -38,26 +38,26 @@ export function EmployeeFilters({ filters, onFiltersChange, employeeCount }: Emp
   const clearFilters = () => {
     onFiltersChange({
       search: '',
-      department: '',
-      status: '',
-      contract_type: '',
+      department: 'all',
+      status: 'all',
+      contract_type: 'all',
       position: '',
       skills: [],
       languages: [],
-      education_level: '',
+      education_level: 'all',
       hire_date_from: '',
       hire_date_to: ''
     })
   }
 
   const hasActiveFilters = Object.values(filters).some(value => 
-    Array.isArray(value) ? value.length > 0 : value !== ''
+    Array.isArray(value) ? value.length > 0 : (value !== '' && value !== 'all')
   )
 
   const activeFiltersCount = Object.entries(filters).reduce((count, [key, value]) => {
     if (key === 'search') return count
     if (Array.isArray(value)) return count + (value.length > 0 ? 1 : 0)
-    return count + (value !== '' ? 1 : 0)
+    return count + (value !== '' && value !== 'all' ? 1 : 0)
   }, 0)
 
   return (
@@ -102,7 +102,7 @@ export function EmployeeFilters({ filters, onFiltersChange, employeeCount }: Emp
                 <SelectValue placeholder="Todos los departamentos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los departamentos</SelectItem>
+                <SelectItem value="all">Todos los departamentos</SelectItem>
                 <SelectItem value="none">Sin departamento</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.name}>
@@ -120,7 +120,7 @@ export function EmployeeFilters({ filters, onFiltersChange, employeeCount }: Emp
                 <SelectValue placeholder="Todos los estados" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los estados</SelectItem>
+                <SelectItem value="all">Todos los estados</SelectItem>
                 <SelectItem value="active">Activo</SelectItem>
                 <SelectItem value="inactive">Inactivo</SelectItem>
                 <SelectItem value="on_leave">De Baja</SelectItem>
@@ -135,7 +135,7 @@ export function EmployeeFilters({ filters, onFiltersChange, employeeCount }: Emp
                 <SelectValue placeholder="Todos los tipos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los tipos</SelectItem>
+                <SelectItem value="all">Todos los tipos</SelectItem>
                 <SelectItem value="indefinido">Indefinido</SelectItem>
                 <SelectItem value="temporal">Temporal</SelectItem>
                 <SelectItem value="practicas">Prácticas</SelectItem>
@@ -177,7 +177,7 @@ export function EmployeeFilters({ filters, onFiltersChange, employeeCount }: Emp
                     <SelectValue placeholder="Todos los niveles" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los niveles</SelectItem>
+                    <SelectItem value="all">Todos los niveles</SelectItem>
                     <SelectItem value="eso">ESO</SelectItem>
                     <SelectItem value="bachillerato">Bachillerato</SelectItem>
                     <SelectItem value="fp_medio">FP Grado Medio</SelectItem>

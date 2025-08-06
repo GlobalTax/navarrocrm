@@ -25,13 +25,13 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [filters, setFilters] = useState<FilterType>({
     search: '',
-    department: '',
-    status: '',
-    contract_type: '',
+    department: 'all',
+    status: 'all',
+    contract_type: 'all',
     position: '',
     skills: [],
     languages: [],
-    education_level: '',
+    education_level: 'all',
     hire_date_from: '',
     hire_date_to: ''
   })
