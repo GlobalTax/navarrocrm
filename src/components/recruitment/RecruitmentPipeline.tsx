@@ -14,7 +14,17 @@ import { Search, Filter, BarChart3, Grid3x3, Settings } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 
-export function RecruitmentPipeline() {
+interface RecruitmentPipelineProps {
+  onSelectCandidate?: (candidate: Candidate) => void
+  onScheduleInterview?: (candidate: Candidate) => void  
+  onCreateOffer?: (candidate: Candidate) => void
+}
+
+export function RecruitmentPipeline({ 
+  onSelectCandidate,
+  onScheduleInterview, 
+  onCreateOffer
+}: RecruitmentPipelineProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSource, setSelectedSource] = useState<string>('all')
   const [selectedExperience, setSelectedExperience] = useState<string>('all')
@@ -169,8 +179,7 @@ export function RecruitmentPipeline() {
                     }}
                     candidates={stageCandidates}
                     onCandidateClick={(candidate) => {
-                      // Handle candidate click - could open a modal or navigate
-                      console.log('Candidate clicked:', candidate)
+                      onSelectCandidate?.(candidate)
                     }}
                   />
                 )
