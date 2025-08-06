@@ -7,6 +7,7 @@ import {
   MoreHorizontal, 
   Edit, 
   Trash2, 
+  Eye,
   Phone, 
   Mail, 
   MapPin,
@@ -19,11 +20,12 @@ import { SimpleEmployee } from '@/hooks/useSimpleEmployees'
 
 interface EmployeeCardProps {
   employee: SimpleEmployee
+  onView: (employee: SimpleEmployee) => void
   onEdit: (employee: SimpleEmployee) => void
   onDelete: (employeeId: string) => void
 }
 
-export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) {
+export function EmployeeCard({ employee, onView, onEdit, onDelete }: EmployeeCardProps) {
   const getStatusBadge = (status: string) => {
     const variants = {
       active: 'default',
@@ -98,6 +100,10 @@ export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onView(employee)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Ver Panel
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(employee)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Editar

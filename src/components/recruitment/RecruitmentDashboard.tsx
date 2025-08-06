@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { type Candidate, type Interview, type RecruitmentStats } from '@/types/recruitment'
 import { CandidateFormDialog } from './CandidateFormDialog'
 import { CandidateDetailDialog } from './CandidateDetailDialog'
+import { CandidateDataPanel } from './CandidateDataPanel'
 import { InterviewFormDialog } from './InterviewFormDialog'
 import { JobOfferFormDialog } from './JobOfferFormDialog'
 import { CreateSampleCandidates } from './CreateSampleCandidates'
@@ -342,12 +343,10 @@ export function RecruitmentDashboard() {
         candidate={selectedCandidate}
       />
 
-      <CandidateDetailDialog
-        open={candidateDetailOpen}
-        onClose={() => setCandidateDetailOpen(false)}
+      <CandidateDataPanel
         candidate={selectedCandidate}
-        onEdit={handleEditCandidate}
-        onScheduleInterview={handleScheduleInterview}
+        open={candidateDetailOpen}
+        onOpenChange={(open) => !open && setCandidateDetailOpen(false)}
       />
 
       <InterviewFormDialog

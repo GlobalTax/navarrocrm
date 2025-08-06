@@ -5,10 +5,11 @@ import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Users, UserCheck, UserX, Calendar, Grid, List } from 'lucide-react'
+import { Plus, Users, UserCheck, UserX, Calendar, Grid, List, Eye } from 'lucide-react'
 import { AdvancedEmployeeDialog } from './AdvancedEmployeeDialog'
 import { EmployeeFilters, EmployeeFilters as FilterType } from './EmployeeFilters'
 import { EmployeeCard } from './EmployeeCard'
+import { EmployeeDataPanel } from './EmployeeDataPanel'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +23,7 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null)
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null)
+  const [employeeToView, setEmployeeToView] = useState<any>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [filters, setFilters] = useState<FilterType>({
     search: '',
@@ -237,6 +239,7 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
                 <EmployeeCard
                   key={employee.id}
                   employee={employee}
+                  onView={setEmployeeToView}
                   onEdit={setEmployeeToEdit}
                   onDelete={setEmployeeToDelete}
                 />
@@ -299,6 +302,14 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => setEmployeeToView(employee)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setEmployeeToEdit(employee)}
                           >
                             Editar
@@ -335,6 +346,12 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
         onSubmit={handleUpdateEmployee}
         employee={employeeToEdit}
         isSubmitting={false}
+      />
+
+      <EmployeeDataPanel
+        employee={employeeToView}
+        open={!!employeeToView}
+        onOpenChange={(open) => !open && setEmployeeToView(null)}
       />
 
       <ConfirmDialog

@@ -260,6 +260,42 @@ export type Database = {
           },
         ]
       }
+      activity_types: {
+        Row: {
+          category: string
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_alert_notifications: {
         Row: {
           alert_data: Json | null
@@ -828,6 +864,202 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_activities: {
+        Row: {
+          activity_date: string
+          activity_type_id: string
+          candidate_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          org_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type_id: string
+          candidate_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          org_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type_id?: string
+          candidate_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          org_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_activities_activity_type_id_fkey"
+            columns: ["activity_type_id"]
+            isOneToOne: false
+            referencedRelation: "activity_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_activities_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_evaluations: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          cultural_fit_score: number | null
+          evaluation_date: string
+          evaluation_type: string
+          evaluator_id: string
+          id: string
+          notes: string | null
+          org_id: string
+          overall_score: number | null
+          position: string | null
+          recommendation: string
+          soft_skills: Json | null
+          technical_skills: Json | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          cultural_fit_score?: number | null
+          evaluation_date?: string
+          evaluation_type?: string
+          evaluator_id: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          overall_score?: number | null
+          position?: string | null
+          recommendation?: string
+          soft_skills?: Json | null
+          technical_skills?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          cultural_fit_score?: number | null
+          evaluation_date?: string
+          evaluation_type?: string
+          evaluator_id?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          overall_score?: number | null
+          position?: string | null
+          recommendation?: string
+          soft_skills?: Json | null
+          technical_skills?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_evaluations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_references: {
+        Row: {
+          additional_notes: string | null
+          candidate_id: string
+          contacted_date: string | null
+          created_at: string
+          id: string
+          org_id: string
+          overall_rating: number | null
+          reference_company: string | null
+          reference_email: string | null
+          reference_name: string
+          reference_phone: string | null
+          reference_position: string | null
+          relationship: string | null
+          response_received: boolean | null
+          status: string
+          strengths: string | null
+          updated_at: string
+          weaknesses: string | null
+          would_rehire: boolean | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          candidate_id: string
+          contacted_date?: string | null
+          created_at?: string
+          id?: string
+          org_id: string
+          overall_rating?: number | null
+          reference_company?: string | null
+          reference_email?: string | null
+          reference_name: string
+          reference_phone?: string | null
+          reference_position?: string | null
+          relationship?: string | null
+          response_received?: boolean | null
+          status?: string
+          strengths?: string | null
+          updated_at?: string
+          weaknesses?: string | null
+          would_rehire?: boolean | null
+        }
+        Update: {
+          additional_notes?: string | null
+          candidate_id?: string
+          contacted_date?: string | null
+          created_at?: string
+          id?: string
+          org_id?: string
+          overall_rating?: number | null
+          reference_company?: string | null
+          reference_email?: string | null
+          reference_name?: string
+          reference_phone?: string | null
+          reference_position?: string | null
+          relationship?: string | null
+          response_received?: boolean | null
+          status?: string
+          strengths?: string | null
+          updated_at?: string
+          weaknesses?: string | null
+          would_rehire?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_references_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
             referencedColumns: ["id"]
           },
         ]
@@ -2240,6 +2472,62 @@ export type Database = {
           },
         ]
       }
+      employee_activities: {
+        Row: {
+          activity_date: string
+          activity_type_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          employee_id: string
+          id: string
+          metadata: Json | null
+          org_id: string
+          status: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          employee_id: string
+          id?: string
+          metadata?: Json | null
+          org_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          employee_id?: string
+          id?: string
+          metadata?: Json | null
+          org_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_activities_activity_type_id_fkey"
+            columns: ["activity_type_id"]
+            isOneToOne: false
+            referencedRelation: "activity_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_benefits: {
         Row: {
           benefit_name: string
@@ -2523,6 +2811,102 @@ export type Database = {
           },
         ]
       }
+      employee_evaluations: {
+        Row: {
+          areas_for_improvement: string | null
+          competencies: Json | null
+          created_at: string
+          development_plan: string | null
+          employee_id: string
+          evaluation_period_end: string
+          evaluation_period_start: string
+          evaluator_id: string
+          goals_achieved: Json | null
+          id: string
+          org_id: string
+          overall_score: number | null
+          status: string
+          strengths: string | null
+          updated_at: string
+        }
+        Insert: {
+          areas_for_improvement?: string | null
+          competencies?: Json | null
+          created_at?: string
+          development_plan?: string | null
+          employee_id: string
+          evaluation_period_end: string
+          evaluation_period_start: string
+          evaluator_id: string
+          goals_achieved?: Json | null
+          id?: string
+          org_id: string
+          overall_score?: number | null
+          status?: string
+          strengths?: string | null
+          updated_at?: string
+        }
+        Update: {
+          areas_for_improvement?: string | null
+          competencies?: Json | null
+          created_at?: string
+          development_plan?: string | null
+          employee_id?: string
+          evaluation_period_end?: string
+          evaluation_period_start?: string
+          evaluator_id?: string
+          goals_achieved?: Json | null
+          id?: string
+          org_id?: string
+          overall_score?: number | null
+          status?: string
+          strengths?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      employee_notes: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          employee_id: string
+          id: string
+          is_private: boolean
+          note_type: string
+          org_id: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          is_private?: boolean
+          note_type?: string
+          org_id: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          is_private?: boolean
+          note_type?: string
+          org_id?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       employee_onboarding: {
         Row: {
           banking_data: Json | null
@@ -2677,6 +3061,54 @@ export type Database = {
           },
         ]
       }
+      employee_projects: {
+        Row: {
+          achievements: string | null
+          created_at: string
+          description: string | null
+          employee_id: string
+          end_date: string | null
+          id: string
+          org_id: string
+          project_name: string
+          role: string | null
+          skills_used: Json | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          achievements?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          org_id: string
+          project_name: string
+          role?: string | null
+          skills_used?: Json | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          achievements?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          org_id?: string
+          project_name?: string
+          role?: string | null
+          skills_used?: Json | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employee_salaries: {
         Row: {
           approved_by: string | null
@@ -2753,6 +3185,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      employee_training: {
+        Row: {
+          certificate_url: string | null
+          completion_date: string | null
+          cost: number | null
+          course_name: string
+          created_at: string
+          credits_earned: number | null
+          employee_id: string
+          id: string
+          notes: string | null
+          org_id: string
+          provider: string | null
+          score: number | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          certificate_url?: string | null
+          completion_date?: string | null
+          cost?: number | null
+          course_name: string
+          created_at?: string
+          credits_earned?: number | null
+          employee_id: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          provider?: string | null
+          score?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          certificate_url?: string | null
+          completion_date?: string | null
+          cost?: number | null
+          course_name?: string
+          created_at?: string
+          credits_earned?: number | null
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          provider?: string | null
+          score?: number | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       equipment_assignments: {
         Row: {
