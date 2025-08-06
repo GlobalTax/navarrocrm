@@ -90,37 +90,37 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
 
       <CardContent className="p-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <TabsList className="grid w-full grid-cols-6 m-4 mb-0">
-            <TabsTrigger value="perfil" className="flex items-center space-x-1">
+          <TabsList className="grid w-full grid-cols-6 mx-4 mb-2">
+            <TabsTrigger value="perfil" className="flex items-center justify-center space-x-1 text-xs">
               <User className="w-4 h-4" />
-              <span className="hidden lg:inline">Perfil</span>
+              <span className="hidden sm:inline">Perfil</span>
             </TabsTrigger>
-            <TabsTrigger value="proceso" className="flex items-center space-x-1">
+            <TabsTrigger value="proceso" className="flex items-center justify-center space-x-1 text-xs">
               <Calendar className="w-4 h-4" />
-              <span className="hidden lg:inline">Proceso</span>
+              <span className="hidden sm:inline">Proceso</span>
             </TabsTrigger>
-            <TabsTrigger value="evaluaciones" className="flex items-center space-x-1">
+            <TabsTrigger value="evaluaciones" className="flex items-center justify-center space-x-1 text-xs">
               <Star className="w-4 h-4" />
-              <span className="hidden lg:inline">Evaluaciones</span>
+              <span className="hidden sm:inline">Evaluaciones</span>
             </TabsTrigger>
-            <TabsTrigger value="documentos" className="flex items-center space-x-1">
+            <TabsTrigger value="documentos" className="flex items-center justify-center space-x-1 text-xs">
               <FileText className="w-4 h-4" />
-              <span className="hidden lg:inline">Documentos</span>
+              <span className="hidden sm:inline">Docs</span>
             </TabsTrigger>
-            <TabsTrigger value="referencias" className="flex items-center space-x-1">
+            <TabsTrigger value="referencias" className="flex items-center justify-center space-x-1 text-xs">
               <Users className="w-4 h-4" />
-              <span className="hidden lg:inline">Referencias</span>
+              <span className="hidden sm:inline">Referencias</span>
             </TabsTrigger>
-            <TabsTrigger value="entrevistas" className="flex items-center space-x-1">
+            <TabsTrigger value="entrevistas" className="flex items-center justify-center space-x-1 text-xs">
               <Phone className="w-4 h-4" />
-              <span className="hidden lg:inline">Entrevistas</span>
+              <span className="hidden sm:inline">Entrevistas</span>
             </TabsTrigger>
           </TabsList>
 
-          <div className="p-4 pt-2 max-h-[calc(100vh-300px)] overflow-y-auto">
-            <TabsContent value="perfil" className="mt-0">
-              <div className="space-y-4">
-                <Card>
+          <div className="px-4 pb-4 max-h-[calc(100vh-350px)] overflow-y-auto">
+            <TabsContent value="perfil" className="mt-4">
+              <div className="grid grid-cols-1 gap-4">
+                <Card className="border-0.5 border-foreground rounded-[10px]">
                   <CardHeader>
                     <CardTitle>Información Personal</CardTitle>
                   </CardHeader>
@@ -156,7 +156,7 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-0.5 border-foreground rounded-[10px]">
                   <CardHeader>
                     <CardTitle>Información Profesional</CardTitle>
                   </CardHeader>
@@ -197,7 +197,7 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
                 </Card>
 
                 {candidate.skills && candidate.skills.length > 0 && (
-                  <Card>
+                  <Card className="border-0.5 border-foreground rounded-[10px]">
                     <CardHeader>
                       <CardTitle>Habilidades</CardTitle>
                     </CardHeader>
@@ -214,7 +214,7 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
                 )}
 
                 {candidate.languages && candidate.languages.length > 0 && (
-                  <Card>
+                  <Card className="border-0.5 border-foreground rounded-[10px]">
                     <CardHeader>
                       <CardTitle>Idiomas</CardTitle>
                     </CardHeader>
@@ -230,29 +230,29 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
                   </Card>
                 )}
 
-                <Card>
+                <Card className="border-0.5 border-foreground rounded-[10px]">
                   <CardHeader>
                     <CardTitle>Estadísticas del Proceso</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">{activities.length}</div>
-                        <div className="text-sm text-muted-foreground">Actividades</div>
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                      <div>
+                        <div className="text-xl font-bold text-primary">{activities.length}</div>
+                        <div className="text-xs text-muted-foreground">Actividades</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">{evaluations.length}</div>
-                        <div className="text-sm text-muted-foreground">Evaluaciones</div>
+                      <div>
+                        <div className="text-xl font-bold text-primary">{evaluations.length}</div>
+                        <div className="text-xs text-muted-foreground">Evaluaciones</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">{references.length}</div>
-                        <div className="text-sm text-muted-foreground">Referencias</div>
+                      <div>
+                        <div className="text-xl font-bold text-primary">{references.length}</div>
+                        <div className="text-xs text-muted-foreground">Referencias</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-primary">
+                      <div>
+                        <div className="text-xl font-bold text-primary">
                           {evaluations.filter(e => e.recommendation === 'strong_yes' || e.recommendation === 'yes').length}
                         </div>
-                        <div className="text-sm text-muted-foreground">Positivas</div>
+                        <div className="text-xs text-muted-foreground">Positivas</div>
                       </div>
                     </div>
                   </CardContent>
@@ -260,8 +260,8 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
               </div>
             </TabsContent>
 
-            <TabsContent value="proceso" className="mt-0">
-              <Card>
+            <TabsContent value="proceso" className="mt-4">
+              <Card className="border-0.5 border-foreground rounded-[10px]">
                 <CardHeader>
                   <CardTitle>Timeline del Proceso de Selección</CardTitle>
                 </CardHeader>
@@ -271,8 +271,8 @@ export function CandidateFixedDataPanel({ candidate }: CandidateFixedDataPanelPr
               </Card>
             </TabsContent>
 
-            <TabsContent value="evaluaciones" className="mt-0">
-              <Card>
+            <TabsContent value="evaluaciones" className="mt-4">
+              <Card className="border-0.5 border-foreground rounded-[10px]">
                 <CardHeader>
                   <CardTitle>Evaluaciones y Entrevistas</CardTitle>
                 </CardHeader>

@@ -228,9 +228,9 @@ export function RecruitmentDashboard() {
       </div>
 
       {/* Layout principal de dos columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-400px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Panel izquierdo: Lista compacta de candidatos (40%) */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 h-[600px]">
           <CandidateCompactList
             candidates={candidates}
             isLoading={candidatesLoading}
@@ -243,7 +243,7 @@ export function RecruitmentDashboard() {
         </div>
 
         {/* Panel derecho: Datos detallados del candidato (60%) */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 h-[600px]">
           <CandidateFixedDataPanel candidate={selectedCandidate} />
         </div>
       </div>
