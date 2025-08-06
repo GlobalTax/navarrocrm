@@ -4,16 +4,13 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Users, UserCheck, UserX, Calendar, Grid, List, Eye } from 'lucide-react'
+import { Plus, Users, UserCheck, UserX, Calendar } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { AdvancedEmployeeDialog } from './AdvancedEmployeeDialog'
 import { EmployeeFilters, EmployeeFilters as FilterType } from './EmployeeFilters'
-import { EmployeeCard } from './EmployeeCard'
-import { EmployeeDataPanel } from './EmployeeDataPanel'
+import { EmployeeFixedDataPanel } from './EmployeeFixedDataPanel'
+import { EmployeeCompactList } from './EmployeeCompactList'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 interface EnhancedEmployeesManagementProps {
   orgId: string
@@ -23,8 +20,7 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null)
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null)
-  const [employeeToView, setEmployeeToView] = useState<any>(null)
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null)
   const [filters, setFilters] = useState<FilterType>({
     search: '',
     department: 'all',
@@ -190,147 +186,59 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
         employeeCount={employees.length}
       />
 
-      {/* Lista de empleados */}
-      <Card className="border-0.5 border-black rounded-[10px]">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Lista de Empleados</CardTitle>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {employees.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                {allEmployees.length === 0 ? 'No hay empleados registrados' : 'No se encontraron empleados'}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {allEmployees.length === 0 
-                  ? 'Comienza agregando tu primer empleado'
-                  : 'Intenta ajustar los filtros de búsqueda'
-                }
-              </p>
-              {allEmployees.length === 0 && (
-                <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Primer Empleado
-                </Button>
-              )}
-            </div>
-          ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {employees.map((employee) => (
-                <EmployeeCard
-                  key={employee.id}
-                  employee={employee}
-                  onView={setEmployeeToView}
-                  onEdit={setEmployeeToEdit}
-                  onDelete={setEmployeeToDelete}
+      {/* Layout de 2 columnas: Lista compacta + Panel fijo */}
+      <div className="grid grid-cols-12 gap-6 h-[calc(100vh-400px)]">
+        {/* Panel izquierdo: Lista compacta de empleados */}
+        <div className="col-span-5 space-y-4">
+          <Card className="border-0.5 border-black rounded-[10px] h-full">
+            <CardHeader>
+              <CardTitle>
+                Empleados ({employees.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-[calc(100%-80px)] overflow-y-auto">
+              {employees.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    {allEmployees.length === 0 ? 'No hay empleados registrados' : 'No se encontraron empleados'}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {allEmployees.length === 0 
+                      ? 'Comienza agregando tu primer empleado'
+                      : 'Intenta ajustar los filtros de búsqueda'
+                    }
+                  </p>
+                  {allEmployees.length === 0 && (
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Agregar Primer Empleado
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <EmployeeCompactList
+                  employees={employees}
+                  selectedEmployeeId={selectedEmployee?.id || null}
+                  onSelectEmployee={setSelectedEmployee}
+                  onEditEmployee={setEmployeeToEdit}
+                  onDeleteEmployee={(employee) => setEmployeeToDelete(employee.id)}
+                  isLoading={isLoading}
                 />
-              ))}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empleado</TableHead>
-                  <TableHead>Posición</TableHead>
-                  <TableHead>Departamento</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Contrato</TableHead>
-                  <TableHead>Fecha Contratación</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees.map((employee) => {
-                  const initials = employee.name
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2)
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-                  return (
-                    <TableRow key={employee.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={employee.avatar_url} alt={employee.name} />
-                            <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                              {initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{employee.name}</div>
-                            <div className="text-sm text-muted-foreground">{employee.email}</div>
-                            {employee.employee_number && (
-                              <div className="text-xs text-muted-foreground">#{employee.employee_number}</div>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{employee.position}</TableCell>
-                      <TableCell>{employee.department || '-'}</TableCell>
-                      <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                      <TableCell>
-                        {employee.contract_type && (
-                          <Badge variant="outline" className="text-xs">
-                            {employee.contract_type}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>{new Date(employee.hire_date).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEmployeeToView(employee)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEmployeeToEdit(employee)}
-                          >
-                            Editar
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => setEmployeeToDelete(employee.id)}
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+        {/* Panel derecho: Datos del empleado seleccionado */}
+        <div className="col-span-7">
+          <Card className="border-0.5 border-black rounded-[10px] h-full">
+            <CardContent className="p-6 h-full">
+              <EmployeeFixedDataPanel employee={selectedEmployee} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Dialogs */}
       <AdvancedEmployeeDialog
@@ -348,11 +256,6 @@ export function EnhancedEmployeesManagement({ orgId }: EnhancedEmployeesManageme
         isSubmitting={false}
       />
 
-      <EmployeeDataPanel
-        employee={employeeToView}
-        open={!!employeeToView}
-        onOpenChange={(open) => !open && setEmployeeToView(null)}
-      />
 
       <ConfirmDialog
         open={!!employeeToDelete}
