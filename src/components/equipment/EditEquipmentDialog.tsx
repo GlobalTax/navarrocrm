@@ -346,8 +346,8 @@ export function EditEquipmentDialog({ equipment, open, onOpenChange, onSuccess }
                           <SelectValue placeholder="Seleccionar sala" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="">Sin asignar</SelectItem>
+                       <SelectContent>
+                         <SelectItem value="none">Sin asignar</SelectItem>
                         {rooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
                             {room.name}

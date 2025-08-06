@@ -247,8 +247,8 @@ export function CreateMaintenanceDialog({ open, onOpenChange, onSuccess }: Creat
                           <SelectValue placeholder="Seleccionar técnico" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="">Sin asignar</SelectItem>
+                       <SelectContent>
+                         <SelectItem value="none">Sin asignar</SelectItem>
                         {technicians.map((tech) => (
                           <SelectItem key={tech.id} value={tech.id}>
                             {tech.email}

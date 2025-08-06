@@ -210,18 +210,18 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
                           <SelectValue placeholder="Seleccionar candidato..." />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        {candidatesLoading ? (
-                          <SelectItem value="" disabled>Cargando...</SelectItem>
-                        ) : candidates.length > 0 ? (
-                          candidates.map((cand) => (
-                            <SelectItem key={cand.id} value={cand.id}>
-                              {cand.first_name} {cand.last_name} ({cand.email})
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="" disabled>No hay candidatos disponibles</SelectItem>
-                        )}
+                       <SelectContent>
+                         {candidatesLoading ? (
+                           <SelectItem value="loading" disabled>Cargando...</SelectItem>
+                         ) : candidates.length > 0 ? (
+                           candidates.map((cand) => (
+                             <SelectItem key={cand.id} value={cand.id}>
+                               {cand.first_name} {cand.last_name} ({cand.email})
+                             </SelectItem>
+                           ))
+                         ) : (
+                           <SelectItem value="no-candidates" disabled>No hay candidatos disponibles</SelectItem>
+                         )}
                       </SelectContent>
                     </Select>
                   )}

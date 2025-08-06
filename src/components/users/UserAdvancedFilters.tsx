@@ -110,17 +110,17 @@ export const UserAdvancedFilters = ({ filters, onFiltersChange, userCount }: Use
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Últimos días activo</label>
                 <Select 
-                  value={filters.lastLoginDays?.toString() || ''} 
+                  value={filters.lastLoginDays?.toString() || 'all'} 
                   onValueChange={(value) => onFiltersChange({ 
                     ...filters, 
-                    lastLoginDays: value ? parseInt(value) : undefined 
+                    lastLoginDays: value === 'all' ? undefined : parseInt(value) 
                   })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Cualquier momento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Cualquier momento</SelectItem>
+                    <SelectItem value="all">Cualquier momento</SelectItem>
                     <SelectItem value="7">Últimos 7 días</SelectItem>
                     <SelectItem value="30">Últimos 30 días</SelectItem>
                     <SelectItem value="90">Últimos 90 días</SelectItem>

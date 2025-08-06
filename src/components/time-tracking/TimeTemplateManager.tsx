@@ -160,14 +160,14 @@ export const TimeTemplateManager = ({ onUseTemplate }: TimeTemplateManagerProps)
               <div>
                 <Label htmlFor="template-case">Caso (Opcional)</Label>
                 <Select 
-                  value={newTemplate.case_id || ''} 
-                  onValueChange={(value) => setNewTemplate(prev => ({ ...prev, case_id: value || undefined }))}
+                  value={newTemplate.case_id || 'none'} 
+                  onValueChange={(value) => setNewTemplate(prev => ({ ...prev, case_id: value === 'none' ? undefined : value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar caso..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin caso específico</SelectItem>
+                    <SelectItem value="none">Sin caso específico</SelectItem>
                     {cases.map(case_ => (
                       <SelectItem key={case_.id} value={case_.id}>
                         {case_.title}

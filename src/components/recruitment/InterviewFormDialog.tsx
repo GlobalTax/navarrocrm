@@ -182,18 +182,18 @@ export function InterviewFormDialog({ open, onClose, candidate }: InterviewFormD
                           <SelectValue placeholder="Seleccionar candidato..." />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        {candidatesLoading ? (
-                          <SelectItem value="" disabled>Cargando...</SelectItem>
-                        ) : candidates.length > 0 ? (
-                          candidates.map((cand) => (
-                            <SelectItem key={cand.id} value={cand.id}>
-                              {cand.first_name} {cand.last_name} ({cand.email})
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="" disabled>No hay candidatos disponibles</SelectItem>
-                        )}
+                       <SelectContent>
+                         {candidatesLoading ? (
+                           <SelectItem value="loading" disabled>Cargando...</SelectItem>
+                         ) : candidates.length > 0 ? (
+                           candidates.map((cand) => (
+                             <SelectItem key={cand.id} value={cand.id}>
+                               {cand.first_name} {cand.last_name} ({cand.email})
+                             </SelectItem>
+                           ))
+                         ) : (
+                           <SelectItem value="no-candidates" disabled>No hay candidatos disponibles</SelectItem>
+                         )}
                       </SelectContent>
                     </Select>
                   )}
@@ -241,18 +241,18 @@ export function InterviewFormDialog({ open, onClose, candidate }: InterviewFormD
                           <SelectValue placeholder="Seleccionar entrevistador..." />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        {interviewersLoading ? (
-                          <SelectItem value="" disabled>Cargando...</SelectItem>
-                        ) : interviewers.length > 0 ? (
-                          interviewers.map((interviewer) => (
-                            <SelectItem key={interviewer.id} value={interviewer.id}>
-                              {interviewer.email} ({interviewer.role})
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="" disabled>No hay entrevistadores disponibles</SelectItem>
-                        )}
+                       <SelectContent>
+                         {interviewersLoading ? (
+                           <SelectItem value="loading" disabled>Cargando...</SelectItem>
+                         ) : interviewers.length > 0 ? (
+                           interviewers.map((interviewer) => (
+                             <SelectItem key={interviewer.id} value={interviewer.id}>
+                               {interviewer.email} ({interviewer.role})
+                             </SelectItem>
+                           ))
+                         ) : (
+                           <SelectItem value="no-interviewers" disabled>No hay entrevistadores disponibles</SelectItem>
+                         )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -84,7 +84,7 @@ export function AdvancedEmployeeDialog({
         working_hours_per_week: employee.working_hours_per_week || 40,
         skills: employee.skills || [],
         languages: employee.languages || [],
-        education_level: employee.education_level || ''
+        education_level: employee.education_level || 'none'
       })
     } else {
       setFormData({
@@ -111,7 +111,7 @@ export function AdvancedEmployeeDialog({
         working_hours_per_week: 40,
         skills: [],
         languages: [],
-        education_level: ''
+        education_level: 'none'
       })
     }
   }, [employee, open])
@@ -120,7 +120,8 @@ export function AdvancedEmployeeDialog({
     e.preventDefault()
     const submitData = {
       ...formData,
-      department: formData.department === 'none' ? '' : formData.department
+      department: formData.department === 'none' ? '' : formData.department,
+      education_level: formData.education_level === 'none' ? '' : formData.education_level
     }
     onSubmit(submitData)
   }
@@ -439,7 +440,7 @@ export function AdvancedEmployeeDialog({
                     <SelectValue placeholder="Seleccionar nivel" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sin especificar</SelectItem>
+                    <SelectItem value="none">Sin especificar</SelectItem>
                     <SelectItem value="eso">ESO</SelectItem>
                     <SelectItem value="bachillerato">Bachillerato</SelectItem>
                     <SelectItem value="fp_medio">FP Grado Medio</SelectItem>
