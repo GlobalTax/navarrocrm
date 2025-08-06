@@ -86,7 +86,9 @@ export function RecruitmentDashboard() {
         .select('status, current_stage')
         .eq('org_id', user?.org_id)
 
-      if (processesError) throw processesError
+      if (processesError) {
+        console.warn('Recruitment processes not available:', processesError)
+      }
 
       const { data: interviewsData, error: interviewsError } = await supabase
         .from('interviews')
@@ -94,35 +96,37 @@ export function RecruitmentDashboard() {
         .eq('org_id', user?.org_id)
         .gte('scheduled_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
-      if (interviewsError) throw interviewsError
+      if (interviewsError) {
+        console.warn('Interviews not available:', interviewsError)
+      }
 
       // Calcular estadísticas
-      const totalCandidates = candidatesData.length
-      const activeProcesses = processesData.filter(p => p.status === 'active').length
-      const interviewsThisWeek = interviewsData.length
-      const offersPending = candidatesData.filter(c => c.status === 'offer_sent').length
-      const hiredThisMonth = candidatesData.filter(c => 
+      const totalCandidates = candidatesData?.length || 0
+      const activeProcesses = processesData?.filter(p => p.status === 'active').length || 0
+      const interviewsThisWeek = interviewsData?.length || 0
+      const offersPending = candidatesData?.filter(c => c.status === 'offer_sent').length || 0
+      const hiredThisMonth = candidatesData?.filter(c => 
         c.status === 'hired' && 
         new Date(c.created_at) >= new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      ).length
+      ).length || 0
 
       // Agrupar por estado
-      const byStatus = candidatesData.reduce((acc, candidate) => {
+      const byStatus = candidatesData?.reduce((acc, candidate) => {
         acc[candidate.status] = (acc[candidate.status] || 0) + 1
         return acc
-      }, {} as Record<string, number>)
+      }, {} as Record<string, number>) || {}
 
       // Agrupar por fuente
-      const bySource = candidatesData.reduce((acc, candidate) => {
+      const bySource = candidatesData?.reduce((acc, candidate) => {
         acc[candidate.source] = (acc[candidate.source] || 0) + 1
         return acc
-      }, {} as Record<string, number>)
+      }, {} as Record<string, number>) || {}
 
       // Agrupar por etapa
-      const byStage = processesData.reduce((acc, process) => {
+      const byStage = processesData?.reduce((acc, process) => {
         acc[process.current_stage] = (acc[process.current_stage] || 0) + 1
         return acc
-      }, {} as Record<string, number>)
+      }, {} as Record<string, number>) || {}
 
       return {
         total_candidates: totalCandidates,

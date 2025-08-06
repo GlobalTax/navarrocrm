@@ -48,8 +48,8 @@ const jobOfferSchema = z.object({
   salary_currency: z.string().default('EUR'),
   start_date: z.date({ required_error: 'Fecha de inicio requerida' }),
   contract_type: z.enum(['indefinido', 'temporal', 'practicas', 'freelance']).default('indefinido'),
-  work_schedule: z.enum(['completa', 'parcial', 'flexible']).default('completa'),
-  remote_work: z.enum(['presencial', 'remoto', 'hibrido']).default('presencial'),
+  work_schedule: z.enum(['full_time', 'part_time', 'flexible']).default('full_time'),
+  remote_work: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
   benefits: z.string().optional(),
   requirements: z.string().optional(),
   offer_expiry_date: z.date().optional(),
@@ -111,8 +111,8 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
       salary_offered: 0,
       salary_currency: 'EUR',
       contract_type: 'indefinido',
-      work_schedule: 'completa',
-      remote_work: 'presencial',
+      work_schedule: 'full_time',
+      remote_work: 'onsite',
       benefits: '',
       requirements: '',
       notes: '',
@@ -121,28 +121,36 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
 
   const createJobOfferMutation = useMutation({
     mutationFn: async (data: JobOfferFormData) => {
-      // Primero crear la oferta
+      // Preparar datos de la oferta
+      const selectedCandidate = candidates.find(c => c.id === data.candidate_id) || candidate
+      const candidateName = `${selectedCandidate?.first_name || ''} ${selectedCandidate?.last_name || ''}`.trim()
+      
+      const jobOfferData = {
+        candidate_id: data.candidate_id,
+        candidate_email: selectedCandidate?.email || '',
+        candidate_name: candidateName,
+        title: data.title,
+        department: data.department || undefined,
+        salary_amount: data.salary_offered,
+        salary_currency: data.salary_currency,
+        start_date: data.start_date.toISOString().split('T')[0],
+        work_schedule: data.work_schedule,
+        work_location: data.remote_work,
+        remote_work_allowed: data.remote_work !== 'onsite',
+        benefits: data.benefits ? data.benefits.split(',').map(b => b.trim()) : undefined,
+        requirements: data.requirements ? data.requirements.split(',').map(r => r.trim()) : undefined,
+        expires_at: data.offer_expiry_date?.toISOString() || undefined,
+        additional_notes: data.notes || undefined,
+      }
+
+      // Crear la oferta
       const { data: jobOffer, error: offerError } = await supabase
         .from('job_offers')
         .insert({
+          ...jobOfferData,
           org_id: user?.org_id,
-          candidate_id: data.candidate_id,
-          candidate_email: candidates.find(c => c.id === data.candidate_id)?.email || candidate?.email,
-          candidate_name: `${candidates.find(c => c.id === data.candidate_id)?.first_name || candidate?.first_name} ${candidates.find(c => c.id === data.candidate_id)?.last_name || candidate?.last_name}`,
-          title: data.title,
-          department: data.department || null,
-          salary_amount: data.salary_offered,
-          salary_currency: data.salary_currency,
-          start_date: data.start_date.toISOString().split('T')[0],
-          work_schedule: data.work_schedule,
-          work_location: data.remote_work,
-          remote_work_allowed: data.remote_work !== 'presencial',
-          benefits: data.benefits ? JSON.parse(`["${data.benefits}"]`) : null,
-          requirements: data.requirements ? JSON.parse(`["${data.requirements}"]`) : null,
-          expires_at: data.offer_expiry_date?.toISOString() || null,
-          additional_notes: data.notes || null,
-          status: 'draft',
-          created_by: user?.id
+          created_by: user?.id,
+          status: 'draft'
         })
         .select()
         .single()
@@ -446,8 +454,8 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="completa">Completa</SelectItem>
-                        <SelectItem value="parcial">Parcial</SelectItem>
+                        <SelectItem value="full_time">Tiempo Completo</SelectItem>
+                        <SelectItem value="part_time">Tiempo Parcial</SelectItem>
                         <SelectItem value="flexible">Flexible</SelectItem>
                       </SelectContent>
                     </Select>
@@ -469,9 +477,9 @@ export function JobOfferFormDialog({ open, onClose, candidate }: JobOfferFormDia
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="presencial">Presencial</SelectItem>
-                        <SelectItem value="remoto">Remoto</SelectItem>
-                        <SelectItem value="hibrido">Híbrido</SelectItem>
+                        <SelectItem value="onsite">Presencial</SelectItem>
+                        <SelectItem value="remote">Remoto</SelectItem>
+                        <SelectItem value="hybrid">Híbrido</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

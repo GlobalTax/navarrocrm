@@ -50,6 +50,7 @@ const candidateSchema = z.object({
   remote_work_preference: z.enum(['onsite', 'remote', 'hybrid']).default('hybrid'),
   cover_letter: z.string().optional(),
   notes: z.string().optional(),
+  availability_date: z.string().optional(),
 })
 
 type CandidateFormData = z.infer<typeof candidateSchema>
@@ -94,6 +95,7 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
       remote_work_preference: candidate?.remote_work_preference || 'hybrid',
       cover_letter: candidate?.cover_letter || '',
       notes: candidate?.notes || '',
+      availability_date: candidate?.availability_date || '',
     }
   })
 
@@ -142,6 +144,7 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
       remote_work_preference: data.remote_work_preference || 'hybrid',
       cover_letter: data.cover_letter || undefined,
       notes: data.notes || undefined,
+      availability_date: data.availability_date || undefined,
       skills: skills,
       languages: languages,
       cv_file_path: currentCvPath || undefined
@@ -619,6 +622,25 @@ export function CandidateFormDialog({ open, onClose, candidate }: CandidateFormD
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Disponibilidad */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Disponibilidad</h3>
+              
+              <FormField
+                control={form.control}
+                name="availability_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fecha de Disponibilidad</FormLabel>
+                    <FormControl>
+                      <Input type="date" className="rounded-[10px] border-0.5 border-foreground" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Notas */}

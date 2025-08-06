@@ -72,10 +72,13 @@ export function InterviewFormDialog({ open, onClose, candidate }: InterviewFormD
         .select('id, email, role')
         .eq('org_id', user?.org_id)
         .in('role', ['partner', 'area_manager', 'senior', 'junior'])
-        .order('first_name')
+        .order('email')
       
-      if (error) throw error
-      return data
+      if (error) {
+        console.error('Error fetching interviewers:', error)
+        throw error
+      }
+      return data || []
     },
     enabled: !!user?.org_id && open
   })
@@ -244,15 +247,15 @@ export function InterviewFormDialog({ open, onClose, candidate }: InterviewFormD
                        <SelectContent>
                          {interviewersLoading ? (
                            <SelectItem value="loading" disabled>Cargando...</SelectItem>
-                         ) : interviewers.length > 0 ? (
-                           interviewers.map((interviewer) => (
-                             <SelectItem key={interviewer.id} value={interviewer.id}>
-                               {interviewer.email} ({interviewer.role})
-                             </SelectItem>
-                           ))
-                         ) : (
-                           <SelectItem value="no-interviewers" disabled>No hay entrevistadores disponibles</SelectItem>
-                         )}
+                           ) : interviewers.length > 0 ? (
+                             interviewers.map((interviewer) => (
+                               <SelectItem key={interviewer.id} value={interviewer.id}>
+                                 {interviewer.email} - {interviewer.role}
+                               </SelectItem>
+                             ))
+                           ) : (
+                             <SelectItem value="no-interviewers" disabled>No hay entrevistadores disponibles</SelectItem>
+                           )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
