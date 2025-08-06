@@ -27,13 +27,13 @@ interface JobOffer {
 }
 
 interface JobOffersTableProps {
-  jobOffers: JobOffer[]
+  jobOffers: any[]
   isLoading?: boolean
   onCreateOffer: () => void
-  onViewOffer: (offer: JobOffer) => void
-  onEditOffer: (offer: JobOffer) => void
-  onSendOffer: (offer: JobOffer) => void
-  onDeleteOffer: (offer: JobOffer) => void
+  onViewOffer: (offer: any) => void
+  onEditOffer: (offer: any) => void
+  onSendOffer: (offer: any) => void
+  onDeleteOffer: (offer: any) => void
 }
 
 export function JobOffersTable({
@@ -100,7 +100,7 @@ export function JobOffersTable({
     }).format(salary)
   }
 
-  const handleViewOffer = (offer: JobOffer) => {
+  const handleViewOffer = (offer: any) => {
     navigate(`/recruitment/job-offers/${offer.id}`)
   }
 
@@ -191,11 +191,11 @@ export function JobOffersTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="font-medium">{offer.position}</span>
+                    <span className="font-medium">{offer.position || 'Sin especificar'}</span>
                   </TableCell>
                   <TableCell>
                     <span className="font-medium">
-                      {formatSalary(offer.salary, offer.salary_currency)}
+                      {offer.salary ? formatSalary(offer.salary, offer.salary_currency) : 'Sin especificar'}
                     </span>
                   </TableCell>
                   <TableCell>

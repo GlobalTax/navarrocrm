@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -39,6 +40,7 @@ export function CandidatesTable({
   onCreateOffer,
   onAddCandidate
 }: CandidatesTableProps) {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredCandidates = candidates.filter(candidate =>
@@ -125,7 +127,11 @@ export function CandidatesTable({
             </TableHeader>
             <TableBody>
               {filteredCandidates.map((candidate) => (
-                <TableRow key={candidate.id} className="hover:bg-muted/50">
+                <TableRow 
+                  key={candidate.id} 
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => navigate(`/recruitment/candidates/${candidate.id}`)}
+                >
                   <TableCell>
                     <div>
                       <div className="font-medium">
@@ -176,28 +182,28 @@ export function CandidatesTable({
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="sm" className="rounded-[10px]">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="border-0.5 border-foreground rounded-[10px]">
                         <DropdownMenuItem 
-                          onClick={() => onViewCandidate(candidate)}
+                          onClick={(e) => { e.stopPropagation(); onViewCandidate(candidate); }}
                           className="rounded-[8px]"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           Ver perfil
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => onScheduleInterview(candidate)}
+                          onClick={(e) => { e.stopPropagation(); onScheduleInterview(candidate); }}
                           className="rounded-[8px]"
                         >
                           <Calendar className="w-4 h-4 mr-2" />
                           Programar entrevista
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => onCreateOffer(candidate)}
+                          onClick={(e) => { e.stopPropagation(); onCreateOffer(candidate); }}
                           className="rounded-[8px]"
                         >
                           <UserPlus className="w-4 h-4 mr-2" />

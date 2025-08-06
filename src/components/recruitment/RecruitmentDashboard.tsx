@@ -26,9 +26,14 @@ import { CandidateFormDialog } from './CandidateFormDialog'
 import { InterviewFormDialog } from './InterviewFormDialog'
 import { CreateSampleCandidates } from './CreateSampleCandidates'
 import { useCreateJobOffer } from '@/hooks/recruitment/useJobOffers'
+import { InterviewsTable } from './InterviewsTable'
+import { JobOffersTable } from './JobOffersTable'
+import { useInterviews } from '@/hooks/recruitment/useInterviews'
+import { useNavigate } from 'react-router-dom'
 
 export function RecruitmentDashboard() {
   const { user } = useApp()
+  const navigate = useNavigate()
   
   // Estados para modales
   const [candidateFormOpen, setCandidateFormOpen] = useState(false)
@@ -39,6 +44,28 @@ export function RecruitmentDashboard() {
 
   // Hook para crear ofertas de trabajo
   const createJobOfferMutation = useCreateJobOffer()
+
+  // Hook para obtener entrevistas
+  const { data: allInterviews = [], isLoading: allInterviewsLoading } = useInterviews()
+
+  // Hook para obtener ofertas de trabajo
+  const { data: jobOffers = [], isLoading: jobOffersLoading } = useQuery({
+    queryKey: ['job-offers', user?.org_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_offers')
+        .select(`
+          *,
+          candidate:candidates(id, first_name, last_name, email)
+        `)
+        .eq('org_id', user?.org_id)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return data || []
+    },
+    enabled: !!user?.org_id
+  })
 
   // Query para obtener candidatos
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
@@ -200,6 +227,18 @@ export function RecruitmentDashboard() {
     setCandidateFormOpen(true)
   }
 
+  const handleViewCandidate = (candidate: Candidate) => {
+    navigate(`/recruitment/candidates/${candidate.id}`)
+  }
+
+  const handleViewInterview = (interview: any) => {
+    navigate(`/recruitment/interviews/${interview.id}`)
+  }
+
+  const handleViewJobOffer = (offer: any) => {
+    navigate(`/recruitment/job-offers/${offer.id}`)
+  }
+
   return (
     <div className="space-y-6">
       {/* Estadísticas principales */}
@@ -290,23 +329,34 @@ export function RecruitmentDashboard() {
               <CandidatesTable
                 candidates={candidates}
                 isLoading={candidatesLoading}
-                onViewCandidate={() => {}}
-                onScheduleInterview={() => {}}
-                onCreateOffer={() => {}}
+                onViewCandidate={handleViewCandidate}
+                onScheduleInterview={handleScheduleInterview}
+                onCreateOffer={handleCreateOffer}
                 onAddCandidate={handleAddCandidate}
               />
             </TabsContent>
             
             <TabsContent value="interviews" className="mt-6">
-              <div className="text-center py-8 text-muted-foreground">
-                Tabla de entrevistas disponible próximamente
-              </div>
+              <InterviewsTable
+                interviews={allInterviews}
+                isLoading={allInterviewsLoading}
+                onScheduleInterview={() => setInterviewFormOpen(true)}
+                onViewInterview={handleViewInterview}
+                onEditInterview={() => {}}
+                onDeleteInterview={() => {}}
+              />
             </TabsContent>
             
             <TabsContent value="offers" className="mt-6">
-              <div className="text-center py-8 text-muted-foreground">
-                Tabla de ofertas disponible próximamente
-              </div>
+              <JobOffersTable
+                jobOffers={jobOffers}
+                isLoading={jobOffersLoading}
+                onCreateOffer={() => setJobOfferBuilderOpen(true)}
+                onViewOffer={handleViewJobOffer}
+                onEditOffer={() => {}}
+                onSendOffer={() => {}}
+                onDeleteOffer={() => {}}
+              />
             </TabsContent>
           </Tabs>
         </TabsContent>

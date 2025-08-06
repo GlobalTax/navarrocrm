@@ -9,9 +9,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Search, Plus, MoreHorizontal, Eye, Calendar, Edit, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { type Interview, INTERVIEW_TYPE_LABELS } from '@/types/recruitment'
+import { type Interview, INTERVIEW_TYPE_LABELS, type InterviewType } from '@/types/recruitment'
 
-interface InterviewWithCandidate extends Interview {
+interface InterviewWithCandidate extends Omit<Interview, 'interview_type'> {
+  interview_type: string | InterviewType
   candidate?: {
     first_name: string
     last_name: string
@@ -20,12 +21,12 @@ interface InterviewWithCandidate extends Interview {
 }
 
 interface InterviewsTableProps {
-  interviews: InterviewWithCandidate[]
+  interviews: any[]
   isLoading?: boolean
   onScheduleInterview: () => void
-  onViewInterview: (interview: InterviewWithCandidate) => void
-  onEditInterview: (interview: InterviewWithCandidate) => void
-  onDeleteInterview: (interview: InterviewWithCandidate) => void
+  onViewInterview: (interview: any) => void
+  onEditInterview: (interview: any) => void
+  onDeleteInterview: (interview: any) => void
 }
 
 export function InterviewsTable({
@@ -83,7 +84,7 @@ export function InterviewsTable({
     }
   }
 
-  const handleViewInterview = (interview: InterviewWithCandidate) => {
+  const handleViewInterview = (interview: any) => {
     navigate(`/recruitment/interviews/${interview.id}`)
   }
 
@@ -154,7 +155,7 @@ export function InterviewsTable({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredInterviews.map((interview) => (
+              filteredInterviews.map((interview: any) => (
                 <TableRow 
                   key={interview.id}
                   className="hover:bg-muted/50 cursor-pointer"
