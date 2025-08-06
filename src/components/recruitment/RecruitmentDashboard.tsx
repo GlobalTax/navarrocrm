@@ -16,8 +16,7 @@ import {
   BarChart3,
   List
 } from 'lucide-react'
-import { CandidateCompactList } from './CandidateCompactList'
-import { CandidateFixedDataPanel } from './CandidateFixedDataPanel'
+import { CandidatesTable } from './CandidatesTable'
 import { RecruitmentPipeline } from './RecruitmentPipeline'
 import { JobOfferBuilder } from './JobOfferBuilder'
 import { useApp } from '@/contexts/AppContext'
@@ -280,26 +279,36 @@ export function RecruitmentDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-6">
-          {/* Layout principal de dos columnas */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Panel izquierdo: Lista compacta de candidatos (40%) */}
-            <div className="lg:col-span-2 h-[600px]">
-              <CandidateCompactList
+          <Tabs defaultValue="candidates" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="candidates">Candidatos</TabsTrigger>
+              <TabsTrigger value="interviews">Entrevistas</TabsTrigger>
+              <TabsTrigger value="offers">Ofertas</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="candidates" className="mt-6">
+              <CandidatesTable
                 candidates={candidates}
                 isLoading={candidatesLoading}
-                selectedCandidate={selectedCandidate}
-                onSelectCandidate={handleSelectCandidate}
-                onScheduleInterview={handleScheduleInterview}
-                onCreateOffer={handleCreateOffer}
+                onViewCandidate={() => {}}
+                onScheduleInterview={() => {}}
+                onCreateOffer={() => {}}
                 onAddCandidate={handleAddCandidate}
               />
-            </div>
-
-            {/* Panel derecho: Datos detallados del candidato (60%) */}
-            <div className="lg:col-span-3 h-[600px]">
-              <CandidateFixedDataPanel candidate={selectedCandidate} />
-            </div>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="interviews" className="mt-6">
+              <div className="text-center py-8 text-muted-foreground">
+                Tabla de entrevistas disponible próximamente
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="offers" className="mt-6">
+              <div className="text-center py-8 text-muted-foreground">
+                Tabla de ofertas disponible próximamente
+              </div>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="pipeline" className="space-y-6 mt-6">

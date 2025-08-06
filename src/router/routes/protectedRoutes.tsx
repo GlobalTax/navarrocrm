@@ -182,6 +182,18 @@ const EmployeeDetailPage = createOptimizedLazy(
   () => import('@/pages/EmployeeDetailPage'),
   RoutePriority.MEDIUM
 )
+const CandidateDetailPage = createOptimizedLazy(
+  () => import('@/pages/CandidateDetailPage'),
+  RoutePriority.MEDIUM
+)
+const InterviewDetailPage = createOptimizedLazy(
+  () => import('@/pages/InterviewDetailPage'),
+  RoutePriority.MEDIUM
+)
+const JobOfferDetailPage = createOptimizedLazy(
+  () => import('@/pages/JobOfferDetailPage'),
+  RoutePriority.MEDIUM
+)
 const EmployeeOnboardingPage = createOptimizedLazy(
   () => import('@/pages/EmployeeOnboardingPage'),
   RoutePriority.MEDIUM
