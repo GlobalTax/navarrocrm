@@ -1,14 +1,17 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UserCog } from 'lucide-react'
+import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 
 const SystemUsersPage = () => {
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <UserCog className="h-8 w-8 text-primary mb-4" />
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Usuarios del Sistema</h1>
-        <p className="text-gray-600">Gestión de usuarios y accesos al sistema</p>
-      </div>
+    <StandardPageContainer>
+      <StandardPageHeader 
+        title="Usuarios del Sistema"
+        description="Gestión de usuarios y accesos al sistema"
+      >
+        <UserCog className="h-8 w-8 text-primary" />
+      </StandardPageHeader>
 
       <Tabs defaultValue="users" className="w-full">
         <TabsList>
@@ -28,7 +31,7 @@ const SystemUsersPage = () => {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </StandardPageContainer>
   )
 }
 

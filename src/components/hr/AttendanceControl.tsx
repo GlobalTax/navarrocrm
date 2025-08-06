@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { StandardCard, StandardCardContent, StandardCardDescription, StandardCardHeader, StandardCardTitle } from '@/components/ui/standard-card'
+import { StandardButton } from '@/components/ui/standard-button'
+import { StandardBadge } from '@/components/ui/standard-badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -84,10 +84,10 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
 
   const getStatusBadge = (status: AttendanceRecord['status']) => {
     const variants = {
-      present: 'bg-green-100 text-green-800',
-      late: 'bg-yellow-100 text-yellow-800',
-      absent: 'bg-red-100 text-red-800',
-      partial: 'bg-blue-100 text-blue-800'
+      present: 'success' as const,
+      late: 'warning' as const,
+      absent: 'destructive' as const,
+      partial: 'info' as const
     }
     
     const labels = {
@@ -98,9 +98,9 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
     }
 
     return (
-      <Badge className={variants[status]}>
+      <StandardBadge variant={variants[status]}>
         {labels[status]}
-      </Badge>
+      </StandardBadge>
     )
   }
 
@@ -139,56 +139,56 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
     <div className="space-y-6">
       {/* Métricas del día */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Presentes</CardTitle>
-            <UserCheck className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{todayStats.present}</div>
-          </CardContent>
-        </Card>
+        <StandardCard variant="metric">
+          <StandardCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <StandardCardTitle className="crm-button-text">Presentes</StandardCardTitle>
+            <UserCheck className="h-4 w-4 text-emerald-600" />
+          </StandardCardHeader>
+          <StandardCardContent>
+            <div className="text-2xl font-bold text-emerald-600">{todayStats.present}</div>
+          </StandardCardContent>
+        </StandardCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tardanzas</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{todayStats.late}</div>
-          </CardContent>
-        </Card>
+        <StandardCard variant="metric">
+          <StandardCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <StandardCardTitle className="crm-button-text">Tardanzas</StandardCardTitle>
+            <Clock className="h-4 w-4 text-orange-600" />
+          </StandardCardHeader>
+          <StandardCardContent>
+            <div className="text-2xl font-bold text-orange-600">{todayStats.late}</div>
+          </StandardCardContent>
+        </StandardCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ausentes</CardTitle>
+        <StandardCard variant="metric">
+          <StandardCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <StandardCardTitle className="crm-button-text">Ausentes</StandardCardTitle>
             <UserX className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
+          </StandardCardHeader>
+          <StandardCardContent>
             <div className="text-2xl font-bold text-red-600">{todayStats.absent}</div>
-          </CardContent>
-        </Card>
+          </StandardCardContent>
+        </StandardCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Horas Promedio</CardTitle>
+        <StandardCard variant="metric">
+          <StandardCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <StandardCardTitle className="crm-button-text">Horas Promedio</StandardCardTitle>
             <Clock className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
+          </StandardCardHeader>
+          <StandardCardContent>
             <div className="text-2xl font-bold text-blue-600">
               {todayStats.avgHours.toFixed(1)}h
             </div>
-          </CardContent>
-        </Card>
+          </StandardCardContent>
+        </StandardCard>
       </div>
 
       {/* Filtros y controles */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Control de Asistencia</CardTitle>
-          <CardDescription>Gestiona el fichaje y horarios del personal</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <StandardCard>
+        <StandardCardHeader>
+          <StandardCardTitle>Control de Asistencia</StandardCardTitle>
+          <StandardCardDescription>Gestiona el fichaje y horarios del personal</StandardCardDescription>
+        </StandardCardHeader>
+        <StandardCardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1">
               <Input
@@ -201,10 +201,10 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
             
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-fit">
+                <StandardButton variant="outline" className="w-fit">
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {format(selectedDate, 'dd/MM/yyyy', { locale: es })}
-                </Button>
+                </StandardButton>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
@@ -229,14 +229,14 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
               </SelectContent>
             </Select>
 
-            <Button variant="outline">
+            <StandardButton variant="outline">
               <Download className="h-4 w-4 mr-2" />
               Exportar
-            </Button>
+            </StandardButton>
           </div>
 
           {/* Tabla de asistencia */}
-          <div className="rounded-md border">
+          <div className="crm-table">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -269,7 +269,7 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
                     <TableCell>{getStatusBadge(record.status)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button
+                        <StandardButton
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleTimer(record.id)}
@@ -279,7 +279,7 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
                           ) : (
                             <PlayCircle className="h-4 w-4" />
                           )}
-                        </Button>
+                        </StandardButton>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -294,8 +294,8 @@ export function AttendanceControl({ orgId }: AttendanceControlProps) {
               <p>No hay registros de asistencia para la fecha seleccionada</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </StandardCardContent>
+      </StandardCard>
     </div>
   )
 }
