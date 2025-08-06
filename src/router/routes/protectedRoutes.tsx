@@ -427,6 +427,30 @@ export const protectedRoutes: RouteModule = {
                 </FeatureBoundary>
               )
             },
+            {
+              path: '/recruitment/candidates/:id',
+              element: (
+                <FeatureBoundary feature="Reclutamiento">
+                  <CandidateDetailPage />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/recruitment/interviews/:id',
+              element: (
+                <FeatureBoundary feature="Reclutamiento">
+                  <InterviewDetailPage />
+                </FeatureBoundary>
+              )
+            },
+            {
+              path: '/recruitment/job-offers/:id',
+              element: (
+                <FeatureBoundary feature="Reclutamiento">
+                  <JobOfferDetailPage />
+                </FeatureBoundary>
+              )
+            },
             
             // LOW PRIORITY - Admin Bundle (deferred loading)
             {

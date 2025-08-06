@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
 
-export interface CreateJobOfferData {
+interface CreateJobOfferData {
   candidate_id?: string
   candidate_email: string
   candidate_name: string
