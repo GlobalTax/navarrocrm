@@ -13,14 +13,12 @@ import {
   Plus,
   Eye
 } from 'lucide-react'
-import { CandidatesTable } from './CandidatesTable'
-import { InterviewsCalendar } from './InterviewsCalendar'
+import { CandidateCompactList } from './CandidateCompactList'
+import { CandidateFixedDataPanel } from './CandidateFixedDataPanel'
 import { useApp } from '@/contexts/AppContext'
 import { supabase } from '@/integrations/supabase/client'
 import { type Candidate, type Interview, type RecruitmentStats } from '@/types/recruitment'
 import { CandidateFormDialog } from './CandidateFormDialog'
-import { CandidateDetailDialog } from './CandidateDetailDialog'
-import { CandidateDataPanel } from './CandidateDataPanel'
 import { InterviewFormDialog } from './InterviewFormDialog'
 import { JobOfferFormDialog } from './JobOfferFormDialog'
 import { CreateSampleCandidates } from './CreateSampleCandidates'
@@ -30,7 +28,6 @@ export function RecruitmentDashboard() {
   
   // Estados para modales
   const [candidateFormOpen, setCandidateFormOpen] = useState(false)
-  const [candidateDetailOpen, setCandidateDetailOpen] = useState(false)
   const [interviewFormOpen, setInterviewFormOpen] = useState(false)
   const [jobOfferFormOpen, setJobOfferFormOpen] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
@@ -141,9 +138,8 @@ export function RecruitmentDashboard() {
     enabled: !!user?.org_id
   })
 
-  const handleViewCandidate = (candidate: Candidate) => {
+  const handleSelectCandidate = (candidate: Candidate) => {
     setSelectedCandidate(candidate)
-    setCandidateDetailOpen(true)
   }
 
   const handleScheduleInterview = (candidate: Candidate) => {
@@ -231,77 +227,85 @@ export function RecruitmentDashboard() {
         </Card>
       </div>
 
-      {/* Contenido principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Tabla de candidatos */}
+      {/* Layout principal de dos columnas */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-400px)]">
+        {/* Panel izquierdo: Lista compacta de candidatos (40%) */}
         <div className="lg:col-span-2">
-          <CandidatesTable
+          <CandidateCompactList
             candidates={candidates}
             isLoading={candidatesLoading}
-            onViewCandidate={handleViewCandidate}
+            selectedCandidate={selectedCandidate}
+            onSelectCandidate={handleSelectCandidate}
             onScheduleInterview={handleScheduleInterview}
             onCreateOffer={handleCreateOffer}
             onAddCandidate={handleAddCandidate}
           />
         </div>
 
-        {/* Panel lateral con entrevistas próximas */}
-        <div className="space-y-6">
-          <Card className="border-0.5 border-foreground rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Próximas Entrevistas
-                <Button variant="outline" size="sm" className="rounded-[10px] border-0.5 border-foreground">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {interviewsLoading ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="h-16 bg-muted rounded-[10px]" />
-                    </div>
-                  ))}
-                </div>
-              ) : upcomingInterviews.length > 0 ? (
-                <div className="space-y-3">
-                  {upcomingInterviews.map((interview) => (
-                    <div key={interview.id} className="p-3 border border-border rounded-[10px] hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-sm">
-                            {interview.candidate?.first_name} {interview.candidate?.last_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(interview.scheduled_at).toLocaleDateString('es-ES', {
-                              weekday: 'short',
-                              day: 'numeric',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="rounded-[10px] border-0.5">
-                          {interview.interview_type === 'technical' ? 'Técnica' :
-                           interview.interview_type === 'cultural' ? 'Cultural' :
-                           interview.interview_type === 'management' ? 'Gerencial' : 'RH'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay entrevistas programadas
-                </p>
-              )}
-            </CardContent>
-          </Card>
+        {/* Panel derecho: Datos detallados del candidato (60%) */}
+        <div className="lg:col-span-3">
+          <CandidateFixedDataPanel candidate={selectedCandidate} />
+        </div>
+      </div>
 
-          {/* Resumen por estado */}
+      {/* Panel lateral inferior con entrevistas próximas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-0.5 border-foreground rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-200">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Próximas Entrevistas
+              <Button variant="outline" size="sm" className="rounded-[10px] border-0.5 border-foreground">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {interviewsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-16 bg-muted rounded-[10px]" />
+                  </div>
+                ))}
+              </div>
+            ) : upcomingInterviews.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingInterviews.map((interview) => (
+                  <div key={interview.id} className="p-3 border border-border rounded-[10px] hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">
+                          {interview.candidate?.first_name} {interview.candidate?.last_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(interview.scheduled_at).toLocaleDateString('es-ES', {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="rounded-[10px] border-0.5">
+                        {interview.interview_type === 'technical' ? 'Técnica' :
+                         interview.interview_type === 'cultural' ? 'Cultural' :
+                         interview.interview_type === 'management' ? 'Gerencial' : 'RH'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No hay entrevistas programadas
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Resumen por estado */}
+        <div className="space-y-6">
           {stats && (
             <Card className="border-0.5 border-foreground rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-200">
               <CardHeader>
@@ -343,11 +347,6 @@ export function RecruitmentDashboard() {
         candidate={selectedCandidate}
       />
 
-      <CandidateDataPanel
-        candidate={selectedCandidate}
-        open={candidateDetailOpen}
-        onOpenChange={(open) => !open && setCandidateDetailOpen(false)}
-      />
 
       <InterviewFormDialog
         open={interviewFormOpen}
