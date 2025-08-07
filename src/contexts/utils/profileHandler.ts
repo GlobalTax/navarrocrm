@@ -2,6 +2,7 @@
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { AuthUser, UserRole } from '../types'
+import { profileLogger } from '@/utils/logging'
 
 export const enrichUserProfileAsync = async (
   authUser: User, 
@@ -9,13 +10,13 @@ export const enrichUserProfileAsync = async (
   profileEnrichmentInProgress: React.MutableRefObject<boolean>
 ) => {
   if (profileEnrichmentInProgress.current) {
-    console.log('👤 [ProfileHandler] Enriquecimiento ya en progreso')
+    profileLogger.debug('Enriquecimiento ya en progreso')
     return
   }
 
   try {
     profileEnrichmentInProgress.current = true
-    console.log('👤 [ProfileHandler] Enriqueciendo perfil:', authUser.id)
+    profileLogger.info('Enriqueciendo perfil', { userId: authUser.id })
     
     const { data, error } = await Promise.race([
       supabase
@@ -35,15 +36,15 @@ export const enrichUserProfileAsync = async (
         org_id: data.org_id
       }
       
-      console.log('✅ [ProfileHandler] Perfil enriquecido:', { role: data.role, org_id: data.org_id })
+      profileLogger.info('Perfil enriquecido exitosamente', { role: data.role, org_id: data.org_id })
       setUser(enrichedUser)
     } else {
-      console.log('⚠️ [ProfileHandler] Manteniendo usuario básico:', error?.message || 'Sin datos')
+      profileLogger.warn('Manteniendo usuario básico', { reason: error?.message || 'Sin datos' })
       // Usar usuario básico si falla
       setUser(authUser as AuthUser)
     }
   } catch (error: any) {
-    console.log('⚠️ [ProfileHandler] Error enriqueciendo perfil:', error.message)
+    profileLogger.error('Error enriqueciendo perfil', { error: error.message })
     // Usar usuario básico si falla
     setUser(authUser as AuthUser)
   } finally {

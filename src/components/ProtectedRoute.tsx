@@ -1,7 +1,7 @@
 
 import { Navigate, useLocation } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
-import { routeLogger } from '@/utils/logger'
+import { routeLogger } from '@/utils/logging'
 
 interface ProtectedRouteProps {
   children: React.ReactNode

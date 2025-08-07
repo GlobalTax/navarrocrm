@@ -1,7 +1,7 @@
 
 import { Navigate } from 'react-router-dom'
 import { useApp } from '@/contexts/AppContext'
-import { appLogger } from '@/utils/logger'
+import { appLogger } from '@/utils/logging'
 
 const Index = () => {
   const { session, user, isSetup, authLoading, setupLoading } = useApp()

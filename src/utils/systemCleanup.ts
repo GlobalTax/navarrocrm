@@ -4,7 +4,7 @@
  */
 
 import { pendingManager } from './pendingStatesCleanup'
-import { logger } from './logger'
+import { logger } from './logging'
 
 class SystemCleaner {
   private cleanupInterval: NodeJS.Timeout | null = null

@@ -33,7 +33,6 @@ export function MatterWizard({
     if (!validateStep(currentStep)) return
 
     const submitData = prepareSubmitData()
-    console.log('📤 Enviando datos del expediente:', submitData)
     onSubmit(submitData)
   }
 

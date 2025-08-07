@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 
 import { SmartLoadingButton } from '@/components/common/SmartLoadingButton'
 import { useAccessibility } from '@/hooks/useAccessibility'
-import { authLogger } from '@/utils/logger'
+import { authLogger } from '@/utils/logging'
 
 export default function Login() {
   const [email, setEmail] = useState('')

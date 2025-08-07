@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
+import { globalLogger } from '@/utils/logging'
 
 interface Props {
   children: ReactNode
@@ -25,7 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🚨 [ErrorBoundary] Error capturado:', error, errorInfo)
+    globalLogger.error('Error capturado en boundary', { error: error.message, errorInfo })
     this.setState({ error, errorInfo })
   }
 

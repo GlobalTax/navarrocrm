@@ -3,7 +3,7 @@
  * Reemplazan todos los console.log específicos de cada módulo
  */
 
-import { createContextLogger } from './logger'
+import { createContextLogger, professionalLogger } from './logger'
 
 // Loggers por módulo - reemplazan los console.log existentes
 export const authLogger = createContextLogger('Auth')
@@ -29,3 +29,7 @@ export const globalLogger = createContextLogger('Global')
 
 // Logger por defecto para casos generales
 export const logger = globalLogger
+
+// Legacy aliases for backward compatibility
+export const createLogger = createContextLogger
+export { professionalLogger as defaultLogger }

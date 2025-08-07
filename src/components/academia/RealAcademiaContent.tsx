@@ -20,7 +20,7 @@ export function RealAcademiaContent() {
   const { data: courses, isLoading: coursesLoading, error: coursesError } = usePublishedCourses(selectedCategory || undefined)
   const { data: userProgress, isLoading: progressLoading } = useUserProgress()
 
-  console.log('Academia Data:', { categories, courses, userProgress })
+  // Debug removed - use React DevTools for component debugging
 
   // Mostrar estado de carga
   if (categoriesLoading || coursesLoading || progressLoading) {

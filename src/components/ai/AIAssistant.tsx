@@ -28,13 +28,11 @@ export const AIAssistant = ({ isOpen, onToggle, onMinimize, isMinimized }: AIAss
   const [inputMessage, setInputMessage] = useState('')
 
   const handleSuggestionClick = (suggestion: string) => {
-    console.log('💡 AIAssistant - Clic en sugerencia:', suggestion)
     sendMessage(suggestion)
   }
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    console.log('📝 AIAssistant - Submit formulario, mensaje:', inputMessage)
     sendMessage(inputMessage)
     setInputMessage('')
   }
