@@ -6,8 +6,15 @@ import { QueryProvider } from '@/contexts/QueryContext'
 import { OnboardingProvider } from '@/components/onboarding'
 import { GlobalErrorBoundary } from '@/components/common/GlobalErrorBoundary'
 import { AppRouter } from '@/router'
+import { initializeRouteOptimization } from '@/utils/routeOptimizer'
+import { useEffect } from 'react'
 
 function App() {
+  // Initialize route optimization on app load
+  useEffect(() => {
+    initializeRouteOptimization()
+  }, [])
+
   return (
     <GlobalErrorBoundary>
       <QueryProvider>

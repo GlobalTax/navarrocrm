@@ -1,4 +1,4 @@
-// Route-based code splitting optimizer
+// Route-based code splitting optimizer with real chunk prefetching
 import { lazy, ComponentType } from 'react'
 
 // Route priority levels for optimized loading
@@ -9,12 +9,25 @@ export enum RoutePriority {
   LOW = 'low'              // Admin, Reports - defer load
 }
 
+// Cache for loaded components
+const componentCache = new Map<string, ComponentType<any>>()
+const prefetchedChunks = new Set<string>()
+
 // Enhanced lazy loading with prefetch capabilities
 export const createOptimizedLazy = <T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   priority: RoutePriority = RoutePriority.MEDIUM
 ): ComponentType<any> => {
-  const LazyComponent = lazy(importFn)
+  const LazyComponent = lazy(async () => {
+    const cacheKey = importFn.toString()
+    if (componentCache.has(cacheKey)) {
+      return { default: componentCache.get(cacheKey)! }
+    }
+    
+    const module = await importFn()
+    componentCache.set(cacheKey, module.default)
+    return module
+  })
 
   // Prefetch critical and high priority routes
   if (priority === RoutePriority.CRITICAL || priority === RoutePriority.HIGH) {
@@ -30,7 +43,7 @@ export const createOptimizedLazy = <T extends ComponentType<any>>(
       if (document.hidden) {
         clearTimeout(prefetchTimer)
       }
-    })
+    }, { once: true })
   }
 
   return LazyComponent
@@ -48,7 +61,7 @@ export const createNamedLazy = <T extends ComponentType<any>>(
   )
 }
 
-// Feature-based bundle splitting
+// Feature-based bundle splitting (updated to match actual chunks)
 export const featureBundles = {
   // Core features - always loaded
   core: ['Dashboard', 'Index'],
@@ -75,19 +88,91 @@ export const featureBundles = {
   ai: ['AdvancedAI', 'AIAdmin', 'IntelligentDashboard', 'Academia']
 } as const
 
+// Get real chunk files using import.meta.glob
+const getChunkModules = () => {
+  // Map actual module paths to chunks
+  const modules = import.meta.glob([
+    '/src/pages/Dashboard.tsx',
+    '/src/pages/Contacts.tsx',
+    '/src/pages/Cases.tsx',
+    '/src/pages/Tasks.tsx',
+    '/src/pages/Calendar.tsx',
+    '/src/pages/Emails.tsx',
+    '/src/pages/Users.tsx',
+    '/src/pages/Reports.tsx',
+    '/src/pages/IntegrationSettings.tsx',
+    '/src/pages/QuantumPage.tsx',
+    '/src/pages/AdvancedAI.tsx'
+  ], { eager: false })
+  
+  return modules
+}
+
+// Map route paths to chunk names (based on vite.config.ts manualChunks)
+const routeToChunkMap: Record<string, string> = {
+  '/dashboard': 'assets/index',
+  '/contacts': 'assets/chunk-clients',
+  '/clients': 'assets/chunk-clients', 
+  '/cases': 'assets/chunk-cases',
+  '/tasks': 'assets/chunk-cases',
+  '/emails': 'assets/chunk-communications',
+  '/calendar': 'assets/chunk-communications',
+  '/proposals': 'assets/chunk-business',
+  '/time-tracking': 'assets/chunk-business',
+  '/users': 'assets/chunk-admin',
+  '/reports': 'assets/chunk-admin',
+  '/integrations': 'assets/chunk-integrations',
+  '/quantum': 'assets/chunk-integrations',
+  '/advanced-ai': 'assets/chunk-ai',
+  '/ai-admin': 'assets/chunk-ai'
+}
+
+// Prefetch specific chunks using modulepreload
+const prefetchChunk = (chunkPath: string) => {
+  if (prefetchedChunks.has(chunkPath)) return
+  
+  prefetchedChunks.add(chunkPath)
+  
+  const link = document.createElement('link')
+  link.rel = 'modulepreload'
+  link.href = chunkPath
+  link.crossOrigin = 'anonymous'
+  
+  // Add error handling
+  link.onerror = () => {
+    console.warn(`Failed to prefetch chunk: ${chunkPath}`)
+    prefetchedChunks.delete(chunkPath)
+  }
+  
+  document.head.appendChild(link)
+}
+
 // Resource hints for critical routes
 export const addResourceHints = () => {
   const head = document.head
 
-  // Preload critical route chunks
-  const criticalChunks = ['/dashboard', '/contacts', '/cases']
+  // Preload critical chunks immediately
+  const criticalChunks = [
+    'assets/index', // Dashboard
+    'assets/chunk-clients', // High priority
+    'assets/chunk-cases' // High priority  
+  ]
   
   criticalChunks.forEach(chunk => {
-    const link = document.createElement('link')
-    link.rel = 'prefetch'
-    link.href = chunk
-    head.appendChild(link)
+    prefetchChunk(`/${chunk}`)
   })
+  
+  // Prefetch medium priority chunks after idle
+  requestIdleCallback(() => {
+    const mediumChunks = [
+      'assets/chunk-communications',
+      'assets/chunk-business'
+    ]
+    
+    mediumChunks.forEach(chunk => {
+      prefetchChunk(`/${chunk}`)
+    })
+  }, { timeout: 3000 })
 }
 
 // Initialize route optimization
@@ -99,7 +184,7 @@ export const initializeRouteOptimization = () => {
     addResourceHints()
   }
   
-  // Prefetch on user interactions
+  // Prefetch on hover for key routes
   document.addEventListener('mouseenter', (e) => {
     const target = e.target as HTMLElement
     
@@ -110,10 +195,59 @@ export const initializeRouteOptimization = () => {
     
     if (link && link.href.includes(window.location.origin)) {
       const route = new URL(link.href).pathname
-      if (featureBundles.clients.some(r => route.includes(r.toLowerCase()))) {
-        // Prefetch client management bundle
-        console.log('Prefetching client bundle for route:', route)
+      const chunkName = routeToChunkMap[route]
+      
+      if (chunkName) {
+        console.log(`🚀 Prefetching chunk for route: ${route} -> ${chunkName}`)
+        prefetchChunk(`/${chunkName}`)
+      }
+      
+      // Special handling for dynamic routes
+      if (route.includes('/contacts') || route.includes('/clients')) {
+        prefetchChunk('/assets/chunk-clients')
+      } else if (route.includes('/cases') || route.includes('/tasks')) {
+        prefetchChunk('/assets/chunk-cases')
       }
     }
   }, { passive: true })
+  
+  // Prefetch low priority chunks on user interaction
+  const prefetchLowPriority = () => {
+    const lowPriorityChunks = [
+      'assets/chunk-admin',
+      'assets/chunk-integrations', 
+      'assets/chunk-ai'
+    ]
+    
+    lowPriorityChunks.forEach(chunk => {
+      prefetchChunk(`/${chunk}`)
+    })
+  }
+  
+  // Trigger low priority prefetch on first user interaction
+  const interactionEvents = ['click', 'scroll', 'keydown']
+  const handleFirstInteraction = () => {
+    prefetchLowPriority()
+    interactionEvents.forEach(event => {
+      document.removeEventListener(event, handleFirstInteraction, { passive: true } as any)
+    })
+  }
+  
+  interactionEvents.forEach(event => {
+    document.addEventListener(event, handleFirstInteraction, { passive: true })
+  })
+}
+
+// Analytics for chunk loading
+export const trackChunkLoading = (chunkName: string, loadTime: number) => {
+  console.log(`📊 Chunk ${chunkName} loaded in ${loadTime}ms`)
+  
+  // Could send to analytics service
+  if ((window as any).gtag) {
+    (window as any).gtag('event', 'chunk_load', {
+      chunk_name: chunkName,
+      load_time: loadTime,
+      event_category: 'performance'
+    })
+  }
 }
