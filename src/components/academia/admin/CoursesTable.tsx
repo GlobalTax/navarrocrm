@@ -3,7 +3,7 @@ import React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Edit, Trash2, Eye, Plus } from 'lucide-react'
+import { Edit, Trash2, Eye, Plus, Globe, FileX } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -28,6 +28,7 @@ interface CoursesTableProps {
   onDelete: (courseId: string) => void
   onViewLessons: (course: Course) => void
   onAddLesson: (courseId: string) => void
+  onTogglePublish: (courseId: string, isPublished: boolean) => void
 }
 
 const levelLabels = {
@@ -47,7 +48,8 @@ export function CoursesTable({
   onEdit, 
   onDelete, 
   onViewLessons, 
-  onAddLesson 
+  onAddLesson,
+  onTogglePublish
 }: CoursesTableProps) {
   return (
     <div className="border border-0.5 border-black rounded-[10px] overflow-hidden">
@@ -119,9 +121,24 @@ export function CoursesTable({
                 )}
               </TableCell>
               <TableCell>
-                <Badge variant={course.is_published ? "default" : "secondary"}>
-                  {course.is_published ? 'Publicado' : 'Borrador'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={course.is_published ? "default" : "secondary"}>
+                    {course.is_published ? 'Publicado' : 'Borrador'}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onTogglePublish(course.id, !course.is_published)}
+                    className="h-6 w-6 p-0"
+                    title={course.is_published ? 'Despublicar curso' : 'Publicar curso'}
+                  >
+                    {course.is_published ? (
+                      <FileX className="h-3 w-3 text-academia-warning" />
+                    ) : (
+                      <Globe className="h-3 w-3 text-academia-success" />
+                    )}
+                  </Button>
+                </div>
               </TableCell>
               <TableCell>
                 <span className="text-sm text-gray-500">

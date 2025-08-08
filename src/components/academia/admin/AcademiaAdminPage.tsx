@@ -20,7 +20,7 @@ import type { AcademyCourse } from '@/types/academy'
 
 export default function AcademiaAdminPage() {
   const { useAllCategories, useAllCourses, useAdminStats } = useAcademyAdminQueries()
-  const { deleteCourse, deleteCategory } = useAcademyMutations()
+  const { deleteCourse, deleteCategory, toggleCoursePublish } = useAcademyMutations()
   const { state, actions } = useEnhancedAcademiaAdminState()
 
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useAllCategories()
@@ -79,6 +79,14 @@ export default function AcademiaAdminPage() {
     actions.openLessonDialog(courseId)
   }
 
+  const handleTogglePublish = async (courseId: string, isPublished: boolean) => {
+    try {
+      await toggleCoursePublish.mutateAsync({ id: courseId, is_published: isPublished })
+    } catch (error) {
+      console.error('Error toggling publish status:', error)
+    }
+  }
+
   const handleEditLesson = (lesson: any) => {
     actions.openLessonDialog(lesson.course_id, lesson)
   }
@@ -112,6 +120,7 @@ export default function AcademiaAdminPage() {
             onDelete={handleDeleteCourse}
             onViewLessons={handleViewLessons}
             onAddLesson={handleAddLesson}
+            onTogglePublish={handleTogglePublish}
           />
         </TabsContent>
 

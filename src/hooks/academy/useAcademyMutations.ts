@@ -155,6 +155,36 @@ export const useAcademyMutations = () => {
     }
   })
 
+  const toggleCoursePublish = useMutation({
+    mutationFn: async ({ id, is_published }: { id: string; is_published: boolean }) => {
+      console.log('🔄 Toggling course publish status:', { id, is_published })
+
+      const { data: course, error } = await supabase
+        .from('academy_courses')
+        .update({ is_published })
+        .eq('id', id)
+        .select()
+        .maybeSingle()
+
+      if (error) {
+        console.error('❌ Error toggling course publish:', error)
+        throw error
+      }
+
+      console.log('✅ Course publish status toggled:', course)
+      return course
+    },
+    onSuccess: (course) => {
+      queryClient.invalidateQueries({ queryKey: ['academy-admin-courses'] })
+      queryClient.invalidateQueries({ queryKey: ['academy-courses'] })
+      toast.success(`Curso ${course.is_published ? 'publicado' : 'despublicado'} exitosamente`)
+    },
+    onError: (error) => {
+      console.error('Error toggling course publish:', error)
+      toast.error('Error al cambiar el estado del curso: ' + error.message)
+    }
+  })
+
   // Mutaciones de Lecciones
   const createLesson = useMutation({
     mutationFn: async (data: LessonFormData & { course_id: string }) => {
@@ -335,6 +365,7 @@ export const useAcademyMutations = () => {
     createCourse,
     updateCourse,
     deleteCourse,
+    toggleCoursePublish,
     // Lecciones
     createLesson,
     updateLesson,

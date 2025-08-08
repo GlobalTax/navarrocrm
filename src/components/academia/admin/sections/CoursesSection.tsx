@@ -10,6 +10,7 @@ interface CoursesSectionProps {
   onDelete: (courseId: string) => void
   onViewLessons: (course: AcademyCourse) => void
   onAddLesson: (courseId: string) => void
+  onTogglePublish: (courseId: string, isPublished: boolean) => void
   isLoading?: boolean
 }
 
@@ -19,6 +20,7 @@ export function CoursesSection({
   onDelete,
   onViewLessons,
   onAddLesson,
+  onTogglePublish,
   isLoading = false
 }: CoursesSectionProps) {
   if (isLoading) {
@@ -49,6 +51,7 @@ export function CoursesSection({
             onDelete={onDelete}
             onViewLessons={onViewLessons}
             onAddLesson={onAddLesson}
+            onTogglePublish={onTogglePublish}
           />
         ) : (
           <div className="text-center py-12">
