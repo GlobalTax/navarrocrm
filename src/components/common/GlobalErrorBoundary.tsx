@@ -1,9 +1,9 @@
 import React from 'react'
-import { useErrorBoundary } from '@/hooks/useErrorBoundary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RotateCcw } from 'lucide-react'
 import { globalLogger } from '@/utils/logging'
+import * as Sentry from '@sentry/react'
 
 interface ErrorFallbackProps {
   error: Error
@@ -88,6 +88,12 @@ export class GlobalErrorBoundary extends React.Component<
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack
+    })
+
+    // Report to Sentry for observability
+    Sentry.captureException(error, {
+      tags: { boundary: 'GlobalErrorBoundary' },
+      contexts: { react: { componentStack: errorInfo.componentStack } },
     })
   }
 
