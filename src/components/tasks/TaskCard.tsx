@@ -59,7 +59,7 @@ export const TaskCard = ({ task, onEdit, onStatusChange, showStatusSelector = fa
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer group border-0.5 border-black rounded-[10px]">
+    <Card className="shadow-sm hover:shadow-lg hover-lift transition-transform duration-200 ease-out cursor-pointer group border-0.5 border-black rounded-[10px]">
       <CardContent className="p-4">
         <TaskCardHeader 
           title={safeTask.title}

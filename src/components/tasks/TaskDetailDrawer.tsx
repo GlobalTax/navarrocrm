@@ -38,40 +38,41 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
   if (!task) return null
 
   const getLegalPriorityConfig = (priority: string) => {
+    const baseClass = 'border-0.5 border-black bg-white text-black rounded-[10px]'
     switch (priority) {
       case 'critical': 
         return { 
-          color: 'bg-red-100 text-red-800 border-red-200', 
+          color: baseClass, 
           label: 'Vencimiento Crítico',
           icon: Scale
         }
       case 'urgent': 
         return { 
-          color: 'bg-red-100 text-red-800 border-red-200', 
+          color: baseClass, 
           label: 'Urgente (24-48h)',
           icon: Scale
         }
       case 'high': 
         return { 
-          color: 'bg-orange-100 text-orange-800 border-orange-200', 
+          color: baseClass, 
           label: 'Alta (esta semana)',
           icon: Clock
         }
       case 'medium': 
         return { 
-          color: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
+          color: baseClass, 
           label: 'Normal (este mes)',
           icon: FileText
         }
       case 'low': 
         return { 
-          color: 'bg-green-100 text-green-800 border-green-200', 
+          color: baseClass, 
           label: 'Baja',
           icon: FileText
         }
       default: 
         return { 
-          color: 'bg-gray-100 text-gray-800 border-gray-200', 
+          color: baseClass, 
           label: priority || 'Sin prioridad',
           icon: FileText
         }
@@ -120,7 +121,7 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
                 {task.title}
               </SheetTitle>
               {isCriticalDeadline && (
-                <div className="flex items-center text-red-600 text-sm mt-2">
+                <div className="flex items-center text-black text-sm mt-2">
                   <Gavel className="h-4 w-4 mr-1" />
                   Plazo procesal crítico
                 </div>
@@ -136,7 +137,7 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
         <div className="space-y-6">
           {/* Estado y Prioridad */}
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">
+            <Badge variant="outline" className="border-0.5 border-black rounded-[10px] bg-white text-black">
               {getLegalStatusLabel(task.status)}
             </Badge>
             <Badge className={priorityConfig.color}>
@@ -144,7 +145,7 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
               {priorityConfig.label}
             </Badge>
             {isOverdue && (
-              <Badge variant="destructive">
+              <Badge variant="outline" className="border-0.5 border-black rounded-[10px] bg-white text-black">
                 Vencida
               </Badge>
             )}
@@ -165,7 +166,7 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                 <div>
                   <div className="text-gray-500">Fecha límite</div>
-                  <div className={isOverdue ? 'text-red-600 font-medium' : 'text-gray-900'}>
+                  <div className={isOverdue ? 'text-black font-medium' : 'text-gray-900'}>
                     {format(new Date(task.due_date), 'dd MMM yyyy', { locale: es })}
                   </div>
                 </div>
@@ -220,7 +221,7 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
             <div className="space-y-2">
               {/* Lista de subtareas existentes */}
               {task.subtasks?.map(subtask => (
-                <div key={subtask.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                <div key={subtask.id} className="flex items-center space-x-2 p-2 bg-white border-0.5 border-black rounded-[10px] shadow-sm">
                   <input
                     type="checkbox"
                     checked={subtask.completed}
@@ -266,7 +267,7 @@ export const TaskDetailDrawer = ({ task, isOpen, onClose, onEdit }: TaskDetailDr
             <div className="space-y-3">
               {/* Lista de comentarios existentes */}
               {task.comments?.map(comment => (
-                <div key={comment.id} className="p-3 bg-gray-50 rounded text-sm">
+                <div key={comment.id} className="p-3 bg-white border-0.5 border-black rounded-[10px] shadow-sm text-sm">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-gray-900">Usuario</span>
                     <span className="text-gray-500 text-xs">

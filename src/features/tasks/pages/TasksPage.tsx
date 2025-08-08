@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { TasksList, TaskFilters, BulkTaskAssignmentModal } from '../components'
 
 export default function TasksPage() {
@@ -25,16 +26,17 @@ export default function TasksPage() {
         <h1 className="text-3xl font-bold">Tareas</h1>
         <div className="flex gap-2">
           {selectedTasks.length > 0 && (
-            <button
+            <Button
               onClick={handleBulkAssignment}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              variant="outline"
+              className="border-0.5 border-black rounded-[10px] hover-lift"
             >
               Asignar ({selectedTasks.length})
-            </button>
+            </Button>
           )}
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          <Button variant="outline" className="border-0.5 border-black rounded-[10px] hover-lift">
             Nueva Tarea
-          </button>
+          </Button>
         </div>
       </div>
 
