@@ -17,47 +17,47 @@ export function CasesStats({ cases }: CasesStatsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="bg-background border-[0.5px] border-border rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Total Expedientes</CardTitle>
-          <FileText className="h-5 w-5 text-blue-600" />
+          <CardTitle className="text-sm font-medium text-muted-foreground">Total Expedientes</CardTitle>
+          <FileText className="h-5 w-5 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-          <p className="text-xs text-gray-500 mt-1">Todos los expedientes</p>
+          <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+          <p className="text-xs text-muted-foreground mt-1">Todos los expedientes</p>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="bg-background border-[0.5px] border-border rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Activos</CardTitle>
-          <FolderOpen className="h-5 w-5 text-green-600" />
+          <CardTitle className="text-sm font-medium text-muted-foreground">Activos</CardTitle>
+          <FolderOpen className="h-5 w-5 text-success" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-700">{stats.open}</div>
-          <p className="text-xs text-gray-500 mt-1">En progreso</p>
+          <div className="text-2xl font-bold text-success">{stats.open}</div>
+          <p className="text-xs text-muted-foreground mt-1">En progreso</p>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="bg-background border-[0.5px] border-border rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">En Espera</CardTitle>
-          <Clock className="h-5 w-5 text-yellow-600" />
+          <CardTitle className="text-sm font-medium text-muted-foreground">En Espera</CardTitle>
+          <Clock className="h-5 w-5 text-warning" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-yellow-700">{stats.on_hold}</div>
-          <p className="text-xs text-gray-500 mt-1">Pausados</p>
+          <div className="text-2xl font-bold text-warning">{stats.on_hold}</div>
+          <p className="text-xs text-muted-foreground mt-1">Pausados</p>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="bg-background border-[0.5px] border-border rounded-[10px] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">Completados</CardTitle>
-          <CheckCircle className="h-5 w-5 text-gray-600" />
+          <CardTitle className="text-sm font-medium text-muted-foreground">Completados</CardTitle>
+          <CheckCircle className="h-5 w-5 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-gray-700">{stats.closed}</div>
-          <p className="text-xs text-gray-500 mt-1">Finalizados</p>
+          <div className="text-2xl font-bold text-muted-foreground">{stats.closed}</div>
+          <p className="text-xs text-muted-foreground mt-1">Finalizados</p>
         </CardContent>
       </Card>
     </div>

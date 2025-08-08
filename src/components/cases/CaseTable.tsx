@@ -64,13 +64,13 @@ export const CaseTable: React.FC<CaseTableProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-primary/10 text-primary border-primary/20'
       case 'on_hold':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-warning/10 text-warning border-warning/20'
       case 'closed':
-        return 'bg-green-100 text-green-800'
+        return 'bg-success/10 text-success border-success/20'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-muted-foreground border-border'
     }
   }
 
@@ -92,45 +92,47 @@ export const CaseTable: React.FC<CaseTableProps> = ({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-[10px] border-[0.5px] border-border bg-background shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-muted/50 border-b-[0.5px] border-border">
             <TableHead className="w-[50px]">
               <Checkbox
                 checked={selectAllState}
                 onCheckedChange={(checked) => onSelectAll(!!checked)}
+                className="rounded-[4px] border-[0.5px] border-border"
               />
             </TableHead>
-            <TableHead>Expediente</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Área</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead className="w-[100px]">Acciones</TableHead>
+            <TableHead className="font-medium text-foreground">Expediente</TableHead>
+            <TableHead className="font-medium text-foreground">Cliente</TableHead>
+            <TableHead className="font-medium text-foreground">Estado</TableHead>
+            <TableHead className="font-medium text-foreground">Área</TableHead>
+            <TableHead className="font-medium text-foreground">Fecha</TableHead>
+            <TableHead className="w-[100px] font-medium text-foreground">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {cases.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-12 text-gray-500">
+              <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                 No se encontraron expedientes
               </TableCell>
             </TableRow>
           ) : (
             cases.map((case_) => (
-              <TableRow key={case_.id} className="hover:bg-gray-50">
+              <TableRow key={case_.id} className="hover:bg-muted/30 transition-colors duration-200 border-b-[0.5px] border-border">
                 <TableCell>
                   <Checkbox
                     checked={selectedCases.includes(case_.id)}
                     onCheckedChange={(checked) => onSelectCase(case_.id, !!checked)}
+                    className="rounded-[4px] border-[0.5px] border-border"
                   />
                 </TableCell>
                 <TableCell>
                   <div>
-                    <div className="font-medium">{case_.title}</div>
+                    <div className="font-medium text-foreground">{case_.title}</div>
                     {case_.description && (
-                      <div className="text-sm text-gray-500 truncate max-w-xs">
+                      <div className="text-sm text-muted-foreground truncate max-w-xs">
                         {case_.description}
                       </div>
                     )}
@@ -139,30 +141,33 @@ export const CaseTable: React.FC<CaseTableProps> = ({
                 <TableCell>
                   {case_.contact ? (
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-400" />
+                      <User className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <div className="font-medium text-sm">{case_.contact.name}</div>
+                        <div className="font-medium text-sm text-foreground">{case_.contact.name}</div>
                         {case_.contact.email && (
-                          <div className="text-xs text-gray-500">{case_.contact.email}</div>
+                          <div className="text-xs text-muted-foreground">{case_.contact.email}</div>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <span className="text-gray-400 text-sm">Sin cliente</span>
+                    <span className="text-muted-foreground text-sm">Sin cliente</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={getStatusColor(case_.status)}>
+                  <Badge 
+                    variant="outline" 
+                    className={`${getStatusColor(case_.status)} border-[0.5px] rounded-[10px] font-medium`}
+                  >
                     {getStatusLabel(case_.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm">
+                  <span className="text-sm text-foreground">
                     {case_.practice_area || 'No especificada'}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     {formatDate(case_.created_at)}
                   </div>
@@ -170,33 +175,48 @@ export const CaseTable: React.FC<CaseTableProps> = ({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
+                      <Button 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0 rounded-[6px] hover:bg-muted transition-colors duration-200"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/cases/${case_.id}`)}>
+                    <DropdownMenuContent align="end" className="rounded-[10px] border-[0.5px] border-border shadow-lg">
+                      <DropdownMenuItem 
+                        onClick={() => navigate(`/cases/${case_.id}`)}
+                        className="rounded-[8px] hover:bg-muted transition-colors duration-200"
+                      >
                         <Eye className="mr-2 h-4 w-4" />
                         Ver detalles
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEditCase(case_)}>
+                      <DropdownMenuItem 
+                        onClick={() => onEditCase(case_)}
+                        className="rounded-[8px] hover:bg-muted transition-colors duration-200"
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Editar
                       </DropdownMenuItem>
                       {onStagesView && (
-                        <DropdownMenuItem onClick={() => onStagesView(case_)}>
+                        <DropdownMenuItem 
+                          onClick={() => onStagesView(case_)}
+                          className="rounded-[8px] hover:bg-muted transition-colors duration-200"
+                        >
                           <ListChecks className="mr-2 h-4 w-4" />
                           Ver etapas
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onArchiveCase(case_)}>
+                      <DropdownMenuSeparator className="bg-border" />
+                      <DropdownMenuItem 
+                        onClick={() => onArchiveCase(case_)}
+                        className="rounded-[8px] hover:bg-muted transition-colors duration-200"
+                      >
                         <Archive className="mr-2 h-4 w-4" />
                         {case_.status === 'closed' ? 'Reabrir' : 'Archivar'}
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => onDeleteCase(case_)}
-                        className="text-red-600"
+                        className="text-destructive hover:bg-destructive/10 rounded-[8px] transition-colors duration-200"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Eliminar

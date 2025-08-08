@@ -67,25 +67,26 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md rounded-[10px] border-[0.5px] border-border shadow-lg">
         <DialogHeader>
-          <DialogTitle>Nueva Plantilla de Expediente</DialogTitle>
+          <DialogTitle className="text-foreground font-medium">Nueva Plantilla de Expediente</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nombre *</Label>
+            <Label htmlFor="name" className="text-foreground font-medium">Nombre *</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Ej: Contrato de Arrendamiento"
               disabled={isLoading}
+              className="border-[0.5px] border-border rounded-[10px] focus:border-primary transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description" className="text-foreground font-medium">Descripción</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -93,22 +94,27 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
               placeholder="Describe el tipo de expediente..."
               rows={3}
               disabled={isLoading}
+              className="border-[0.5px] border-border rounded-[10px] focus:border-primary transition-colors duration-200"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="practice_area">Área de Práctica</Label>
+            <Label htmlFor="practice_area" className="text-foreground font-medium">Área de Práctica</Label>
             <Select
               value={formData.practice_area_id}
               onValueChange={(value) => setFormData(prev => ({ ...prev, practice_area_id: value }))}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-[0.5px] border-border rounded-[10px] focus:border-primary transition-colors duration-200">
                 <SelectValue placeholder="Seleccionar área..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-[10px] border-[0.5px] border-border shadow-lg">
                 {practiceAreas.map((area) => (
-                  <SelectItem key={area.id} value={area.id}>
+                  <SelectItem 
+                    key={area.id} 
+                    value={area.id}
+                    className="rounded-[8px] hover:bg-muted transition-colors duration-200"
+                  >
                     {area.name}
                   </SelectItem>
                 ))}
@@ -117,20 +123,20 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="billing_method">Método de Facturación</Label>
+            <Label htmlFor="billing_method" className="text-foreground font-medium">Método de Facturación</Label>
             <Select
               value={formData.default_billing_method}
               onValueChange={(value) => setFormData(prev => ({ ...prev, default_billing_method: value }))}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="border-[0.5px] border-border rounded-[10px] focus:border-primary transition-colors duration-200">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="hourly">Por Horas</SelectItem>
-                <SelectItem value="fixed">Tarifa Fija</SelectItem>
-                <SelectItem value="contingency">Contingencia</SelectItem>
-                <SelectItem value="retainer">Anticipo</SelectItem>
+              <SelectContent className="rounded-[10px] border-[0.5px] border-border shadow-lg">
+                <SelectItem value="hourly" className="rounded-[8px] hover:bg-muted transition-colors duration-200">Por Horas</SelectItem>
+                <SelectItem value="fixed" className="rounded-[8px] hover:bg-muted transition-colors duration-200">Tarifa Fija</SelectItem>
+                <SelectItem value="contingency" className="rounded-[8px] hover:bg-muted transition-colors duration-200">Contingencia</SelectItem>
+                <SelectItem value="retainer" className="rounded-[8px] hover:bg-muted transition-colors duration-200">Anticipo</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -141,10 +147,15 @@ export function NewTemplateDialog({ open, onOpenChange, onSubmit, isLoading }: N
               variant="outline"
               onClick={handleClose}
               disabled={isLoading}
+              className="border-[0.5px] border-border rounded-[10px] hover:-translate-y-0.5 transition-all duration-200"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="rounded-[10px] hover:-translate-y-0.5 transition-all duration-200"
+            >
               {isLoading ? 'Creando...' : 'Crear Plantilla'}
             </Button>
           </DialogFooter>
