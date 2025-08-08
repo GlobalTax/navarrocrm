@@ -6,12 +6,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Mail, Send, AlertCircle } from 'lucide-react'
-import { useOutlookConnection } from '@/hooks/useOutlookConnection'
 import { useState } from 'react'
+import { supabase } from '@/integrations/supabase/client'
+import { useSimpleOutlookConnection } from '@/hooks/useSimpleOutlookConnection'
 import { toast } from 'sonner'
 
 export function EmailCompose() {
-  const { connectionStatus } = useOutlookConnection()
+  const { connectionStatus, isConnected } = useSimpleOutlookConnection()
   const [formData, setFormData] = useState({
     to: '',
     subject: '',
@@ -35,13 +36,31 @@ export function EmailCompose() {
     setIsSending(true)
     
     try {
-      // TODO: Implementar envío de email a través de Outlook
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulación
+      console.log('📧 Enviando email con Outlook:', formData)
+      
+      const { data, error } = await supabase.functions.invoke('outlook-email-send', {
+        body: {
+          to: formData.to,
+          subject: formData.subject,
+          body: formData.body,
+          save_to_sent: true
+        }
+      })
+      
+      if (error) {
+        throw error
+      }
       
       toast.success('Email enviado correctamente')
       setFormData({ to: '', subject: '', body: '' })
-    } catch (error) {
-      toast.error('Error al enviar el email')
+    } catch (error: any) {
+      console.error('❌ Error enviando email:', error)
+      const errorMessage = error.message || 'Error enviando el email'
+      if (errorMessage.includes('401') || errorMessage.includes('authorization')) {
+        toast.error('Su sesión de Outlook ha expirado. Reconecte su cuenta.')
+      } else {
+        toast.error(`Error enviando email: ${errorMessage}`)
+      }
     } finally {
       setIsSending(false)
     }

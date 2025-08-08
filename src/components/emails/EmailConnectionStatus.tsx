@@ -14,6 +14,7 @@ import {
   Zap
 } from 'lucide-react'
 import { useOutlookAuth } from '@/hooks/useOutlookAuth'
+import { useOutlookConnectionStatus } from '@/hooks/useOutlookConnectionStatus'
 import { OutlookAuthService, type ConnectionDiagnostic } from '@/services/outlookAuthService'
 
 export function EmailConnectionStatus() {

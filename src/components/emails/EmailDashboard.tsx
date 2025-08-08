@@ -1,9 +1,7 @@
 import { Suspense } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
-import { useNylasConnection } from '@/hooks/useNylasConnection'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
-import { NylasConnectionStatus } from '@/components/emails/NylasConnectionStatus'
 import { EmailConnectionStatus } from '@/components/emails/EmailConnectionStatus'
 import { EmailMetricsCards } from '@/components/emails/EmailMetricsCards'
 import { RecentEmailsList } from '@/components/emails/RecentEmailsList'
@@ -86,25 +84,9 @@ export function EmailDashboard() {
 function EmailDashboardContent() {
   const navigate = useNavigate()
   
-  // Hook para conexión de Nylas con manejo de errores
-  let nylasConnection, emailMetrics
+  // Hook para métricas de email con manejo de errores
+  let emailMetrics
   
-  try {
-    nylasConnection = useNylasConnection()
-  } catch (error) {
-    console.error('Error en useNylasConnection:', error)
-    nylasConnection = { 
-      connectionStatus: 'error' as const, 
-      connection: null, 
-      connect: () => {}, 
-      syncEmails: () => {},
-      isLoading: false,
-      isConnecting: false,
-      isSyncing: false,
-      error: error as Error
-    }
-  }
-
   try {
     emailMetrics = useEmailMetrics()
   } catch (error) {
@@ -114,14 +96,6 @@ function EmailDashboardContent() {
       isLoading: false,
       error: error as Error
     }
-  }
-
-  const handleConfigure = () => {
-    nylasConnection.connect()
-  }
-
-  const handleSync = () => {
-    nylasConnection.syncEmails()
   }
 
   return (
@@ -135,17 +109,8 @@ function EmailDashboardContent() {
         </div>
 
         {/* Estado de conexión */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-6 mb-8">
           <EmailConnectionStatus />
-          <NylasConnectionStatus
-            status={nylasConnection.connectionStatus}
-            connection={nylasConnection.connection}
-            onSync={handleSync}
-            onConnect={handleConfigure}
-            isSyncing={nylasConnection.isSyncing}
-            isConnecting={nylasConnection.isConnecting}
-            error={nylasConnection.error}
-          />
         </div>
 
         {/* Navegación rápida */}

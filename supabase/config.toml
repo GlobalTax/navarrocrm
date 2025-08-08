@@ -56,6 +56,12 @@ enabled = true
 [functions.ai-assistant]
 verify_jwt = false
 
+[functions.send-email]
+verify_jwt = true
+
+[functions.send-document-email]
+verify_jwt = true
+
 [functions.outlook-auth]
 verify_jwt = true
 
@@ -65,5 +71,17 @@ verify_jwt = true
 [functions.outlook-email-send]
 verify_jwt = true
 
+[functions.outlook-contacts-sync]
+verify_jwt = true
+
+[functions.nylas-auth]
+verify_jwt = true
+
+[functions.nylas-email-sync]
+verify_jwt = true
+
 [functions.email-rules-processor]
 verify_jwt = true
+
+[functions.email-webhook]
+verify_jwt = false
