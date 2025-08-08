@@ -64,7 +64,56 @@ export const useAcademyQueries = () => {
       enabled: !!user?.org_id
     })
   }
+  
+  // Obtener cursos paginados con búsqueda
+  const usePublishedCoursesPaginated = (categoryId?: string, page: number = 1, pageSize: number = 12, searchTerm?: string) => {
+    return useQuery({
+      queryKey: ['academy-courses', user?.org_id, categoryId, page, pageSize, searchTerm],
+      queryFn: async (): Promise<{ items: AcademyCourse[]; count: number }> => {
+        if (!user?.org_id) throw new Error('No organization found')
 
+        const from = (page - 1) * pageSize
+        const to = from + pageSize - 1
+
+        let query = supabase
+          .from('academy_courses')
+          .select(`
+            *,
+            academy_categories (
+              name,
+              color
+            )
+          `, { count: 'exact' })
+          .eq('org_id', user.org_id)
+          .eq('is_published', true)
+
+        if (categoryId) {
+          query = query.eq('category_id', categoryId)
+        }
+
+        if (searchTerm && searchTerm.trim()) {
+          const term = `%${searchTerm.trim()}%`
+          query = query.or(`title.ilike.${term},description.ilike.${term}`)
+        }
+
+        const { data, error, count } = await query
+          .order('created_at', { ascending: false })
+          .range(from, to)
+
+        if (error) throw error
+
+        return {
+          items: (data || []).map(course => ({
+            ...course,
+            level: course.level as 'beginner' | 'intermediate' | 'advanced'
+          })),
+          count: count || 0
+        }
+      },
+      enabled: !!user?.org_id
+    })
+  }
+  
   // Obtener progreso del usuario
   const useUserProgress = () => {
     return useQuery({
@@ -93,6 +142,7 @@ export const useAcademyQueries = () => {
   return {
     usePublishedCategories,
     usePublishedCourses,
+    usePublishedCoursesPaginated,
     useUserProgress
   }
 }
