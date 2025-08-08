@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { Button } from '@/components/ui/button'
+import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Plus, Wand2 } from 'lucide-react'
 
 interface WorkflowPageHeaderProps {
@@ -13,27 +13,19 @@ const WorkflowPageHeader = React.memo<WorkflowPageHeaderProps>(({
   onShowWizard 
 }) => {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-bold">Automatizaciones Inteligentes</h1>
-        <p className="text-muted-foreground">
-          Automatiza procesos y libera tiempo para lo que realmente importa
-        </p>
-      </div>
-      <div className="flex gap-2">
-        <Button 
-          variant="outline"
-          onClick={onShowWizard}
-        >
-          <Wand2 className="w-4 h-4 mr-2" />
-          Asistente
-        </Button>
-        <Button onClick={onCreateWorkflow}>
-          <Plus className="w-4 h-4 mr-2" />
-          Crear Workflow
-        </Button>
-      </div>
-    </div>
+    <StandardPageHeader
+      title="Automatizaciones Inteligentes"
+      description="Automatiza procesos y libera tiempo para lo que realmente importa"
+      secondaryAction={{
+        label: "Asistente",
+        onClick: onShowWizard,
+        variant: "outline"
+      }}
+      primaryAction={{
+        label: "Crear Workflow",
+        onClick: onCreateWorkflow
+      }}
+    />
   )
 })
 
