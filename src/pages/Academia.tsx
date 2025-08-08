@@ -17,9 +17,52 @@ export default function Academia() {
   const isMobile = useIsMobile()
   const { setupAcademyData } = useAcademySetup()
 
-  // Inicializar datos de la academia al cargar la página
+  // Inicializar datos de la academia al cargar la página y SEO
   useEffect(() => {
     setupAcademyData()
+
+    // SEO básico
+    const title = 'Academia CRM: cursos y guías para formación'
+    document.title = title
+
+    const ensureTag = (selector: string, create: () => HTMLElement) => {
+      let el = document.head.querySelector(selector) as HTMLElement | null
+      if (!el) {
+        el = create()
+        document.head.appendChild(el)
+      }
+      return el
+    }
+
+    const metaDesc = ensureTag('meta[name="description"]', () => {
+      const m = document.createElement('meta')
+      m.setAttribute('name', 'description')
+      return m
+    }) as HTMLMetaElement
+    metaDesc.setAttribute('content', 'Academia del CRM: cursos, lecciones y certificaciones para dominar el sistema.')
+
+    const canonical = ensureTag('link[rel="canonical"]', () => {
+      const l = document.createElement('link')
+      l.setAttribute('rel', 'canonical')
+      return l
+    }) as HTMLLinkElement
+    const url = window.location.origin + '/academia'
+    canonical.setAttribute('href', url)
+
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: title,
+      url,
+      description: 'Centro de aprendizaje del CRM con cursos y certificaciones.'
+    }
+    const script = ensureTag('script[type="application/ld+json"]#academia-jsonld', () => {
+      const s = document.createElement('script')
+      s.type = 'application/ld+json'
+      s.id = 'academia-jsonld'
+      return s
+    }) as HTMLScriptElement
+    script.textContent = JSON.stringify(jsonLd)
   }, [])
 
   return (
@@ -31,17 +74,17 @@ export default function Academia() {
           {
             label: 'Cursos disponibles',
             variant: 'outline',
-            color: 'text-blue-600 border-blue-200 bg-blue-50'
+            color: 'text-academia border-academia/20 bg-academia/10'
           },
           {
             label: 'Aprendizaje continuo',
             variant: 'outline',
-            color: 'text-green-600 border-green-200 bg-green-50'
+            color: 'text-academia-success border-academia-success/20 bg-academia-success/10'
           },
           {
             label: 'Certificaciones',
             variant: 'outline',
-            color: 'text-orange-600 border-orange-200 bg-orange-50'
+            color: 'text-academia-warning border-academia-warning/20 bg-academia-warning/10'
           }
         ]}
       />

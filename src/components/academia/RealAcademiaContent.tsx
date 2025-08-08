@@ -10,14 +10,16 @@ import { EmptyState } from './EmptyState'
 import { LoadingState } from './LoadingState'
 import { ErrorState } from './ErrorState'
 
-export function RealAcademiaContent() {
+export function RealAcademiaContent({ searchTerm, externalCategory }: { searchTerm?: string; externalCategory?: string | null } = {}) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
   
   const { usePublishedCategories, usePublishedCourses, useUserProgress } = useAcademyQueries()
   
+  const activeCategory = externalCategory ?? selectedCategory
+  
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = usePublishedCategories()
-  const { data: courses, isLoading: coursesLoading, error: coursesError } = usePublishedCourses(selectedCategory || undefined)
+  const { data: courses, isLoading: coursesLoading, error: coursesError } = usePublishedCourses(activeCategory || undefined)
   const { data: userProgress, isLoading: progressLoading } = useUserProgress()
 
   // Debug removed - use React DevTools for component debugging
@@ -52,8 +54,19 @@ export function RealAcademiaContent() {
     )
   }
 
+  // Filtrar cursos por término de búsqueda
+  const filteredCourses = courses?.filter(c => {
+    if (!searchTerm) return true
+    const term = searchTerm.toLowerCase()
+    return (
+      c.title?.toLowerCase().includes(term) ||
+      c.description?.toLowerCase().includes(term) ||
+      c.academy_categories?.name?.toLowerCase().includes(term)
+    )
+  }) || []
+
   // Calcular estadísticas
-  const coursesCount = courses?.length || 0
+  const coursesCount = filteredCourses.length
   const categoriesCount = categories?.length || 0
   const completedCount = userProgress?.filter(p => p.status === 'completed').length || 0
   const progressPercentage = userProgress?.length > 0 
@@ -70,17 +83,16 @@ export function RealAcademiaContent() {
         progressPercentage={progressPercentage}
       />
 
-      {/* Categories Filter */}
       <CategoriesFilter
         categories={categories || []}
-        selectedCategory={selectedCategory}
+        selectedCategory={activeCategory}
         onCategorySelect={setSelectedCategory}
       />
 
       {/* Courses Grid */}
-      {courses && courses.length > 0 ? (
+      {filteredCourses && filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {courses.map((course) => {
+          {filteredCourses.map((course) => {
             const courseProgress = userProgress?.find(p => p.course_id === course.id)
             
             return (
@@ -95,7 +107,7 @@ export function RealAcademiaContent() {
         </div>
       ) : (
         <EmptyState
-          selectedCategory={selectedCategory}
+          selectedCategory={activeCategory}
           onClearCategory={() => setSelectedCategory(null)}
         />
       )}

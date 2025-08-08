@@ -24,13 +24,13 @@ export function AcademiaContent({
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">Resultados para "{searchTerm}"</h2>
-        <p className="text-gray-600">Mostrando resultados relacionados con tu búsqueda...</p>
+        <p className="text-muted-foreground">Mostrando resultados relacionados con tu búsqueda...</p>
         {/* Aquí se podría implementar la lógica de búsqueda real */}
-        <RealAcademiaContent />
+        <RealAcademiaContent searchTerm={searchTerm} externalCategory={selectedCategory} />
       </div>
     )
   }
 
   // Por defecto, mostrar el contenido principal de la academia
-  return <RealAcademiaContent />
+  return <RealAcademiaContent externalCategory={selectedCategory} />
 }
