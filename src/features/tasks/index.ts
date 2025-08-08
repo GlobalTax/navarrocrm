@@ -5,12 +5,10 @@
  */
 
 // Components (pages)
-// export { default as TasksPage } from './pages/TasksPage'
+export { default as TasksPage } from './pages/TasksPage'
 
 // Components
-// export { TasksList } from './components/TasksList'
-// export { TaskFilters } from './components/TaskFilters'
-// export { BulkTaskAssignmentModal } from './components/BulkTaskAssignmentModal'
+export { TasksList, TaskFilters, BulkTaskAssignmentModal } from './components'
 
 // Hooks
 export { useTasksList, useTasksQueries, useTasksActions } from './hooks'
