@@ -75,6 +75,26 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
     setSelectedTask(null)
   }
 
+  // Drag & Drop (HTML5 nativo)
+  const handleDragStart = (e: React.DragEvent, task: TaskWithRelations) => {
+    e.dataTransfer.setData('text/task-id', task.id)
+    e.dataTransfer.setData('text/source-status', task.status)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDrop = (e: React.DragEvent, targetStatus: TaskStatus) => {
+    e.preventDefault()
+    const taskId = e.dataTransfer.getData('text/task-id')
+    if (!taskId) return
+
+    const sourceTask = tasks.find(t => t.id === taskId)
+    if (!sourceTask) return
+
+    if (sourceTask.status !== targetStatus) {
+      handleStatusChange(taskId, targetStatus)
+    }
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -85,6 +105,8 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
             <div 
               key={column.id} 
               className={`group rounded-[10px] border-0.5 border-black bg-white min-h-[500px] flex flex-col shadow-sm animate-fade-in`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, column.id)}
             >
               <div className="flex items-center justify-between p-4 border-b-0.5 border-black/10">
                 <h3 className="font-semibold text-black">{column.title}</h3>
@@ -109,6 +131,8 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
                     key={task.id}
                     onClick={() => handleTaskClick(task)}
                     className="cursor-pointer hover-scale"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, task)}
                   >
                     <TaskCard
                       task={task}
