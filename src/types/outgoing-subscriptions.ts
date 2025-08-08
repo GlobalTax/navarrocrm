@@ -12,6 +12,7 @@ export interface OutgoingSubscription {
   status: 'ACTIVE' | 'CANCELLED'
   payment_method?: string
   responsible_user_id: string
+  department_id?: string | null
   notes?: string
   quantity: number
   unit_description?: string
@@ -30,6 +31,7 @@ export interface CreateOutgoingSubscriptionData {
   next_renewal_date: string
   payment_method?: string
   responsible_user_id: string
+  department_id?: string | null
   notes?: string
   quantity?: number
   unit_description?: string
@@ -42,6 +44,8 @@ export interface OutgoingSubscriptionStats {
   yearlyTotal: number
   averageMonthlyAmount: number
   upcomingRenewals: number
+  perDepartmentMonthlyTotal?: Record<string, number>
+  perDepartmentCount?: Record<string, number>
 }
 
 export const SUBSCRIPTION_CATEGORIES = [

@@ -47,10 +47,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { OutgoingSubscription } from '@/types/outgoing-subscriptions'
+import { useTeams } from '@/hooks/useTeams'
 
 export const OutgoingSubscriptionsTable = () => {
   const { user } = useApp()
   const { subscriptions, isLoading, cancelSubscription, deleteSubscription } = useOutgoingSubscriptions()
+  const { departments } = useTeams()
   const [showForm, setShowForm] = useState(false)
   const [editingSubscription, setEditingSubscription] = useState<OutgoingSubscription | null>(null)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
@@ -61,6 +63,7 @@ export const OutgoingSubscriptionsTable = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [responsibleFilter, setResponsibleFilter] = useState('all')
+  const [departmentFilter, setDepartmentFilter] = useState('all')
   const [amountRange, setAmountRange] = useState({ min: '', max: '' })
   const [showFilters, setShowFilters] = useState(false)
   
@@ -136,10 +139,11 @@ export const OutgoingSubscriptionsTable = () => {
       const matchesStatus = statusFilter === 'all' || subscription.status === statusFilter
       const matchesCategory = categoryFilter === 'all' || subscription.category === categoryFilter
       const matchesResponsible = responsibleFilter === 'all' || subscription.responsible_user_id === responsibleFilter
+      const matchesDepartment = departmentFilter === 'all' || (subscription as any).department_id === departmentFilter
       const matchesAmountMin = !amountRange.min || subscription.amount >= parseFloat(amountRange.min)
       const matchesAmountMax = !amountRange.max || subscription.amount <= parseFloat(amountRange.max)
       
-      return matchesSearch && matchesStatus && matchesCategory && matchesResponsible && 
+      return matchesSearch && matchesStatus && matchesCategory && matchesResponsible && matchesDepartment && 
              matchesAmountMin && matchesAmountMax
     })
 
@@ -221,11 +225,12 @@ export const OutgoingSubscriptionsTable = () => {
     setStatusFilter('all')
     setCategoryFilter('all')
     setResponsibleFilter('all')
+    setDepartmentFilter('all')
     setAmountRange({ min: '', max: '' })
   }
 
   const hasActiveFilters = searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' || 
-                         responsibleFilter !== 'all' || amountRange.min || amountRange.max
+                         responsibleFilter !== 'all' || departmentFilter !== 'all' || amountRange.min || amountRange.max
 
   if (showForm) {
     return (
@@ -296,7 +301,7 @@ export const OutgoingSubscriptionsTable = () => {
 
           {/* Filtros expandibles */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-border">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t border-border">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="border-0.5 border-border rounded-[10px]">
                   <SelectValue placeholder="Estado" />
@@ -329,6 +334,20 @@ export const OutgoingSubscriptionsTable = () => {
                 <SelectContent>
                   <SelectItem value="all">Todos los responsables</SelectItem>
                   <SelectItem value={user?.id || ''}>Yo</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="border-0.5 border-border rounded-[10px]">
+                  <SelectValue placeholder="Departamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los departamentos</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 

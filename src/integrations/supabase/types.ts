@@ -4622,6 +4622,7 @@ export type Database = {
           category: string
           created_at: string
           currency: string
+          department_id: string | null
           description: string | null
           id: string
           next_renewal_date: string
@@ -4642,6 +4643,7 @@ export type Database = {
           category?: string
           created_at?: string
           currency?: string
+          department_id?: string | null
           description?: string | null
           id?: string
           next_renewal_date: string
@@ -4662,6 +4664,7 @@ export type Database = {
           category?: string
           created_at?: string
           currency?: string
+          department_id?: string | null
           description?: string | null
           id?: string
           next_renewal_date?: string
@@ -4676,7 +4679,15 @@ export type Database = {
           unit_description?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "outgoing_subscriptions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       practice_areas: {
         Row: {
@@ -5276,6 +5287,48 @@ export type Database = {
           org_id?: string
           status?: string
           sync_date?: string
+        }
+        Relationships: []
+      }
+      recruitment_pipeline_stages: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }

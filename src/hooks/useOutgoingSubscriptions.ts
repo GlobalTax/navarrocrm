@@ -157,7 +157,7 @@ export const useOutgoingSubscriptionStats = () => {
 
       const { data: subscriptions, error } = await supabase
         .from('outgoing_subscriptions')
-        .select('status, amount, billing_cycle, next_renewal_date, quantity')
+        .select('status, amount, billing_cycle, next_renewal_date, quantity, department_id')
         .eq('org_id', user.org_id)
 
       if (error) throw error
@@ -190,13 +190,29 @@ export const useOutgoingSubscriptionStats = () => {
         !isAfter(parseISO(s.next_renewal_date), thirtyDaysFromNow)
       ).length
 
+      // Desglose por departamento (id) para gasto mensual y número de suscripciones activas
+      const perDepartmentMonthlyTotal: Record<string, number> = {}
+      const perDepartmentCount: Record<string, number> = {}
+      subscriptions
+        .filter(s => s.status === 'ACTIVE')
+        .forEach(s => {
+          const dept = (s as any).department_id || 'sin_departamento'
+          const quantity = s.quantity || 1
+          let monthlyAmount = s.amount * quantity
+          if (s.billing_cycle === 'YEARLY') monthlyAmount = (s.amount * quantity) / 12
+          perDepartmentMonthlyTotal[dept] = (perDepartmentMonthlyTotal[dept] || 0) + monthlyAmount
+          perDepartmentCount[dept] = (perDepartmentCount[dept] || 0) + 1
+        })
+
       return {
         totalSubscriptions,
         activeSubscriptions,
         monthlyTotal,
         yearlyTotal,
         averageMonthlyAmount,
-        upcomingRenewals
+        upcomingRenewals,
+        perDepartmentMonthlyTotal,
+        perDepartmentCount
       }
     },
     enabled: !!user?.org_id

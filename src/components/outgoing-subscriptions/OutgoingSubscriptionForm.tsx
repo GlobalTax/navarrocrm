@@ -19,6 +19,7 @@ import { LicenseManagement } from './LicenseManagement'
 import { calculateNextRenewalDate } from '@/lib/utils/dateUtils'
 import type { OutgoingSubscription } from '@/types/outgoing-subscriptions'
 import type { SubscriptionTemplate } from '@/types/subscription-templates'
+import { useTeams } from '@/hooks/useTeams'
 
 const formSchema = z.object({
   provider_name: z.string().min(1, 'El nombre del proveedor es obligatorio'),
@@ -31,6 +32,7 @@ const formSchema = z.object({
   next_renewal_date: z.string().min(1, 'La fecha de renovación es obligatoria'),
   payment_method: z.string().optional(),
   responsible_user_id: z.string().min(1, 'El usuario responsable es obligatorio'),
+  department_id: z.string().optional().nullable(),
   notes: z.string().optional(),
   quantity: z.number().min(1, 'La cantidad debe ser mayor a 0').default(1),
   unit_description: z.string().optional()
@@ -48,6 +50,7 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
   const { createSubscription, updateSubscription, isCreating, isUpdating } = useOutgoingSubscriptions()
   const { createTemplate } = useSubscriptionTemplates()
   const [showTemplateSelector, setShowTemplateSelector] = useState(false)
+  const { departments, isLoading: loadingDepartments } = useTeams()
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -62,6 +65,7 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
       next_renewal_date: subscription?.next_renewal_date || new Date().toISOString().split('T')[0],
       payment_method: subscription?.payment_method || '',
       responsible_user_id: subscription?.responsible_user_id || user?.id || '',
+      department_id: (subscription as any)?.department_id || null,
       notes: subscription?.notes || '',
       quantity: subscription?.quantity || 1,
       unit_description: subscription?.unit_description || 'unidad'
@@ -242,10 +246,32 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
                   {form.formState.errors.category && (
                     <p className="text-sm text-destructive font-medium">{form.formState.errors.category.message}</p>
                   )}
-                </div>
-              </div>
+            </div>
 
-              <div className="space-y-3">
+            <div className="space-y-3">
+              <Label htmlFor="department_id" className="text-base font-medium text-foreground">
+                Departamento
+              </Label>
+              <Select
+                value={form.watch('department_id') || ''}
+                onValueChange={(value) => form.setValue('department_id', value || null)}
+              >
+                <SelectTrigger className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background">
+                  <SelectValue placeholder={loadingDepartments ? 'Cargando...' : 'Selecciona un departamento (opcional)'} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-2 border-border rounded-[10px] shadow-lg z-50">
+                  <SelectItem value="">Sin departamento</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id} className="text-base py-3 hover:bg-accent">
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-3">
                 <Label htmlFor="description" className="text-base font-medium text-foreground">Descripción</Label>
                 <Textarea
                   id="description"
