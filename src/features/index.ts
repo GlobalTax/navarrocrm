@@ -20,21 +20,23 @@ export type {
   FeatureService
 } from './types'
 
-// TODO: Uncomment as features are implemented
-export * from './auth'
+// Export all features
 export * from './contacts'
 export * from './cases'
 export * from './proposals'
-// export * from './calendar'
-// export * from './documents'
 export * from './tasks'
-// export * from './time-tracking'
+export * from './academy'
+export * from './ai'
 export * from './dashboard'
+export * from './documents'
+export * from './invoices'
+
+// TODO: Uncomment as features are implemented
+export * from './auth'
+// export * from './calendar'
+// export * from './time-tracking'
 // export * from './users'
 // export * from './organizations'
 // export * from './reports'
-export * from './ai'
-export * from './academy'
 // export * from './integrations'
 // export * from './workflows'
-// export * from './invoices'
