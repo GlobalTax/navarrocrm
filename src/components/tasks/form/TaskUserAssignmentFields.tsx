@@ -46,14 +46,14 @@ export const TaskUserAssignmentFields = ({ formData, onInputChange }: TaskUserAs
           {formData.assigned_users.map(userId => {
             const user = getUser(userId)
             return (
-              <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+              <Badge key={userId} variant="outline" className="flex items-center gap-1 border-0.5 border-black rounded-[10px] bg-white text-black">
                 <User className="h-3 w-3" />
                 <span>{user?.email || 'Usuario desconocido'}</span>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                  className="h-4 w-4 p-0"
                   onClick={() => handleRemoveUser(userId)}
                 >
                   <X className="h-3 w-3" />
@@ -67,7 +67,7 @@ export const TaskUserAssignmentFields = ({ formData, onInputChange }: TaskUserAs
       {/* Selector para añadir usuarios */}
       {availableUsers.length > 0 && (
         <Select onValueChange={handleAddUser}>
-          <SelectTrigger>
+          <SelectTrigger className="border-0.5 border-black rounded-[10px] bg-white">
             <SelectValue placeholder="Añadir usuario..." />
           </SelectTrigger>
           <SelectContent>

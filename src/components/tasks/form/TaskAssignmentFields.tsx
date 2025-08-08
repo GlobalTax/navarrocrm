@@ -32,7 +32,7 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
         <div className="space-y-2">
           <Label htmlFor="case_id">Expediente</Label>
           <Select value={formData.case_id || 'none'} onValueChange={handleCaseChange}>
-            <SelectTrigger>
+            <SelectTrigger className="border-0.5 border-black rounded-[10px] bg-white">
               <SelectValue placeholder="Seleccionar expediente" />
             </SelectTrigger>
             <SelectContent>
@@ -49,7 +49,7 @@ export const TaskAssignmentFields = ({ formData, onInputChange }: TaskAssignment
         <div className="space-y-2">
           <Label htmlFor="contact_id">Contacto</Label>
           <Select value={formData.contact_id || 'none'} onValueChange={handleContactChange}>
-            <SelectTrigger>
+            <SelectTrigger className="border-0.5 border-black rounded-[10px] bg-white">
               <SelectValue placeholder="Seleccionar contacto" />
             </SelectTrigger>
             <SelectContent>

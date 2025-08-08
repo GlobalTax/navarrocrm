@@ -24,7 +24,7 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-0.5 border-black rounded-[10px] bg-white animate-scale-in">
         <DialogHeader>
           <DialogTitle>
             {task ? 'Editar Tarea' : 'Nueva Tarea'}
@@ -53,10 +53,10 @@ export const TaskFormDialog = ({ isOpen, onClose, task }: TaskFormDialogProps) =
           />
 
           <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} className="border-0.5 border-black rounded-[10px] hover-lift">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isCreating || isUpdating}>
+            <Button type="submit" disabled={isCreating || isUpdating} className="border-0.5 border-black rounded-[10px] hover-lift">
               {task ? 'Actualizar' : 'Crear'} Tarea
             </Button>
           </div>

@@ -26,6 +26,7 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
           value={formData.title}
           onChange={(e) => onInputChange('title', e.target.value)}
           required
+          className="border-0.5 border-black rounded-[10px]"
         />
       </div>
 
@@ -37,6 +38,7 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
           value={formData.description}
           onChange={(e) => onInputChange('description', e.target.value)}
           rows={3}
+          className="border-0.5 border-black rounded-[10px]"
         />
       </div>
 
@@ -44,31 +46,31 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
         <div className="space-y-2">
           <Label htmlFor="status">Estado</Label>
           <Select value={formData.status} onValueChange={(value) => onInputChange('status', value)}>
-            <SelectTrigger>
+            <SelectTrigger className="border-0.5 border-black rounded-[10px] bg-white">
               <SelectValue placeholder="Seleccionar estado" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="pending">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
                   Pendiente
                 </div>
               </SelectItem>
               <SelectItem value="in_progress">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
                   En progreso
                 </div>
               </SelectItem>
               <SelectItem value="completed">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
                   Completada
                 </div>
               </SelectItem>
               <SelectItem value="cancelled">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
                   Cancelada
                 </div>
               </SelectItem>
@@ -79,31 +81,31 @@ export const TaskBasicFields = ({ formData, onInputChange }: TaskBasicFieldsProp
         <div className="space-y-2">
           <Label htmlFor="priority">Prioridad</Label>
           <Select value={formData.priority} onValueChange={(value) => onInputChange('priority', value)}>
-            <SelectTrigger>
+            <SelectTrigger className="border-0.5 border-black rounded-[10px] bg-white">
               <SelectValue placeholder="Seleccionar prioridad" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="urgent">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-3 w-3 text-red-500" />
+                  <AlertTriangle className="h-3 w-3" />
                   Urgente
                 </div>
               </SelectItem>
               <SelectItem value="high">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-3 w-3 text-orange-500" />
+                  <Clock className="h-3 w-3" />
                   Alta
                 </div>
               </SelectItem>
               <SelectItem value="medium">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-3 w-3 text-yellow-500" />
+                  <FileText className="h-3 w-3" />
                   Media
                 </div>
               </SelectItem>
               <SelectItem value="low">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-3 w-3 text-green-500" />
+                  <FileText className="h-3 w-3" />
                   Baja
                 </div>
               </SelectItem>

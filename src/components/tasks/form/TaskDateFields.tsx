@@ -20,6 +20,7 @@ export const TaskDateFields = ({ formData, onInputChange }: TaskDateFieldsProps)
           type="date"
           value={formData.start_date}
           onChange={(e) => onInputChange('start_date', e.target.value)}
+          className="border-0.5 border-black rounded-[10px]"
         />
       </div>
 
@@ -30,6 +31,7 @@ export const TaskDateFields = ({ formData, onInputChange }: TaskDateFieldsProps)
           type="date"
           value={formData.due_date}
           onChange={(e) => onInputChange('due_date', e.target.value)}
+          className="border-0.5 border-black rounded-[10px]"
         />
       </div>
     </div>
