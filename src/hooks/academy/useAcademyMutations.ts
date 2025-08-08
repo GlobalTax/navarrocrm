@@ -262,6 +262,70 @@ export const useAcademyMutations = () => {
     }
   })
 
+  // Mutaciones de Progreso de Usuario
+  const updateUserProgress = useMutation({
+    mutationFn: async (data: { course_id: string; lesson_id?: string; progress_percentage: number; status: 'not_started' | 'in_progress' | 'completed'; time_spent?: number; notes?: string }) => {
+      if (!user?.org_id || !user?.id) throw new Error('Usuario no encontrado')
+
+      const { data: progress, error } = await supabase
+        .from('academy_user_progress')
+        .upsert({
+          org_id: user.org_id,
+          user_id: user.id,
+          course_id: data.course_id,
+          lesson_id: data.lesson_id,
+          progress_percentage: data.progress_percentage,
+          status: data.status,
+          time_spent: data.time_spent || 0,
+          notes: data.notes,
+          last_accessed_at: new Date().toISOString(),
+          ...(data.status === 'completed' && { completed_at: new Date().toISOString() })
+        })
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+      return progress
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['academy-user-progress'] })
+      toast.success('Progreso actualizado')
+    },
+    onError: (error) => {
+      console.error('Error updating progress:', error)
+      toast.error('Error al actualizar progreso')
+    }
+  })
+
+  const markLessonCompleted = useMutation({
+    mutationFn: async ({ course_id, lesson_id, time_spent }: { course_id: string; lesson_id: string; time_spent?: number }) => {
+      if (!user?.org_id || !user?.id) throw new Error('Usuario no encontrado')
+
+      const { data: progress, error } = await supabase
+        .from('academy_user_progress')
+        .upsert({
+          org_id: user.org_id,
+          user_id: user.id,
+          course_id,
+          lesson_id,
+          progress_percentage: 100,
+          status: 'completed',
+          time_spent: time_spent || 0,
+          completed_at: new Date().toISOString(),
+          last_accessed_at: new Date().toISOString()
+        })
+        .select()
+        .maybeSingle()
+
+      if (error) throw error
+      return progress
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['academy-user-progress'] })
+      toast.success('¡Lección completada!')
+    }
+  })
+
   return {
     // Categorías
     createCategory,
@@ -274,6 +338,9 @@ export const useAcademyMutations = () => {
     // Lecciones
     createLesson,
     updateLesson,
-    deleteLesson
+    deleteLesson,
+    // Progreso
+    updateUserProgress,
+    markLessonCompleted
   }
 }

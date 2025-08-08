@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { BookOpen, Clock, Play } from 'lucide-react'
+import { ProgressTracker } from './ProgressTracker'
 import type { AcademyCourse, UserProgress } from '@/types/academy'
 
 interface CourseDetailProps {
@@ -50,51 +51,63 @@ export function CourseDetail({ course, userProgress, onBack }: CourseDetailProps
         </div>
       </div>
 
-      <Card className="border-0.5 border-black rounded-[10px]">
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-4xl">📚</div>
-              <div>
-                <CardTitle className="crm-section-title mb-2">{course.title}</CardTitle>
-                <p className="crm-section-subtitle mb-4">{course.description || 'Sin descripción'}</p>
-                <div className="flex items-center gap-4 crm-table-cell-secondary">
-                  <div className="flex items-center gap-1">
-                    <BookOpen className="h-4 w-4" />
-                    {course.total_lessons} lecciones
-                  </div>
-                  {course.estimated_duration && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {course.estimated_duration} min
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Course Info */}
+        <div className="lg:col-span-2">
+          <Card className="border-0.5 border-black rounded-[10px]">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl">📚</div>
+                  <div>
+                    <CardTitle className="crm-section-title mb-2">{course.title}</CardTitle>
+                    <p className="crm-section-subtitle mb-4">{course.description || 'Sin descripción'}</p>
+                    <div className="flex items-center gap-4 crm-table-cell-secondary">
+                      <div className="flex items-center gap-1">
+                        <BookOpen className="h-4 w-4" />
+                        {course.total_lessons} lecciones
+                      </div>
+                      {course.estimated_duration && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {course.estimated_duration} min
+                        </div>
+                      )}
+                      <Badge className={`${getLevelColor(course.level)} crm-badge-text`}>
+                        {getLevelText(course.level)}
+                      </Badge>
                     </div>
-                  )}
-                  <Badge className={`${getLevelColor(course.level)} crm-badge-text`}>
-                    {getLevelText(course.level)}
-                  </Badge>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="text-right">
-              <div className="crm-widget-label mb-1">Progreso</div>
-              <div className="crm-metric-secondary mb-2">{progressPercentage}%</div>
-              <Progress value={progressPercentage} className="w-32" />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mt-8 flex gap-4">
-            <Button size="lg" className="bg-black hover:bg-gray-800 crm-button-text-lg">
-              <Play className="h-5 w-5 mr-2" />
-              Comenzar Curso
-            </Button>
-            <Button variant="outline" size="lg" className="crm-button-text-lg">
-              <BookOpen className="h-5 w-5 mr-2" />
-              Ver Lecciones
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="mt-4 flex gap-4">
+                <Button size="lg" className="bg-black hover:bg-gray-800 crm-button-text-lg">
+                  <Play className="h-5 w-5 mr-2" />
+                  Comenzar Curso
+                </Button>
+                <Button variant="outline" size="lg" className="crm-button-text-lg">
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Ver Lecciones
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Progress Tracker */}
+        <div>
+          <ProgressTracker 
+            course={course}
+            userProgress={userProgress}
+            onProgressUpdate={() => {
+              // Recargar datos si es necesario
+              console.log('Progress updated')
+            }}
+          />
+        </div>
+      </div>
     </div>
   )
 }

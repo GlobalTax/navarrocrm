@@ -10,6 +10,7 @@ import { EmptyState } from './EmptyState'
 import { LoadingState } from './LoadingState'
 import { ErrorState } from './ErrorState'
 import { Button } from '@/components/ui/button'
+import { useAcademyRealtime } from '@/hooks/academy/useAcademyRealtime'
 
 export function RealAcademiaContent({ searchTerm, externalCategory }: { searchTerm?: string; externalCategory?: string | null } = {}) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -24,6 +25,7 @@ export function RealAcademiaContent({ searchTerm, externalCategory }: { searchTe
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = usePublishedCategories()
   const { data: paginated, isLoading: coursesLoading, error: coursesError } = usePublishedCoursesPaginated(activeCategory || undefined, page, pageSize, searchTerm)
   const { data: userProgress, isLoading: progressLoading } = useUserProgress()
+  const { isConnected } = useAcademyRealtime()
   // Datos paginados
   const courses = paginated?.items || []
   const total = paginated?.count || 0
