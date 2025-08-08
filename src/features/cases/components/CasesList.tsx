@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CompactCard, CompactCardContent, CompactCardHeader, CompactCardTitle } from '@/components/ui/compact-card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import { useCasesList } from '../hooks'

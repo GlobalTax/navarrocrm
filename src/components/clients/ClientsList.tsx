@@ -1,5 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CompactCard, CompactCardContent, CompactCardHeader, CompactCardTitle } from '@/components/ui/compact-card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Plus } from 'lucide-react'
 import { useClients, Client } from '@/hooks/useClients'
@@ -34,21 +35,21 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
   const hasFilters = Boolean(searchTerm || statusFilter !== 'all' || typeFilter !== 'all')
 
   return (
-    <Card>
-      <CardHeader>
+    <CompactCard>
+      <CompactCardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>
+          <CompactCardTitle className="crm-section-title">
             {filteredClients.length} {filteredClients.length === 1 ? 'Cliente' : 'Clientes'}
-          </CardTitle>
-          <div className="flex items-center gap-2">
+          </CompactCardTitle>
+          <div className="flex items-center gap-1">
             {error && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 h-7 px-2"
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className="h-3.5 w-3.5" />
                 Reintentar
               </Button>
             )}
@@ -63,22 +64,22 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
           typeFilter={typeFilter}
           setTypeFilter={setTypeFilter}
         />
-      </CardHeader>
+      </CompactCardHeader>
       
-      <CardContent>
+      <CompactCardContent>
         {error && (
-          <div className="text-center py-8 text-red-600">
-            <p className="font-medium">Error al cargar clientes</p>
-            <p className="text-sm">{error.message}</p>
-            <Button variant="outline" onClick={handleRefresh} className="mt-2">
+          <div className="text-center py-6 text-red-600">
+            <p className="crm-compact-title">Error al cargar clientes</p>
+            <p className="crm-compact-text">{error.message}</p>
+            <Button variant="outline" onClick={handleRefresh} className="mt-2" size="sm">
               Reintentar
             </Button>
           </div>
         )}
         
         {!error && isLoading && (
-          <div className="flex justify-center py-8">
-            <div className="text-gray-500">Cargando clientes...</div>
+          <div className="flex justify-center py-6">
+            <div className="crm-compact-text">Cargando clientes...</div>
           </div>
         )}
         
@@ -96,7 +97,7 @@ export const ClientsList = ({ onCreateClient, onViewClient, onEditClient }: Clie
             onEditClient={onEditClient}
           />
         )}
-      </CardContent>
-    </Card>
+      </CompactCardContent>
+    </CompactCard>
   )
 }

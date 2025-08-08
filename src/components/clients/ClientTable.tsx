@@ -1,5 +1,6 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { CompactTable, CompactTableBody, CompactTableCell, CompactTableHead, CompactTableHeader, CompactTableRow } from '@/components/ui/compact-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Mail, Phone, Edit, Eye, Building, User } from 'lucide-react'
@@ -48,113 +49,115 @@ export const ClientTable = ({ clients, onViewClient, onEditClient }: ClientTable
 
   return (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Contacto</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Tarifa</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+      <CompactTable>
+        <CompactTableHeader>
+          <CompactTableRow>
+            <CompactTableHead className="crm-table-header">Cliente</CompactTableHead>
+            <CompactTableHead className="crm-table-header">Contacto</CompactTableHead>
+            <CompactTableHead className="crm-table-header">Estado</CompactTableHead>
+            <CompactTableHead className="crm-table-header">Tipo</CompactTableHead>
+            <CompactTableHead className="crm-table-header">Tarifa</CompactTableHead>
+            <CompactTableHead className="crm-table-header">Fecha</CompactTableHead>
+            <CompactTableHead className="crm-table-header text-right">Acciones</CompactTableHead>
+          </CompactTableRow>
+        </CompactTableHeader>
+        <CompactTableBody>
           {clients.map((client) => (
-            <TableRow key={client.id} className="hover:bg-gray-50">
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="font-medium">{client.name}</div>
+            <CompactTableRow key={client.id} className="hover:bg-gray-50">
+              <CompactTableCell>
+                <div className="space-y-0.5">
+                  <div className="crm-table-cell font-medium">{client.name}</div>
                   {client.business_sector && (
-                    <div className="text-sm text-gray-500">{client.business_sector}</div>
+                    <div className="crm-table-cell-secondary">{client.business_sector}</div>
                   )}
                   {client.tags && client.tags.length > 0 && (
-                    <div className="flex gap-1">
+                    <div className="flex gap-0.5 mt-1">
                       {client.tags.slice(0, 2).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
+                        <Badge key={tag} variant="outline" className="text-xs h-4 px-1">
                           {tag}
                         </Badge>
                       ))}
                       {client.tags.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs h-4 px-1">
                           +{client.tags.length - 2}
                         </Badge>
                       )}
                     </div>
                   )}
                 </div>
-              </TableCell>
+              </CompactTableCell>
               
-              <TableCell>
-                <div className="space-y-1">
+              <CompactTableCell>
+                <div className="space-y-0.5">
                   {client.email && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-1 crm-list-item">
                       <Mail className="h-3 w-3 text-gray-400" />
-                      {client.email}
+                      <span className="truncate">{client.email}</span>
                     </div>
                   )}
                   {client.phone && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-1 crm-list-item-secondary">
                       <Phone className="h-3 w-3 text-gray-400" />
                       {client.phone}
                     </div>
                   )}
                   {!client.email && !client.phone && (
-                    <span className="text-gray-400 text-sm">Sin contacto</span>
+                    <span className="crm-table-cell-secondary">Sin contacto</span>
                   )}
                 </div>
-              </TableCell>
+              </CompactTableCell>
               
-              <TableCell>
+              <CompactTableCell>
                 {getStatusBadge(client.status)}
-              </TableCell>
+              </CompactTableCell>
               
-              <TableCell>
-                <div className="flex items-center gap-2">
+              <CompactTableCell>
+                <div className="flex items-center gap-1">
                   {getClientTypeIcon(client.client_type)}
-                  <span className="capitalize text-sm">
+                  <span className="crm-table-cell capitalize">
                     {client.client_type || 'No especificado'}
                   </span>
                 </div>
-              </TableCell>
+              </CompactTableCell>
               
-              <TableCell>
+              <CompactTableCell>
                 {client.hourly_rate ? (
-                  <span className="font-medium">{client.hourly_rate}€/h</span>
+                  <span className="crm-table-cell font-medium">{client.hourly_rate}€/h</span>
                 ) : (
-                  <span className="text-gray-400">No definida</span>
+                  <span className="crm-table-cell-secondary">No definida</span>
                 )}
-              </TableCell>
+              </CompactTableCell>
               
-              <TableCell>
-                <div className="text-sm">
+              <CompactTableCell>
+                <div className="crm-table-cell-secondary">
                   {new Date(client.created_at).toLocaleDateString()}
                 </div>
-              </TableCell>
+              </CompactTableCell>
               
-              <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
+              <CompactTableCell className="text-right">
+                <div className="flex items-center justify-end gap-1">
                   <Button 
                     variant="ghost" 
                     size="sm"
                     onClick={() => handleViewClient(client)}
+                    className="h-6 w-6 p-0"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3.5 w-3.5" />
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="sm"
                     onClick={() => onEditClient(client)}
+                    className="h-6 w-6 p-0"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-              </TableCell>
-            </TableRow>
+              </CompactTableCell>
+            </CompactTableRow>
           ))}
-        </TableBody>
-      </Table>
+        </CompactTableBody>
+      </CompactTable>
     </div>
   )
 }

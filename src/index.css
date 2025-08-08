@@ -193,6 +193,39 @@
     @apply text-xs font-medium;
   }
 
+  /* Compact typography for dense layouts */
+  .crm-table-header {
+    @apply text-xs font-medium text-muted-foreground uppercase tracking-wide;
+  }
+
+  .crm-table-cell {
+    @apply text-sm text-foreground;
+  }
+
+  .crm-table-cell-secondary {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .crm-compact-title {
+    @apply text-base font-medium text-foreground;
+  }
+
+  .crm-compact-text {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .crm-compact-label {
+    @apply text-xs font-medium text-muted-foreground;
+  }
+
+  .crm-list-item {
+    @apply text-sm text-foreground;
+  }
+
+  .crm-list-item-secondary {
+    @apply text-xs text-muted-foreground;
+  }
+
   /* Responsive title that adapts to screen size */
   .crm-responsive-title {
     @apply text-2xl sm:text-3xl font-bold text-foreground;
