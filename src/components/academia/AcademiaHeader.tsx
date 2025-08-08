@@ -28,20 +28,20 @@ export function AcademiaHeader({
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{coursesCount}</div>
-              <div className="text-sm text-gray-600">Cursos</div>
+              <div className="text-2xl font-bold text-academia">{coursesCount}</div>
+              <div className="text-sm text-muted-foreground">Cursos</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{categoriesCount}</div>
-              <div className="text-sm text-gray-600">Categorías</div>
+              <div className="text-2xl font-bold text-academia-success">{categoriesCount}</div>
+              <div className="text-sm text-muted-foreground">Categorías</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{completedCount}</div>
-              <div className="text-sm text-gray-600">Completados</div>
+              <div className="text-2xl font-bold text-academia-intermediate">{completedCount}</div>
+              <div className="text-sm text-muted-foreground">Completados</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{progressPercentage}%</div>
-              <div className="text-sm text-gray-600">Progreso</div>
+              <div className="text-2xl font-bold text-academia-warning">{progressPercentage}%</div>
+              <div className="text-sm text-muted-foreground">Progreso</div>
             </div>
           </div>
         </div>

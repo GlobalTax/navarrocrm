@@ -29,7 +29,7 @@ export function AcademiaAdminHeader({
           <div className="flex gap-3">
             <Button
               onClick={onGenerateCourseWithAI}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-academia text-academia-foreground hover:bg-academia/90"
             >
               <Bot className="h-4 w-4 mr-2" />
               Generar con IA
@@ -55,8 +55,8 @@ export function AcademiaAdminHeader({
               <p className="text-2xl font-bold">{coursesCount}</p>
             </div>
             <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-blue-600" />
-              <Badge variant="secondary" className="text-green-600">
+              <BookOpen className="h-5 w-5 text-academia" />
+              <Badge variant="secondary" className="text-academia-success">
                 +12%
               </Badge>
             </div>
@@ -70,8 +70,8 @@ export function AcademiaAdminHeader({
               <p className="text-2xl font-bold">{categoriesCount}</p>
             </div>
             <div className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5 text-green-600" />
-              <Badge variant="secondary" className="text-green-600">
+              <FolderOpen className="h-5 w-5 text-academia-success" />
+              <Badge variant="secondary" className="text-academia-success">
                 +5%
               </Badge>
             </div>

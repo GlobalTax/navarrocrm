@@ -37,9 +37,9 @@ const levelLabels = {
 }
 
 const levelColors = {
-  beginner: 'bg-green-100 text-green-800',
-  intermediate: 'bg-yellow-100 text-yellow-800',
-  advanced: 'bg-red-100 text-red-800'
+  beginner: 'bg-academia-beginner-soft text-academia-beginner',
+  intermediate: 'bg-academia-intermediate-soft text-academia-intermediate',
+  advanced: 'bg-academia-advanced-soft text-academia-advanced'
 }
 
 export function CoursesTable({ 
@@ -153,7 +153,7 @@ export function CoursesTable({
                     size="sm"
                     variant="ghost"
                     onClick={() => onDelete(course.id)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                    className="h-8 w-8 p-0 text-academia-error hover:text-academia-error/80"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

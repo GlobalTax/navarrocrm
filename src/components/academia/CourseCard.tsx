@@ -17,10 +17,10 @@ export function CourseCard({ course, userProgress, onCourseSelect }: CourseCardP
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'beginner': return 'bg-green-100 text-green-800 border-green-200'
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'advanced': return 'bg-red-100 text-red-800 border-red-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'beginner': return 'bg-academia-beginner-soft text-academia-beginner border-academia-beginner/20'
+      case 'intermediate': return 'bg-academia-intermediate-soft text-academia-intermediate border-academia-intermediate/20'
+      case 'advanced': return 'bg-academia-advanced-soft text-academia-advanced border-academia-advanced/20'
+      default: return 'bg-muted text-muted-foreground border-muted'
     }
   }
 

@@ -34,8 +34,8 @@ export function AcademiaProgress() {
                 <div className="flex items-center">
                   <achievement.icon 
                     className={`h-4 w-4 mr-2 ${
-                      achievement.completed ? 'text-green-600' : 'text-gray-400'
-                    }`} 
+                      achievement.completed ? 'text-academia-success' : 'text-muted-foreground'
+                    }`}
                   />
                   <span className="text-sm">{achievement.name}</span>
                 </div>

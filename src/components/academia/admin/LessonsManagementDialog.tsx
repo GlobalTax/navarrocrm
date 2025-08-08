@@ -80,11 +80,11 @@ export function LessonsManagementDialog({
 
   const getLessonTypeColor = (type: string) => {
     const colors = {
-      text: 'bg-blue-50 text-blue-700 border-blue-200',
-      interactive: 'bg-green-50 text-green-700 border-green-200',
-      quiz: 'bg-purple-50 text-purple-700 border-purple-200'
+      text: 'bg-academia-info-soft text-academia-info border-academia-info/20',
+      interactive: 'bg-academia-success-soft text-academia-success border-academia-success/20',
+      quiz: 'bg-academia-intermediate-soft text-academia-intermediate border-academia-intermediate/20'
     }
-    return colors[type as keyof typeof colors] || 'bg-gray-50 text-gray-700 border-gray-200'
+    return colors[type as keyof typeof colors] || 'bg-muted text-muted-foreground border-border'
   }
 
   const LessonCard = ({ lesson }: { lesson: AcademyLesson }) => (
@@ -242,7 +242,7 @@ export function LessonsManagementDialog({
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteLesson}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-academia-error text-academia-error-foreground hover:bg-academia-error/90"
             >
               Eliminar
             </AlertDialogAction>

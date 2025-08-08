@@ -39,6 +39,26 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Academia semantic colors */
+    --academia-primary: 217 91% 60%;
+    --academia-primary-foreground: 0 0% 100%;
+    --academia-success: 142 76% 36%;
+    --academia-success-foreground: 0 0% 100%;
+    --academia-warning: 45 93% 47%;
+    --academia-warning-foreground: 222.2 84% 4.9%;
+    --academia-info: 221 83% 53%;
+    --academia-info-foreground: 0 0% 100%;
+    --academia-error: 0 72% 51%;
+    --academia-error-foreground: 0 0% 100%;
+    
+    /* Academia level colors */
+    --academia-beginner: 142 76% 36%;
+    --academia-beginner-soft: 142 76% 95%;
+    --academia-intermediate: 45 93% 47%;
+    --academia-intermediate-soft: 45 93% 95%;
+    --academia-advanced: 0 72% 51%;
+    --academia-advanced-soft: 0 72% 95%;
   }
 
   .dark {
@@ -74,6 +94,26 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Academia semantic colors - dark mode */
+    --academia-primary: 217 91% 60%;
+    --academia-primary-foreground: 0 0% 100%;
+    --academia-success: 142 70% 45%;
+    --academia-success-foreground: 0 0% 100%;
+    --academia-warning: 45 93% 47%;
+    --academia-warning-foreground: 222.2 84% 4.9%;
+    --academia-info: 221 83% 53%;
+    --academia-info-foreground: 0 0% 100%;
+    --academia-error: 0 72% 51%;
+    --academia-error-foreground: 0 0% 100%;
+    
+    /* Academia level colors - dark mode */
+    --academia-beginner: 142 70% 45%;
+    --academia-beginner-soft: 142 76% 15%;
+    --academia-intermediate: 45 93% 47%;
+    --academia-intermediate-soft: 45 93% 15%;
+    --academia-advanced: 0 72% 51%;
+    --academia-advanced-soft: 0 72% 15%;
   }
 }
 

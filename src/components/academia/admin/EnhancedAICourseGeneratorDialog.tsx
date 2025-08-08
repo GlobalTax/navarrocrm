@@ -156,7 +156,7 @@ export function EnhancedAICourseGeneratorDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
+            <Sparkles className="h-5 w-5 text-academia-intermediate" />
             Generador de Cursos con IA
           </DialogTitle>
         </DialogHeader>
@@ -294,7 +294,7 @@ export function EnhancedAICourseGeneratorDialog({
                 <Button type="button" variant="outline" onClick={handleClose}>
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                <Button type="submit" className="bg-academia-intermediate text-academia-intermediate-foreground hover:bg-academia-intermediate/90">
                   <Sparkles className="h-4 w-4 mr-2" />
                   Generar Curso
                 </Button>
@@ -320,32 +320,32 @@ export function EnhancedAICourseGeneratorDialog({
                   key={step.id} 
                   className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
                     step.completed 
-                      ? 'bg-green-50 border border-green-200' 
+                      ? 'bg-academia-success-soft border border-academia-success/20' 
                       : index === currentStep 
-                        ? 'bg-blue-50 border border-blue-200' 
-                        : 'bg-gray-50 border border-gray-200'
+                        ? 'bg-academia-info-soft border border-academia/20' 
+                        : 'bg-muted border border-border'
                   }`}
                 >
                   {step.completed ? (
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <CheckCircle className="h-5 w-5 text-academia-success" />
                   ) : step.error ? (
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <AlertCircle className="h-5 w-5 text-academia-error" />
                   ) : index === currentStep ? (
-                    <div className="h-5 w-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+                    <div className="h-5 w-5 rounded-full border-2 border-academia border-t-transparent animate-spin" />
                   ) : (
-                    <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
+                    <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
                   )}
                   
                   <div className="flex-1">
                     <div className={`font-medium ${
-                      step.completed ? 'text-green-800' : 
-                      step.error ? 'text-red-800' : 
-                      index === currentStep ? 'text-blue-800' : 'text-gray-700'
+                      step.completed ? 'text-academia-success' : 
+                      step.error ? 'text-academia-error' : 
+                      index === currentStep ? 'text-academia' : 'text-muted-foreground'
                     }`}>
                       {step.label}
                     </div>
                     {step.error && (
-                      <div className="text-sm text-red-600 mt-1">{step.error}</div>
+                      <div className="text-sm text-academia-error mt-1">{step.error}</div>
                     )}
                   </div>
                 </div>
@@ -353,9 +353,9 @@ export function EnhancedAICourseGeneratorDialog({
             </div>
 
             {generationError && (
-              <Alert className="border-red-200 bg-red-50">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800">
+              <Alert className="border-academia-error/20 bg-academia-error-soft">
+                <AlertCircle className="h-4 w-4 text-academia-error" />
+                <AlertDescription className="text-academia-error">
                   {generationError}
                 </AlertDescription>
               </Alert>
@@ -365,12 +365,12 @@ export function EnhancedAICourseGeneratorDialog({
 
         {generatedCourseId && !isGenerating && (
           <div className="space-y-4 text-center">
-            <div className="p-6 bg-green-50 rounded-lg border border-green-200">
-              <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-green-800 mb-2">
+            <div className="p-6 bg-academia-success-soft rounded-lg border border-academia-success/20">
+              <CheckCircle className="h-12 w-12 text-academia-success mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-academia-success mb-2">
                 ¡Curso Generado Exitosamente!
               </h3>
-              <p className="text-green-700">
+              <p className="text-academia-success">
                 Tu curso ha sido creado con IA y está listo para ser revisado y publicado.
               </p>
             </div>
@@ -379,7 +379,7 @@ export function EnhancedAICourseGeneratorDialog({
               <Button variant="outline" onClick={handleClose}>
                 Cerrar
               </Button>
-              <Button onClick={handleFinish} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleFinish} className="bg-academia-success text-academia-success-foreground hover:bg-academia-success/90">
                 Ver Curso Generado
               </Button>
             </div>

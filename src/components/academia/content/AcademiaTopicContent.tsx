@@ -129,7 +129,7 @@ export function AcademiaTopicContent({ topic }: AcademiaTopicContentProps) {
                 >
                   <div className="flex items-start md:items-center flex-1 min-w-0">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0 ${
-                      lesson.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                      lesson.completed ? 'bg-academia-success-soft text-academia-success' : 'bg-muted text-muted-foreground'
                     }`}>
                       {lesson.completed ? (
                         <CheckCircle className="h-4 w-4" />

@@ -96,6 +96,28 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				academia: {
+					DEFAULT: 'hsl(var(--academia-primary))',
+					foreground: 'hsl(var(--academia-primary-foreground))',
+					success: 'hsl(var(--academia-success))',
+					'success-foreground': 'hsl(var(--academia-success-foreground))',
+					'success-soft': 'hsl(var(--academia-success-soft))',
+					warning: 'hsl(var(--academia-warning))',
+					'warning-foreground': 'hsl(var(--academia-warning-foreground))',
+					'warning-soft': 'hsl(var(--academia-warning-soft))',
+					info: 'hsl(var(--academia-info))',
+					'info-foreground': 'hsl(var(--academia-info-foreground))',
+					'info-soft': 'hsl(var(--academia-info-soft))',
+					error: 'hsl(var(--academia-error))',
+					'error-foreground': 'hsl(var(--academia-error-foreground))',
+					'error-soft': 'hsl(var(--academia-error-soft))',
+					beginner: 'hsl(var(--academia-beginner))',
+					'beginner-soft': 'hsl(var(--academia-beginner-soft))',
+					intermediate: 'hsl(var(--academia-intermediate))',
+					'intermediate-soft': 'hsl(var(--academia-intermediate-soft))',
+					advanced: 'hsl(var(--academia-advanced))',
+					'advanced-soft': 'hsl(var(--academia-advanced-soft))'
 				}
 			},
 			borderRadius: {
