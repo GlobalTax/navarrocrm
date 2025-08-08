@@ -28,19 +28,19 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
     { 
       id: 'pending', 
       title: STATUS_LABELS.pending, 
-      color: 'border-yellow-200 bg-yellow-50',
+      color: '',
       count: 0
     },
     { 
       id: 'in_progress', 
       title: STATUS_LABELS.in_progress, 
-      color: 'border-blue-200 bg-blue-50',
+      color: '',
       count: 0
     },
     { 
       id: 'completed', 
       title: STATUS_LABELS.completed, 
-      color: 'border-green-200 bg-green-50',
+      color: '',
       count: 0
     }
   ]
@@ -84,12 +84,12 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
           return (
             <div 
               key={column.id} 
-              className={`rounded-[10px] border-2 border-0.5 border-black ${column.color} min-h-[500px] flex flex-col`}
+              className={`group rounded-[10px] border-0.5 border-black bg-white min-h-[500px] flex flex-col shadow-sm animate-fade-in`}
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200/50">
-                <h3 className="font-semibold text-gray-900">{column.title}</h3>
+              <div className="flex items-center justify-between p-4 border-b-0.5 border-black/10">
+                <h3 className="font-semibold text-black">{column.title}</h3>
                 <div className="flex items-center space-x-2">
-                  <span className="bg-white px-2 py-1 rounded-full text-sm font-medium text-gray-600 border-0.5 border-black">
+                  <span className="bg-white px-2 py-1 rounded-full text-sm font-medium text-black border-0.5 border-black">
                     {column.count}
                   </span>
                   <Button
@@ -108,7 +108,7 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
                   <div
                     key={task.id}
                     onClick={() => handleTaskClick(task)}
-                    className="cursor-pointer"
+                    className="cursor-pointer hover-scale"
                   >
                     <TaskCard
                       task={task}
@@ -120,7 +120,7 @@ export const TasksBoardKanban = ({ tasks, onEditTask, onCreateTask }: TasksBoard
                 ))}
                 
                 {columnTasks.length === 0 && (
-                  <div className="text-center py-8 text-gray-400">
+                  <div className="text-center py-8 text-black/50">
                     <p className="text-sm">No hay tareas</p>
                     <Button
                       variant="ghost"

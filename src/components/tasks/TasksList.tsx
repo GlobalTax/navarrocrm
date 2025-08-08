@@ -112,11 +112,11 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
 
   return (
     <>
-      <div className="bg-white rounded-lg border">
+      <div className="bg-white rounded-[10px] border-0.5 border-black shadow-sm animate-fade-in">
         {selectedTasks.length > 0 && (
-          <div className="border-b p-4 bg-blue-50">
+          <div className="border-b-0.5 border-black/10 p-4 bg-white">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-blue-700">
+              <span className="text-sm font-medium text-black">
                 {selectedTasks.length} tarea(s) seleccionada(s)
               </span>
               <div className="flex space-x-2">
@@ -147,7 +147,7 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
               <TableHead className="w-12">
                 <Checkbox
                   checked={selectedTasks.length === tasks.length && tasks.length > 0}
-                  onCheckedChange={handleSelectAll}
+                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
                 />
               </TableHead>
               <SortableHeader column="title">Tarea</SortableHeader>
@@ -174,9 +174,9 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   
                   <TableCell>
                     <div>
-                      <div className="font-medium text-gray-900">{task.title}</div>
+                      <div className="font-medium text-black">{task.title}</div>
                       {task.description && (
-                        <div className="text-sm text-gray-500 truncate max-w-xs">
+                        <div className="text-sm text-black/60 truncate max-w-xs">
                           {task.description}
                         </div>
                       )}
@@ -184,13 +184,13 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   </TableCell>
                   
                   <TableCell>
-                    <Badge className={statusBadge.color}>
+                    <Badge variant="outline" className="border-0.5 border-black rounded-[10px]">
                       {statusBadge.label}
                     </Badge>
                   </TableCell>
                   
                   <TableCell>
-                    <Badge className={priorityBadge.color}>
+                    <Badge variant="outline" className="border-0.5 border-black rounded-[10px]">
                       {priorityBadge.label}
                     </Badge>
                   </TableCell>

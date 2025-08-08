@@ -64,27 +64,29 @@ const Tasks = () => {
       
       <TasksStats stats={taskStats} />
       
-      <StandardFilters
-        searchPlaceholder="Buscar tareas..."
-        searchValue={filtersState.filters.search}
-        onSearchChange={(value) => filtersState.setFilters({ ...filtersState.filters, search: value })}
-        filters={[
-          {
-            placeholder: 'Estado',
-            value: filtersState.filters.status,
-            onChange: (value) => filtersState.setFilters({ ...filtersState.filters, status: value }),
-            options: filtersState.statusOptions
-          },
-          {
-            placeholder: 'Prioridad',
-            value: filtersState.filters.priority,
-            onChange: (value) => filtersState.setFilters({ ...filtersState.filters, priority: value }),
-            options: filtersState.priorityOptions
-          }
-        ]}
-        hasActiveFilters={filtersState.hasActiveFilters}
-        onClearFilters={filtersState.handleClearFilters}
-      />
+      <div className="border-0.5 border-black rounded-[10px] shadow-sm p-3 animate-fade-in">
+        <StandardFilters
+          searchPlaceholder="Buscar tareas..."
+          searchValue={filtersState.filters.search}
+          onSearchChange={(value) => filtersState.setFilters({ ...filtersState.filters, search: value })}
+          filters={[
+            {
+              placeholder: 'Estado',
+              value: filtersState.filters.status,
+              onChange: (value) => filtersState.setFilters({ ...filtersState.filters, status: value }),
+              options: filtersState.statusOptions
+            },
+            {
+              placeholder: 'Prioridad',
+              value: filtersState.filters.priority,
+              onChange: (value) => filtersState.setFilters({ ...filtersState.filters, priority: value }),
+              options: filtersState.priorityOptions
+            }
+          ]}
+          hasActiveFilters={filtersState.hasActiveFilters}
+          onClearFilters={filtersState.handleClearFilters}
+        />
+      </div>
 
       {safeTasks.length === 0 ? (
         <TasksEmptyState onCreateTask={pageState.handleCreateTask} />
