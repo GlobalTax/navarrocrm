@@ -273,5 +273,171 @@ export const POPULAR_TEMPLATES = [
     default_payment_method: 'VISA',
     provider_website: 'https://flowbase.co',
     description: 'Librería premium de componentes y templates para Webflow'
+  },
+
+  // Software (ampliación)
+  {
+    name: 'GitHub Team',
+    category: 'SOFTWARE' as const,
+    default_price: 4.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://github.com',
+    description: 'Repositorios privados, PRs y automatizaciones con GitHub Actions'
+  },
+  {
+    name: 'GitLab Premium',
+    category: 'SOFTWARE' as const,
+    default_price: 19.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://gitlab.com',
+    description: 'Gestión de ciclo de vida DevOps con repos, CI/CD y seguridad'
+  },
+  {
+    name: 'Jira Software Standard',
+    category: 'SOFTWARE' as const,
+    default_price: 7.50,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://www.atlassian.com/software/jira',
+    description: 'Gestión de proyectos ágil para equipos de desarrollo'
+  },
+  {
+    name: 'Confluence Standard',
+    category: 'SOFTWARE' as const,
+    default_price: 5.50,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://www.atlassian.com/software/confluence',
+    description: 'Wiki de documentación colaborativa para equipos'
+  },
+  {
+    name: 'Linear Standard',
+    category: 'SOFTWARE' as const,
+    default_price: 8.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://linear.app',
+    description: 'Gestión de issues y roadmap enfocada a velocidad'
+  },
+  {
+    name: 'ClickUp Business',
+    category: 'SOFTWARE' as const,
+    default_price: 9.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://clickup.com',
+    description: 'Gestión integral de tareas, docs y objetivos'
+  },
+  {
+    name: 'Asana Premium',
+    category: 'SOFTWARE' as const,
+    default_price: 10.99,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://asana.com',
+    description: 'Planificación y seguimiento del trabajo en equipo'
+  },
+  {
+    name: 'Trello Standard',
+    category: 'SOFTWARE' as const,
+    default_price: 5.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://trello.com',
+    description: 'Tableros Kanban simples y efectivos'
+  },
+  {
+    name: 'Miro Business',
+    category: 'SOFTWARE' as const,
+    default_price: 16.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://miro.com',
+    description: 'Pizarras colaborativas para ideación y workshops'
+  },
+  {
+    name: 'Loom Business',
+    category: 'SOFTWARE' as const,
+    default_price: 12.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://loom.com',
+    description: 'Grabación y compartición de vídeo para equipos'
+  },
+  {
+    name: 'Airtable Team',
+    category: 'SOFTWARE' as const,
+    default_price: 20.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://airtable.com',
+    description: 'Base de datos + hojas de cálculo con vistas y automatizaciones'
+  },
+  {
+    name: 'Postman Basic',
+    category: 'SOFTWARE' as const,
+    default_price: 14.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://postman.com',
+    description: 'Plataforma para diseñar, probar y documentar APIs'
+  },
+  {
+    name: 'Vercel Pro',
+    category: 'SOFTWARE' as const,
+    default_price: 20.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://vercel.com',
+    description: 'Plataforma de despliegue frontend y edge',
+    notes: 'Incluye funciones de equipo, preview deployments y ancho de banda adicional'
+  },
+  {
+    name: 'Netlify Pro',
+    category: 'SOFTWARE' as const,
+    default_price: 19.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://netlify.com',
+    description: 'Despliegue y automatización para sitios JAMStack'
+  },
+  {
+    name: 'Sentry Team',
+    category: 'SOFTWARE' as const,
+    default_price: 26.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://sentry.io',
+    description: 'Monitorización de errores y rendimiento',
+    notes: 'Alertas, releases y performance para frontend y backend'
+  },
+  {
+    name: 'JetBrains All Products',
+    category: 'SOFTWARE' as const,
+    default_price: 16.90,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://www.jetbrains.com',
+    description: 'Suite de IDEs profesionales para múltiples lenguajes'
+  },
+  {
+    name: '1Password Business',
+    category: 'SOFTWARE' as const,
+    default_price: 7.99,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://1password.com',
+    description: 'Gestor de contraseñas y cofres seguros para equipos'
+  },
+  {
+    name: 'Dropbox Business Standard',
+    category: 'SOFTWARE' as const,
+    default_price: 12.00,
+    default_billing_cycle: 'MONTHLY' as const,
+    default_payment_method: 'VISA',
+    provider_website: 'https://dropbox.com',
+    description: 'Almacenamiento y sincronización de archivos en la nube'
   }
 ]
