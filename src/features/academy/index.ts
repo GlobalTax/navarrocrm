@@ -8,8 +8,13 @@
 export { default as AcademiaPage } from './pages/AcademiaPage'
 export { default as AcademiaAdminPage } from './pages/AcademiaAdminPage'
 
-// TODO: Create types for Academy feature
-// Types
+// Components
+export { AcademiaContent } from './components/AcademiaContent'
+
+// Hooks
+export { useAcademyQueries, useAcademyAdminQueries, useAcademyActions, useAcademyState } from './hooks'
+
+// Types (placeholder)
 // export type {
 //   Course,
 //   Lesson,

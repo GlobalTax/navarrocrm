@@ -1,3 +1,8 @@
-// Auth Feature - DAL ready, TODO: Migrate components
-export { usersDAL } from '@/lib/dal'
-export type { User } from '@/lib/dal'
+/**
+ * Auth Feature Module
+ * 
+ * Autenticación y gestión de usuarios
+ */
+
+// Export all from hooks for now (placeholder implementation)
+export * from './hooks'
