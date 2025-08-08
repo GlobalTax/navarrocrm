@@ -104,7 +104,7 @@ export const BulkTaskAssignmentModal = ({
     return (
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {targets.map(target => (
-          <div key={target.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50">
+          <div key={target.id} className="flex items-center space-x-3 p-2 rounded-[10px] hover:bg-white/50 transition-colors hover-lift border-0.5 border-transparent hover:border-black/20">
             <Checkbox
               checked={selectedTargets.includes(target.id)}
               onCheckedChange={(checked) => handleTargetToggle(target.id, !!checked)}
@@ -117,16 +117,16 @@ export const BulkTaskAssignmentModal = ({
                     style={{ backgroundColor: target.color }}
                   />
                 )}
-                <span className="font-medium">{target.name}</span>
+                <span className="font-medium text-black">{target.name}</span>
               </div>
               {target.subtitle && (
-                <span className="text-sm text-gray-500">{target.subtitle}</span>
+                <span className="text-sm text-black/60">{target.subtitle}</span>
               )}
             </div>
           </div>
         ))}
         {targets.length === 0 && (
-          <div className="text-center py-4 text-gray-500">
+          <div className="text-center py-4 text-black/60">
             No hay {assignmentType === 'user' ? 'usuarios' : assignmentType === 'team' ? 'equipos' : 'departamentos'} disponibles
           </div>
         )}
@@ -136,7 +136,7 @@ export const BulkTaskAssignmentModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] border-0.5 border-black rounded-[10px] bg-white shadow-sm animate-scale-in">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -146,19 +146,19 @@ export const BulkTaskAssignmentModal = ({
 
         <div className="space-y-6">
           {/* Resumen de tareas seleccionadas */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">
+          <div className="bg-white border-0.5 border-black rounded-[10px] p-4 shadow-sm">
+            <h4 className="font-medium text-black mb-2">
               {selectedTaskIds.length} tareas seleccionadas
             </h4>
             <div className="space-y-1">
               {taskTitles.slice(0, 3).map((title, index) => (
-                <div key={index} className="text-sm text-blue-700 flex items-center gap-1">
+                <div key={index} className="text-sm text-black/80 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" />
                   {title}
                 </div>
               ))}
               {taskTitles.length > 3 && (
-                <div className="text-sm text-blue-600">
+                <div className="text-sm text-black/60">
                   +{taskTitles.length - 3} tareas más...
                 </div>
               )}
@@ -172,10 +172,10 @@ export const BulkTaskAssignmentModal = ({
               setAssignmentType(value)
               setSelectedTargets([])
             }}>
-              <SelectTrigger>
+              <SelectTrigger className="border-0.5 border-black rounded-[10px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="border-0.5 border-black rounded-[10px] bg-white shadow-sm">
                 <SelectItem value="user">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />
@@ -208,11 +208,11 @@ export const BulkTaskAssignmentModal = ({
 
           {/* Resumen de selección */}
           {selectedTargets.length > 0 && (
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">Seleccionados:</h4>
+            <div className="bg-white border-0.5 border-black rounded-[10px] p-4 shadow-sm">
+              <h4 className="font-medium text-black mb-2">Seleccionados:</h4>
               <div className="flex flex-wrap gap-1">
                 {selectedTargets.map(targetId => (
-                  <Badge key={targetId} variant="secondary" className="text-xs">
+                  <Badge key={targetId} variant="outline" className="text-xs border-0.5 border-black rounded-[10px]">
                     {getTargetName(targetId)}
                   </Badge>
                 ))}
@@ -221,13 +221,14 @@ export const BulkTaskAssignmentModal = ({
           )}
 
           {/* Botones */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-black/10">
+            <Button variant="outline" onClick={onClose} className="border-0.5 border-black rounded-[10px] hover-lift">
               Cancelar
             </Button>
             <Button 
               onClick={handleAssign}
               disabled={selectedTargets.length === 0 || isAssigning}
+              className="border-0.5 border-black rounded-[10px] hover-lift"
             >
               {isAssigning ? 'Asignando...' : 'Asignar Tareas'}
             </Button>

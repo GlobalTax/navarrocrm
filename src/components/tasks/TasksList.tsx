@@ -23,36 +23,38 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
-      case 'high': return { color: 'bg-red-100 text-red-800 border-red-200', label: '🔴 Alta' }
-      case 'medium': return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: '🟡 Media' }
-      case 'low': return { color: 'bg-green-100 text-green-800 border-green-200', label: '🟢 Baja' }
-      default: return { color: 'bg-gray-100 text-gray-800 border-gray-200', label: priority }
+      case 'high': return { label: 'Alta' }
+      case 'medium': return { label: 'Media' }
+      case 'low': return { label: 'Baja' }
+      case 'urgent': return { label: 'Urgente' }
+      default: return { label: priority }
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return { color: 'bg-green-100 text-green-800', label: 'Completada' }
-      case 'in_progress': return { color: 'bg-blue-100 text-blue-800', label: 'En Curso' }
-      case 'pending': return { color: 'bg-yellow-100 text-yellow-800', label: 'Por Hacer' }
-      default: return { color: 'bg-gray-100 text-gray-800', label: status }
+      case 'completed': return { label: 'Completada' }
+      case 'in_progress': return { label: 'En Curso' }
+      case 'pending': return { label: 'Por Hacer' }
+      case 'cancelled': return { label: 'Cancelada' }
+      default: return { label: status }
     }
   }
 
   const formatSmartDate = (dateString: string | null) => {
-    if (!dateString) return { text: 'Sin fecha', color: 'text-gray-400' }
+    if (!dateString) return { text: 'Sin fecha', color: 'text-black/60' }
     
     const date = new Date(dateString)
     const now = new Date()
     const isOverdue = date < now
     
-    if (isToday(date)) return { text: 'Hoy', color: isOverdue ? 'text-red-600' : 'text-blue-600' }
-    if (isTomorrow(date)) return { text: 'Mañana', color: 'text-green-600' }
-    if (isThisWeek(date)) return { text: format(date, 'EEEE', { locale: es }), color: 'text-gray-600' }
+    if (isToday(date)) return { text: 'Hoy', color: isOverdue ? 'text-black' : 'text-black' }
+    if (isTomorrow(date)) return { text: 'Mañana', color: 'text-black' }
+    if (isThisWeek(date)) return { text: format(date, 'EEEE', { locale: es }), color: 'text-black/80' }
     
     return { 
       text: format(date, 'dd/MM/yyyy', { locale: es }), 
-      color: isOverdue ? 'text-red-600' : 'text-gray-600' 
+      color: isOverdue ? 'text-black' : 'text-black/80' 
     }
   }
 
@@ -96,7 +98,7 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
 
   const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => (
     <TableHead 
-      className="cursor-pointer hover:bg-gray-50 select-none"
+      className="cursor-pointer hover:bg-white/50 select-none transition-colors"
       onClick={() => handleSort(column)}
     >
       <div className="flex items-center space-x-1">
@@ -124,15 +126,16 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   size="sm" 
                   variant="outline"
                   onClick={() => setIsBulkAssignmentOpen(true)}
+                  className="border-0.5 border-black rounded-[10px] hover-lift"
                 >
                   <Users className="h-4 w-4 mr-1" />
                   Asignar Masivamente
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" className="border-0.5 border-black rounded-[10px] hover-lift">
                   <Check className="h-4 w-4 mr-1" />
                   Completar
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" className="border-0.5 border-black rounded-[10px] hover-lift">
                   <Trash2 className="h-4 w-4 mr-1" />
                   Eliminar
                 </Button>
@@ -164,7 +167,7 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
               const smartDate = formatSmartDate(task.due_date)
               
               return (
-                <TableRow key={task.id} className="hover:bg-gray-50">
+                <TableRow key={task.id} className="hover:bg-white/50 transition-colors">
                   <TableCell>
                     <Checkbox
                       checked={selectedTasks.includes(task.id)}
@@ -197,7 +200,7 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   
                   <TableCell>
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1 text-gray-400" />
+                      <Calendar className="h-4 w-4 mr-1 text-black/60" />
                       <span className={`text-sm ${smartDate.color}`}>
                         {smartDate.text}
                       </span>
@@ -207,11 +210,11 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="hover-lift">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className="border-0.5 border-black rounded-[10px] bg-white shadow-sm">
                         <DropdownMenuItem onClick={() => navigate(`/tasks/${task.id}`)}>
                           <Eye className="h-4 w-4 mr-2" />
                           Ver detalles
@@ -224,7 +227,7 @@ export const TasksList = ({ tasks, onEditTask }: TasksListProps) => {
                           <Check className="h-4 w-4 mr-2" />
                           Completar
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem className="text-black/80">
                           <Trash2 className="h-4 w-4 mr-2" />
                           Eliminar
                         </DropdownMenuItem>
