@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Edit, Trash2, Eye, Plus, Globe, FileX } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { StatusBadge } from './components/StatusBadge'
 
 interface Course {
   id: string
@@ -16,6 +17,7 @@ interface Course {
   estimated_duration?: number
   is_published: boolean
   created_at: string
+  updated_at?: string
   academy_categories?: {
     name: string
     color: string
@@ -51,6 +53,26 @@ export function CoursesTable({
   onAddLesson,
   onTogglePublish
 }: CoursesTableProps) {
+  // Helper functions for activity indicators
+  const isNewCourse = (createdAt: string) => {
+    const created = new Date(createdAt)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    return created > sevenDaysAgo
+  }
+
+  const isRecentlyUpdated = (createdAt: string, updatedAt?: string) => {
+    if (!updatedAt) return false
+    const updated = new Date(updatedAt)
+    const created = new Date(createdAt)
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+    return updated > threeDaysAgo && updated > created
+  }
+
+  const isPopular = (totalLessons: number) => totalLessons >= 8
+  const isComplete = (totalLessons: number) => totalLessons >= 5
+
   return (
     <div className="border border-0.5 border-black rounded-[10px] overflow-hidden">
       <Table>
@@ -71,7 +93,20 @@ export function CoursesTable({
             <TableRow key={course.id}>
               <TableCell>
                 <div>
-                  <div className="font-medium">{course.title}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{course.title}</span>
+                    <div className="flex gap-1">
+                      {isNewCourse(course.created_at) && (
+                        <StatusBadge status="new" size="sm" />
+                      )}
+                      {isRecentlyUpdated(course.created_at, course.updated_at) && (
+                        <StatusBadge status="updated" size="sm" />
+                      )}
+                      {isPopular(course.total_lessons) && (
+                        <StatusBadge status="popular" size="sm" />
+                      )}
+                    </div>
+                  </div>
                   {course.description && (
                     <div className="text-sm text-gray-500 truncate max-w-xs">
                       {course.description}
@@ -122,9 +157,13 @@ export function CoursesTable({
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Badge variant={course.is_published ? "default" : "secondary"}>
-                    {course.is_published ? 'Publicado' : 'Borrador'}
-                  </Badge>
+                  <StatusBadge 
+                    status={course.is_published ? "published" : "draft"} 
+                  />
+                  <StatusBadge 
+                    status={isComplete(course.total_lessons) ? "complete" : "incomplete"} 
+                    size="sm"
+                  />
                   <Button
                     size="sm"
                     variant="ghost"

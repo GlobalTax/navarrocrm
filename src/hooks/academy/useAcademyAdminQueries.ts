@@ -72,7 +72,7 @@ export const useAcademyAdminQueries = () => {
             .eq('org_id', user.org_id),
           supabase
             .from('academy_courses')
-            .select('id, is_published')
+            .select('id, is_published, level, created_at, updated_at, total_lessons')
             .eq('org_id', user.org_id),
           supabase
             .from('academy_lessons')
@@ -84,11 +84,26 @@ export const useAcademyAdminQueries = () => {
         const courses = coursesResult.data || []
         const lessons = lessonsResult.data || []
 
+        // Calcular estadísticas por nivel
+        const levelStats = {
+          beginner: courses.filter(c => c.level === 'beginner').length,
+          intermediate: courses.filter(c => c.level === 'intermediate').length,
+          advanced: courses.filter(c => c.level === 'advanced').length
+        }
+
+        // Calcular porcentajes
+        const publishedCourses = courses.filter(c => c.is_published).length
+        const draftCourses = courses.length - publishedCourses
+        const publishingPercentage = courses.length > 0 ? Math.round((publishedCourses / courses.length) * 100) : 0
+
         return {
           totalCategories: categories.length,
           activeCategories: categories.filter(c => c.is_active).length,
           totalCourses: courses.length,
-          publishedCourses: courses.filter(c => c.is_published).length,
+          publishedCourses,
+          draftCourses,
+          publishingPercentage,
+          levelStats,
           totalLessons: lessons.length,
           publishedLessons: lessons.filter(l => l.is_published).length
         }
