@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react'
 import { useTasks } from '@/hooks/useTasks'
 import { useTasksPageState } from '@/hooks/tasks/useTasksPageState'
 import { useTasksFilters } from '@/hooks/tasks/useTasksFilters'
@@ -18,12 +19,14 @@ const Tasks = () => {
   const pageState = useTasksPageState()
   const filtersState = useTasksFilters()
 
-  console.log('🔍 Tasks page state:', { 
-    tasks: tasks?.length, 
-    taskStats, 
-    isLoading, 
-    error: error?.message 
-  })
+  useEffect(() => {
+    document.title = 'Tareas | Gestión de tareas';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', 'Gestión de tareas del despacho: tablero, lista, filtros y prioridades.');
+    }
+  }, [])
+
 
   const filteredTasks = filtersState.filterTasks(tasks)
 
