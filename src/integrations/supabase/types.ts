@@ -1636,6 +1636,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          manager_user_id: string | null
           name: string
           org_id: string
           updated_at: string
@@ -1646,6 +1647,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          manager_user_id?: string | null
           name: string
           org_id: string
           updated_at?: string
@@ -1656,11 +1658,20 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          manager_user_id?: string | null
           name?: string
           org_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "departments_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_activities: {
         Row: {
@@ -2681,6 +2692,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "employee_contracts_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "v_department_org_chart"
+            referencedColumns: ["department_id"]
+          },
+          {
             foreignKeyName: "employee_contracts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -2978,6 +2996,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_onboarding_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "v_department_org_chart"
+            referencedColumns: ["department_id"]
           },
           {
             foreignKeyName: "employee_onboarding_org_id_fkey"
@@ -4686,6 +4711,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outgoing_subscriptions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "v_department_org_chart"
+            referencedColumns: ["department_id"]
           },
         ]
       }
@@ -7085,6 +7117,13 @@ export type Database = {
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "teams_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "v_department_org_chart"
+            referencedColumns: ["department_id"]
+          },
         ]
       }
       time_entries: {
@@ -7396,6 +7435,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "users_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "v_department_org_chart"
+            referencedColumns: ["department_id"]
+          },
+          {
             foreignKeyName: "users_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
@@ -7686,7 +7732,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_department_org_chart: {
+        Row: {
+          department_color: string | null
+          department_id: string | null
+          department_name: string | null
+          employees_count: number | null
+          manager_avatar: string | null
+          manager_name: string | null
+          manager_user_id: string | null
+          teams: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_next_billing_date: {
