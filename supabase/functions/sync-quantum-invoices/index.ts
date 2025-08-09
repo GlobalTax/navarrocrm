@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
     // Obtener credenciales de Quantum (usar valor fijo como en contactos)
     const quantumToken = Deno.env.get('quantum_api_token');
-    const quantumCompanyId = '28171';
+    const quantumCompanyId = Deno.env.get('quantum_company_id');
 
     console.log('🔍 [Config] Verificando credenciales...');
     console.log(`🏢 [Config] Company ID: ${quantumCompanyId ? `***${quantumCompanyId.slice(-4)}` : 'NO CONFIGURADO'}`);
@@ -89,31 +89,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Crear registro de sincronización
-    const { data: syncRecord, error: syncError } = await supabase
-      .from('quantum_invoice_sync_history')
-      .insert({
-        org_id,
-        sync_status: 'in_progress',
-        sync_type: 'manual',
-        start_date,
-        end_date
-      })
-      .select()
-      .single();
-
-    if (syncError) {
-      console.error('❌ [Error] Error al crear registro de sincronización:', syncError);
-      return new Response(
-        JSON.stringify({ error: 'Error al iniciar sincronización' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('📝 [Sync] Registro de sincronización creado:', syncRecord.id);
+    // Sin registro "in_progress"; se registrará resultado al finalizar
 
     // Construir URL de la API de Quantum (formato corregido)
     let apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/invoice?type=C&companyId=${quantumCompanyId}`;
@@ -175,19 +151,14 @@ Deno.serve(async (req) => {
     if (!response || !response.ok) {
       console.error('❌ [Quantum API] Todos los formatos de autenticación fallaron');
       console.error('❌ [Details] Último error:', lastError);
-      
-      await supabase
-        .from('quantum_invoice_sync_history')
-        .update({
-          sync_status: 'error',
-          error_details: { 
-            api_error: lastError, 
-            url: apiUrl,
-            company_id: quantumCompanyId,
-            auth_formats_tried: authFormats.map(f => f.name)
-          }
-        })
-        .eq('id', syncRecord.id);
+
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: 'Error autenticando con Quantum Invoices',
+        records_processed: 0,
+        error_details: { api_error: lastError, url: apiUrl, company_id: quantumCompanyId, auth_formats_tried: authFormats.map(f => f.name) },
+        sync_date: new Date().toISOString(),
+      });
 
       return new Response(
         JSON.stringify({ 
@@ -196,10 +167,7 @@ Deno.serve(async (req) => {
           url: apiUrl,
           company_id: quantumCompanyId
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -222,52 +190,35 @@ Deno.serve(async (req) => {
     } catch (parseError) {
       console.error('❌ [JSON] Error parseando respuesta:', parseError.message);
       
-      await supabase
-        .from('quantum_invoice_sync_history')
-        .update({
-          sync_status: 'error',
-          error_details: { 
-            parse_error: parseError.message,
-            auth_used: authUsed,
-            url: apiUrl
-          }
-        })
-        .eq('id', syncRecord.id);
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: 'Respuesta inválida de Quantum Invoices',
+        records_processed: 0,
+        error_details: { parse_error: (parseError as Error).message, auth_used: authUsed, url: apiUrl },
+        sync_date: new Date().toISOString(),
+      });
 
       return new Response(
-        JSON.stringify({ 
-          error: 'Respuesta inválida de la API de Quantum',
-          details: parseError.message,
-          auth_used: authUsed
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Respuesta inválida de la API de Quantum', details: (parseError as Error).message, auth_used: authUsed }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Verificar si hay error en la respuesta - errorCode "0" significa éxito (como en contactos)
     if (quantumData.error && quantumData.error.errorCode && quantumData.error.errorCode !== '0') {
       console.error('❌ [Quantum API] Error en respuesta:', quantumData.error);
-      
-      await supabase
-        .from('quantum_invoice_sync_history')
-        .update({
-          sync_status: 'error',
-          error_details: { quantum_error: quantumData.error }
-        })
-        .eq('id', syncRecord.id);
+
+      await supabase.from('quantum_sync_history').insert({
+        status: 'error',
+        message: 'Error en respuesta de Quantum Invoices',
+        records_processed: 0,
+        error_details: { quantum_error: quantumData.error },
+        sync_date: new Date().toISOString(),
+      });
 
       return new Response(
-        JSON.stringify({ 
-          error: 'Error en respuesta de Quantum',
-          details: quantumData.error 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Error en respuesta de Quantum', details: quantumData.error }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -354,16 +305,13 @@ Deno.serve(async (req) => {
 
     // Actualizar registro de sincronización
     const finalStatus = errors.length === 0 ? 'success' : 'error';
-    await supabase
-      .from('quantum_invoice_sync_history')
-      .update({
-        sync_status: finalStatus,
-        invoices_processed: processedCount,
-        invoices_created: createdCount,
-        invoices_updated: updatedCount,
-        error_details: errors.length > 0 ? { errors } : null
-      })
-      .eq('id', syncRecord.id);
+    await supabase.from('quantum_sync_history').insert({
+      status: finalStatus,
+      message: finalStatus === 'success' ? 'Facturas sincronizadas correctamente' : 'Sincronización de facturas con errores',
+      records_processed: processedCount,
+      error_details: errors.length > 0 ? { errors } : null,
+      sync_date: new Date().toISOString(),
+    });
 
     console.log(`✅ [Complete] Sincronización completada: ${createdCount} creadas, ${updatedCount} actualizadas, ${errors.length} errores`);
 
@@ -376,13 +324,9 @@ Deno.serve(async (req) => {
           created: createdCount,
           updated: updatedCount,
           errors: errors.length
-        },
-        sync_id: syncRecord.id
+        }
       }),
-      { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
