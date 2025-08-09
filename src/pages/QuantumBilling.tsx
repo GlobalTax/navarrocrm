@@ -2,6 +2,7 @@ import { StandardPageContainer } from "@/components/layout/StandardPageContainer
 import { StandardPageHeader } from "@/components/layout/StandardPageHeader";
 import { QuantumInvoicesDashboard } from "@/components/quantum/QuantumInvoicesDashboard";
 import { QuantumInvoiceManualSync } from "@/components/quantum/QuantumInvoiceManualSync";
+import { QuantumImportHistory } from "@/components/quantum/QuantumImportHistory";
 
 export default function QuantumBilling() {
   return (
@@ -22,8 +23,16 @@ export default function QuantumBilling() {
           startDate="2025-06-01"
           endDate="2025-07-31"
         />
+        <QuantumInvoiceManualSync 
+          label="Sincronizar 2025 completo"
+          startDate="2025-01-01"
+          endDate="2025-12-31"
+        />
       </div>
       <QuantumInvoicesDashboard />
+      <div className="mt-6">
+        <QuantumImportHistory />
+      </div>
     </StandardPageContainer>
   );
 }
