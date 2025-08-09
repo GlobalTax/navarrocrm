@@ -96,5 +96,15 @@ export const aiRoutes: RouteConfig[] = [
         </FeatureBoundary>
       </Suspense>
     )
+  },
+  {
+    path: '/academia/admin',
+    element: (
+      <Suspense fallback={<AISkeleton />}>
+        <FeatureBoundary feature="Admin Academia (alias)">
+          <AcademiaAdmin />
+        </FeatureBoundary>
+      </Suspense>
+    )
   }
 ]
