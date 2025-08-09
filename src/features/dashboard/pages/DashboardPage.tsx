@@ -13,6 +13,7 @@ import { LazyWidget } from '@/components/ui/lazy-widget'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { QuantumBillingStatusCard } from '@/components/quantum/QuantumBillingStatusCard'
 
 export default function DashboardPage() {
   const { user } = useApp()
@@ -120,12 +121,17 @@ export default function DashboardPage() {
             </LazyWidget>
           </div>
           
-          {/* Columna derecha - Actividad con intersección */}
-          <div className="lg:col-span-3">
-            <LazyWidget priority="intersection">
-              <OptimizedRecentActivity data={data} isLoading={isLoading} />
-            </LazyWidget>
-          </div>
+{/* Columna derecha - Actividad y estado de facturación */}
+<div className="lg:col-span-3">
+  <div className="space-y-6">
+    <LazyWidget priority="intersection">
+      <QuantumBillingStatusCard />
+    </LazyWidget>
+    <LazyWidget priority="intersection">
+      <OptimizedRecentActivity data={data} isLoading={isLoading} />
+    </LazyWidget>
+  </div>
+</div>
         </div>
       )}
       
