@@ -31,7 +31,7 @@ import { RecentActivity } from './RecentActivity'
 import { QuickActions } from './QuickActions'
 
 export const EnhancedDocumentGenerator = () => {
-  const { templates, generatedDocuments, isLoading, duplicateTemplate } = useDocumentTemplates()
+  const { templates, generatedDocuments, isLoading, duplicateTemplate, generateDocument, updateDocumentStatus } = useDocumentTemplates()
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
   const [generatorDialogOpen, setGeneratorDialogOpen] = useState(false)
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
