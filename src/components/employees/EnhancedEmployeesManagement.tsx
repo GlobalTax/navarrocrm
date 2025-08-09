@@ -4,12 +4,13 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Users, UserCheck, UserX, Calendar } from 'lucide-react'
+import { Plus, Users, UserCheck, UserX, Calendar, Upload } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdvancedEmployeeDialog } from './AdvancedEmployeeDialog'
 import { EmployeeFilters, EmployeeFilters as FilterType } from './EmployeeFilters'
 import { EmployeeTable } from './EmployeeTable'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { EmployeeBulkUpload } from './EmployeeBulkUpload'
 
 interface EnhancedEmployeesManagementProps {
   showCreateDialog: boolean
@@ -22,6 +23,7 @@ export function EnhancedEmployeesManagement({
 }: EnhancedEmployeesManagementProps) {
   const [employeeToEdit, setEmployeeToEdit] = useState<any>(null)
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null)
+  const [showBulkUpload, setShowBulkUpload] = useState(false)
   
   const [filters, setFilters] = useState<FilterType>({
     search: '',
@@ -45,7 +47,8 @@ export function EnhancedEmployeesManagement({
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    filterEmployees
+    filterEmployees,
+    refreshEmployees
   } = useSimpleEmployees()
 
   // Aplicar filtros cuando cambien
@@ -82,6 +85,11 @@ export function EnhancedEmployeesManagement({
     } catch (error) {
       console.error('Error deleting employee:', error)
     }
+  }
+
+  const handleBulkUploadSuccess = () => {
+    setShowBulkUpload(false)
+    refreshEmployees() // Refrescar la lista de empleados
   }
 
   const getStatusBadge = (status: string) => {
@@ -197,10 +205,20 @@ export function EnhancedEmployeesManagement({
                 }
               </p>
               {allEmployees.length === 0 && (
-                <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Agregar Primer Empleado
-                </Button>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => setShowCreateDialog(true)} className="border-0.5 border-black rounded-[10px] hover-lift">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar Primer Empleado
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowBulkUpload(true)} 
+                    className="border-0.5 border-black rounded-[10px] hover-lift"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Carga Masiva
+                  </Button>
+                </div>
               )}
             </div>
           ) : (
@@ -236,6 +254,12 @@ export function EnhancedEmployeesManagement({
         title="Eliminar Empleado"
         description="¿Estás seguro de que deseas eliminar este empleado? Esta acción no se puede deshacer."
         />
+
+      <EmployeeBulkUpload
+        open={showBulkUpload}
+        onClose={() => setShowBulkUpload(false)}
+        onSuccess={handleBulkUploadSuccess}
+      />
     </div>
   )
 }
