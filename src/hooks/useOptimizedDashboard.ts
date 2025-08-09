@@ -135,19 +135,28 @@ export const useOptimizedDashboard = () => {
       const startTime = performance.now()
 
       // Execute all queries in parallel
-      const [casesResult, contactsResult, timeEntriesResult, tasksResult] = await Promise.all([
+      const [casesResult, contactsRecentResult, contactsCountResult, timeEntriesResult, tasksResult] = await Promise.all([
+        // Cases (no limit)
         supabase
           .from('cases')
           .select('id, title, status, created_at')
           .eq('org_id', user.org_id),
-        
+
+        // Recent contacts (for activity feed)
         supabase
           .from('contacts')
           .select('id, name, created_at')
           .eq('org_id', user.org_id)
           .order('created_at', { ascending: false })
-          .limit(50), // Limitar a 50 contactos recientes
-        
+          .limit(50), // Solo últimos 50 para UI
+
+        // Total contacts count (accurate metric)
+        supabase
+          .from('contacts')
+          .select('*', { count: 'exact', head: true })
+          .eq('org_id', user.org_id),
+
+        // Time entries (no limit)
         supabase
           .from('time_entries')
           .select(`
@@ -161,7 +170,8 @@ export const useOptimizedDashboard = () => {
           `)
           .eq('org_id', user.org_id)
           .order('created_at', { ascending: false }),
-        
+
+        // Tasks (no limit)
         supabase
           .from('tasks')
           .select('id, title, due_date, status, completed_at')
@@ -171,17 +181,24 @@ export const useOptimizedDashboard = () => {
 
       // Validate results
       if (casesResult.error) throw new Error('Failed to fetch cases data')
-      if (contactsResult.error) throw new Error('Failed to fetch contacts data')
+      if (contactsRecentResult.error) throw new Error('Failed to fetch recent contacts data')
+      if (contactsCountResult.error) throw new Error('Failed to count contacts data')
       if (timeEntriesResult.error) throw new Error('Failed to fetch time entries data')
       if (tasksResult.error) throw new Error('Failed to fetch tasks data')
 
       const cases = casesResult.data || []
-      const contacts = contactsResult.data || []
+      const contacts = contactsRecentResult.data || []
       const timeEntries = timeEntriesResult.data || []
       const tasks = tasksResult.data || []
 
+      // Get accurate contacts total count (not limited by UI pagination)
+      const totalContactsCount = typeof contactsCountResult.count === 'number' 
+        ? contactsCountResult.count 
+        : contacts.length
+
       // Calculate all metrics using utility functions
-      const stats = calculateDashboardStats(cases, contacts, timeEntries)
+      const baseStats = calculateDashboardStats(cases, contacts, timeEntries)
+      const stats = { ...baseStats, totalContacts: totalContactsCount }
       const performanceData = calculatePerformanceData(timeEntries)
       const quickStats = calculateQuickStats(timeEntries, tasks)
       const recentActivities = generateRecentActivities(contacts, cases, timeEntries, tasks)
