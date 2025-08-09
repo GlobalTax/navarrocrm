@@ -1916,6 +1916,94 @@ export type Database = {
         }
         Relationships: []
       }
+      document_signature_tokens: {
+        Row: {
+          created_at: string
+          document_signature_id: string
+          expires_at: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_signature_id: string
+          expires_at: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_signature_id?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signature_tokens_document_signature_id_fkey"
+            columns: ["document_signature_id"]
+            isOneToOne: false
+            referencedRelation: "document_signatures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_signatures: {
+        Row: {
+          audit_log: Json
+          completed_at: string | null
+          created_at: string
+          document_id: string
+          envelope_id: string | null
+          id: string
+          org_id: string
+          provider: string
+          recipients: Json
+          requested_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          audit_log?: Json
+          completed_at?: string | null
+          created_at?: string
+          document_id: string
+          envelope_id?: string | null
+          id?: string
+          org_id: string
+          provider?: string
+          recipients?: Json
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          audit_log?: Json
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string
+          envelope_id?: string | null
+          id?: string
+          org_id?: string
+          provider?: string
+          recipients?: Json
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "generated_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_templates: {
         Row: {
           category: string | null
@@ -3533,6 +3621,7 @@ export type Database = {
           content: string
           created_at: string | null
           file_path: string | null
+          file_path_signed: string | null
           generated_by: string
           id: string
           is_current_version: boolean | null
@@ -3555,6 +3644,7 @@ export type Database = {
           content: string
           created_at?: string | null
           file_path?: string | null
+          file_path_signed?: string | null
           generated_by: string
           id?: string
           is_current_version?: boolean | null
@@ -3577,6 +3667,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           file_path?: string | null
+          file_path_signed?: string | null
           generated_by?: string
           id?: string
           is_current_version?: boolean | null
