@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { QuantumClientImporter } from '@/components/quantum/QuantumClientImporter'
 import { QuantumImportHistory } from '@/components/quantum/QuantumImportHistory'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Database, Users, Building } from 'lucide-react'
+import { ArrowLeft, Database, Users, Building, FileText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+import { supabase } from '@/integrations/supabase/client'
 export default function QuantumImport() {
   const [activeTab, setActiveTab] = useState('clients')
 

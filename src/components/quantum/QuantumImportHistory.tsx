@@ -22,23 +22,58 @@ interface SyncHistoryRecord {
   message: string
   records_processed: number
   error_details?: any
-  created_at: string
+  created_at?: string
 }
 
 export function QuantumImportHistory() {
   const { data: historyData, isLoading, error, refetch } = useQuery({
     queryKey: ['quantum-sync-history'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('quantum_sync_history')
-        .select('*')
-        .order('sync_date', { ascending: false })
-        .limit(50)
-      
-      if (error) throw error
-      return data as SyncHistoryRecord[]
+      // Fetch legacy history
+      const [legacyRes, invoicesRes] = await Promise.all([
+        supabase.from('quantum_sync_history').select('*').order('sync_date', { ascending: false }).limit(50),
+        supabase.from('quantum_invoice_sync_history').select('*').order('created_at', { ascending: false }).limit(50),
+      ])
+
+      if (legacyRes.error) throw legacyRes.error
+      if (invoicesRes.error) throw invoicesRes.error
+
+      const legacy = (legacyRes.data || []) as any[]
+      const invoices = (invoicesRes.data || []) as any[]
+
+      // Map new table to unified shape
+      const mappedInvoices: SyncHistoryRecord[] = invoices.map((r) => ({
+        id: r.id,
+        sync_date: r.created_at,
+        status: r.sync_status || 'unknown',
+        message: `Facturas ${r.start_date || '?'} → ${r.end_date || '?'} (${r.sync_type})`,
+        records_processed: r.invoices_processed ?? 0,
+        error_details: r.error_details,
+        created_at: r.created_at,
+      }))
+
+      const mappedLegacy: SyncHistoryRecord[] = legacy.map((r) => ({
+        id: r.id,
+        sync_date: r.sync_date,
+        status: r.status,
+        message: r.message,
+        records_processed: r.records_processed ?? 0,
+        error_details: r.error_details,
+        created_at: r.sync_date,
+      }))
+
+      // Merge and sort
+      const merged = [...mappedInvoices, ...mappedLegacy]
+        .sort((a, b) => new Date(b.sync_date).getTime() - new Date(a.sync_date).getTime())
+        .slice(0, 50)
+
+      return merged
     },
-    refetchInterval: 30000 // Actualizar cada 30 segundos
+    refetchInterval: (query) => {
+      const list = (query.state.data as SyncHistoryRecord[] | undefined) || []
+      const hasInProgress = list.some((r) => r.status === 'in_progress' || r.status === 'pending')
+      return hasInProgress ? 10000 : 30000
+    }
   })
 
   const getStatusIcon = (status: string) => {

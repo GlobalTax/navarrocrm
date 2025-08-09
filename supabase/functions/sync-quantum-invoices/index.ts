@@ -180,6 +180,29 @@ Deno.serve(async (req) => {
     if (start) apiUrl += `&startDate=${encodeURIComponent(start)}`;
     if (end) apiUrl += `&endDate=${encodeURIComponent(end)}`;
 
+    // Crear registro in_progress en el historial detallado
+    let historyId: string | null = null;
+    try {
+      const { data: inProg } = await supabase
+        .from('quantum_invoice_sync_history')
+        .insert({
+          org_id,
+          sync_status: 'in_progress',
+          sync_type: syncType,
+          start_date: start || null,
+          end_date: end || null,
+          invoices_processed: 0,
+          invoices_created: 0,
+          invoices_updated: 0,
+          error_details: { step: 'starting' },
+        } as any)
+        .select('id')
+        .maybeSingle();
+      historyId = inProg?.id ?? null;
+    } catch (_e) {
+      // no-op
+    }
+
     console.log('🌐 [API] URL:', apiUrl.replace(quantumCompanyId, mask(quantumCompanyId)));
 
     let fetchResult;
@@ -192,12 +215,22 @@ Deno.serve(async (req) => {
         status: 'error', message: 'Error autenticando/consultando Quantum Invoices', records_processed: 0,
         error_details: details, sync_date: new Date().toISOString(),
       } as any);
-      // New history table
-      await supabase.from('quantum_invoice_sync_history').insert({
-        org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null,
-        invoices_processed: 0, invoices_created: 0, invoices_updated: 0,
-        error_details: { ...details, auth_used: null },
-      } as any);
+      // New history table: update in-progress if exists; otherwise insert
+      if (historyId) {
+        await supabase.from('quantum_invoice_sync_history').update({
+          sync_status: 'error',
+          invoices_processed: 0,
+          invoices_created: 0,
+          invoices_updated: 0,
+          error_details: { ...details, auth_used: null },
+        } as any).eq('id', historyId);
+      } else {
+        await supabase.from('quantum_invoice_sync_history').insert({
+          org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null,
+          invoices_processed: 0, invoices_created: 0, invoices_updated: 0,
+          error_details: { ...details, auth_used: null },
+        } as any);
+      }
       return new Response(JSON.stringify({ error: 'Respuesta inválida de Quantum', details }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -206,7 +239,17 @@ Deno.serve(async (req) => {
     if (quantumData.error && quantumData.error.errorCode && quantumData.error.errorCode !== '0') {
       const details = { quantum_error: quantumData.error, auth_used: authUsed };
       await supabase.from('quantum_sync_history').insert({ status: 'error', message: 'Error en respuesta de Quantum Invoices', records_processed: 0, error_details: details, sync_date: new Date().toISOString() } as any);
-      await supabase.from('quantum_invoice_sync_history').insert({ org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null, invoices_processed: 0, invoices_created: 0, invoices_updated: 0, error_details: details } as any);
+      if (historyId) {
+        await supabase.from('quantum_invoice_sync_history').update({
+          sync_status: 'error',
+          invoices_processed: 0,
+          invoices_created: 0,
+          invoices_updated: 0,
+          error_details: details,
+        } as any).eq('id', historyId);
+      } else {
+        await supabase.from('quantum_invoice_sync_history').insert({ org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null, invoices_processed: 0, invoices_created: 0, invoices_updated: 0, error_details: details } as any);
+      }
       return new Response(JSON.stringify({ error: 'Error en respuesta de Quantum', details }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
@@ -281,18 +324,28 @@ Deno.serve(async (req) => {
       sync_date: new Date().toISOString(),
     } as any);
 
-    // New detailed history
-    await supabase.from('quantum_invoice_sync_history').insert({
-      org_id,
-      sync_status: finalStatus,
-      sync_type: syncType,
-      start_date: start || null,
-      end_date: end || null,
-      invoices_processed: processedCount,
-      invoices_created: createdCount,
-      invoices_updated: updatedCount,
-      error_details: errors.length ? { errors, auth_used: authUsed } : { auth_used: authUsed },
-    } as any);
+    // New detailed history: finalize in-progress if possible
+    if (historyId) {
+      await supabase.from('quantum_invoice_sync_history').update({
+        sync_status: finalStatus,
+        invoices_processed: processedCount,
+        invoices_created: createdCount,
+        invoices_updated: updatedCount,
+        error_details: errors.length ? { errors, auth_used: authUsed } : { auth_used: authUsed },
+      } as any).eq('id', historyId);
+    } else {
+      await supabase.from('quantum_invoice_sync_history').insert({
+        org_id,
+        sync_status: finalStatus,
+        sync_type: syncType,
+        start_date: start || null,
+        end_date: end || null,
+        invoices_processed: processedCount,
+        invoices_created: createdCount,
+        invoices_updated: updatedCount,
+        error_details: errors.length ? { errors, auth_used: authUsed } : { auth_used: authUsed },
+      } as any);
+    }
 
     console.log(`✅ [Done] creadas=${createdCount}, actualizadas=${updatedCount}, errores=${errors.length}`);
 
