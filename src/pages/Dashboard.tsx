@@ -57,6 +57,29 @@ export default function Dashboard() {
     minute: '2-digit' 
   })
 
+  // SEO básico para el Dashboard
+  useEffect(() => {
+    try {
+      document.title = 'Dashboard CRM | KPIs y alertas en tiempo real'
+      // Meta description
+      let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null
+      if (!meta) {
+        meta = document.createElement('meta')
+        meta.name = 'description'
+        document.head.appendChild(meta)
+      }
+      meta.content = 'Dashboard CRM con KPIs, alertas y métricas en tiempo real para asesorías.'
+      // Canonical
+      let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null
+      if (!link) {
+        link = document.createElement('link')
+        link.rel = 'canonical'
+        document.head.appendChild(link)
+      }
+      link.href = window.location.origin + '/dashboard'
+    } catch {}
+  }, [])
+
   return (
     <StandardPageContainer>
       <StandardPageHeader
