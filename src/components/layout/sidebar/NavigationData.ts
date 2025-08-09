@@ -62,6 +62,11 @@ export const navigationData: NavigationSection[] = [
         url: "/outgoing-subscriptions",
         icon: CreditCard,
       },
+      {
+        title: "Facturación Quantum",
+        url: "/quantum/billing",
+        icon: BarChart3,
+      },
     ]
   },
   {
