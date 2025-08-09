@@ -17,7 +17,13 @@ Sentry.init({
   environment: import.meta.env.MODE,
 })
 
-// Initialize route optimization
-initializeRouteOptimization()
+// Initialize route optimization - SAFE MODE
+try {
+  initializeRouteOptimization()
+  console.log('✅ [Main] Route optimization initialized successfully')
+} catch (error) {
+  console.error('❌ [Main] Route optimization failed:', error)
+  // Continue without optimization to avoid breaking the app
+}
 
 createRoot(document.getElementById("root")!).render(<App />);

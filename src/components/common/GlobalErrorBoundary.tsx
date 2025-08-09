@@ -83,17 +83,52 @@ export class GlobalErrorBoundary extends React.Component<
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ errorInfo })
     
+    // Check for specific chunk/module loading errors
+    const isChunkError = error.message?.includes('Loading chunk') || 
+                        error.message?.includes('Loading CSS chunk') ||
+                        error.message?.includes('module script') ||
+                        error.stack?.includes('chunk-')
+    
+    const isReactError = error.message?.includes('Minified React error')
+    
+    // Enhanced logging for chunk errors
+    if (isChunkError) {
+      console.error('🧩 [GlobalErrorBoundary] Chunk loading error detected:', {
+        message: error.message,
+        isChunkError: true,
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      })
+    }
+    
+    if (isReactError) {
+      console.error('⚛️ [GlobalErrorBoundary] React error detected:', {
+        message: error.message,
+        isReactError: true,
+        url: window.location.href
+      })
+    }
+    
     // Log error using professional logger
     globalLogger.error('Global error boundary caught error', {
       error: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack,
+      isChunkError,
+      isReactError,
+      url: window.location.href
     })
 
     // Report to Sentry for observability
     Sentry.captureException(error, {
-      tags: { boundary: 'GlobalErrorBoundary' },
-      contexts: { react: { componentStack: errorInfo.componentStack } },
+      tags: { 
+        boundary: 'GlobalErrorBoundary',
+        errorType: isChunkError ? 'chunk_loading' : isReactError ? 'react_error' : 'unknown'
+      },
+      contexts: { 
+        react: { componentStack: errorInfo.componentStack },
+        app: { url: window.location.href }
+      },
     })
   }
 

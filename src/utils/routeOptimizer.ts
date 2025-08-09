@@ -175,67 +175,23 @@ export const addResourceHints = () => {
   }, { timeout: 3000 })
 }
 
-// Initialize route optimization
+// Initialize route optimization - SIMPLIFIED VERSION FOR STABILITY
 export const initializeRouteOptimization = () => {
-  // Add resource hints when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', addResourceHints)
-  } else {
-    addResourceHints()
-  }
+  console.log('🔧 [RouteOptimizer] Iniciando modo simplificado para evitar errores de chunks')
   
-  // Prefetch on hover for key routes
-  document.addEventListener('mouseenter', (e) => {
+  // Solo logging, sin prefetch problemático
+  document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement
     
-    // Safety check - ensure target is a valid element with closest method
-    if (!target || !target.nodeType || typeof target.closest !== 'function') return
+    if (!target || typeof target.closest !== 'function') return
     
     const link = target.closest('a[href]') as HTMLAnchorElement
     
     if (link && link.href.includes(window.location.origin)) {
       const route = new URL(link.href).pathname
-      const chunkName = routeToChunkMap[route]
-      
-      if (chunkName) {
-        console.log(`🚀 Prefetching chunk for route: ${route} -> ${chunkName}`)
-        prefetchChunk(`/${chunkName}`)
-      }
-      
-      // Special handling for dynamic routes
-      if (route.includes('/contacts') || route.includes('/clients')) {
-        prefetchChunk('/assets/chunk-clients')
-      } else if (route.includes('/cases') || route.includes('/tasks')) {
-        prefetchChunk('/assets/chunk-cases')
-      }
+      console.log(`🧭 [RouteOptimizer] Navegando a: ${route}`)
     }
   }, { passive: true })
-  
-  // Prefetch low priority chunks on user interaction
-  const prefetchLowPriority = () => {
-    const lowPriorityChunks = [
-      'assets/chunk-admin',
-      'assets/chunk-integrations', 
-      'assets/chunk-ai'
-    ]
-    
-    lowPriorityChunks.forEach(chunk => {
-      prefetchChunk(`/${chunk}`)
-    })
-  }
-  
-  // Trigger low priority prefetch on first user interaction
-  const interactionEvents = ['click', 'scroll', 'keydown']
-  const handleFirstInteraction = () => {
-    prefetchLowPriority()
-    interactionEvents.forEach(event => {
-      document.removeEventListener(event, handleFirstInteraction, { passive: true } as any)
-    })
-  }
-  
-  interactionEvents.forEach(event => {
-    document.addEventListener(event, handleFirstInteraction, { passive: true })
-  })
 }
 
 // Analytics for chunk loading

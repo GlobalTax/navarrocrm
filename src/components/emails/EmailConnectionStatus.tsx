@@ -24,21 +24,21 @@ export function EmailConnectionStatus() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'connected': return 'bg-hsl(var(--success))'
-      case 'connecting': return 'bg-hsl(var(--warning))'
-      case 'error': return 'bg-hsl(var(--destructive))'
-      case 'expired': return 'bg-hsl(var(--warning))'
-      default: return 'bg-hsl(var(--muted))'
+      case 'connected': return 'bg-green-500'
+      case 'connecting': return 'bg-yellow-500'
+      case 'error': return 'bg-red-500'
+      case 'expired': return 'bg-yellow-500'
+      default: return 'bg-gray-400'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'connected': return <CheckCircle2 className="h-5 w-5 text-hsl(var(--success))" />
-      case 'connecting': return <RefreshCw className="h-5 w-5 text-hsl(var(--warning)) animate-spin" />
-      case 'error': return <XCircle className="h-5 w-5 text-hsl(var(--destructive))" />
-      case 'expired': return <AlertTriangle className="h-5 w-5 text-hsl(var(--warning))" />
-      default: return <Clock className="h-5 w-5 text-hsl(var(--muted-foreground))" />
+      case 'connected': return <CheckCircle2 className="h-5 w-5 text-green-600" />
+      case 'connecting': return <RefreshCw className="h-5 w-5 text-yellow-600 animate-spin" />
+      case 'error': return <XCircle className="h-5 w-5 text-red-600" />
+      case 'expired': return <AlertTriangle className="h-5 w-5 text-yellow-600" />
+      default: return <Clock className="h-5 w-5 text-gray-500" />
     }
   }
 

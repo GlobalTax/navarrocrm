@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
@@ -38,7 +37,16 @@ serve(async (req) => {
 
     if (!clientId || !clientSecret) {
       console.error('❌ [outlook-auth] Credenciales no configuradas')
-      throw new Error('Microsoft Graph API credentials not configured')
+      return new Response(
+        JSON.stringify({ 
+          error: 'Microsoft Graph API credentials not configured',
+          details: 'Verificar MICROSOFT_CLIENT_ID y MICROSOFT_CLIENT_SECRET en Supabase Edge Functions secrets'
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
     }
 
     const redirectUri = `https://jzbbbwfnzpwxmuhpbdya.supabase.co/functions/v1/outlook-auth`
@@ -132,13 +140,40 @@ serve(async (req) => {
       }
     }
 
-    // Handle POST requests
-    const { code, action, refresh_token, user_id }: OutlookAuthRequest = await req.json()
+    // Handle POST requests - IMPROVED ERROR HANDLING
+    let requestData: OutlookAuthRequest
+    try {
+      const bodyText = await req.text()
+      console.log('📥 [outlook-auth] Body recibido:', bodyText ? 'PRESENTE' : 'VACÍO')
+      
+      if (!bodyText || bodyText.trim() === '') {
+        throw new Error('Request body is empty')
+      }
+      
+      requestData = JSON.parse(bodyText)
+      console.log('📋 [outlook-auth] Request parseado:', { 
+        action: requestData.action,
+        hasCode: !!requestData.code 
+      })
+    } catch (parseError) {
+      console.error('❌ [outlook-auth] Error parseando JSON:', parseError)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid JSON in request body',
+          details: parseError.message
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    const { code, action, refresh_token, user_id } = requestData
 
     switch (action) {
       case 'get_auth_url': {
         console.log('🔗 [outlook-auth] Generando URL de autorización...')
-        console.log('🔍 [outlook-auth] Headers recibidos:', Object.fromEntries(req.headers.entries()))
         
         // Para get_auth_url, simplificar la validación - solo verificar que hay un header válido
         const authHeader = req.headers.get('Authorization')
@@ -260,7 +295,16 @@ serve(async (req) => {
 
         if (tokenData.error) {
           console.error('❌ [outlook-auth] Error OAuth:', tokenData.error_description)
-          throw new Error(`OAuth error: ${tokenData.error_description}`)
+          return new Response(
+            JSON.stringify({ 
+              error: `OAuth error: ${tokenData.error}`,
+              details: tokenData.error_description
+            }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
 
         // Obtener info del usuario de Microsoft Graph
@@ -278,40 +322,36 @@ serve(async (req) => {
         // Obtener el usuario autenticado y su org_id
         console.log('🔐 [outlook-auth] Verificando usuario autenticado...')
         const authHeader = req.headers.get('Authorization')
-        console.log('🎫 [outlook-auth] Auth header:', { 
-          present: !!authHeader,
-          length: authHeader?.length || 0,
-          startsWithBearer: authHeader?.startsWith('Bearer ') || false
-        })
         
-        if (!authHeader) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
           console.error('❌ [outlook-auth] No authorization header provided')
-          throw new Error('Header de autorización requerido')
-        }
-        
-        if (!authHeader.startsWith('Bearer ')) {
-          console.error('❌ [outlook-auth] Invalid authorization header format')
-          throw new Error('Formato de header de autorización inválido')
+          return new Response(
+            JSON.stringify({ 
+              error: 'Header de autorización requerido',
+              details: 'Se requiere token de autorización para intercambiar código'
+            }),
+            { 
+              status: 401, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
         
         const token = authHeader.replace('Bearer ', '')
-        if (!token || token.trim() === '') {
-          console.error('❌ [outlook-auth] Empty token in authorization header')
-          throw new Error('Token de autorización vacío')
-        }
-        
-        console.log('🔍 [outlook-auth] Token extraído:', { length: token.length })
-        
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token)
         
-        if (authError) {
+        if (authError || !authUser) {
           console.error('❌ [outlook-auth] Error obteniendo usuario:', authError)
-          throw new Error(`Error de autenticación: ${authError.message}`)
-        }
-        
-        if (!authUser) {
-          console.error('❌ [outlook-auth] Usuario no autenticado - token inválido o expirado')
-          throw new Error('Token de autenticación inválido o expirado')
+          return new Response(
+            JSON.stringify({ 
+              error: 'Error de autenticación',
+              details: authError?.message || 'Usuario no autenticado'
+            }),
+            { 
+              status: 401, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
         
         console.log('✅ [outlook-auth] Usuario autenticado:', authUser.id)
@@ -324,34 +364,21 @@ serve(async (req) => {
           .eq('id', authUser.id)
           .single()
 
-        if (profileError) {
+        if (profileError || !userProfile?.org_id) {
           console.error('❌ [outlook-auth] Error obteniendo perfil:', profileError)
-          throw new Error(`Error obteniendo perfil: ${profileError.message}`)
-        }
-
-        if (!userProfile?.org_id) {
-          console.error('❌ [outlook-auth] Usuario sin organización')
-          throw new Error('Usuario sin organización asignada')
+          return new Response(
+            JSON.stringify({ 
+              error: 'Error obteniendo perfil de usuario',
+              details: profileError?.message || 'Usuario sin organización'
+            }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
         
         console.log('✅ [outlook-auth] Organización encontrada:', userProfile.org_id)
-
-        // Validar datos necesarios antes de guardar
-        if (!tokenData.access_token) {
-          console.error('❌ [outlook-auth] Access token faltante')
-          throw new Error('Access token no recibido de Microsoft')
-        }
-
-        if (!userData.mail && !userData.userPrincipalName) {
-          console.error('❌ [outlook-auth] Email del usuario no disponible')
-          throw new Error('No se pudo obtener el email del usuario')
-        }
-
-        // Log refresh token status
-        console.log('🔄 [outlook-auth] Refresh token status:', {
-          received: !!tokenData.refresh_token,
-          note: !tokenData.refresh_token ? 'No refresh token - Microsoft might not provide one for this flow' : 'Refresh token received'
-        })
 
         // Guardar tokens en la base de datos
         const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000)
@@ -392,8 +419,16 @@ serve(async (req) => {
         
         if (insertError) {
           console.error('❌ [outlook-auth] Error insertando token:', insertError)
-          console.error('🔍 [outlook-auth] Registro que falló:', tokenRecord)
-          throw new Error(`Error guardando token: ${insertError.message}`)
+          return new Response(
+            JSON.stringify({ 
+              error: 'Error guardando token',
+              details: insertError.message
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
         
         console.log('✅ [outlook-auth] Token insertado exitosamente:', {
@@ -433,7 +468,16 @@ serve(async (req) => {
         const tokenData = await tokenResponse.json()
 
         if (tokenData.error) {
-          throw new Error(`Refresh token error: ${tokenData.error_description}`)
+          return new Response(
+            JSON.stringify({ 
+              error: `Refresh token error: ${tokenData.error}`,
+              details: tokenData.error_description
+            }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
 
         // Actualizar tokens
@@ -445,28 +489,46 @@ serve(async (req) => {
         
         // Obtener el usuario autenticado
         const authHeader = req.headers.get('Authorization')
-        const { data: { user: authUser } } = await supabase.auth.getUser(authHeader?.replace('Bearer ', ''))
-        
-        if (!authUser) {
-          throw new Error('Usuario no autenticado')
-        }
-
-        const updateData: any = {
-          access_token_encrypted: encryptedAccessToken,
-          token_expires_at: expiresAt.toISOString()
+        if (!authHeader) {
+          return new Response(
+            JSON.stringify({ error: 'Header de autorización requerido' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
         }
         
-        // Solo actualizar refresh token si se recibió uno nuevo
-        if (encryptedRefreshToken) {
-          updateData.refresh_token_encrypted = encryptedRefreshToken
+        const token = authHeader.replace('Bearer ', '')
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token)
+        
+        if (authError || !authUser) {
+          return new Response(
+            JSON.stringify({ error: 'Error de autenticación' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
         }
 
-        const { data } = await supabase
+        // Actualizar en la base de datos
+        const { error: updateError } = await supabase
           .from('user_outlook_tokens')
-          .update(updateData)
+          .update({
+            access_token_encrypted: encryptedAccessToken,
+            refresh_token_encrypted: encryptedRefreshToken,
+            token_expires_at: expiresAt.toISOString(),
+            last_used_at: new Date().toISOString()
+          })
           .eq('user_id', authUser.id)
-          .select()
-          .single()
+
+        if (updateError) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'Error actualizando token',
+              details: updateError.message
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
 
         return new Response(
           JSON.stringify({ success: true, expires_at: expiresAt }),
@@ -475,52 +537,27 @@ serve(async (req) => {
       }
 
       default:
-        throw new Error('Acción no válida')
+        return new Response(
+          JSON.stringify({ error: 'Acción no válida' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
     }
 
   } catch (error) {
     console.error('❌ [outlook-auth] Error crítico:', error)
-    console.error('🔍 [outlook-auth] Stack trace:', error.stack)
     console.error('🔍 [outlook-auth] Error type:', typeof error)
-    
-    // Determinar el código de estado apropiado
-    let statusCode = 500
-    const errorMessage = error.message || 'Error interno del servidor'
-    
-    // Errores de autenticación específicos
-    if (errorMessage.includes('Header de autorización requerido') ||
-        errorMessage.includes('Formato de header de autorización inválido') ||
-        errorMessage.includes('Token de autorización vacío') ||
-        errorMessage.includes('Token de autenticación inválido o expirado') ||
-        errorMessage.includes('Usuario no autenticado') ||
-        errorMessage.includes('Error de autenticación')) {
-      statusCode = 401
-    }
-    
-    // Errores de autorización
-    if (errorMessage.includes('sin organización') ||
-        errorMessage.includes('sin permisos')) {
-      statusCode = 403
-    }
-    
-    // Errores de validación
-    if (errorMessage.includes('not configured') ||
-        errorMessage.includes('Acción no válida')) {
-      statusCode = 400
-    }
+    console.error('🔍 [outlook-auth] Stack trace:', error.stack)
     
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
-        timestamp: new Date().toISOString(),
-        function: 'outlook-auth',
-        statusCode,
-        ...(statusCode === 401 && {
-          requiresAuth: true,
-          message: 'Por favor, inicie sesión para continuar'
-        })
+        error: error.message || 'Error interno del servidor',
+        type: 'server_error',
+        details: 'Revisar logs de la función para más detalles'
       }),
-      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     )
   }
 })
