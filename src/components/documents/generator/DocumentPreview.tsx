@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAbortController } from '@/hooks/performance'
+import DOMPurify from 'dompurify'
 
 interface DocumentPreviewProps {
   content: string
@@ -206,7 +207,7 @@ export const DocumentPreview = ({
             {viewMode === 'formatted' ? (
               <div 
                 className="prose prose-sm max-w-none font-serif leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: formatContent(content) }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatContent(content)) }}
               />
             ) : (
               <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import { documentsLogger } from '@/utils/logging'
+import { useAutoSave } from '@/hooks/useAutoSave'
 
 // Tipos flexibles para compatibilidad temporal
 interface DocumentTemplate {
@@ -74,6 +75,18 @@ export const useDocumentForm = ({
         templateName: template.name,
         variablesCount: template.variables.length 
       })
+
+      // Intentar cargar borrador guardado
+      try {
+        const saved = localStorage.getItem(`doc-form-${template.id}`)
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          setFormData(parsed)
+          return
+        }
+      } catch (e) {
+        // ignorar errores de parseo
+      }
       
       const initialVariables: Record<string, string | number | boolean> = {}
       template.variables.forEach((variable: DocumentVariable) => {
@@ -302,6 +315,11 @@ export const useDocumentForm = ({
         contactId: '',
         useAI: false
       })
+
+      // Limpiar borrador guardado
+      try {
+        localStorage.removeItem(`doc-form-${template.id}`)
+      } catch {}
     }
     setErrors({})
   }, [template])

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useApp } from '@/contexts/AppContext'
 import { toast } from 'sonner'
+import Mustache from 'mustache'
 
 export interface DocumentTemplate {
   id: string
@@ -190,12 +191,8 @@ export const useDocumentTemplates = () => {
 
       if (templateError) throw templateError
 
-      // Reemplazar variables en el contenido
-      let content = template.template_content
-      Object.entries(params.variablesData).forEach(([key, value]) => {
-        const regex = new RegExp(`{{${key}}}`, 'g')
-        content = content.replace(regex, String(value))
-      })
+      // Reemplazar variables en el contenido usando Mustache (soporta secciones y condicionales con # y ^)
+      const content = Mustache.render(template.template_content, params.variablesData)
 
       // Guardar documento generado
       const { data, error } = await supabase
