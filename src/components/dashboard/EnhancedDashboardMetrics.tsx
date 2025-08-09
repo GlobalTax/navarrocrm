@@ -73,7 +73,7 @@ export const EnhancedDashboardMetrics = React.memo(({
         
         <CompactMetricWidget
           title="Clientes Activos"
-          value={stats.totalContacts}
+          value={stats.activeClients}
           icon={Users}
         />
         

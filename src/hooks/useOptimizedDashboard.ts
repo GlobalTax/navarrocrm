@@ -17,6 +17,7 @@ export interface OptimizedDashboardData {
     totalCases: number
     activeCases: number
     totalContacts: number
+    activeClients: number
     totalTimeEntries: number
     totalBillableHours: number
     totalNonBillableHours: number
@@ -139,7 +140,7 @@ export const useOptimizedDashboard = () => {
         // Cases (no limit)
         supabase
           .from('cases')
-          .select('id, title, status, created_at')
+          .select('id, title, status, created_at, contact_id')
           .eq('org_id', user.org_id),
 
         // Recent contacts (for activity feed)
@@ -198,7 +199,15 @@ export const useOptimizedDashboard = () => {
 
       // Calculate all metrics using utility functions
       const baseStats = calculateDashboardStats(cases, contacts, timeEntries)
-      const stats = { ...baseStats, totalContacts: totalContactsCount }
+      // Determine active clients = distinct contact_id with open cases
+      const activeClients = Array.from(
+        new Set(
+          (cases as any[])
+            .filter(c => c && c.status === 'open' && (c as any).contact_id)
+            .map(c => (c as any).contact_id)
+        )
+      ).length
+      const stats = { ...baseStats, totalContacts: totalContactsCount, activeClients }
       const performanceData = calculatePerformanceData(timeEntries)
       const quickStats = calculateQuickStats(timeEntries, tasks)
       const recentActivities = generateRecentActivities(contacts, cases, timeEntries, tasks)
