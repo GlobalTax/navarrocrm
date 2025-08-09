@@ -5171,6 +5171,7 @@ export type Database = {
           invoices_processed: number | null
           invoices_updated: number | null
           org_id: string
+          request_id: string
           start_date: string | null
           sync_status: string
           sync_type: string
@@ -5184,6 +5185,7 @@ export type Database = {
           invoices_processed?: number | null
           invoices_updated?: number | null
           org_id: string
+          request_id?: string
           start_date?: string | null
           sync_status: string
           sync_type?: string
@@ -5197,6 +5199,7 @@ export type Database = {
           invoices_processed?: number | null
           invoices_updated?: number | null
           org_id?: string
+          request_id?: string
           start_date?: string | null
           sync_status?: string
           sync_type?: string
@@ -5268,6 +5271,7 @@ export type Database = {
           id: string
           message: string | null
           records_processed: number | null
+          request_id: string
           status: string
           sync_date: string | null
         }
@@ -5276,6 +5280,7 @@ export type Database = {
           id?: string
           message?: string | null
           records_processed?: number | null
+          request_id?: string
           status: string
           sync_date?: string | null
         }
@@ -5284,6 +5289,7 @@ export type Database = {
           id?: string
           message?: string | null
           records_processed?: number | null
+          request_id?: string
           status?: string
           sync_date?: string | null
         }
