@@ -44,21 +44,24 @@ serve(async (req) => {
     });
 
     const quantumToken = Deno.env.get('quantum_api_token');
-    const companyId = '28171';
+    const companyId = Deno.env.get('quantum_company_id');
     
-    if (!quantumToken) {
-      const errorMsg = 'Token de Quantum Economics no configurado';
+    console.log(`🏢 Company ID: ${companyId ? `***${companyId.slice(-4)}` : 'NO CONFIGURADO'}`);
+    console.log(`🔑 Token: ${quantumToken ? `***${quantumToken.slice(-8)}` : 'NO CONFIGURADO'}`);
+    
+    if (!quantumToken || !companyId) {
+      const errorMsg = 'Credenciales de Quantum no configuradas (quantum_api_token o quantum_company_id)';
       console.error('❌', errorMsg);
       
       return new Response(
-        JSON.stringify({ success: false, error: errorMsg }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: errorMsg, config_status: { token_configured: !!quantumToken, company_id_configured: !!companyId } }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Llamar a la API de clientes de Quantum
     const apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/customers?companyId=${companyId}`;
-    console.log('📡 Llamando a API Quantum customers:', apiUrl);
+    console.log('📡 Llamando a API Quantum customers:', apiUrl.replace(companyId, `***${companyId.slice(-4)}`));
 
     let response: Response;
     try {
