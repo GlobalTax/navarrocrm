@@ -103,6 +103,14 @@ export default function DashboardPage() {
           />
         </LazyWidget>
       )}
+
+      {/* Estado de Facturación Quantum visible aunque no haya datos del dashboard */}
+      {(!data || isLoading) && (
+        <LazyWidget priority="immediate" className="mb-6">
+          <QuantumBillingStatusCard />
+        </LazyWidget>
+      )}
+
       
       {/* Layout principal optimizado con lazy loading */}
       {!isLoading && data && (
