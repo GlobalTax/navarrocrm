@@ -1,8 +1,11 @@
 
 import React from 'react'
 import { CompactMetricWidget } from './CompactMetricWidget'
+import { CriticalAlertsWidget } from './CriticalAlertsWidget'
+import { ExecutiveKPIWidget } from './ExecutiveKPIWidget'
 import { Clock, Users, FileText, Target, TrendingUp, Euro, AlertTriangle, CheckCircle } from 'lucide-react'
 import { OptimizedDashboardData } from '@/hooks/useOptimizedDashboard'
+import { useEnhancedDashboard } from '@/hooks/useEnhancedDashboard'
 
 interface OptimizedDashboardMetricsProps {
   data: OptimizedDashboardData
@@ -15,6 +18,8 @@ export const OptimizedDashboardMetrics = React.memo(({
   isLoading, 
   error 
 }: OptimizedDashboardMetricsProps) => {
+  // Datos mejorados del dashboard
+  const { data: enhancedData, isLoading: enhancedLoading } = useEnhancedDashboard()
   // Memoize expensive calculations
   const calculations = React.useMemo(() => {
     const { stats } = data
@@ -61,6 +66,22 @@ export const OptimizedDashboardMetrics = React.memo(({
 
   return (
     <div className="space-y-6 mb-6">
+      {/* KPIs Ejecutivos y Alertas Críticas */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ExecutiveKPIWidget 
+            kpis={enhancedData?.executiveKPIs || []} 
+            isLoading={enhancedLoading}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <CriticalAlertsWidget 
+            alerts={enhancedData?.alerts || []} 
+            isLoading={enhancedLoading}
+          />
+        </div>
+      </div>
+
       {/* Métricas principales - Grid compacto */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <CompactMetricWidget
