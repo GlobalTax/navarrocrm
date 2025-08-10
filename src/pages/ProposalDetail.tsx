@@ -12,7 +12,7 @@ import { useApp } from '@/contexts/AppContext'
 import { Proposal } from '@/types/proposals'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
-import { useProposals } from '@/hooks/useProposals'
+import { useProposalsActions } from '@/features/proposals'
 import { ProposalPricingTab } from '@/components/proposals/ProposalPricingTab'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
@@ -60,7 +60,7 @@ export default function ProposalDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useApp()
-  const { updateProposalStatus: updateStatus, isUpdating } = useProposals()
+  const { updateProposalStatus: updateStatus, isUpdating } = useProposalsActions()
   
   // Estado para manejo de wizards de propuestas
   const {

@@ -21,5 +21,5 @@ export { useProposalsList, useProposalsQueries, useProposalsActions } from './ho
 // Utils
 export * from './utils/proposalFormatters'
 
-// Types (placeholder)
-// export type { Proposal } from '@/types/proposal'
+// Types - export from centralized location
+export type { Proposal, CreateProposalData, ProposalLineItem } from '@/types/proposals'

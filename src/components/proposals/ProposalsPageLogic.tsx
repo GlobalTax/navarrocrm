@@ -1,6 +1,6 @@
 
 import { useMemo, useCallback } from 'react'
-import { useProposals } from '@/hooks/useProposals'
+import { useProposalsQueries, useProposalsActions } from '@/features/proposals'
 import { useSaveProposal } from '@/modules/proposals/hooks/useSaveProposal'
 import { useApp } from '@/contexts/AppContext'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
@@ -9,7 +9,8 @@ import { useOptimizedClients } from '@/hooks/useOptimizedClients'
 import { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
 
 export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) => {
-  const { proposals, isLoading, createProposal, updateProposalStatus, isCreating, error } = useProposals(onProposalWon)
+  const { proposals, isLoading, error, refetch } = useProposalsQueries()
+  const { createProposal, updateProposalStatus, isCreating } = useProposalsActions(onProposalWon)
   const { mutate: saveRecurrentProposal, isPending: isSavingRecurrent } = useSaveProposal()
   const { user } = useApp()
   const { clients } = useOptimizedClients()
