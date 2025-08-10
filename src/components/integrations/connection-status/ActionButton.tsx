@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button'
 import { Settings, RefreshCw } from 'lucide-react'
 import { ConnectionStatusType } from './types'
+import { Link } from 'react-router-dom'
 
 interface ActionButtonProps {
   status: ConnectionStatusType
@@ -13,20 +14,20 @@ export const ActionButton = ({ status, onRefresh }: ActionButtonProps) => {
     case 'not-configured':
       return (
         <Button size="sm" variant="outline" asChild>
-          <a href="/integrations">
+          <Link to="/integrations">
             <Settings className="h-4 w-4 mr-2" />
             Configurar
-          </a>
+          </Link>
         </Button>
       )
     case 'not-connected':
     case 'token-expired':
       return (
         <Button size="sm" variant="outline" asChild>
-          <a href="/integrations">
+          <Link to="/integrations">
             <RefreshCw className="h-4 w-4 mr-2" />
             Conectar
-          </a>
+          </Link>
         </Button>
       )
     case 'connected':

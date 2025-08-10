@@ -14,6 +14,7 @@ import { RecurringFeesList } from '@/components/recurring-fees/RecurringFeesList
 import { RecurringFeesDashboard } from '@/components/recurring-fees/RecurringFeesDashboard'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
+import { Link } from 'react-router-dom'
 
 const RecurrentFees = () => {
   const [filters, setFilters] = useState({
@@ -173,8 +174,8 @@ const RecurrentFees = () => {
         }}
         actions={
           <div className="flex gap-2">
-            <a href="/recurring-services/dashboard" className="underline text-sm">Dashboard servicios</a>
-            <a href="/reports/monthly-service-hours" className="underline text-sm">Reporte mensual</a>
+            <Link to="/recurring-services/dashboard" className="underline text-sm">Dashboard servicios</Link>
+            <Link to="/reports/monthly-service-hours" className="underline text-sm">Reporte mensual</Link>
           </div>
         }
       />

@@ -6,6 +6,7 @@ import { CheckCircle, Circle, ArrowRight } from 'lucide-react'
 import { useApp } from '@/contexts/AppContext'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
+import { Link } from 'react-router-dom'
 
 interface SetupStep {
   id: string
@@ -136,10 +137,10 @@ export const QuickSetupGuide = () => {
               
               {step.action && !step.completed && (
                 <Button size="sm" variant="outline" asChild>
-                  <a href={step.action.href} className="flex items-center gap-2">
+                  <Link to={step.action.href} className="flex items-center gap-2">
                     {step.action.label}
                     <ArrowRight className="h-4 w-4" />
-                  </a>
+                  </Link>
                 </Button>
               )}
             </div>

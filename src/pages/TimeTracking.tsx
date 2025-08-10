@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Clock, BarChart3, Timer, FileText, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
+import { Link } from 'react-router-dom'
 
 export default function TimeTracking() {
   const {
@@ -72,12 +73,12 @@ export default function TimeTracking() {
               <Timer className="h-4 w-4 mr-1" />
               {showFloatingTimer ? 'Ocultar' : 'Mostrar'} Timer Flotante
             </Button>
-            <a href="/reports/monthly-service-hours">
-              <Button variant="outline" size="sm">Reporte mensual</Button>
-            </a>
-            <a href="/recurring-services/dashboard">
-              <Button variant="outline" size="sm">Dashboard servicios</Button>
-            </a>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/reports/monthly-service-hours">Reporte mensual</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/recurring-services/dashboard">Dashboard servicios</Link>
+            </Button>
           </div>
         }
       />
