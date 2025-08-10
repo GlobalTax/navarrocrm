@@ -5915,6 +5915,93 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_service_contracts: {
+        Row: {
+          client_id: string
+          created_at: string
+          day_of_month: number
+          default_assignees: Json
+          default_budget_hours: Json
+          end_date: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          org_id: string
+          services: Json
+          start_date: string
+          task_templates: Json
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          day_of_month?: number
+          default_assignees?: Json
+          default_budget_hours?: Json
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          org_id: string
+          services?: Json
+          start_date: string
+          task_templates?: Json
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          day_of_month?: number
+          default_assignees?: Json
+          default_budget_hours?: Json
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          org_id?: string
+          services?: Json
+          start_date?: string
+          task_templates?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recurring_task_runs: {
+        Row: {
+          contract_id: string
+          created_at: string
+          errors: Json
+          id: string
+          org_id: string
+          period: string
+          run_status: string
+          tasks_created: number
+          tasks_ids: string[]
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          errors?: Json
+          id?: string
+          org_id: string
+          period: string
+          run_status: string
+          tasks_created?: number
+          tasks_ids?: string[]
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          errors?: Json
+          id?: string
+          org_id?: string
+          period?: string
+          run_status?: string
+          tasks_created?: number
+          tasks_ids?: string[]
+        }
+        Relationships: []
+      }
       retainer_contracts: {
         Row: {
           contact_id: string
@@ -6270,6 +6357,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_hours_allocations: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          period: string
+          planned_hours: number
+          target_id: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          period: string
+          planned_hours?: number
+          target_id: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          period?: string
+          planned_hours?: number
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       simple_employees: {
         Row: {
@@ -7233,6 +7359,8 @@ export type Database = {
           id: string
           is_billable: boolean
           org_id: string
+          service_contract_id: string | null
+          service_type: string | null
           updated_at: string | null
           user_id: string
         }
@@ -7245,6 +7373,8 @@ export type Database = {
           id?: string
           is_billable?: boolean
           org_id: string
+          service_contract_id?: string | null
+          service_type?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -7257,6 +7387,8 @@ export type Database = {
           id?: string
           is_billable?: boolean
           org_id?: string
+          service_contract_id?: string | null
+          service_type?: string | null
           updated_at?: string | null
           user_id?: string
         }
