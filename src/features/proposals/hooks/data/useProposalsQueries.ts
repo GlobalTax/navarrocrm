@@ -1,11 +1,11 @@
-import { useProposals } from '@/hooks/useProposals'
+import { useProposalsData } from '@/hooks/useProposalsData'
 
 export const useProposalsQueries = () => {
-  const proposalsData = useProposals()
+  const { proposals, isLoading, error, refetch } = useProposalsData()
   return {
-    proposals: proposalsData.proposals || [],
-    isLoading: proposalsData.isLoading || false,
-    error: proposalsData.error || null,
-    refetch: () => {}
+    proposals: proposals || [],
+    isLoading: isLoading || false,
+    error: error || null,
+    refetch
   }
 }

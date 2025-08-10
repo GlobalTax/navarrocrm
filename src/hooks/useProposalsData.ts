@@ -7,7 +7,7 @@ import type { Proposal } from '@/types/proposals'
 export const useProposalsData = () => {
   const { user } = useApp()
 
-  const { data: proposals = [], isLoading, error } = useQuery({
+  const { data: proposals = [], isLoading, error, refetch } = useQuery({
     queryKey: ['proposals', user?.org_id],
     queryFn: async () => {
       if (!user?.org_id) return []
@@ -50,6 +50,7 @@ export const useProposalsData = () => {
   return {
     proposals,
     isLoading,
-    error
+    error,
+    refetch
   }
 }

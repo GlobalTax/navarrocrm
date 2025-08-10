@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ProposalsList } from '../components/ProposalsList'
 import { ProposalsBuilderManager } from '../components/ProposalsBuilderManager'
 import { ProposalConfirmationDialog } from '../components/ProposalConfirmationDialog'
-import { useProposals } from '@/hooks/useProposals'
+import { useProposalsQueries, useProposalsActions } from '@/features/proposals'
 
 export default function ProposalsPage() {
   const [isRecurrentBuilderOpen, setIsRecurrentBuilderOpen] = useState(false)
@@ -10,7 +10,8 @@ export default function ProposalsPage() {
   const [selectedProposal, setSelectedProposal] = useState<any>(null)
   const [isEditMode, setIsEditMode] = useState(false)
 
-  const { proposals, updateProposalStatus } = useProposals()
+  const { proposals } = useProposalsQueries()
+  const { updateProposalStatus } = useProposalsActions()
 
   const handleCreateRecurrentProposal = () => {
     setIsEditMode(false)
