@@ -253,14 +253,14 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
                 Departamento
               </Label>
               <Select
-                value={form.watch('department_id') || ''}
-                onValueChange={(value) => form.setValue('department_id', value || null)}
+                value={form.watch('department_id') ?? 'none'}
+                onValueChange={(value) => form.setValue('department_id', value === 'none' ? null : value)}
               >
                 <SelectTrigger className="h-12 text-base border-2 border-border rounded-[10px] focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background">
                   <SelectValue placeholder={loadingDepartments ? 'Cargando...' : 'Selecciona un departamento (opcional)'} />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-2 border-border rounded-[10px] shadow-lg z-50">
-                  <SelectItem value="">Sin departamento</SelectItem>
+                  <SelectItem value="none">Sin departamento</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id} className="text-base py-3 hover:bg-accent">
                       {dept.name}

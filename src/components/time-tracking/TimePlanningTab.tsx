@@ -125,12 +125,12 @@ export function TimePlanningTab() {
 
         <div>
           <label className="text-sm font-medium">Servicio (opcional)</label>
-          <Select value={noteService} onValueChange={setNoteService}>
+          <Select value={noteService} onValueChange={(v) => setNoteService(v === 'none' ? '' : v)}>
             <SelectTrigger>
               <SelectValue placeholder="Servicio" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">(sin especificar)</SelectItem>
+              <SelectItem value="none">(sin especificar)</SelectItem>
               <SelectItem value="accounting">Contabilidad</SelectItem>
               <SelectItem value="tax">Fiscal</SelectItem>
               <SelectItem value="labor">Laboral</SelectItem>
