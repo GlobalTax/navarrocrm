@@ -51,7 +51,7 @@ const employeeSchema = z.object({
   // Información del perfil de empleado
   employee_number: z.string().optional(),
   employment_type: z.enum(['fixed', 'autonomous', 'temporary']),
-  hire_date: z.date({ required_error: 'Fecha de contratación es requerida' }),
+  hire_date: z.date(),
   date_of_birth: z.date().optional(),
   nationality: z.string().optional(),
   work_location: z.string().optional(),

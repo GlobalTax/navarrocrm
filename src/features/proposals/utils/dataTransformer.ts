@@ -1,5 +1,5 @@
 import type { ProposalLineItem } from '@/types/proposals'
-import type { SelectedService } from '@/types/proposals'
+import type { SelectedService } from '@/types/proposals/forms'
 
 /**
  * Transforma line_items del formulario a selectedServices para el servicio

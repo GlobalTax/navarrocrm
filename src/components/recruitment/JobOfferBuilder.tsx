@@ -47,7 +47,7 @@ const jobOfferSchema = z.object({
   department: z.string().optional(),
   salary_offered: z.number().min(0, 'Salario debe ser mayor a 0'),
   salary_currency: z.string().default('EUR'),
-  start_date: z.date({ required_error: 'Fecha de inicio requerida' }),
+  start_date: z.date(),
   contract_type: z.enum(['indefinido', 'temporal', 'practicas', 'freelance']).default('indefinido'),
   work_schedule: z.enum(['full_time', 'part_time', 'flexible']).default('full_time'),
   remote_work: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),

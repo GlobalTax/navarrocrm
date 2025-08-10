@@ -1,6 +1,6 @@
 import { LegalProposalBuilder } from '@/components/proposals/legal/LegalProposalBuilder'
 import { ProfessionalProposalBuilder } from '@/components/proposals/ProfessionalProposalBuilder'
-import { ProposalFormData } from '@/types/proposals'
+import type { ProposalFormData } from '@/types/proposals/forms'
 
 interface ProposalsBuilderManagerProps {
   isRecurrentBuilderOpen: boolean

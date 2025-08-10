@@ -5,7 +5,7 @@ import { useApp } from '@/contexts/AppContext'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { useProposalsFilters } from '@/hooks/proposals/useProposalsFilters'
 import { useOptimizedClients } from '@/hooks/useOptimizedClients'
-import { ProposalFormData } from '@/types/proposals'
+
 
 export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) => {
   const { proposals, isLoading, error, refetch } = useProposalsQueries()

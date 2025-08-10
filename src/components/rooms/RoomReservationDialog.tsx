@@ -23,8 +23,8 @@ import type { OfficeRoom } from '@/hooks/useOfficeRooms'
 const reservationSchema = z.object({
   title: z.string().min(1, 'El título es obligatorio'),
   purpose: z.string().optional(),
-  start_datetime: z.date({ required_error: 'La fecha de inicio es obligatoria' }),
-  end_datetime: z.date({ required_error: 'La fecha de fin es obligatoria' }),
+  start_datetime: z.date(),
+  end_datetime: z.date(),
   attendees_count: z.number().min(1, 'Debe haber al menos 1 asistente').optional(),
   attendees_emails: z.array(z.string().email()).optional(),
   setup_requirements: z.string().optional(),

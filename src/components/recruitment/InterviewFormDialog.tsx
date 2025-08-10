@@ -43,7 +43,7 @@ import { cn } from '@/lib/utils'
 const interviewSchema = z.object({
   candidate_id: z.string().min(1, 'Candidato requerido'),
   interview_type: z.enum(['technical', 'cultural', 'management', 'hr']),
-  scheduled_at: z.date({ required_error: 'Fecha y hora requerida' }),
+  scheduled_at: z.date(),
   duration_minutes: z.number().min(15, 'Mínimo 15 minutos').max(480, 'Máximo 8 horas'),
   interviewer_id: z.string().min(1, 'Entrevistador requerido'),
   location: z.string().optional(),

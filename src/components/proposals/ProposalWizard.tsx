@@ -12,7 +12,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, User, Briefcase, Euro, FileText, Ey
 import { useClients } from '@/hooks/useClients'
 import { useServiceCatalog } from '@/hooks/useServiceCatalog'
 import { toast } from 'sonner'
-import type { ProposalFormData } from '@/types/proposals'
+import type { ProposalFormData } from '@/types/proposals/forms'
 
 interface ProposalWizardProps {
   onBack: () => void
@@ -58,7 +58,8 @@ export const ProposalWizard: React.FC<ProposalWizardProps> = ({
           extraHourlyRate: editingProposal.hourly_rate_extra || 0,
           billingDay: editingProposal.billing_day || 1,
           autoRenewal: editingProposal.auto_renewal || false
-        }
+        },
+        currency: 'EUR'
       }
     }
     return {
@@ -76,7 +77,8 @@ export const ProposalWizard: React.FC<ProposalWizardProps> = ({
         extraHourlyRate: 0,
         billingDay: 1,
         autoRenewal: false
-      }
+      },
+      currency: 'EUR'
     }
   })
 

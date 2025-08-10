@@ -1,6 +1,6 @@
 
 import { useState } from 'react'
-import { ProposalFormData } from '@/types/proposals'
+import type { ProposalFormData } from '@/types/proposals/forms'
 import { useProposalActions } from '@/hooks/proposals/useProposalActions'
 import { useOnboarding } from '@/contexts/OnboardingContext'
 
