@@ -17,9 +17,14 @@ export { ProposalEmptyState } from './components/ProposalEmptyState'
 
 // Hooks
 export { useProposalsList, useProposalsQueries, useProposalsActions } from './hooks'
+export { useSaveProposal } from './hooks/useSaveProposal'
 
 // Utils
 export * from './utils/proposalFormatters'
+export * from './utils/dataTransformer'
+
+// Services
+export * from './services/proposal.service'
 
 // Types - export from centralized location
 export type { Proposal, CreateProposalData, ProposalLineItem } from '@/types/proposals'
