@@ -13,7 +13,7 @@ import { ClientServicesSection } from '@/components/clients/ClientServicesSectio
 import { ClientCommunicationsSection } from '@/components/clients/ClientCommunicationsSection'
 import { ClientDocumentsSection } from '@/components/clients/ClientDocumentsSection'
 import { ClientTimelineSection } from '@/components/clients/ClientTimelineSection'
-
+import { ClientRecurringServicesSection } from '@/components/recurring/ClientRecurringServicesSection'
 interface Client {
   id: string
   name: string
@@ -195,12 +195,15 @@ const ClientDetail = () => {
 
       {/* Professional Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 bg-slate-50 border border-slate-200">
+        <TabsList className="grid w-full grid-cols-7 bg-slate-50 border border-slate-200">
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
             Resumen
           </TabsTrigger>
           <TabsTrigger value="services" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
             Servicios
+          </TabsTrigger>
+          <TabsTrigger value="recurring-services" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
+            Servicios Recurrentes
           </TabsTrigger>
           <TabsTrigger value="communications" className="data-[state=active]:bg-white data-[state=active]:text-slate-900 text-slate-600">
             Comunicaciones
@@ -222,6 +225,10 @@ const ClientDetail = () => {
 
         <TabsContent value="services" className="space-y-6 mt-6">
           <ClientServicesSection clientId={client.id} />
+        </TabsContent>
+
+        <TabsContent value="recurring-services" className="space-y-6 mt-6">
+          <ClientRecurringServicesSection clientId={client.id} clientName={client.name} />
         </TabsContent>
 
         <TabsContent value="communications" className="space-y-6 mt-6">
