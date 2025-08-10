@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { ArrowLeft } from 'lucide-react'
 import { useOutgoingSubscriptions } from '@/hooks/useOutgoingSubscriptions'
 import { useSubscriptionTemplates } from '@/hooks/useSubscriptionTemplates'
@@ -30,6 +31,7 @@ const formSchema = z.object({
   billing_cycle: z.enum(['MONTHLY', 'YEARLY', 'OTHER']),
   start_date: z.string().min(1, 'La fecha de inicio es obligatoria'),
   next_renewal_date: z.string().min(1, 'La fecha de renovación es obligatoria'),
+  auto_renew: z.boolean().default(true),
   payment_method: z.string().optional(),
   responsible_user_id: z.string().min(1, 'El usuario responsable es obligatorio'),
   department_id: z.string().optional().nullable(),
@@ -63,6 +65,7 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
       billing_cycle: subscription?.billing_cycle || 'MONTHLY',
       start_date: subscription?.start_date || new Date().toISOString().split('T')[0],
       next_renewal_date: subscription?.next_renewal_date || new Date().toISOString().split('T')[0],
+      auto_renew: (subscription as any)?.auto_renew ?? true,
       payment_method: subscription?.payment_method || '',
       responsible_user_id: subscription?.responsible_user_id || user?.id || '',
       department_id: (subscription as any)?.department_id || null,
@@ -436,6 +439,16 @@ export const OutgoingSubscriptionForm = ({ subscription, onClose }: Props) => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* Renovación automática */}
+            <div className="flex items-center gap-3 py-2">
+              <Switch
+                id="auto_renew"
+                checked={form.watch('auto_renew')}
+                onCheckedChange={(checked) => form.setValue('auto_renew', checked)}
+              />
+              <Label htmlFor="auto_renew">Renovación automática</Label>
             </div>
 
             {/* Sección: Información Adicional */}

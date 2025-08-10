@@ -4770,6 +4770,7 @@ export type Database = {
       outgoing_subscriptions: {
         Row: {
           amount: number
+          auto_renew: boolean
           billing_cycle: string
           category: string
           created_at: string
@@ -4791,6 +4792,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          auto_renew?: boolean
           billing_cycle?: string
           category?: string
           created_at?: string
@@ -4812,6 +4814,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          auto_renew?: boolean
           billing_cycle?: string
           category?: string
           created_at?: string

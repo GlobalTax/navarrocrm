@@ -9,6 +9,7 @@ export interface OutgoingSubscription {
   billing_cycle: 'MONTHLY' | 'YEARLY' | 'OTHER'
   start_date: string
   next_renewal_date: string
+  auto_renew: boolean
   status: 'ACTIVE' | 'CANCELLED'
   payment_method?: string
   responsible_user_id: string
@@ -29,6 +30,7 @@ export interface CreateOutgoingSubscriptionData {
   billing_cycle: OutgoingSubscription['billing_cycle']
   start_date: string
   next_renewal_date: string
+  auto_renew?: boolean
   payment_method?: string
   responsible_user_id: string
   department_id?: string | null
