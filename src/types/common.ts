@@ -2,25 +2,13 @@
 
 // ============ TIPOS DE ENTIDADES DE NEGOCIO ============
 
-export interface ProposalFormData {
-  clientId: string
-  title: string
-  description?: string
-  total_amount: number
-  is_recurring?: boolean
-  recurring_frequency?: 'monthly' | 'quarterly' | 'yearly'
-  contract_start_date?: string
-  contract_end_date?: string
-  billing_day?: number
-  retainer_amount?: number
-  included_hours?: number
-  hourly_rate_extra?: number
-  next_billing_date?: string
-  line_items?: ProposalLineItem[]
-  status?: 'draft' | 'sent' | 'won' | 'lost'
-  proposal_type?: 'one_time' | 'retainer' | 'recurring'
-}
+export type { ProposalFormData } from '@/types/proposals/forms'
 
+
+/**
+ * @deprecated Usa ProposalLineItem de '@/types/proposals'.
+ * Este tipo era preliminar y puede no coincidir con el modelo final.
+ */
 export interface ProposalLineItem {
   id?: string
   proposal_id?: string
@@ -29,6 +17,7 @@ export interface ProposalLineItem {
   unit_price: number
   total_price: number
 }
+
 
 export interface FormEvent extends Event {
   preventDefault: () => void
