@@ -40,6 +40,7 @@ export function ClientRecurringServicesSection({ clientId, clientName }: ClientR
   const { user } = useApp()
   const [open, setOpen] = useState(false)
   const [period] = useState(formatPeriod())
+  const canManage = !!user?.role && ['partner','area_manager'].includes(user.role as string)
 
   const { data: contracts = [], refetch } = useQuery({
     queryKey: ['recurring-contracts', clientId],
@@ -58,6 +59,23 @@ export function ClientRecurringServicesSection({ clientId, clientName }: ClientR
       return data || []
     },
     enabled: !!user?.org_id && !!clientId,
+  })
+
+  const { data: monthHours = [] } = useQuery({
+    queryKey: ['monthly-service-hours', user?.org_id, period],
+    queryFn: async () => {
+      if (!user?.org_id) return []
+      const { data, error } = await supabase.rpc('get_monthly_service_hours', {
+        org_uuid: user.org_id,
+        period
+      })
+      if (error) {
+        console.error('Error loading monthly hours', error)
+        return []
+      }
+      return data as any[]
+    },
+    enabled: !!user?.org_id,
   })
 
   const current = period
@@ -100,13 +118,17 @@ export function ClientRecurringServicesSection({ clientId, clientName }: ClientR
           <h3 className="text-lg font-medium text-slate-900">Servicios Recurrentes</h3>
           <p className="text-sm text-slate-600">Contratos activos para {clientName}</p>
         </div>
-        <Button onClick={() => setOpen(true)} className="bg-slate-900 hover:bg-slate-800">Nuevo contrato</Button>
+        {canManage && (
+          <Button onClick={() => setOpen(true)} className="bg-slate-900 hover:bg-slate-800">Nuevo contrato</Button>
+        )}
       </div>
 
       {contracts.length === 0 ? (
         <div className="text-center py-12 bg-slate-50 rounded-lg border border-slate-200">
           <p className="text-slate-600 mb-4">No hay contratos de servicios recurrentes</p>
-          <Button size="sm" onClick={() => setOpen(true)} className="bg-slate-900 hover:bg-slate-800">Crear contrato</Button>
+          {canManage && (
+            <Button size="sm" onClick={() => setOpen(true)} className="bg-slate-900 hover:bg-slate-800">Crear contrato</Button>
+          )}
         </div>
       ) : (
         <div className="grid gap-4">
@@ -125,20 +147,34 @@ export function ClientRecurringServicesSection({ clientId, clientName }: ClientR
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => onGenerate(c.id)}>Generar tareas de este mes</Button>
-                    <Button variant="outline" size="sm" onClick={() => onSkip(c.id)}>Saltar este mes</Button>
+                    {canManage && (
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => onGenerate(c.id)}>Generar tareas de este mes</Button>
+                        <Button variant="outline" size="sm" onClick={() => onSkip(c.id)}>Saltar este mes</Button>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {activeServices.map((s) => (
-                      <div key={s} className="border border-slate-200 rounded-md p-3 bg-slate-50">
-                        <div className="text-sm text-slate-700 font-medium mb-2">{s}</div>
-                        <div className="text-sm text-slate-600">Mes actual: <span className="font-medium text-slate-900">{current}</span> · vencimiento {dateWithDay(current, c.day_of_month)}</div>
-                        <div className="text-sm text-slate-600">Siguiente mes: <span className="font-medium text-slate-900">{next}</span> · vencimiento {dateWithDay(next, c.day_of_month)}</div>
-                      </div>
-                    ))}
+                    {activeServices.map((s) => {
+                      const target = c.sla_config?.[s] ?? 0
+                      const found = (monthHours as any[]).find(
+                        (h: any) => h.service_contract_id === c.id && h.service_type === s
+                      )
+                      const actual = Number(found?.actual_hours || 0)
+                      const delta = actual - Number(target)
+                      const statusColor = delta <= 0 ? 'text-emerald-700' : delta <= target * 0.2 ? 'text-amber-600' : 'text-red-600'
+                      return (
+                        <div key={s} className="border border-slate-200 rounded-md p-3 bg-slate-50">
+                          <div className="text-sm text-slate-700 font-medium mb-2">{s}</div>
+                          <div className="text-sm text-slate-600">Mes actual: <span className="font-medium text-slate-900">{current}</span> · vencimiento {dateWithDay(current, c.day_of_month)}</div>
+                          <div className="text-sm text-slate-600">SLA objetivo: <span className="font-medium">{Number(target).toFixed(1)} h</span> · Real: <span className="font-medium">{actual.toFixed(1)} h</span> · <span className={`font-semibold ${statusColor}`}>{delta <= 0 ? 'En verde' : delta <= target * 0.2 ? 'Ámbar' : 'Rojo'}</span></div>
+                          <div className="text-sm text-slate-600">Siguiente mes: <span className="font-medium text-slate-900">{next}</span> · vencimiento {dateWithDay(next, c.day_of_month)}</div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -152,13 +188,17 @@ export function ClientRecurringServicesSection({ clientId, clientName }: ClientR
           <DialogHeader>
             <DialogTitle>Nuevo contrato de servicios</DialogTitle>
           </DialogHeader>
-          <RecurringServiceContractDialog
-            clientId={clientId}
-            onClose={async () => {
-              setOpen(false)
-              await refetch()
-            }}
-          />
+          {canManage ? (
+            <RecurringServiceContractDialog
+              clientId={clientId}
+              onClose={async () => {
+                setOpen(false)
+                await refetch()
+              }}
+            />
+          ) : (
+            <div className="text-sm text-slate-600">No tienes permisos para crear/editar contratos.</div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -34,6 +34,14 @@ const OutgoingSubscriptionsPage = createOptimizedLazy(
   () => import('@/pages/OutgoingSubscriptionsPage'),
   RoutePriority.MEDIUM
 )
+const ReportsMonthlyServiceHours = createOptimizedLazy(
+  () => import('@/pages/ReportsMonthlyServiceHours'),
+  RoutePriority.MEDIUM
+)
+const RecurringServicesDashboard = createOptimizedLazy(
+  () => import('@/pages/RecurringServicesDashboard'),
+  RoutePriority.MEDIUM
+)
 
 // Business loading skeleton
 const BusinessSkeleton = () => (
@@ -119,6 +127,26 @@ export const businessRoutes: RouteConfig[] = [
       <Suspense fallback={<BusinessSkeleton />}>
         <FeatureBoundary feature="Suscripciones Externas">
           <OutgoingSubscriptionsPage />
+        </FeatureBoundary>
+      </Suspense>
+    )
+  },
+  {
+    path: '/reports/monthly-service-hours',
+    element: (
+      <Suspense fallback={<BusinessSkeleton />}>
+        <FeatureBoundary feature="Reportes">
+          <ReportsMonthlyServiceHours />
+        </FeatureBoundary>
+      </Suspense>
+    )
+  },
+  {
+    path: '/recurring-services/dashboard',
+    element: (
+      <Suspense fallback={<BusinessSkeleton />}>
+        <FeatureBoundary feature="Servicios Recurrentes">
+          <RecurringServicesDashboard />
         </FeatureBoundary>
       </Suspense>
     )

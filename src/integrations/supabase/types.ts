@@ -8100,6 +8100,18 @@ export type Database = {
           conversion_rate: number
         }[]
       }
+      get_monthly_service_hours: {
+        Args: { org_uuid: string; period: string }
+        Returns: {
+          service_contract_id: string
+          contact_id: string
+          client_name: string
+          service_type: Database["public"]["Enums"]["service_type"]
+          allocated_hours: number
+          actual_hours: number
+          delta_hours: number
+        }[]
+      }
       get_monthly_time_stats: {
         Args: { org_uuid: string; target_month?: number; target_year?: number }
         Returns: {
@@ -8190,6 +8202,7 @@ export type Database = {
         | "declined"
         | "invoiced"
         | "archived"
+      service_type: "accounting" | "tax" | "labor"
       task_priority: "low" | "medium" | "high" | "urgent" | "critical"
       task_status:
         | "pending"
@@ -8345,6 +8358,7 @@ export const Constants = {
         "invoiced",
         "archived",
       ],
+      service_type: ["accounting", "tax", "labor"],
       task_priority: ["low", "medium", "high", "urgent", "critical"],
       task_status: [
         "pending",
