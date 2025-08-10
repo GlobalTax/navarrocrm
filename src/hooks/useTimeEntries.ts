@@ -32,6 +32,8 @@ export interface CreateTimeEntryData {
   duration_minutes: number
   is_billable?: boolean
   entry_type?: 'billable' | 'office_admin' | 'business_development' | 'internal'
+  service_contract_id?: string | null
+  service_type?: 'accounting' | 'tax' | 'labor' | null
 }
 
 export const useTimeEntries = () => {
@@ -104,6 +106,8 @@ export const useTimeEntries = () => {
           duration_minutes: data.duration_minutes,
           is_billable: data.is_billable !== false,
           entry_type: data.entry_type || 'billable',
+          service_contract_id: data.service_contract_id ?? null,
+          service_type: data.service_type ?? null,
         })
         .select()
         .maybeSingle()

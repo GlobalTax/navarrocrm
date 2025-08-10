@@ -33,6 +33,8 @@ interface TimeEntry {
   duration_minutes: number
   is_billable: boolean
   created_at: string
+  service_contract_id: string | null
+  service_type: 'accounting' | 'tax' | 'labor' | null
   user: {
     email: string
   }

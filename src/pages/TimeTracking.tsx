@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Clock, BarChart3, Timer, FileText, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
+import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
 
 export default function TimeTracking() {
   const {
@@ -76,7 +77,7 @@ export default function TimeTracking() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Dashboard
@@ -88,6 +89,10 @@ export default function TimeTracking() {
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Resumen
+          </TabsTrigger>
+          <TabsTrigger value="planning" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Planificación
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -117,6 +122,10 @@ export default function TimeTracking() {
 
         <TabsContent value="summary" className="space-y-6">
           <TimeTrackingSummary />
+        </TabsContent>
+
+        <TabsContent value="planning" className="space-y-6">
+          <TimePlanningTab />
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
