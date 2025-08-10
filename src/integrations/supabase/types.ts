@@ -4398,6 +4398,42 @@ export type Database = {
           },
         ]
       }
+      notifications_log: {
+        Row: {
+          contract_id: string | null
+          error_message: string | null
+          id: string
+          notification_stage: string
+          org_id: string
+          recipient_user_id: string
+          sent_at: string
+          status: string
+          task_id: string
+        }
+        Insert: {
+          contract_id?: string | null
+          error_message?: string | null
+          id?: string
+          notification_stage: string
+          org_id: string
+          recipient_user_id: string
+          sent_at?: string
+          status: string
+          task_id: string
+        }
+        Update: {
+          contract_id?: string | null
+          error_message?: string | null
+          id?: string
+          notification_stage?: string
+          org_id?: string
+          recipient_user_id?: string
+          sent_at?: string
+          status?: string
+          task_id?: string
+        }
+        Relationships: []
+      }
       nylas_connections: {
         Row: {
           account_id: string | null
@@ -5928,6 +5964,7 @@ export type Database = {
           is_active: boolean
           org_id: string
           services: Json
+          sla_config: Json
           start_date: string
           task_templates: Json
           updated_at: string
@@ -5944,6 +5981,7 @@ export type Database = {
           is_active?: boolean
           org_id: string
           services?: Json
+          sla_config?: Json
           start_date: string
           task_templates?: Json
           updated_at?: string
@@ -5960,6 +5998,7 @@ export type Database = {
           is_active?: boolean
           org_id?: string
           services?: Json
+          sla_config?: Json
           start_date?: string
           task_templates?: Json
           updated_at?: string
