@@ -171,6 +171,12 @@ const RecurrentFees = () => {
           label: 'Nueva Cuota',
           onClick: handleNewFee
         }}
+        actions={
+          <div className="flex gap-2">
+            <a href="/recurring-services/dashboard" className="underline text-sm">Dashboard servicios</a>
+            <a href="/reports/monthly-service-hours" className="underline text-sm">Reporte mensual</a>
+          </div>
+        }
       />
 
       <RecurringFeesDashboard fees={recurringFees} />

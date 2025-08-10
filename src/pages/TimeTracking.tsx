@@ -72,6 +72,12 @@ export default function TimeTracking() {
               <Timer className="h-4 w-4 mr-1" />
               {showFloatingTimer ? 'Ocultar' : 'Mostrar'} Timer Flotante
             </Button>
+            <a href="/reports/monthly-service-hours">
+              <Button variant="outline" size="sm">Reporte mensual</Button>
+            </a>
+            <a href="/recurring-services/dashboard">
+              <Button variant="outline" size="sm">Dashboard servicios</Button>
+            </a>
           </div>
         }
       />
