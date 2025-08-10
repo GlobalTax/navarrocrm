@@ -57,6 +57,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
       recurring_frequency: proposalData.retainerConfig.billingFrequency === 'monthly' ? 'monthly' : 
                           proposalData.retainerConfig.billingFrequency === 'quarterly' ? 'quarterly' : 'yearly',
       retainerConfig: proposalData.retainerConfig,
+      currency: 'EUR',
       selectedArea: proposalData.selectedArea
     }
     onSave(convertedData)
