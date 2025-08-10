@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client'
-import type { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
+import type { ProposalFormData } from '@/types/proposals'
 import { transformLineItemsToServices, validateProposalData } from '../utils/dataTransformer'
 
 export const saveProposal = async (proposalData: ProposalFormData | any) => {

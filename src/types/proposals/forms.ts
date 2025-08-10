@@ -1,3 +1,6 @@
+/**
+ * Tipos específicos para formularios de propuestas
+ */
 
 import { z } from 'zod'
 
@@ -67,13 +70,9 @@ export const proposalSchema = z.object({
   pricingTiers: z.array(pricingTierSchema).optional()
 })
 
-// Exportar tipos
+// Exportar tipos de schemas
 export interface ProposalFormData extends z.infer<typeof proposalSchema> {}
-
 export interface SelectedService extends z.infer<typeof selectedServiceSchema> {}
-
 export interface RetainerConfig extends z.infer<typeof retainerConfigSchema> {}
-
 export interface ServiceItemFormData extends z.infer<typeof serviceItemSchema> {}
-
 export interface PricingTierFormData extends z.infer<typeof pricingTierSchema> {}

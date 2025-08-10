@@ -12,7 +12,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, User, Briefcase, Euro, FileText, Ey
 import { useClients } from '@/hooks/useClients'
 import { useServiceCatalog } from '@/hooks/useServiceCatalog'
 import { toast } from 'sonner'
-import type { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
+import type { ProposalFormData } from '@/types/proposals'
 
 interface ProposalWizardProps {
   onBack: () => void

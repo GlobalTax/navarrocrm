@@ -6,7 +6,7 @@ import { LegalProposalNavigation } from './components/LegalProposalNavigation'
 import { LegalProposalStepContent } from './components/LegalProposalStepContent'
 import { LegalProposalProgressBar } from './components/LegalProposalProgressBar'
 import { useLegalProposalState } from './hooks/useLegalProposalState'
-import type { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
+import type { ProposalFormData } from '@/types/proposals'
 
 interface LegalProposalBuilderProps {
   onClose: () => void

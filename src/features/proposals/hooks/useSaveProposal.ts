@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { saveProposal } from '../services/proposal.service'
 import { toast } from 'sonner'
-import type { ProposalFormData } from '@/modules/proposals/types/proposal.schema'
+import type { ProposalFormData } from '@/types/proposals'
 
 export const useSaveProposal = () => {
   const queryClient = useQueryClient()

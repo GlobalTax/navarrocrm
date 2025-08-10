@@ -6,5 +6,8 @@
 // Main proposal types (from core proposals module)
 export * from '../proposals'
 
-// Feature-specific types for proposal builder
-export * from '../../components/proposals/legal/types/legalProposal.types'
+// Form schemas and types (includes SelectedService)
+export * from './forms'
+
+// Re-export specific types from legal types but avoid conflicts
+export type { LegalProposalData, ProposalStep, PROPOSAL_STEPS } from '../../components/proposals/legal/types/legalProposal.types'
