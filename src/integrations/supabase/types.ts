@@ -8185,6 +8185,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      validate_rls_setup: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
