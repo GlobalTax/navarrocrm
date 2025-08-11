@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
-
+import DeedsForm from '@/pages/deeds/DeedsForm'
+import DeedsFilters, { DeedsFiltersState } from '@/pages/deeds/DeedsFilters'
+import DeedsTable from '@/pages/deeds/DeedsTable'
+import { useContactsBasic } from '@/hooks/useContactsBasic'
 // Types
 interface PublicDeed {
   id: string
@@ -34,21 +33,6 @@ interface PublicDeed {
   updated_at: string
 }
 
-interface ContactOption { id: string; name: string }
-
-const useContacts = () => {
-  return useQuery<{ id: string; name: string }[]>({
-    queryKey: ['contacts-basic'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('id,name')
-        .order('name', { ascending: true })
-      if (error) throw error
-      return data || []
-    }
-  })
-}
 
 const useDeeds = () => {
   return useQuery<PublicDeed[]>({
@@ -81,7 +65,7 @@ export default function DeedsPage() {
 
   const qc = useQueryClient()
   const { data: deeds = [], isLoading } = useDeeds()
-  const { data: contacts = [] } = useContacts()
+  const { data: contacts = [] } = useContactsBasic()
   const contactNameById = useMemo(() => {
     const m = new Map<string, string>()
     contacts.forEach((c) => m.set(c.id, c.name))
@@ -96,10 +80,26 @@ export default function DeedsPage() {
     notary_office: ''
   })
 
+  const [filters, setFilters] = useState<DeedsFiltersState>({ search: '', type: 'all', status: 'all' })
+
   const deedTypes = useMemo(
     () => ['compraventa', 'hipoteca', 'poderes', 'constitucion_sociedad', 'arrendamiento', 'otros'],
     []
   )
+
+  const filteredDeeds = useMemo(() => {
+    let list = [...deeds]
+    if (filters.type !== 'all') list = list.filter(d => d.deed_type === filters.type)
+    if (filters.status !== 'all') list = list.filter(d => (d.status ?? 'draft') === filters.status)
+    if (filters.search) {
+      const term = filters.search.toLowerCase()
+      list = list.filter(d =>
+        d.title.toLowerCase().includes(term) ||
+        (contactNameById.get(d.contact_id)?.toLowerCase().includes(term) ?? false)
+      )
+    }
+    return list
+  }, [deeds, filters, contactNameById])
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -135,6 +135,20 @@ export default function DeedsPage() {
     onError: (e: any) => toast.error(e?.message || 'Error al crear la escritura')
   })
 
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from('public_deeds').update({ status }).eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: async () => {
+      toast.success('Estado actualizado')
+      await qc.invalidateQueries({ queryKey: ['public_deeds'] })
+    },
+    onError: (e: any) => toast.error(e?.message || 'Error al actualizar estado')
+  })
+
+  const handleUpdateStatus = (id: string, status: string) => updateStatusMutation.mutate({ id, status })
+
   return (
     <div className="space-y-6">
       <header>
@@ -143,60 +157,28 @@ export default function DeedsPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulario de alta */}
         <Card className="p-4 border rounded-[10px] shadow-sm hover:shadow-lg transition-transform duration-200 ease-out">
           <h2 className="text-lg font-medium mb-3">Nueva escritura</h2>
-          <div className="space-y-3">
-            <div>
-              <Label htmlFor="title">Título</Label>
-              <Input id="title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-            </div>
-            <div>
-              <Label>Tipo</Label>
-              <Select value={form.deed_type} onValueChange={(v) => setForm((f) => ({ ...f, deed_type: v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {deedTypes.map((t) => (
-                    <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Cliente</Label>
-              <Select value={form.contact_id} onValueChange={(v) => setForm((f) => ({ ...f, contact_id: v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecciona cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {contacts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Notaría</Label>
-              <Input value={form.notary_office} onChange={(e) => setForm((f) => ({ ...f, notary_office: e.target.value }))} />
-            </div>
-            <div>
-              <Label>Fecha firma</Label>
-              <Input type="date" value={form.signing_date} onChange={(e) => setForm((f) => ({ ...f, signing_date: e.target.value }))} />
-            </div>
-            <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creando…' : 'Crear escritura'}
-            </Button>
-          </div>
+          <DeedsForm
+            form={form}
+            deedTypes={deedTypes}
+            contacts={contacts}
+            isSubmitting={createMutation.isPending}
+            onChange={(next) => setForm((f) => ({ ...f, ...next }))}
+            onSubmit={() => createMutation.mutate()}
+          />
         </Card>
 
         {/* Listado */}
         <Card className="lg:col-span-2 p-4 border rounded-[10px] shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-medium">Listado</h2>
-            <Button variant="outline" onClick={() => qc.invalidateQueries({ queryKey: ['public_deeds'] })}>Refrescar</Button>
           </div>
+          <DeedsFilters
+            filters={filters}
+            deedTypes={deedTypes}
+            onChange={(next) => setFilters((f) => ({ ...f, ...next }))}
+          />
 
           {isLoading ? (
             <div className="space-y-2">
