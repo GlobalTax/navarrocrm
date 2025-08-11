@@ -14,6 +14,7 @@ export { adminRoutes } from './admin.routes'
 export { integrationRoutes } from './integrations.routes'
 export { aiRoutes } from './ai.routes'
 export { facilitiesRoutes } from './facilities.routes'
+export { deedsRoutes } from './deeds.routes'
 
 export {
   authRoutes,

@@ -14,6 +14,7 @@ import { adminRoutes } from './admin.routes'
 import { integrationRoutes } from './integrations.routes'
 import { aiRoutes } from './ai.routes'
 import { facilitiesRoutes } from './facilities.routes'
+import { deedsRoutes } from './deeds.routes'
 
 // Orchestrator - combines all domain routes with correct loading priorities
 export const protectedRoutes: RouteModule = {
@@ -45,6 +46,7 @@ export const protectedRoutes: RouteModule = {
             ...communicationRoutes,
             ...businessRoutes,
             ...hrRoutes,
+            ...deedsRoutes,
             
             // LOW priority routes (deferred load)
             ...adminRoutes,
