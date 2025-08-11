@@ -5291,6 +5291,90 @@ export type Database = {
           },
         ]
       }
+      public_deeds: {
+        Row: {
+          assigned_to: string | null
+          case_id: string | null
+          contact_id: string
+          created_at: string
+          created_by: string
+          deed_type: string
+          id: string
+          metadata: Json
+          notary_fees: number | null
+          notary_name: string | null
+          notary_office: string | null
+          org_id: string
+          other_fees: number | null
+          protocol_number: string | null
+          qualification_limit_date: string | null
+          registration_date: string | null
+          registry_entry: Json
+          registry_fees: number | null
+          registry_office: string | null
+          registry_submission_date: string | null
+          signing_date: string | null
+          status: string
+          title: string
+          total_fees: number | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          case_id?: string | null
+          contact_id: string
+          created_at?: string
+          created_by: string
+          deed_type: string
+          id?: string
+          metadata?: Json
+          notary_fees?: number | null
+          notary_name?: string | null
+          notary_office?: string | null
+          org_id: string
+          other_fees?: number | null
+          protocol_number?: string | null
+          qualification_limit_date?: string | null
+          registration_date?: string | null
+          registry_entry?: Json
+          registry_fees?: number | null
+          registry_office?: string | null
+          registry_submission_date?: string | null
+          signing_date?: string | null
+          status?: string
+          title: string
+          total_fees?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          case_id?: string | null
+          contact_id?: string
+          created_at?: string
+          created_by?: string
+          deed_type?: string
+          id?: string
+          metadata?: Json
+          notary_fees?: number | null
+          notary_name?: string | null
+          notary_office?: string | null
+          org_id?: string
+          other_fees?: number | null
+          protocol_number?: string | null
+          qualification_limit_date?: string | null
+          registration_date?: string | null
+          registry_entry?: Json
+          registry_fees?: number | null
+          registry_office?: string | null
+          registry_submission_date?: string | null
+          signing_date?: string | null
+          status?: string
+          title?: string
+          total_fees?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quantum_invoice_sync_history: {
         Row: {
           created_at: string | null
