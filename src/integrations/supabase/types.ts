@@ -1797,88 +1797,157 @@ export type Database = {
       }
       deeds: {
         Row: {
+          asiento_expiration_date: string | null
           assigned_to: string | null
           base_fee: number | null
+          borme_publication_date: string | null
+          borme_ref: string | null
           case_id: string | null
+          close_date: string | null
+          close_reason: string | null
+          closure_notes: string | null
           contact_id: string
           created_at: string
           created_by: string
           currency: string
           deed_type: string
           id: string
+          inscription_number: string | null
+          itp_ajd_paid_at: string | null
+          itp_ajd_presented_at: string | null
+          itp_ajd_required: boolean | null
+          model_600_number: string | null
+          model600_deadline: string | null
           notary_fees: number | null
           notary_name: string | null
           notary_office: string | null
           org_id: string
           other_fees: number | null
+          plusvalia_paid_at: string | null
+          plusvalia_presented_at: string | null
+          plusvalia_ref: string | null
+          plusvalia_required: boolean | null
+          presentation_entry: string | null
           proposal_id: string | null
           protocol_number: string | null
+          qualification_completed_at: string | null
+          qualification_deadline: string | null
+          qualification_started_at: string | null
           registration_date: string | null
           registry_fees: number | null
           registry_office: string | null
           registry_reference: string | null
           registry_status: string | null
           registry_submission_date: string | null
+          registry_type: string
           signing_date: string | null
           status: string
+          submission_channel: string
+          tax_accredited_at: string | null
           title: string
           total_fees: number | null
           updated_at: string
         }
         Insert: {
+          asiento_expiration_date?: string | null
           assigned_to?: string | null
           base_fee?: number | null
+          borme_publication_date?: string | null
+          borme_ref?: string | null
           case_id?: string | null
+          close_date?: string | null
+          close_reason?: string | null
+          closure_notes?: string | null
           contact_id: string
           created_at?: string
           created_by: string
           currency?: string
           deed_type: string
           id?: string
+          inscription_number?: string | null
+          itp_ajd_paid_at?: string | null
+          itp_ajd_presented_at?: string | null
+          itp_ajd_required?: boolean | null
+          model_600_number?: string | null
+          model600_deadline?: string | null
           notary_fees?: number | null
           notary_name?: string | null
           notary_office?: string | null
           org_id: string
           other_fees?: number | null
+          plusvalia_paid_at?: string | null
+          plusvalia_presented_at?: string | null
+          plusvalia_ref?: string | null
+          plusvalia_required?: boolean | null
+          presentation_entry?: string | null
           proposal_id?: string | null
           protocol_number?: string | null
+          qualification_completed_at?: string | null
+          qualification_deadline?: string | null
+          qualification_started_at?: string | null
           registration_date?: string | null
           registry_fees?: number | null
           registry_office?: string | null
           registry_reference?: string | null
           registry_status?: string | null
           registry_submission_date?: string | null
+          registry_type?: string
           signing_date?: string | null
           status?: string
+          submission_channel?: string
+          tax_accredited_at?: string | null
           title: string
           total_fees?: number | null
           updated_at?: string
         }
         Update: {
+          asiento_expiration_date?: string | null
           assigned_to?: string | null
           base_fee?: number | null
+          borme_publication_date?: string | null
+          borme_ref?: string | null
           case_id?: string | null
+          close_date?: string | null
+          close_reason?: string | null
+          closure_notes?: string | null
           contact_id?: string
           created_at?: string
           created_by?: string
           currency?: string
           deed_type?: string
           id?: string
+          inscription_number?: string | null
+          itp_ajd_paid_at?: string | null
+          itp_ajd_presented_at?: string | null
+          itp_ajd_required?: boolean | null
+          model_600_number?: string | null
+          model600_deadline?: string | null
           notary_fees?: number | null
           notary_name?: string | null
           notary_office?: string | null
           org_id?: string
           other_fees?: number | null
+          plusvalia_paid_at?: string | null
+          plusvalia_presented_at?: string | null
+          plusvalia_ref?: string | null
+          plusvalia_required?: boolean | null
+          presentation_entry?: string | null
           proposal_id?: string | null
           protocol_number?: string | null
+          qualification_completed_at?: string | null
+          qualification_deadline?: string | null
+          qualification_started_at?: string | null
           registration_date?: string | null
           registry_fees?: number | null
           registry_office?: string | null
           registry_reference?: string | null
           registry_status?: string | null
           registry_submission_date?: string | null
+          registry_type?: string
           signing_date?: string | null
           status?: string
+          submission_channel?: string
+          tax_accredited_at?: string | null
           title?: string
           total_fees?: number | null
           updated_at?: string
@@ -1910,6 +1979,54 @@ export type Database = {
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deeds_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string
+          deed_id: string
+          from_status: string | null
+          id: string
+          note: string | null
+          org_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by: string
+          deed_id: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          org_id: string
+          to_status: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string
+          deed_id?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          org_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deeds_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deeds_status_history_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
             referencedColumns: ["id"]
           },
         ]
@@ -8436,6 +8553,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_business_days: {
+        Args: { start_date: string; days: number }
+        Returns: string
+      }
       calculate_next_billing_date: {
         Args: { input_date: string; frequency: string; billing_day?: number }
         Returns: string
