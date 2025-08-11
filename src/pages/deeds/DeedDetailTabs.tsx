@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { countdownTo, elapsedBusinessDaysSince } from '@/utils/businessDays'
+import { countdownTo, addBusinessDays, diffBusinessDays, addCalendarDays } from '@/utils/businessDays'
 import { supabase } from '@/integrations/supabase/client'
 
 interface DeedLike {
@@ -11,6 +11,8 @@ interface DeedLike {
   contact_id: string
   deed_type: string
   status: string | null
+  signing_date?: string | null
+  registry_submission_date?: string | null
   registry_entry_number?: string | null
   asiento_expiration_date?: string | null
   qualification_started_at?: string | null
@@ -32,7 +34,21 @@ export default function DeedDetailTabs({ deed, contactName, onClose }: Props) {
 
   const countdown = useMemo(() => countdownTo(deed.asiento_expiration_date || null), [deed.asiento_expiration_date, tick])
 
-  // Cargar tributos
+  // Festivos regionales (parametrizable por CCAA/municipio). De momento vacío; se puede cargar desde ajustes/org.
+  const holidays = useMemo(() => new Set<string>(), [])
+
+  // Cálculos con días hábiles
+  const impuestosLimit = useMemo(() => (
+    deed.signing_date ? addBusinessDays(deed.signing_date, 30, { holidays }) : null
+  ), [deed.signing_date, holidays])
+
+  const asientoExpCalc = useMemo(() => (
+    deed.registry_submission_date ? addBusinessDays(addCalendarDays(deed.registry_submission_date, 1), 60, { holidays }) : null
+  ), [deed.registry_submission_date, holidays])
+
+  const califLimit = useMemo(() => (
+    deed.qualification_started_at ? addBusinessDays(deed.qualification_started_at, 15, { holidays }) : null
+  ), [deed.qualification_started_at, holidays])
   const [tributos, setTributos] = useState<any | null>(null)
   useEffect(() => {
     let mounted = true
@@ -42,7 +58,9 @@ export default function DeedDetailTabs({ deed, contactName, onClose }: Props) {
     return () => { mounted = false }
   }, [deed.id])
 
-  const califElapsed = elapsedBusinessDaysSince(deed.qualification_started_at || null)
+  const califElapsed = useMemo(() => (
+    deed.qualification_started_at ? diffBusinessDays(deed.qualification_started_at, new Date(), { holidays }) : 0
+  ), [deed.qualification_started_at, holidays, tick])
   const califColor = califElapsed >= 15 ? 'bg-destructive/10 text-destructive' : califElapsed >= 10 ? 'bg-warning/10 text-warning-foreground' : 'bg-success/10 text-success-foreground'
 
   return (
@@ -85,6 +103,9 @@ export default function DeedDetailTabs({ deed, contactName, onClose }: Props) {
             <p className="text-sm">{tributos?.itp_ajd_procede ? (tributos?.itp_ajd_fecha ? 'Acreditado' : 'Pendiente de acreditar') : 'No procede'}</p>
             <h4 className="font-medium mt-2">IIVTNU (plusvalía)</h4>
             <p className="text-sm">{tributos?.iivtnu_procede ? (tributos?.iivtnu_fecha ? 'Acreditado' : 'Pendiente de acreditar') : 'No procede'}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+              <Info label="Límite Modelo 600 (30 hábiles)" value={impuestosLimit ? impuestosLimit.toLocaleDateString('es-ES') : '-'} />
+            </div>
             <p className="text-xs text-muted-foreground">No se podrá pasar a EN_CALIFICACION sin acreditar los tributos cuando proceda.</p>
           </section>
         </TabsContent>
@@ -92,7 +113,7 @@ export default function DeedDetailTabs({ deed, contactName, onClose }: Props) {
         <TabsContent value="registro">
           <section className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
             <Info label="Asiento" value={deed.registry_entry_number || '-'} />
-            <Info label="Caducidad asiento" value={deed.asiento_expiration_date ? new Date(deed.asiento_expiration_date).toLocaleDateString('es-ES') : '-'} />
+            <Info label="Caducidad asiento" value={asientoExpCalc ? asientoExpCalc.toLocaleDateString('es-ES') : '-'} />
             <div className="text-sm">
               <div className="text-muted-foreground mb-1">Cuenta atrás</div>
               <div className="text-base font-semibold">{countdown.days}d {countdown.hours}h {countdown.minutes}m</div>
@@ -103,8 +124,8 @@ export default function DeedDetailTabs({ deed, contactName, onClose }: Props) {
         <TabsContent value="calificacion">
           <section className="flex items-center gap-3">
             <Badge className={`border rounded-[10px] ${califColor}`}>SLA 15 hábiles · {califElapsed}d transcurridos</Badge>
-            {deed.qualification_deadline && (
-              <span className="text-sm text-muted-foreground">Límite: {new Date(deed.qualification_deadline).toLocaleDateString('es-ES')}</span>
+            {califLimit && (
+              <span className="text-sm text-muted-foreground">Límite: {califLimit.toLocaleDateString('es-ES')}</span>
             )}
           </section>
         </TabsContent>
