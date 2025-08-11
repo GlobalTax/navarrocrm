@@ -1,3 +1,4 @@
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 
@@ -18,6 +19,19 @@ interface Props {
   onSelect: (id: string) => void
 }
 
+const STATUS_OPTIONS = [
+  { value: 'NOTARIO_FIRMADA', label: 'Notario: firmada' },
+  { value: 'IMPUESTOS_PENDIENTES', label: 'Impuestos pendientes' },
+  { value: 'IMPUESTOS_ACREDITADOS', label: 'Impuestos acreditados' },
+  { value: 'EN_REGISTRO', label: 'En registro' },
+  { value: 'EN_CALIFICACION', label: 'En calificación' },
+  { value: 'DEFECTOS', label: 'Defectos' },
+  { value: 'SUBSANACION', label: 'Subsanación' },
+  { value: 'INSCRITA', label: 'Inscrita' },
+  { value: 'BORME_PUBLICADO', label: 'BORME publicado' },
+  { value: 'CIERRE_EXPEDIENTE', label: 'Cierre expediente' },
+]
+
 export default function DeedsTable({ deeds, getContactName, onRefresh, onUpdateStatus, onSelect }: Props) {
   return (
     <div className="overflow-x-auto">
@@ -36,17 +50,15 @@ export default function DeedsTable({ deeds, getContactName, onRefresh, onUpdateS
             <tr key={d.id} className="border-b hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => onSelect(d.id)}>
               <td className="py-2 pr-4">{d.title}</td>
               <td className="py-2 pr-4 capitalize">{d.deed_type.replace(/_/g, ' ')}</td>
-              <td className="py-2 pr-4">
-                <Select value={d.status ?? 'draft'} onValueChange={(v) => onUpdateStatus(d.id, v)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
+              <td className="py-2 pr-4" onClick={(e) => e.stopPropagation()}>
+                <Select value={d.status ?? ''} onValueChange={(v) => onUpdateStatus(d.id, v)}>
+                  <SelectTrigger className="w-[220px] rounded-[10px]">
+                    <SelectValue placeholder="Estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Borrador</SelectItem>
-                    <SelectItem value="pending_signature">Pendiente firma</SelectItem>
-                    <SelectItem value="signed">Firmada</SelectItem>
-                    <SelectItem value="in_registry">En registro</SelectItem>
-                    <SelectItem value="completed">Completada</SelectItem>
+                    {STATUS_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </td>
@@ -62,7 +74,7 @@ export default function DeedsTable({ deeds, getContactName, onRefresh, onUpdateS
         </tbody>
       </table>
       <div className="mt-3">
-        <Button variant="outline" onClick={onRefresh}>Refrescar</Button>
+        <Button variant="outline" onClick={onRefresh} className="rounded-[10px]">Refrescar</Button>
       </div>
     </div>
   )

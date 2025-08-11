@@ -1,3 +1,4 @@
+
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
@@ -14,6 +15,20 @@ interface Props {
   onChange: (next: Partial<DeedsFiltersState>) => void
 }
 
+const STATUS_FILTERS = [
+  { value: 'all', label: 'Todos los estados' },
+  { value: 'NOTARIO_FIRMADA', label: 'Notario: firmada' },
+  { value: 'IMPUESTOS_PENDIENTES', label: 'Impuestos pendientes' },
+  { value: 'IMPUESTOS_ACREDITADOS', label: 'Impuestos acreditados' },
+  { value: 'EN_REGISTRO', label: 'En registro' },
+  { value: 'EN_CALIFICACION', label: 'En calificación' },
+  { value: 'DEFECTOS', label: 'Defectos' },
+  { value: 'SUBSANACION', label: 'Subsanación' },
+  { value: 'INSCRITA', label: 'Inscrita' },
+  { value: 'BORME_PUBLICADO', label: 'BORME publicado' },
+  { value: 'CIERRE_EXPEDIENTE', label: 'Cierre expediente' },
+]
+
 export default function DeedsFilters({ filters, deedTypes, onChange }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -21,9 +36,10 @@ export default function DeedsFilters({ filters, deedTypes, onChange }: Props) {
         placeholder="Buscar por título o cliente"
         value={filters.search}
         onChange={(e) => onChange({ search: e.target.value })}
+        className="rounded-[10px]"
       />
       <Select value={filters.type} onValueChange={(v) => onChange({ type: v })}>
-        <SelectTrigger>
+        <SelectTrigger className="rounded-[10px]">
           <SelectValue placeholder="Tipo" />
         </SelectTrigger>
         <SelectContent>
@@ -34,20 +50,17 @@ export default function DeedsFilters({ filters, deedTypes, onChange }: Props) {
         </SelectContent>
       </Select>
       <Select value={filters.status} onValueChange={(v) => onChange({ status: v })}>
-        <SelectTrigger>
+        <SelectTrigger className="rounded-[10px]">
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Todos los estados</SelectItem>
-          <SelectItem value="draft">Borrador</SelectItem>
-          <SelectItem value="pending_signature">Pendiente firma</SelectItem>
-          <SelectItem value="signed">Firmada</SelectItem>
-          <SelectItem value="in_registry">En registro</SelectItem>
-          <SelectItem value="completed">Completada</SelectItem>
+          {STATUS_FILTERS.map((s) => (
+            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Select value={filters.sort} onValueChange={(v) => onChange({ sort: v })}>
-        <SelectTrigger>
+        <SelectTrigger className="rounded-[10px]">
           <SelectValue placeholder="Orden" />
         </SelectTrigger>
         <SelectContent>

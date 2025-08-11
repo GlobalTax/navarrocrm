@@ -1636,6 +1636,41 @@ export type Database = {
           },
         ]
       }
+      deed_escalations: {
+        Row: {
+          created_at: string
+          deed_id: string
+          id: string
+          org_id: string
+          resolved_at: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          deed_id: string
+          id?: string
+          org_id: string
+          resolved_at?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          deed_id?: string
+          id?: string
+          org_id?: string
+          resolved_at?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deed_escalations_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deed_fees: {
         Row: {
           amount: number
@@ -1813,6 +1848,7 @@ export type Database = {
           deed_type: string
           id: string
           inscription_number: string | null
+          itp_ajd_accreditation_type: string | null
           itp_ajd_paid_at: string | null
           itp_ajd_presented_at: string | null
           itp_ajd_required: boolean | null
@@ -1823,6 +1859,7 @@ export type Database = {
           notary_office: string | null
           org_id: string
           other_fees: number | null
+          plusvalia_mode: string
           plusvalia_paid_at: string | null
           plusvalia_presented_at: string | null
           plusvalia_ref: string | null
@@ -1865,6 +1902,7 @@ export type Database = {
           deed_type: string
           id?: string
           inscription_number?: string | null
+          itp_ajd_accreditation_type?: string | null
           itp_ajd_paid_at?: string | null
           itp_ajd_presented_at?: string | null
           itp_ajd_required?: boolean | null
@@ -1875,6 +1913,7 @@ export type Database = {
           notary_office?: string | null
           org_id: string
           other_fees?: number | null
+          plusvalia_mode?: string
           plusvalia_paid_at?: string | null
           plusvalia_presented_at?: string | null
           plusvalia_ref?: string | null
@@ -1917,6 +1956,7 @@ export type Database = {
           deed_type?: string
           id?: string
           inscription_number?: string | null
+          itp_ajd_accreditation_type?: string | null
           itp_ajd_paid_at?: string | null
           itp_ajd_presented_at?: string | null
           itp_ajd_required?: boolean | null
@@ -1927,6 +1967,7 @@ export type Database = {
           notary_office?: string | null
           org_id?: string
           other_fees?: number | null
+          plusvalia_mode?: string
           plusvalia_paid_at?: string | null
           plusvalia_presented_at?: string | null
           plusvalia_ref?: string | null
