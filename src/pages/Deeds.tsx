@@ -30,7 +30,7 @@ interface PublicDeed {
   total_fees?: number | null
   assigned_to?: string | null
   created_by: string
-  metadata: any
+  metadata?: any
   created_at: string
   updated_at: string
 }
@@ -38,10 +38,10 @@ interface PublicDeed {
 
 const useDeeds = () => {
   return useQuery<PublicDeed[]>({
-    queryKey: ['public_deeds'],
+    queryKey: ['deeds'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('public_deeds')
+        .from('deeds')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -68,6 +68,21 @@ export default function DeedsPage() {
   const qc = useQueryClient()
   const { data: deeds = [], isLoading } = useDeeds()
   const { data: contacts = [] } = useContactsBasic()
+
+  // Realtime: refrescar automáticamente la lista ante cambios
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:deeds')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'deeds' }, () => {
+        qc.invalidateQueries({ queryKey: ['deeds'] })
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [qc])
+
   const contactNameById = useMemo(() => {
     const m = new Map<string, string>()
     contacts.forEach((c) => m.set(c.id, c.name))
@@ -171,25 +186,25 @@ export default function DeedsPage() {
         metadata: {}
       }
 
-      const { error } = await supabase.from('public_deeds').insert(payload)
+      const { error } = await supabase.from('deeds').insert(payload)
       if (error) throw error
     },
     onSuccess: async () => {
       setForm({ title: '', deed_type: 'compraventa', contact_id: '', signing_date: '', notary_office: '' })
       toast.success('Escritura creada')
-      await qc.invalidateQueries({ queryKey: ['public_deeds'] })
+      await qc.invalidateQueries({ queryKey: ['deeds'] })
     },
     onError: (e: any) => toast.error(e?.message || 'Error al crear la escritura')
   })
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from('public_deeds').update({ status }).eq('id', id)
+      const { error } = await supabase.from('deeds').update({ status }).eq('id', id)
       if (error) throw error
     },
     onSuccess: async () => {
       toast.success('Estado actualizado')
-      await qc.invalidateQueries({ queryKey: ['public_deeds'] })
+      await qc.invalidateQueries({ queryKey: ['deeds'] })
     },
     onError: (e: any) => toast.error(e?.message || 'Error al actualizar estado')
   })
@@ -238,7 +253,7 @@ export default function DeedsPage() {
               <DeedsTable
                 deeds={tableDeeds}
                 getContactName={(id) => contactNameById.get(id)}
-                onRefresh={() => qc.invalidateQueries({ queryKey: ['public_deeds'] })}
+                onRefresh={() => qc.invalidateQueries({ queryKey: ['deeds'] })}
                 onUpdateStatus={handleUpdateStatus}
                 onSelect={(id) => setSelectedId(id)}
               />
