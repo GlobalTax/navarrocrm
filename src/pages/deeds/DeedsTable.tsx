@@ -15,9 +15,10 @@ interface Props {
   getContactName: (id: string) => string | undefined
   onRefresh: () => void
   onUpdateStatus: (id: string, status: string) => void
+  onSelect: (id: string) => void
 }
 
-export default function DeedsTable({ deeds, getContactName, onRefresh, onUpdateStatus }: Props) {
+export default function DeedsTable({ deeds, getContactName, onRefresh, onUpdateStatus, onSelect }: Props) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
@@ -32,7 +33,7 @@ export default function DeedsTable({ deeds, getContactName, onRefresh, onUpdateS
         </thead>
         <tbody>
           {deeds.map((d) => (
-            <tr key={d.id} className="border-b hover:bg-muted/50 transition-colors">
+            <tr key={d.id} className="border-b hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => onSelect(d.id)}>
               <td className="py-2 pr-4">{d.title}</td>
               <td className="py-2 pr-4 capitalize">{d.deed_type.replace(/_/g, ' ')}</td>
               <td className="py-2 pr-4">

@@ -5,6 +5,7 @@ export interface DeedsFiltersState {
   search: string
   type: string
   status: string
+  sort: string
 }
 
 interface Props {
@@ -15,7 +16,7 @@ interface Props {
 
 export default function DeedsFilters({ filters, deedTypes, onChange }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
       <Input
         placeholder="Buscar por título o cliente"
         value={filters.search}
@@ -43,6 +44,19 @@ export default function DeedsFilters({ filters, deedTypes, onChange }: Props) {
           <SelectItem value="signed">Firmada</SelectItem>
           <SelectItem value="in_registry">En registro</SelectItem>
           <SelectItem value="completed">Completada</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={filters.sort} onValueChange={(v) => onChange({ sort: v })}>
+        <SelectTrigger>
+          <SelectValue placeholder="Orden" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="created_desc">Recientes</SelectItem>
+          <SelectItem value="created_asc">Antiguas</SelectItem>
+          <SelectItem value="signing_desc">Firma más reciente</SelectItem>
+          <SelectItem value="signing_asc">Firma más antigua</SelectItem>
+          <SelectItem value="title_asc">Título A–Z</SelectItem>
+          <SelectItem value="title_desc">Título Z–A</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -80,7 +80,7 @@ export default function DeedsPage() {
     notary_office: ''
   })
 
-  const [filters, setFilters] = useState<DeedsFiltersState>({ search: '', type: 'all', status: 'all' })
+  const [filters, setFilters] = useState<DeedsFiltersState>({ search: '', type: 'all', status: 'all', sort: 'created_desc' })
 
   const deedTypes = useMemo(
     () => ['compraventa', 'hipoteca', 'poderes', 'constitucion_sociedad', 'arrendamiento', 'otros'],
@@ -100,6 +100,51 @@ export default function DeedsPage() {
     }
     return list
   }, [deeds, filters, contactNameById])
+
+  const sortedDeeds = useMemo(() => {
+    const list = [...filteredDeeds]
+    switch (filters.sort) {
+      case 'created_asc':
+        return list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      case 'signing_desc':
+        return list.sort((a, b) => new Date(b.signing_date || 0).getTime() - new Date(a.signing_date || 0).getTime())
+      case 'signing_asc':
+        return list.sort((a, b) => new Date(a.signing_date || 0).getTime() - new Date(b.signing_date || 0).getTime())
+      case 'title_asc':
+        return list.sort((a, b) => a.title.localeCompare(b.title))
+      case 'title_desc':
+        return list.sort((a, b) => b.title.localeCompare(a.title))
+      case 'created_desc':
+      default:
+        return list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    }
+  }, [filteredDeeds, filters.sort])
+
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(10)
+  const totalPages = Math.max(1, Math.ceil(sortedDeeds.length / pageSize))
+
+  useEffect(() => {
+    setPage(1)
+  }, [filters.search, filters.type, filters.status, filters.sort])
+
+  const paginatedDeeds = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return sortedDeeds.slice(start, start + pageSize)
+  }, [sortedDeeds, page, pageSize])
+
+  const tableDeeds = useMemo(() => paginatedDeeds.map(d => ({
+    id: d.id,
+    title: d.title,
+    deed_type: d.deed_type,
+    status: d.status ?? 'draft',
+    signing_date: d.signing_date,
+    contact_id: d.contact_id
+  })), [paginatedDeeds])
+
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selectedDeed = useMemo(() => deeds.find(d => d.id === selectedId) || null, [deeds, selectedId])
+
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -187,35 +232,34 @@ export default function DeedsPage() {
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="text-left border-b">
-                    <th className="py-2 pr-4">Título</th>
-                    <th className="py-2 pr-4">Tipo</th>
-                    <th className="py-2 pr-4">Estado</th>
-                    <th className="py-2 pr-4">Fecha firma</th>
-                    <th className="py-2 pr-4">Cliente</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deeds.map((d) => (
-                    <tr key={d.id} className="border-b hover:bg-muted/50 transition-colors">
-                      <td className="py-2 pr-4">{d.title}</td>
-                      <td className="py-2 pr-4 capitalize">{d.deed_type.replace(/_/g, ' ')}</td>
-                      <td className="py-2 pr-4">{d.status}</td>
-                      <td className="py-2 pr-4">{d.signing_date ? new Date(d.signing_date).toLocaleDateString('es-ES') : '-'}</td>
-                      <td className="py-2 pr-4">{contactNameById.get(d.contact_id) || d.contact_id}</td>
-                    </tr>
-                  ))}
-                  {deeds.length === 0 && (
-                    <tr>
-                      <td className="py-6 text-muted-foreground" colSpan={5}>No hay escrituras aún.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <DeedsTable
+                deeds={tableDeeds}
+                getContactName={(id) => contactNameById.get(id)}
+                onRefresh={() => qc.invalidateQueries({ queryKey: ['public_deeds'] })}
+                onUpdateStatus={handleUpdateStatus}
+                onSelect={(id) => setSelectedId(id)}
+              />
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sortedDeeds.length)} de {sortedDeeds.length}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Anterior</Button>
+                  <span className="text-sm">Página {page} / {totalPages}</span>
+                  <Button variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Siguiente</Button>
+                </div>
+              </div>
+              {selectedDeed && (
+                <div className="mt-4">
+                  <DeedDetails
+                    deed={selectedDeed}
+                    contactName={contactNameById.get(selectedDeed.contact_id) || selectedDeed.contact_id}
+                    onClose={() => setSelectedId(null)}
+                  />
+                </div>
+              )}
+            </>
           )}
         </Card>
       </div>
