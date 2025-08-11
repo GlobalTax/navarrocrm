@@ -1588,6 +1588,289 @@ export type Database = {
         }
         Relationships: []
       }
+      deed_assignees: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          deed_id: string
+          id: string
+          org_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          deed_id: string
+          id?: string
+          org_id: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          deed_id?: string
+          id?: string
+          org_id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deed_assignees_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deed_assignees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deed_fees: {
+        Row: {
+          amount: number
+          concept: string
+          created_at: string
+          deed_id: string
+          id: string
+          is_extra: boolean
+          org_id: string
+          proposal_id: string | null
+          tax_rate: number
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          concept: string
+          created_at?: string
+          deed_id: string
+          id?: string
+          is_extra?: boolean
+          org_id: string
+          proposal_id?: string | null
+          tax_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          concept?: string
+          created_at?: string
+          deed_id?: string
+          id?: string
+          is_extra?: boolean
+          org_id?: string
+          proposal_id?: string | null
+          tax_rate?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deed_fees_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deed_fees_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deed_stage_templates: {
+        Row: {
+          code: string
+          created_at: string
+          deed_type: string
+          default_due_offset_days: number | null
+          expected_days: number | null
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          deed_type: string
+          default_due_offset_days?: number | null
+          expected_days?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          deed_type?: string
+          default_due_offset_days?: number | null
+          expected_days?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      deed_stages: {
+        Row: {
+          code: string | null
+          completed_at: string | null
+          created_at: string
+          deed_id: string
+          due_date: string | null
+          id: string
+          name: string
+          notes: Json
+          org_id: string
+          sort_order: number
+          stage_status: string
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deed_id: string
+          due_date?: string | null
+          id?: string
+          name: string
+          notes?: Json
+          org_id: string
+          sort_order?: number
+          stage_status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          completed_at?: string | null
+          created_at?: string
+          deed_id?: string
+          due_date?: string | null
+          id?: string
+          name?: string
+          notes?: Json
+          org_id?: string
+          sort_order?: number
+          stage_status?: string
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deed_stages_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deed_stages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "deed_stage_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deeds: {
+        Row: {
+          base_fee: number | null
+          case_id: string | null
+          contact_id: string
+          created_at: string
+          created_by: string
+          currency: string
+          deed_type: string
+          id: string
+          notary_office: string | null
+          org_id: string
+          proposal_id: string | null
+          signing_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          base_fee?: number | null
+          case_id?: string | null
+          contact_id: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          deed_type: string
+          id?: string
+          notary_office?: string | null
+          org_id: string
+          proposal_id?: string | null
+          signing_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          base_fee?: number | null
+          case_id?: string | null
+          contact_id?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          deed_type?: string
+          id?: string
+          notary_office?: string | null
+          org_id?: string
+          proposal_id?: string | null
+          signing_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deeds_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deeds_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deeds_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       default_proposal_texts: {
         Row: {
           created_at: string
