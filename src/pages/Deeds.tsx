@@ -82,6 +82,11 @@ export default function DeedsPage() {
   const qc = useQueryClient()
   const { data: deeds = [], isLoading } = useDeeds()
   const { data: contacts = [] } = useContacts()
+  const contactNameById = useMemo(() => {
+    const m = new Map<string, string>()
+    contacts.forEach((c) => m.set(c.id, c.name))
+    return m
+  }, [contacts])
 
   const [form, setForm] = useState({
     title: '',
@@ -208,7 +213,7 @@ export default function DeedsPage() {
                     <th className="py-2 pr-4">Tipo</th>
                     <th className="py-2 pr-4">Estado</th>
                     <th className="py-2 pr-4">Fecha firma</th>
-                    <th className="py-2 pr-4">ID Cliente</th>
+                    <th className="py-2 pr-4">Cliente</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,7 +223,7 @@ export default function DeedsPage() {
                       <td className="py-2 pr-4 capitalize">{d.deed_type.replace(/_/g, ' ')}</td>
                       <td className="py-2 pr-4">{d.status}</td>
                       <td className="py-2 pr-4">{d.signing_date ? new Date(d.signing_date).toLocaleDateString('es-ES') : '-'}</td>
-                      <td className="py-2 pr-4">{d.contact_id}</td>
+                      <td className="py-2 pr-4">{contactNameById.get(d.contact_id) || d.contact_id}</td>
                     </tr>
                   ))}
                   {deeds.length === 0 && (
