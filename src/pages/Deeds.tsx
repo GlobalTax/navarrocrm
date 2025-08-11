@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { Card } from '@/components/ui/card'
@@ -6,6 +7,7 @@ import { toast } from 'sonner'
 import DeedsForm from '@/pages/deeds/DeedsForm'
 import DeedsFilters, { DeedsFiltersState } from '@/pages/deeds/DeedsFilters'
 import DeedsTable from '@/pages/deeds/DeedsTable'
+import DeedDetails from '@/pages/deeds/DeedDetails'
 import { useContactsBasic } from '@/hooks/useContactsBasic'
 // Types
 interface PublicDeed {
