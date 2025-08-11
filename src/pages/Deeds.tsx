@@ -30,7 +30,7 @@ interface PublicDeed {
   total_fees?: number | null
   assigned_to?: string | null
   created_by: string
-  metadata?: any
+  
   created_at: string
   updated_at: string
 }
@@ -182,8 +182,7 @@ export default function DeedsPage() {
         title: form.title,
         signing_date: form.signing_date || null,
         notary_office: form.notary_office || null,
-        created_by: userId,
-        metadata: {}
+        created_by: userId
       }
 
       const { error } = await supabase.from('deeds').insert(payload)
