@@ -1628,6 +1628,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "deed_assignees_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "expedientes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deed_assignees_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -1667,6 +1674,13 @@ export type Database = {
             columns: ["deed_id"]
             isOneToOne: false
             referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deed_escalations_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "expedientes"
             referencedColumns: ["id"]
           },
         ]
@@ -1714,6 +1728,13 @@ export type Database = {
             columns: ["deed_id"]
             isOneToOne: false
             referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deed_fees_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "expedientes"
             referencedColumns: ["id"]
           },
           {
@@ -1822,6 +1843,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "deed_stages_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "expedientes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deed_stages_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
@@ -1871,6 +1899,7 @@ export type Database = {
           qualification_deadline: string | null
           qualification_started_at: string | null
           registration_date: string | null
+          registry_entry_number: string | null
           registry_fees: number | null
           registry_office: string | null
           registry_reference: string | null
@@ -1925,6 +1954,7 @@ export type Database = {
           qualification_deadline?: string | null
           qualification_started_at?: string | null
           registration_date?: string | null
+          registry_entry_number?: string | null
           registry_fees?: number | null
           registry_office?: string | null
           registry_reference?: string | null
@@ -1979,6 +2009,7 @@ export type Database = {
           qualification_deadline?: string | null
           qualification_started_at?: string | null
           registration_date?: string | null
+          registry_entry_number?: string | null
           registry_fees?: number | null
           registry_office?: string | null
           registry_reference?: string | null
@@ -2068,6 +2099,13 @@ export type Database = {
             columns: ["deed_id"]
             isOneToOne: false
             referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deeds_status_history_deed_id_fkey"
+            columns: ["deed_id"]
+            isOneToOne: false
+            referencedRelation: "expedientes"
             referencedColumns: ["id"]
           },
         ]
@@ -4091,6 +4129,207 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expedientes_borme: {
+        Row: {
+          created_at: string
+          created_by: string
+          enlace_borme: string | null
+          estado: string
+          expediente_id: string
+          provision_fondos: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          enlace_borme?: string | null
+          estado?: string
+          expediente_id: string
+          provision_fondos?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          enlace_borme?: string | null
+          estado?: string
+          expediente_id?: string
+          provision_fondos?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedientes_borme_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: true
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expedientes_borme_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: true
+            referencedRelation: "expedientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expedientes_calificacion: {
+        Row: {
+          created_at: string
+          created_by: string
+          expediente_id: string
+          nota_pdf: string | null
+          resultado: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          expediente_id: string
+          nota_pdf?: string | null
+          resultado: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expediente_id?: string
+          nota_pdf?: string | null
+          resultado?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedientes_calificacion_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: true
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expedientes_calificacion_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: true
+            referencedRelation: "expedientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expedientes_defectos: {
+        Row: {
+          codigo: string | null
+          created_at: string
+          created_by: string
+          descripcion: string | null
+          estado: string
+          expediente_id: string
+          id: string
+          responsable: string | null
+          subsanacion: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          estado?: string
+          expediente_id: string
+          id?: string
+          responsable?: string | null
+          subsanacion?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          estado?: string
+          expediente_id?: string
+          id?: string
+          responsable?: string | null
+          subsanacion?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedientes_defectos_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: false
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expedientes_defectos_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: false
+            referencedRelation: "expedientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expedientes_tributos: {
+        Row: {
+          created_at: string
+          created_by: string
+          expediente_id: string
+          iivtnu_fecha: string | null
+          iivtnu_pdf: string | null
+          iivtnu_procede: boolean
+          iivtnu_tipo: string | null
+          itp_ajd_fecha: string | null
+          itp_ajd_modalidad: string | null
+          itp_ajd_pdf: string | null
+          itp_ajd_procede: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          expediente_id: string
+          iivtnu_fecha?: string | null
+          iivtnu_pdf?: string | null
+          iivtnu_procede?: boolean
+          iivtnu_tipo?: string | null
+          itp_ajd_fecha?: string | null
+          itp_ajd_modalidad?: string | null
+          itp_ajd_pdf?: string | null
+          itp_ajd_procede?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expediente_id?: string
+          iivtnu_fecha?: string | null
+          iivtnu_pdf?: string | null
+          iivtnu_procede?: boolean
+          iivtnu_tipo?: string | null
+          itp_ajd_fecha?: string | null
+          itp_ajd_modalidad?: string | null
+          itp_ajd_pdf?: string | null
+          itp_ajd_procede?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expedientes_tributos_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: true
+            referencedRelation: "deeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expedientes_tributos_expediente_id_fkey"
+            columns: ["expediente_id"]
+            isOneToOne: true
+            referencedRelation: "expedientes"
             referencedColumns: ["id"]
           },
         ]
@@ -8571,6 +8810,59 @@ export type Database = {
       }
     }
     Views: {
+      expedientes: {
+        Row: {
+          acto_tipo: string | null
+          asiento_caducidad: string | null
+          asiento_num: string | null
+          calificacion_limite: string | null
+          cliente_id: string | null
+          estado: string | null
+          firma_notario: string | null
+          id: string | null
+          impuestos_limite: string | null
+          inscripcion: string | null
+          presentacion: string | null
+          registro_tipo: string | null
+        }
+        Insert: {
+          acto_tipo?: string | null
+          asiento_caducidad?: string | null
+          asiento_num?: string | null
+          calificacion_limite?: string | null
+          cliente_id?: string | null
+          estado?: string | null
+          firma_notario?: string | null
+          id?: string | null
+          impuestos_limite?: string | null
+          inscripcion?: string | null
+          presentacion?: string | null
+          registro_tipo?: string | null
+        }
+        Update: {
+          acto_tipo?: string | null
+          asiento_caducidad?: string | null
+          asiento_num?: string | null
+          calificacion_limite?: string | null
+          cliente_id?: string | null
+          estado?: string | null
+          firma_notario?: string | null
+          id?: string | null
+          impuestos_limite?: string | null
+          inscripcion?: string | null
+          presentacion?: string | null
+          registro_tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deeds_contact_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_department_org_chart: {
         Row: {
           department_color: string | null
