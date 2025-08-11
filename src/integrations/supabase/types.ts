@@ -1797,6 +1797,7 @@ export type Database = {
       }
       deeds: {
         Row: {
+          assigned_to: string | null
           base_fee: number | null
           case_id: string | null
           contact_id: string
@@ -1805,15 +1806,27 @@ export type Database = {
           currency: string
           deed_type: string
           id: string
+          notary_fees: number | null
+          notary_name: string | null
           notary_office: string | null
           org_id: string
+          other_fees: number | null
           proposal_id: string | null
+          protocol_number: string | null
+          registration_date: string | null
+          registry_fees: number | null
+          registry_office: string | null
+          registry_reference: string | null
+          registry_status: string | null
+          registry_submission_date: string | null
           signing_date: string | null
           status: string
           title: string
+          total_fees: number | null
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           base_fee?: number | null
           case_id?: string | null
           contact_id: string
@@ -1822,15 +1835,27 @@ export type Database = {
           currency?: string
           deed_type: string
           id?: string
+          notary_fees?: number | null
+          notary_name?: string | null
           notary_office?: string | null
           org_id: string
+          other_fees?: number | null
           proposal_id?: string | null
+          protocol_number?: string | null
+          registration_date?: string | null
+          registry_fees?: number | null
+          registry_office?: string | null
+          registry_reference?: string | null
+          registry_status?: string | null
+          registry_submission_date?: string | null
           signing_date?: string | null
           status?: string
           title: string
+          total_fees?: number | null
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           base_fee?: number | null
           case_id?: string | null
           contact_id?: string
@@ -1839,15 +1864,33 @@ export type Database = {
           currency?: string
           deed_type?: string
           id?: string
+          notary_fees?: number | null
+          notary_name?: string | null
           notary_office?: string | null
           org_id?: string
+          other_fees?: number | null
           proposal_id?: string | null
+          protocol_number?: string | null
+          registration_date?: string | null
+          registry_fees?: number | null
+          registry_office?: string | null
+          registry_reference?: string | null
+          registry_status?: string | null
+          registry_submission_date?: string | null
           signing_date?: string | null
           status?: string
           title?: string
+          total_fees?: number | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "deeds_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "deeds_case_id_fkey"
             columns: ["case_id"]

@@ -25,12 +25,14 @@ interface PublicDeed {
   registry_office?: string | null
   registry_reference?: string | null
   registry_status?: string | null
-  registry_deadline?: string | null
-  fees_detail?: any | null
+  registry_submission_date?: string | null
+  registration_date?: string | null
+  notary_fees?: number | null
+  registry_fees?: number | null
+  other_fees?: number | null
   total_fees?: number | null
   assigned_to?: string | null
   created_by: string
-  
   created_at: string
   updated_at: string
 }
@@ -68,6 +70,14 @@ export default function DeedsPage() {
   const qc = useQueryClient()
   const { data: deeds = [], isLoading } = useDeeds()
   const { data: contacts = [] } = useContactsBasic()
+  const { data: users = [] } = useQuery<{ id: string; email: string }[]>({
+    queryKey: ['users-basic'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('users').select('id, email').order('email')
+      if (error) throw error
+      return (data as { id: string; email: string }[]) || []
+    }
+  })
 
   // Realtime: refrescar automáticamente la lista ante cambios
   useEffect(() => {
@@ -94,7 +104,18 @@ export default function DeedsPage() {
     deed_type: 'compraventa',
     contact_id: '',
     signing_date: '',
-    notary_office: ''
+    notary_office: '',
+    notary_name: '',
+    protocol_number: '',
+    registry_office: '',
+    registry_reference: '',
+    registry_status: '',
+    registry_submission_date: '',
+    registration_date: '',
+    notary_fees: '',
+    registry_fees: '',
+    other_fees: '',
+    assigned_to: ''
   })
 
   const [filters, setFilters] = useState<DeedsFiltersState>({ search: '', type: 'all', status: 'all', sort: 'created_desc' })
@@ -175,6 +196,13 @@ export default function DeedsPage() {
       const userId = userRes.user?.id
       if (!userId) throw new Error('Usuario no autenticado')
 
+      const notaryFees = form.notary_fees ? Number(form.notary_fees) : null
+      const registryFees = form.registry_fees ? Number(form.registry_fees) : null
+      const otherFees = form.other_fees ? Number(form.other_fees) : null
+      const totalFees = [notaryFees, registryFees, otherFees]
+        .filter((v) => typeof v === 'number')
+        .reduce((acc, v) => acc + (v as number), 0)
+
       const payload = {
         org_id: orgIdData as string,
         contact_id: form.contact_id,
@@ -182,6 +210,18 @@ export default function DeedsPage() {
         title: form.title,
         signing_date: form.signing_date || null,
         notary_office: form.notary_office || null,
+        notary_name: form.notary_name || null,
+        protocol_number: form.protocol_number || null,
+        registry_office: form.registry_office || null,
+        registry_reference: form.registry_reference || null,
+        registry_status: form.registry_status || null,
+        registry_submission_date: form.registry_submission_date || null,
+        registration_date: form.registration_date || null,
+        notary_fees: notaryFees,
+        registry_fees: registryFees,
+        other_fees: otherFees,
+        total_fees: totalFees || null,
+        assigned_to: form.assigned_to || null,
         created_by: userId
       }
 
@@ -189,7 +229,24 @@ export default function DeedsPage() {
       if (error) throw error
     },
     onSuccess: async () => {
-      setForm({ title: '', deed_type: 'compraventa', contact_id: '', signing_date: '', notary_office: '' })
+      setForm({
+        title: '',
+        deed_type: 'compraventa',
+        contact_id: '',
+        signing_date: '',
+        notary_office: '',
+        notary_name: '',
+        protocol_number: '',
+        registry_office: '',
+        registry_reference: '',
+        registry_status: '',
+        registry_submission_date: '',
+        registration_date: '',
+        notary_fees: '',
+        registry_fees: '',
+        other_fees: '',
+        assigned_to: ''
+      })
       toast.success('Escritura creada')
       await qc.invalidateQueries({ queryKey: ['deeds'] })
     },
@@ -224,6 +281,7 @@ export default function DeedsPage() {
             form={form}
             deedTypes={deedTypes}
             contacts={contacts}
+            users={users}
             isSubmitting={createMutation.isPending}
             onChange={(next) => setForm((f) => ({ ...f, ...next }))}
             onSubmit={() => createMutation.mutate()}
