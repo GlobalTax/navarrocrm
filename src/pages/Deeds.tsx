@@ -7,8 +7,11 @@ import { toast } from 'sonner'
 import DeedsForm from '@/pages/deeds/DeedsForm'
 import DeedsFilters, { DeedsFiltersState } from '@/pages/deeds/DeedsFilters'
 import DeedsTable from '@/pages/deeds/DeedsTable'
-import DeedDetails from '@/pages/deeds/DeedDetails'
+
 import { useContactsBasic } from '@/hooks/useContactsBasic'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import DeedsKanban from '@/pages/deeds/DeedsKanban'
+import DeedDetailTabs from '@/pages/deeds/DeedDetailTabs'
 // Types
 interface PublicDeed {
   id: string
@@ -27,6 +30,11 @@ interface PublicDeed {
   registry_status?: string | null
   registry_submission_date?: string | null
   registration_date?: string | null
+  registry_entry_number?: string | null
+  model600_deadline?: string | null
+  asiento_expiration_date?: string | null
+  qualification_started_at?: string | null
+  qualification_deadline?: string | null
   notary_fees?: number | null
   registry_fees?: number | null
   other_fees?: number | null
@@ -288,52 +296,71 @@ export default function DeedsPage() {
           />
         </Card>
 
-        {/* Listado */}
+        {/* Listado / Kanban */}
         <Card className="lg:col-span-2 p-4 border rounded-[10px] shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-medium">Listado</h2>
-          </div>
-          <DeedsFilters
-            filters={filters}
-            deedTypes={deedTypes}
-            onChange={(next) => setFilters((f) => ({ ...f, ...next }))}
-          />
-
-          {isLoading ? (
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 bg-muted rounded" />
-              ))}
+          <Tabs defaultValue="table">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-medium">Pipeline</h2>
+              <TabsList>
+                <TabsTrigger value="table">Tabla</TabsTrigger>
+                <TabsTrigger value="kanban">Kanban</TabsTrigger>
+              </TabsList>
             </div>
-          ) : (
-            <>
-              <DeedsTable
-                deeds={tableDeeds}
+
+            <TabsContent value="table">
+              <DeedsFilters
+                filters={filters}
+                deedTypes={deedTypes}
+                onChange={(next) => setFilters((f) => ({ ...f, ...next }))}
+              />
+
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-12 bg-muted rounded" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <DeedsTable
+                    deeds={tableDeeds}
+                    getContactName={(id) => contactNameById.get(id)}
+                    onRefresh={() => qc.invalidateQueries({ queryKey: ['deeds'] })}
+                    onUpdateStatus={handleUpdateStatus}
+                    onSelect={(id) => setSelectedId(id)}
+                  />
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sortedDeeds.length)} de {sortedDeeds.length}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Anterior</Button>
+                      <span className="text-sm">Página {page} / {totalPages}</span>
+                      <Button variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Siguiente</Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </TabsContent>
+
+            <TabsContent value="kanban">
+              <DeedsKanban
+                deeds={deeds}
                 getContactName={(id) => contactNameById.get(id)}
-                onRefresh={() => qc.invalidateQueries({ queryKey: ['deeds'] })}
                 onUpdateStatus={handleUpdateStatus}
                 onSelect={(id) => setSelectedId(id)}
               />
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sortedDeeds.length)} de {sortedDeeds.length}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Anterior</Button>
-                  <span className="text-sm">Página {page} / {totalPages}</span>
-                  <Button variant="outline" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Siguiente</Button>
-                </div>
-              </div>
-              {selectedDeed && (
-                <div className="mt-4">
-                  <DeedDetails
-                    deed={selectedDeed}
-                    contactName={contactNameById.get(selectedDeed.contact_id) || selectedDeed.contact_id}
-                    onClose={() => setSelectedId(null)}
-                  />
-                </div>
-              )}
-            </>
+            </TabsContent>
+          </Tabs>
+
+          {selectedDeed && (
+            <div className="mt-4">
+              <DeedDetailTabs
+                deed={selectedDeed}
+                contactName={contactNameById.get(selectedDeed.contact_id) || selectedDeed.contact_id}
+                onClose={() => setSelectedId(null)}
+              />
+            </div>
           )}
         </Card>
       </div>
