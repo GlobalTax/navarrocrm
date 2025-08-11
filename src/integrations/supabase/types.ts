@@ -1746,6 +1746,36 @@ export type Database = {
           },
         ]
       }
+      deed_reminder_logs: {
+        Row: {
+          created_by: string | null
+          days_before: number
+          deed_id: string
+          id: string
+          org_id: string
+          reminder_type: string
+          sent_at: string
+        }
+        Insert: {
+          created_by?: string | null
+          days_before: number
+          deed_id: string
+          id?: string
+          org_id: string
+          reminder_type: string
+          sent_at?: string
+        }
+        Update: {
+          created_by?: string | null
+          days_before?: number
+          deed_id?: string
+          id?: string
+          org_id?: string
+          reminder_type?: string
+          sent_at?: string
+        }
+        Relationships: []
+      }
       deed_stage_templates: {
         Row: {
           code: string
