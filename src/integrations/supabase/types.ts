@@ -1891,6 +1891,7 @@ export type Database = {
       deeds: {
         Row: {
           asiento_expiration_date: string | null
+          asiento_number: string | null
           assigned_to: string | null
           base_fee: number | null
           borme_publication_date: string | null
@@ -1946,6 +1947,7 @@ export type Database = {
         }
         Insert: {
           asiento_expiration_date?: string | null
+          asiento_number?: string | null
           assigned_to?: string | null
           base_fee?: number | null
           borme_publication_date?: string | null
@@ -2001,6 +2003,7 @@ export type Database = {
         }
         Update: {
           asiento_expiration_date?: string | null
+          asiento_number?: string | null
           assigned_to?: string | null
           base_fee?: number | null
           borme_publication_date?: string | null
