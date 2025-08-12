@@ -17,22 +17,49 @@ interface DiagResult {
 export function QuantumApiDiagnostics() {
   const [loading, setLoading] = useState(false);
   const [output, setOutput] = useState<DiagResult | null>(null);
+  const [multiOutput, setMultiOutput] = useState<Array<{ type: 'C' | 'P'; data: DiagResult }> | null>(null);
+  const [diagType, setDiagType] = useState<'C' | 'P' | 'ALL'>('C');
+  const [full, setFull] = useState(true);
 
   const runTest = async (range?: { start?: string; end?: string }) => {
     try {
       setLoading(true);
       setOutput(null);
-      const { data, error } = await supabase.functions.invoke('quantum-diagnostics', {
-        body: {
-          endpoint: 'invoice',
-          full: true,
-          start_date: range?.start,
-          end_date: range?.end,
-          type: 'C'
-        },
-      });
-      if (error) throw error;
-      setOutput(data as DiagResult);
+      setMultiOutput(null);
+
+      if (diagType === 'ALL') {
+        const types: Array<'C' | 'P'> = ['C', 'P'];
+        const results: Array<{ type: 'C' | 'P'; data: DiagResult }> = [];
+        for (const t of types) {
+          const { data, error } = await supabase.functions.invoke('quantum-diagnostics', {
+            body: {
+              endpoint: 'invoice',
+              full,
+              start_date: range?.start,
+              end_date: range?.end,
+              type: t,
+            },
+          });
+          if (error) {
+            results.push({ type: t, data: { error: error.message } });
+          } else {
+            results.push({ type: t, data: data as DiagResult });
+          }
+        }
+        setMultiOutput(results);
+      } else {
+        const { data, error } = await supabase.functions.invoke('quantum-diagnostics', {
+          body: {
+            endpoint: 'invoice',
+            full,
+            start_date: range?.start,
+            end_date: range?.end,
+            type: diagType,
+          },
+        });
+        if (error) throw error;
+        setOutput(data as DiagResult);
+      }
     } catch (e: any) {
       setOutput({ error: e?.message || 'Error desconocido' });
     } finally {
@@ -58,7 +85,30 @@ export function QuantumApiDiagnostics() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2 flex-wrap mb-4">
+        <div className="flex gap-2 flex-wrap mb-4 items-center">
+          <select
+            aria-label="Tipo"
+            value={diagType}
+            onChange={(e) => setDiagType(e.target.value as 'C' | 'P' | 'ALL')}
+            className="border-0.5 border-black rounded-[10px] px-2 py-1"
+            disabled={loading}
+          >
+            <option value="C">Clientes (C)</option>
+            <option value="P">Proveedores (P)</option>
+            <option value="ALL">Ambos (C+P)</option>
+          </select>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={full}
+              onChange={(e) => setFull(e.target.checked)}
+              disabled={loading}
+              className="border-0.5 border-black rounded-[10px]"
+            />
+            Full (/invoice/full)
+          </label>
+
           <Button 
             variant="outline" 
             size="sm"
@@ -92,7 +142,41 @@ export function QuantumApiDiagnostics() {
           <div className="text-sm text-muted-foreground">Lanzando prueba…</div>
         )}
 
-        {output && (
+        {multiOutput && multiOutput.length > 0 && (
+          <ScrollArea className="h-[220px] border rounded-[10px] p-3 mb-3">
+            <div className="space-y-4 text-sm">
+              {multiOutput.map(({ type, data }) => (
+                <div key={type} className="space-y-2">
+                  <div className="font-medium">Resultado tipo {type}</div>
+                  {data.url_masked && (
+                    <div className="text-muted-foreground break-words">{data.url_masked}</div>
+                  )}
+                  {data.results && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div>
+                        <div className="font-medium">API-KEY</div>
+                        <pre className="bg-muted/40 p-2 rounded-[10px] overflow-x-auto">
+                          {JSON.stringify(data.results.apiKey, null, 2)}
+                        </pre>
+                      </div>
+                      <div>
+                        <div className="font-medium">Bearer</div>
+                        <pre className="bg-muted/40 p-2 rounded-[10px] overflow-x-auto">
+                          {JSON.stringify(data.results.bearer, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                  {data.error && (
+                    <div className="text-destructive">{data.error}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+
+        {output && !multiOutput && (
           <ScrollArea className="h-[220px] border rounded-[10px] p-3">
             <div className="space-y-2 text-sm">
               {output.url_masked && (

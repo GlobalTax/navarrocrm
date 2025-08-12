@@ -181,85 +181,118 @@ Deno.serve(async (req) => {
     const useFull = typeof full === 'boolean' ? full : true;
 
     const path = useFull ? 'invoice/full' : 'invoice';
-    let apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/${path}?type=${encodeURIComponent(t)}&companyId=${encodeURIComponent(quantumCompanyId)}`;
-    if (!useFull && p) apiUrl += `&page=${p}`;
-    if (start) apiUrl += `&startDate=${encodeURIComponent(start)}`;
-    if (end) apiUrl += `&endDate=${encodeURIComponent(end)}`;
 
-    // Crear registro in_progress en el historial detallado
-    let historyId: string | null = null;
-    try {
-      const { data: inProg } = await supabase
-        .from('quantum_invoice_sync_history')
-        .insert({
-          org_id,
-          sync_status: 'in_progress',
-          sync_type: syncType,
-          start_date: start || null,
-          end_date: end || null,
-          invoices_processed: 0,
-          invoices_created: 0,
-          invoices_updated: 0,
-          error_details: { step: 'starting' },
-        } as any)
-        .select('id')
-        .maybeSingle();
-      historyId = inProg?.id ?? null;
-    } catch (_e) {
-      // no-op
-    }
+    const buildUrl = (typeParam: string) => {
+      let url = `https://app.quantumeconomics.es/contabilidad/ws/${path}?type=${encodeURIComponent(typeParam)}&companyId=${encodeURIComponent(quantumCompanyId)}`;
+      if (!useFull && p) url += `&page=${p}`;
+      if (start) url += `&startDate=${encodeURIComponent(start)}`;
+      if (end) url += `&endDate=${encodeURIComponent(end)}`;
+      return url;
+    };
 
-    console.log('🌐 [API] URL:', apiUrl.replace(quantumCompanyId, mask(quantumCompanyId)));
+    let invoices: QuantumInvoice[] = [];
+    let authUsed: string = '';
 
-    let fetchResult;
-    try {
-      fetchResult = await fetchWithRetry(apiUrl, quantumToken, 3, 15000);
-    } catch (err) {
-      const details = { api_error: (err as Error).message, url: apiUrl, company_id_masked: mask(quantumCompanyId), tried: ['API-KEY', 'Bearer'] };
-      // Backward-compatible log
-      await supabase.from('quantum_sync_history').insert({
-        status: 'error', message: 'Error autenticando/consultando Quantum Invoices', records_processed: 0,
-        error_details: details, sync_date: new Date().toISOString(),
-      } as any);
-      // New history table: update in-progress if exists; otherwise insert
-      if (historyId) {
-        await supabase.from('quantum_invoice_sync_history').update({
-          sync_status: 'error',
-          invoices_processed: 0,
-          invoices_created: 0,
-          invoices_updated: 0,
-          error_details: { ...details, auth_used: null },
-        } as any).eq('id', historyId);
-      } else {
-        await supabase.from('quantum_invoice_sync_history').insert({
-          org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null,
-          invoices_processed: 0, invoices_created: 0, invoices_updated: 0,
-          error_details: { ...details, auth_used: null },
+    if (t === 'ALL') {
+      const typesToFetch: Array<'C' | 'P'> = ['C', 'P'];
+      const authSet = new Set<string>();
+      for (const tf of typesToFetch) {
+        const url = buildUrl(tf);
+        console.log('🌐 [API] URL:', url.replace(quantumCompanyId, mask(quantumCompanyId)));
+        try {
+          const fr = await fetchWithRetry(url, quantumToken, 3, 15000);
+          const data = (fr.data as QuantumResponse);
+          if (Array.isArray(data.invoices)) {
+            invoices = invoices.concat(data.invoices as QuantumInvoice[]);
+          }
+          if (fr.authUsed) authSet.add(fr.authUsed);
+        } catch (err) {
+          // Registrar fallo parcial pero continuar si el otro tipo funciona
+          await supabase.from('quantum_sync_history').insert({
+            status: 'error',
+            message: `Error consultando tipo ${tf}`,
+            records_processed: 0,
+            error_details: { api_error: (err as Error).message, url, company_id_masked: mask(quantumCompanyId), tried: ['API-KEY', 'Bearer'], type: tf },
+            sync_date: new Date().toISOString(),
+          } as any);
+        }
+      }
+      authUsed = authSet.size > 1 ? 'mixed' : (authSet.values().next().value || '');
+      // Deduplicar por id
+      const seen = new Set<string>();
+      invoices = invoices.filter((inv) => {
+        if (!inv?.id) return true;
+        if (seen.has(inv.id)) return false;
+        seen.add(inv.id);
+        return true;
+      });
+
+      if (invoices.length === 0 && authSet.size === 0) {
+        const details = { api_error: 'No se pudo obtener datos para C ni P', tried: ['API-KEY', 'Bearer'], company_id_masked: mask(quantumCompanyId) };
+        // Historial antiguo y nuevo
+        await supabase.from('quantum_sync_history').insert({ status: 'error', message: 'Error autenticando/consultando Quantum Invoices', records_processed: 0, error_details: details, sync_date: new Date().toISOString() } as any);
+        if (historyId) {
+          await supabase.from('quantum_invoice_sync_history').update({ sync_status: 'error', invoices_processed: 0, invoices_created: 0, invoices_updated: 0, error_details: { ...details, auth_used: null } } as any).eq('id', historyId);
+        } else {
+          await supabase.from('quantum_invoice_sync_history').insert({ org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null, invoices_processed: 0, invoices_created: 0, invoices_updated: 0, error_details: { ...details, auth_used: null } } as any);
+        }
+        return new Response(JSON.stringify({ error: 'Respuesta inválida de Quantum' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    } else {
+      const apiUrl = buildUrl(t);
+      console.log('🌐 [API] URL:', apiUrl.replace(quantumCompanyId, mask(quantumCompanyId)));
+      let fetchResult;
+      try {
+        fetchResult = await fetchWithRetry(apiUrl, quantumToken, 3, 15000);
+      } catch (err) {
+        const details = { api_error: (err as Error).message, url: apiUrl, company_id_masked: mask(quantumCompanyId), tried: ['API-KEY', 'Bearer'] };
+        // Backward-compatible log
+        await supabase.from('quantum_sync_history').insert({
+          status: 'error', message: 'Error autenticando/consultando Quantum Invoices', records_processed: 0,
+          error_details: details, sync_date: new Date().toISOString(),
         } as any);
+        // New history table: update in-progress if exists; otherwise insert
+        if (historyId) {
+          await supabase.from('quantum_invoice_sync_history').update({
+            sync_status: 'error',
+            invoices_processed: 0,
+            invoices_created: 0,
+            invoices_updated: 0,
+            error_details: { ...details, auth_used: null },
+          } as any).eq('id', historyId);
+        } else {
+          await supabase.from('quantum_invoice_sync_history').insert({
+            org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null,
+            invoices_processed: 0, invoices_created: 0, invoices_updated: 0,
+            error_details: { ...details, auth_used: null },
+          } as any);
+        }
+        return new Response(JSON.stringify({ error: 'Respuesta inválida de Quantum', details }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      return new Response(JSON.stringify({ error: 'Respuesta inválida de Quantum', details }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
+      const { data: quantumData, authUsed: used } = fetchResult as { data: QuantumResponse; authUsed: string };
+      authUsed = used;
+
+      if (quantumData.error && quantumData.error.errorCode && quantumData.error.errorCode !== '0') {
+        const details = { quantum_error: quantumData.error, auth_used: authUsed };
+        await supabase.from('quantum_sync_history').insert({ status: 'error', message: 'Error en respuesta de Quantum Invoices', records_processed: 0, error_details: details, sync_date: new Date().toISOString() } as any);
+        if (historyId) {
+          await supabase.from('quantum_invoice_sync_history').update({
+            sync_status: 'error',
+            invoices_processed: 0,
+            invoices_created: 0,
+            invoices_updated: 0,
+            error_details: details,
+          } as any).eq('id', historyId);
+        } else {
+          await supabase.from('quantum_invoice_sync_history').insert({ org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null, invoices_processed: 0, invoices_created: 0, invoices_updated: 0, error_details: details } as any);
+        }
+        return new Response(JSON.stringify({ error: 'Error en respuesta de Quantum', details }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      invoices = quantumData.invoices || [];
     }
 
-    const { data: quantumData, authUsed } = fetchResult as { data: QuantumResponse; authUsed: string };
-
-    if (quantumData.error && quantumData.error.errorCode && quantumData.error.errorCode !== '0') {
-      const details = { quantum_error: quantumData.error, auth_used: authUsed };
-      await supabase.from('quantum_sync_history').insert({ status: 'error', message: 'Error en respuesta de Quantum Invoices', records_processed: 0, error_details: details, sync_date: new Date().toISOString() } as any);
-      if (historyId) {
-        await supabase.from('quantum_invoice_sync_history').update({
-          sync_status: 'error',
-          invoices_processed: 0,
-          invoices_created: 0,
-          invoices_updated: 0,
-          error_details: details,
-        } as any).eq('id', historyId);
-      } else {
-        await supabase.from('quantum_invoice_sync_history').insert({ org_id, sync_status: 'error', sync_type: syncType, start_date: start || null, end_date: end || null, invoices_processed: 0, invoices_created: 0, invoices_updated: 0, error_details: details } as any);
-      }
-      return new Response(JSON.stringify({ error: 'Error en respuesta de Quantum', details }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-
-    const invoices = quantumData.invoices || [];
     console.log(`📊 [Data] Facturas recibidas: ${invoices.length} (auth: ${authUsed})`);
 
     let processedCount = 0;

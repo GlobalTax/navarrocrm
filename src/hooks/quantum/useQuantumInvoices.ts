@@ -181,7 +181,8 @@ export const useSyncQuantumInvoices = () => {
     org_id: string; 
     start_date?: string; 
     end_date?: string;
-    invoice_type?: 'C' | 'I' | 'E' | 'ALL'
+    invoice_type?: 'C' | 'P' | 'ALL';
+    full?: boolean;
   }) => {
     console.log('🔄 [Sync] Iniciando sincronización de facturas');
 

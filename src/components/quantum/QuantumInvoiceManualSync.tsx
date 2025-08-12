@@ -17,7 +17,7 @@ export function QuantumInvoiceManualSync({
   endDate = "2025-07-31",
 }: QuantumInvoiceManualSyncProps) {
   const [loading, setLoading] = useState(false);
-  const [invoiceType, setInvoiceType] = useState<'C' | 'I' | 'E' | 'ALL'>('ALL');
+  const [invoiceType, setInvoiceType] = useState<'C' | 'P' | 'ALL'>('C');
   const [from, setFrom] = useState(startDate);
   const [to, setTo] = useState(endDate);
   const syncQuantumInvoices = useSyncQuantumInvoices();
@@ -85,10 +85,9 @@ export function QuantumInvoiceManualSync({
           className="border-0.5 border-black rounded-[10px] px-2 py-1"
           disabled={loading}
         >
-          <option value="ALL">Todos (C/I/E)</option>
-          <option value="C">C (Clientes)</option>
-          <option value="I">I (Ingresos)</option>
-          <option value="E">E (Emitidas)</option>
+          <option value="C">Clientes (C)</option>
+          <option value="P">Proveedores (P)</option>
+          <option value="ALL">Ambos (C+P)</option>
         </select>
         <input
           type="date"
