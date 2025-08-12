@@ -55,6 +55,8 @@ export default function TimeTracking() {
   }
 
   const { showKpis, toggleKpis } = useUIPreferences('time-tracking', { showKpis: false })
+
+  const handleUseTemplate = (template: any) => {
     // Auto-llenar formulario de timer con la plantilla
     toast.success(`Plantilla "${template.name}" aplicada`)
     console.log('Using template:', template)

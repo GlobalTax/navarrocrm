@@ -15,7 +15,6 @@ import DeedDetailTabs from '@/pages/deeds/DeedDetailTabs'
 import DeedsKPIDashboard from '@/components/deeds/DeedsKPIDashboard'
 import { VisibleCard } from '@/components/ui/VisibleCard'
 import { useUIPreferences } from '@/hooks/useUIPreferences'
-import { VisibleCard } from '@/components/ui/VisibleCard'
 // Types
 interface PublicDeed {
   id: string
