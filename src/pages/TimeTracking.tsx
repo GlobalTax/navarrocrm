@@ -18,6 +18,8 @@ import { Clock, BarChart3, Timer, FileText, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
 import { Link } from 'react-router-dom'
+import { VisibleCard } from '@/components/ui/VisibleCard'
+import { useUIPreferences } from '@/hooks/useUIPreferences'
 
 export default function TimeTracking() {
   const {
@@ -52,7 +54,7 @@ export default function TimeTracking() {
     toast.success('Tiempo registrado correctamente')
   }
 
-  const handleUseTemplate = (template: any) => {
+  const { showKpis, toggleKpis } = useUIPreferences('time-tracking', { showKpis: false })
     // Auto-llenar formulario de timer con la plantilla
     toast.success(`Plantilla "${template.name}" aplicada`)
     console.log('Using template:', template)
@@ -72,6 +74,9 @@ export default function TimeTracking() {
             >
               <Timer className="h-4 w-4 mr-1" />
               {showFloatingTimer ? 'Ocultar' : 'Mostrar'} Timer Flotante
+            </Button>
+            <Button variant="outline" size="sm" onClick={toggleKpis}>
+              {showKpis ? 'Ocultar Widgets' : 'Ver Widgets'}
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/reports/monthly-service-hours">Reporte mensual</Link>
@@ -112,7 +117,11 @@ export default function TimeTracking() {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-          <AdvancedTimeTrackingDashboard />
+          {showKpis && (
+            <VisibleCard pageKey="time-tracking" cardId="advanced-dashboard" title="Dashboard de tiempo">
+              <AdvancedTimeTrackingDashboard />
+            </VisibleCard>
+          )}
         </TabsContent>
 
         <TabsContent value="timer" className="space-y-6">
@@ -122,7 +131,11 @@ export default function TimeTracking() {
             </div>
             
             <div className="xl:col-span-3">
-              <ModernTimeTrackingDashboard />
+              {showKpis && (
+                <VisibleCard pageKey="time-tracking" cardId="modern-dashboard" title="KPIs del día">
+                  <ModernTimeTrackingDashboard />
+                </VisibleCard>
+              )}
             </div>
           </div>
         </TabsContent>

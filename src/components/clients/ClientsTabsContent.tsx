@@ -7,6 +7,8 @@ import { Client } from '@/hooks/useClients'
 import { ClientsList } from './ClientsList'
 import { ClientCardView } from './ClientCardView'
 import { ClientMetricsDashboard } from './ClientMetricsDashboard'
+import { VisibleCard } from '@/components/ui/VisibleCard'
+import { useUIPreferences } from '@/hooks/useUIPreferences'
 
 interface ClientsTabsContentProps {
   clients: Client[]
@@ -29,6 +31,7 @@ export const ClientsTabsContent = ({
   onBulkUpload,
   onExport
 }: ClientsTabsContentProps) => {
+  const { showKpis, toggleKpis } = useUIPreferences('clients', { showKpis: false })
   return (
     <>
       <TabsContent value="list" className="space-y-4">
@@ -77,7 +80,16 @@ export const ClientsTabsContent = ({
       </TabsContent>
 
       <TabsContent value="analytics" className="space-y-4">
-        <ClientMetricsDashboard clients={clients} />
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={toggleKpis}>
+            {showKpis ? 'Ocultar KPIs' : 'Ver KPIs'}
+          </Button>
+        </div>
+        {showKpis && (
+          <VisibleCard pageKey="clients" cardId="client-metrics" title="Analítica de clientes">
+            <ClientMetricsDashboard clients={clients} />
+          </VisibleCard>
+        )}
       </TabsContent>
     </>
   )

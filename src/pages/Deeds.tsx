@@ -13,6 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import DeedsKanban from '@/pages/deeds/DeedsKanban'
 import DeedDetailTabs from '@/pages/deeds/DeedDetailTabs'
 import DeedsKPIDashboard from '@/components/deeds/DeedsKPIDashboard'
+import { VisibleCard } from '@/components/ui/VisibleCard'
+import { useUIPreferences } from '@/hooks/useUIPreferences'
+import { VisibleCard } from '@/components/ui/VisibleCard'
 // Types
 interface PublicDeed {
   id: string
@@ -128,7 +131,7 @@ export default function DeedsPage() {
   })
 
   const [filters, setFilters] = useState<DeedsFiltersState>({ search: '', type: 'all', status: 'all', sort: 'created_desc' })
-  const [showKpis, setShowKpis] = useState(false)
+  const { showKpis, toggleKpis } = useUIPreferences('deeds', { showKpis: false })
 
   const deedTypes = useMemo(
     () => ['compraventa', 'hipoteca', 'poderes', 'constitucion_sociedad', 'arrendamiento', 'otros'],
@@ -284,15 +287,15 @@ export default function DeedsPage() {
           <h1 className="text-2xl font-semibold">Escrituras públicas</h1>
           <p className="text-sm text-muted-foreground">Listado y alta rápida</p>
         </div>
-        <Button variant="outline" onClick={() => setShowKpis(v => !v)}>
+        <Button variant="outline" onClick={toggleKpis}>
           {showKpis ? 'Ocultar KPIs' : 'Ver KPIs'}
         </Button>
       </header>
 
       {showKpis && (
-        <Card className="p-4 border rounded-[10px] shadow-sm">
+        <VisibleCard pageKey="deeds" cardId="kpi-dashboard" title="KPIs">
           <DeedsKPIDashboard deeds={deeds as any} />
-        </Card>
+        </VisibleCard>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

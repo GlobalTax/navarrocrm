@@ -16,10 +16,13 @@ import { ProposalConfirmationDialog } from '@/components/proposals/ProposalConfi
 import { OnboardingConfirmationDialog } from '@/components/proposals/OnboardingConfirmationDialog'
 import { ProposalsErrorBoundary } from '@/components/proposals/ProposalsErrorBoundary'
 import { useOnboarding } from '@/contexts/OnboardingContext'
+import { Button } from '@/components/ui/button'
+import { VisibleCard } from '@/components/ui/VisibleCard'
+import { useUIPreferences } from '@/hooks/useUIPreferences'
 
 export default function Proposals() {
   // Removed console.log to prevent render loop
-  
+  const { showKpis, toggleKpis } = useUIPreferences('proposals', { showKpis: false })
   const { startOnboardingFromProposal } = useOnboarding()
   const { updateProposal } = useProposalActions()
   const [onboardingDialog, setOnboardingDialog] = useState<{
@@ -152,9 +155,18 @@ export default function Proposals() {
       />
 
       <ProposalsErrorBoundary error={error}>
+        <div className="flex justify-end mb-4">
+          <Button variant="outline" size="sm" onClick={toggleKpis}>
+            {showKpis ? 'Ocultar Widgets' : 'Ver Widgets'}
+          </Button>
+        </div>
         <ProposalsEmptyClientsBanner clientsCount={clients.length} />
 
-        <ProposalMetrics />
+        {showKpis && (
+          <VisibleCard pageKey="proposals" cardId="proposal-metrics" title="Métricas de propuestas">
+            <ProposalMetrics />
+          </VisibleCard>
+        )}
 
         <ProposalsFiltersSection
           filters={filters}
