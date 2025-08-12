@@ -12,6 +12,7 @@ import { useContactsBasic } from '@/hooks/useContactsBasic'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import DeedsKanban from '@/pages/deeds/DeedsKanban'
 import DeedDetailTabs from '@/pages/deeds/DeedDetailTabs'
+import DeedsKPIDashboard from '@/components/deeds/DeedsKPIDashboard'
 // Types
 interface PublicDeed {
   id: string
@@ -281,6 +282,10 @@ export default function DeedsPage() {
         <h1 className="text-2xl font-semibold">Escrituras públicas</h1>
         <p className="text-sm text-muted-foreground">Listado y alta rápida</p>
       </header>
+
+      <Card className="p-4 border rounded-[10px] shadow-sm">
+        <DeedsKPIDashboard deeds={deeds as any} />
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-4 border rounded-[10px] shadow-sm hover:shadow-lg transition-transform duration-200 ease-out">
