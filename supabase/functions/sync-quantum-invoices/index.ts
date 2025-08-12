@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(body), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { org_id, start_date, end_date, periodDays, sync_type: syncTypeInput } = await req.json().catch(() => ({ })) as any;
+    const { org_id, start_date, end_date, periodDays, sync_type: syncTypeInput, invoice_type, page } = await req.json().catch(() => ({ })) as any;
 
     if (!org_id) {
       // Registrar en historial de errores por falta de org_id
@@ -176,7 +176,10 @@ Deno.serve(async (req) => {
       end = now.toISOString().slice(0, 10);
     }
 
-    let apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/invoice?type=C&companyId=${encodeURIComponent(quantumCompanyId)}`;
+    const t = (invoice_type || 'C') as string;
+    const p = Number.isFinite(Number(page)) && Number(page) > 0 ? Number(page) : 1;
+
+    let apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/invoice?type=${encodeURIComponent(t)}&companyId=${encodeURIComponent(quantumCompanyId)}&page=${p}`;
     if (start) apiUrl += `&startDate=${encodeURIComponent(start)}`;
     if (end) apiUrl += `&endDate=${encodeURIComponent(end)}`;
 
