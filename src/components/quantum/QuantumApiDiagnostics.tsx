@@ -27,6 +27,8 @@ export function QuantumApiDiagnostics() {
           endpoint: 'invoice',
           start_date: range?.start,
           end_date: range?.end,
+          type: 'C',
+          page: 1,
         },
       });
       if (error) throw error;

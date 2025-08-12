@@ -36,7 +36,7 @@ serve(async (req) => {
   }
 
   try {
-    const { endpoint = 'invoice', start_date, end_date } = await req.json().catch(() => ({ })) as any;
+    const { endpoint = 'invoice', start_date, end_date, type = 'C', page } = await req.json().catch(() => ({ })) as any;
 
     const token = Deno.env.get('quantum_api_token');
     const companyId = Deno.env.get('quantum_company_id');
@@ -50,10 +50,11 @@ serve(async (req) => {
 
     let base = endpoint === 'customers'
       ? `https://app.quantumeconomics.es/contabilidad/ws/customers?companyId=${encodeURIComponent(companyId)}`
-      : `https://app.quantumeconomics.es/contabilidad/ws/invoice?type=C&companyId=${encodeURIComponent(companyId)}`;
+      : `https://app.quantumeconomics.es/contabilidad/ws/invoice?type=${encodeURIComponent(type)}&companyId=${encodeURIComponent(companyId)}`;
 
     if (start_date) base += `&startDate=${encodeURIComponent(start_date)}`;
     if (end_date) base += `&endDate=${encodeURIComponent(end_date)}`;
+    if (page) base += `&page=${encodeURIComponent(page)}`;
 
     const bearer = await tryAuth(base, `Bearer ${token}`);
     const apiKey = await tryAuth(base, `API-KEY ${token}`);
