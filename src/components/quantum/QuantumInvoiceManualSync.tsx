@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useSyncQuantumInvoices } from "@/hooks/quantum/useQuantumInvoices";
 import { useQueryClient } from "@tanstack/react-query";
+import { useApp } from "@/contexts/AppContext";
 
 interface QuantumInvoiceManualSyncProps {
   label?: string;
@@ -19,14 +19,15 @@ export function QuantumInvoiceManualSync({
   const [loading, setLoading] = useState(false);
   const syncQuantumInvoices = useSyncQuantumInvoices();
   const queryClient = useQueryClient();
+  const { user } = useApp();
 
   const handleSync = async () => {
     try {
       setLoading(true);
       toast.info(`Sincronizando Quantum: ${startDate} → ${endDate}`);
 
-      const { data: orgId, error: orgErr } = await supabase.rpc("get_user_org_id");
-      if (orgErr || !orgId) {
+      const orgId = user?.org_id;
+      if (!orgId) {
         throw new Error("No se pudo obtener la organización actual");
       }
 
