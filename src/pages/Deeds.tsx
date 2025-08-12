@@ -128,6 +128,7 @@ export default function DeedsPage() {
   })
 
   const [filters, setFilters] = useState<DeedsFiltersState>({ search: '', type: 'all', status: 'all', sort: 'created_desc' })
+  const [showKpis, setShowKpis] = useState(false)
 
   const deedTypes = useMemo(
     () => ['compraventa', 'hipoteca', 'poderes', 'constitucion_sociedad', 'arrendamiento', 'otros'],
@@ -278,14 +279,21 @@ export default function DeedsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Escrituras públicas</h1>
-        <p className="text-sm text-muted-foreground">Listado y alta rápida</p>
+      <header className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Escrituras públicas</h1>
+          <p className="text-sm text-muted-foreground">Listado y alta rápida</p>
+        </div>
+        <Button variant="outline" onClick={() => setShowKpis(v => !v)}>
+          {showKpis ? 'Ocultar KPIs' : 'Ver KPIs'}
+        </Button>
       </header>
 
-      <Card className="p-4 border rounded-[10px] shadow-sm">
-        <DeedsKPIDashboard deeds={deeds as any} />
-      </Card>
+      {showKpis && (
+        <Card className="p-4 border rounded-[10px] shadow-sm">
+          <DeedsKPIDashboard deeds={deeds as any} />
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-4 border rounded-[10px] shadow-sm hover:shadow-lg transition-transform duration-200 ease-out">
