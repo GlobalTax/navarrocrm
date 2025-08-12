@@ -25,10 +25,10 @@ export function QuantumApiDiagnostics() {
       const { data, error } = await supabase.functions.invoke('quantum-diagnostics', {
         body: {
           endpoint: 'invoice',
+          full: true,
           start_date: range?.start,
           end_date: range?.end,
-          type: 'C',
-          page: 1,
+          type: 'C'
         },
       });
       if (error) throw error;
