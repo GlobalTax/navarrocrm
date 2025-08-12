@@ -46,7 +46,7 @@ export function QuantumImportHistory() {
         id: r.id,
         sync_date: r.created_at,
         status: r.sync_status || 'unknown',
-        message: `Facturas ${r.start_date || '?'} → ${r.end_date || '?'} (${r.sync_type})`,
+        message: `Facturas ${r.start_date || '?'} → ${r.end_date || '?'} (${r.sync_type}${r.invoice_type ? ' · ' + r.invoice_type : ''})`,
         records_processed: r.invoices_processed ?? 0,
         error_details: r.error_details,
         created_at: r.created_at,
@@ -179,6 +179,9 @@ export function QuantumImportHistory() {
                     
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>Registros: {record.records_processed}</span>
+                      {record.status === 'success' && record.records_processed === 0 && (
+                        <span className="text-yellow-600">Aviso: 0 registros procesados</span>
+                      )}
                       <span>
                         Fecha: {new Date(record.sync_date).toLocaleString('es-ES')}
                       </span>

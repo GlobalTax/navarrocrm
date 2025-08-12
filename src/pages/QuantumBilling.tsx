@@ -3,7 +3,7 @@ import { StandardPageHeader } from "@/components/layout/StandardPageHeader";
 import { QuantumInvoicesDashboard } from "@/components/quantum/QuantumInvoicesDashboard";
 import { QuantumInvoiceManualSync } from "@/components/quantum/QuantumInvoiceManualSync";
 import { QuantumImportHistory } from "@/components/quantum/QuantumImportHistory";
-
+import { QuantumApiDiagnostics } from "@/components/quantum/QuantumApiDiagnostics";
 export default function QuantumBilling() {
   return (
     <StandardPageContainer>
@@ -28,6 +28,10 @@ export default function QuantumBilling() {
           startDate="2025-01-01"
           endDate="2025-12-31"
         />
+      </div>
+      {/* Panel de diagnóstico rápido de API */}
+      <div className="mb-4">
+        <QuantumApiDiagnostics />
       </div>
       <QuantumInvoicesDashboard />
       <div className="mt-6">

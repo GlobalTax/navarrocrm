@@ -177,7 +177,12 @@ export const useClientBillingStats = (period_months: number = 12) => {
 
 // Hook para sincronizar facturas
 export const useSyncQuantumInvoices = () => {
-  return async (params: { org_id: string; start_date?: string; end_date?: string }) => {
+  return async (params: { 
+    org_id: string; 
+    start_date?: string; 
+    end_date?: string;
+    invoice_type?: 'C' | 'I' | 'E' | 'ALL'
+  }) => {
     console.log('🔄 [Sync] Iniciando sincronización de facturas');
 
     const { data, error } = await supabase.functions.invoke('sync-quantum-invoices', {
