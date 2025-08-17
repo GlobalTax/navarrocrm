@@ -4,6 +4,8 @@ import { QuantumInvoicesDashboard } from "@/components/quantum/QuantumInvoicesDa
 import { QuantumInvoiceManualSync } from "@/components/quantum/QuantumInvoiceManualSync";
 import { QuantumImportHistory } from "@/components/quantum/QuantumImportHistory";
 import { QuantumApiDiagnostics } from "@/components/quantum/QuantumApiDiagnostics";
+import { QuantumInvoiceFixerTool } from "@/components/quantum/QuantumInvoiceFixerTool";
+
 export default function QuantumBilling() {
   return (
     <StandardPageContainer>
@@ -11,6 +13,12 @@ export default function QuantumBilling() {
         title="Análisis de Facturación"
         description="Dashboard de facturación mensual integrado con Quantum Economics"
       />
+      
+      {/* Herramienta de diagnóstico y reparación */}
+      <div className="mb-6">
+        <QuantumInvoiceFixerTool />
+      </div>
+
       <div className="mb-4 flex gap-2 flex-wrap">
         <QuantumInvoiceManualSync 
           label="Sincronizar junio 2025 (mes natural)"
@@ -29,10 +37,12 @@ export default function QuantumBilling() {
           endDate="2025-12-31"
         />
       </div>
+      
       {/* Panel de diagnóstico rápido de API */}
       <div className="mb-4">
         <QuantumApiDiagnostics />
       </div>
+      
       <QuantumInvoicesDashboard />
       <div className="mt-6">
         <QuantumImportHistory />

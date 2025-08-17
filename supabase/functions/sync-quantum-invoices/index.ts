@@ -287,6 +287,25 @@ Deno.serve(async (req) => {
           .eq('org_id', org_id)
           .maybeSingle();
 
+        // Procesar líneas de factura desde los datos fiscales
+        const processedLines = [];
+        if (invoice.tax && Array.isArray(invoice.tax)) {
+          for (const taxItem of invoice.tax) {
+            processedLines.push({
+              id: `${invoice.id}-${taxItem.codigo || 'line'}`,
+              description: taxItem.goodServices || 'Servicios profesionales',
+              quantity: 1,
+              unit_price: parseFloat(taxItem.taxableBase) || 0,
+              tax_rate: parseFloat(taxItem.percentage) || 0,
+              tax_amount: parseFloat(taxItem.amount) || 0,
+              total_amount: (parseFloat(taxItem.taxableBase) || 0) + (parseFloat(taxItem.amount) || 0),
+              tax_code: taxItem.codigo,
+              tax_type: taxItem.taxType,
+              account: taxItem.account
+            });
+          }
+        }
+
         const invoiceData = {
           quantum_invoice_id: invoice.id,
           org_id,
@@ -297,7 +316,7 @@ Deno.serve(async (req) => {
           invoice_date: invoice.invoiceDate,
           total_amount_without_taxes: normalizeAmount(invoice.totalAmountWithoutTaxes),
           total_amount: normalizeAmount(invoice.totalAmount),
-          invoice_lines: invoice.line || [],
+          invoice_lines: processedLines,
           quantum_data: invoice,
         } as any;
 
