@@ -8266,6 +8266,7 @@ export type Database = {
       }
       time_entries: {
         Row: {
+          billing_status: string | null
           case_id: string | null
           created_at: string | null
           description: string | null
@@ -8280,6 +8281,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          billing_status?: string | null
           case_id?: string | null
           created_at?: string | null
           description?: string | null
@@ -8294,6 +8296,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          billing_status?: string | null
           case_id?: string | null
           created_at?: string | null
           description?: string | null

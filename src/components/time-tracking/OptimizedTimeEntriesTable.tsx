@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Trash2, Edit, Copy, MoreHorizontal, Calendar, DollarSign } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { BillingStatusBadge } from '@/components/time/BillingStatusBadge'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { format, isToday, isYesterday } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -16,7 +17,9 @@ export const OptimizedTimeEntriesTable = () => {
     filteredTimeEntries,
     isLoading,
     deleteTimeEntry,
-    isDeleting
+    isDeleting,
+    updateBillingStatus,
+    isUpdatingBilling
   } = useTimeEntries()
 
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -168,6 +171,7 @@ export const OptimizedTimeEntriesTable = () => {
                           <TableHead className="w-32">Caso</TableHead>
                           <TableHead className="w-20">Tiempo</TableHead>
                           <TableHead className="w-24">Tipo</TableHead>
+                          <TableHead className="w-28">Estado</TableHead>
                           <TableHead className="w-16"></TableHead>
                         </TableRow>
                       </TableHeader>
@@ -212,6 +216,13 @@ export const OptimizedTimeEntriesTable = () => {
                               </Badge>
                             </TableCell>
                             <TableCell>
+                              {entry.is_billable && entry.billing_status ? (
+                                <BillingStatusBadge status={entry.billing_status} />
+                              ) : (
+                                <span className="text-xs text-muted-foreground">N/A</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -227,6 +238,24 @@ export const OptimizedTimeEntriesTable = () => {
                                     <Copy className="h-4 w-4 mr-2" />
                                     Duplicar
                                   </DropdownMenuItem>
+                                  {entry.is_billable && entry.billing_status === 'unbilled' && (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => updateBillingStatus({ ids: [entry.id], status: 'billed' })}
+                                        disabled={isUpdatingBilling}
+                                      >
+                                        <DollarSign className="h-4 w-4 mr-2" />
+                                        Marcar como facturado
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => updateBillingStatus({ ids: [entry.id], status: 'invoiced' })}
+                                        disabled={isUpdatingBilling}
+                                      >
+                                        <DollarSign className="h-4 w-4 mr-2" />
+                                        Marcar como cobrado
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                   <DropdownMenuItem
                                     onClick={() => handleDelete(entry.id)}
                                     disabled={isDeleting || deletingId === entry.id}

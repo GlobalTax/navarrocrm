@@ -13,6 +13,7 @@ export interface TimeEntry {
   description: string | null
   duration_minutes: number
   is_billable: boolean
+  billing_status: 'unbilled' | 'billed' | 'invoiced'
   entry_type: 'billable' | 'office_admin' | 'business_development' | 'internal'
   created_at: string
   updated_at: string
@@ -42,6 +43,7 @@ export const useTimeEntries = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [caseFilter, setCaseFilter] = useState<string>('all')
   const [billableFilter, setBillableFilter] = useState<string>('all')
+  const [billingStatusFilter, setBillingStatusFilter] = useState<string>('all')
 
   const { data: timeEntries = [], isLoading, error } = useQuery({
     queryKey: ['time-entries', user?.org_id],
@@ -86,8 +88,9 @@ export const useTimeEntries = () => {
     const matchesBillable = billableFilter === 'all' || 
       (billableFilter === 'billable' && entry.is_billable) ||
       (billableFilter === 'non-billable' && !entry.is_billable)
+    const matchesBillingStatus = billingStatusFilter === 'all' || entry.billing_status === billingStatusFilter
 
-    return matchesSearch && matchesCase && matchesBillable
+    return matchesSearch && matchesCase && matchesBillable && matchesBillingStatus
   })
 
   const createTimeEntry = useMutation({
@@ -144,6 +147,27 @@ export const useTimeEntries = () => {
     },
   })
 
+  // Mutation to update billing status
+  const updateBillingStatus = useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[], status: 'unbilled' | 'billed' | 'invoiced' }) => {
+      const { error } = await supabase
+        .from('time_entries')
+        .update({ billing_status: status })
+        .in('id', ids)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['time-entries'] })
+      queryClient.invalidateQueries({ queryKey: ['unbilled-time'] })
+      toast.success('Estado de facturación actualizado')
+    },
+    onError: (error) => {
+      console.error('Error updating billing status:', error)
+      toast.error('Error al actualizar el estado de facturación')
+    },
+  })
+
   return {
     timeEntries,
     filteredTimeEntries,
@@ -155,9 +179,13 @@ export const useTimeEntries = () => {
     setCaseFilter,
     billableFilter,
     setBillableFilter,
+    billingStatusFilter,
+    setBillingStatusFilter,
     createTimeEntry: createTimeEntry.mutate,
     deleteTimeEntry: deleteTimeEntry.mutate,
+    updateBillingStatus: updateBillingStatus.mutate,
     isCreating: createTimeEntry.isPending,
     isDeleting: deleteTimeEntry.isPending,
+    isUpdatingBilling: updateBillingStatus.isPending,
   }
 }

@@ -7,6 +7,7 @@ export interface UnbilledTimeEntry {
   description: string | null
   duration_minutes: number
   entry_type: string
+  billing_status: 'unbilled' | 'billed' | 'invoiced'
   created_at: string
   user_id: string
   case_id: string
@@ -25,7 +26,7 @@ export const useUnbilledTime = (caseId?: string) => {
         .select('*')
         .eq('org_id', user.org_id)
         .eq('is_billable', true)
-        .or('status.is.null,status.neq.billed')
+        .eq('billing_status', 'unbilled')
 
       if (caseId) {
         query = query.eq('case_id', caseId)

@@ -21,8 +21,8 @@ export const useCaseFlow = (caseId: string) => {
   // Get unbilled time entries for this case  
   const unbilledEntries = timeEntries.filter(entry => 
     entry.case_id === caseId && 
-    entry.is_billable
-    // Note: status field for billing doesn't exist yet, all billable entries are considered unbilled for now
+    entry.is_billable &&
+    entry.billing_status === 'unbilled'
   )
 
   const unbilledHours = unbilledEntries.reduce((total, entry) => 

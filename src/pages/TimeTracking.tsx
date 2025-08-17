@@ -14,11 +14,13 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Clock, BarChart3, Timer, FileText, Calendar } from 'lucide-react'
+import { Clock, BarChart3, Timer, FileText, Calendar, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
 import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
 import { Link } from 'react-router-dom'
 import { VisibleCard } from '@/components/ui/VisibleCard'
+import { BillingActions } from '@/components/time/BillingActions'
+import { EnhancedTimeTrackingFilters } from '@/components/time-tracking/EnhancedTimeTrackingFilters'
 import { useUIPreferences } from '@/hooks/useUIPreferences'
 
 export default function TimeTracking() {
@@ -29,7 +31,8 @@ export default function TimeTracking() {
     setCaseFilter,
     billableFilter,
     setBillableFilter,
-    createTimeEntry
+    createTimeEntry,
+    timeEntries
   } = useTimeEntries()
 
   const [showFloatingTimer, setShowFloatingTimer] = useState(false)
@@ -91,7 +94,7 @@ export default function TimeTracking() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Dashboard
@@ -115,6 +118,10 @@ export default function TimeTracking() {
           <TabsTrigger value="entries" className="flex items-center gap-2">
             <Timer className="h-4 w-4" />
             Registros
+          </TabsTrigger>
+          <TabsTrigger value="billing" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Facturación
           </TabsTrigger>
         </TabsList>
 
@@ -156,18 +163,13 @@ export default function TimeTracking() {
 
         <TabsContent value="entries" className="space-y-6">
           <div className="space-y-4">
-            <AdvancedTimeTrackingFilters
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              caseFilter={caseFilter}
-              onCaseFilterChange={setCaseFilter}
-              billableFilter={billableFilter}
-              onBillableFilterChange={setBillableFilter}
-              onClearFilters={handleClearFilters}
-            />
-            
+            <EnhancedTimeTrackingFilters />
             <OptimizedTimeEntriesTable />
           </div>
+        </TabsContent>
+
+        <TabsContent value="billing" className="space-y-6">
+          <BillingActions timeEntries={timeEntries} />
         </TabsContent>
       </Tabs>
 
