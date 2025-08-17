@@ -6993,6 +6993,39 @@ export type Database = {
           },
         ]
       }
+      role_change_audit: {
+        Row: {
+          changed_by: string
+          created_at: string
+          id: string
+          new_role: string | null
+          old_role: string | null
+          org_id: string
+          reason: string | null
+          target_user_id: string
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_role?: string | null
+          old_role?: string | null
+          org_id: string
+          reason?: string | null
+          target_user_id: string
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_role?: string | null
+          old_role?: string | null
+          org_id?: string
+          reason?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       room_reservations: {
         Row: {
           approved_by: string | null

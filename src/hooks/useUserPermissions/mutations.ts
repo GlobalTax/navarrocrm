@@ -64,27 +64,57 @@ export const useRevokePermissionMutation = () => {
 
 export const useUpdateUserRoleMutation = () => {
   const queryClient = useQueryClient()
+  const { user } = useApp()
 
   return useMutation({
     mutationFn: async ({ userId, newRole }: UpdateUserRoleParams) => {
-      const { data, error } = await supabase
-        .from('users')
-        .update({ role: newRole, updated_at: new Date().toISOString() })
-        .eq('id', userId)
-        .select()
-        .single()
+      if (!user?.org_id) throw new Error('No organization found')
+      
+      // Client-side role validation - the database trigger will also validate
+      if (userId === user.id) {
+        throw new Error('No puedes cambiar tu propio rol')
+      }
 
-      if (error) throw error
-      return data
+      if (user.role !== 'partner' && newRole === 'partner') {
+        throw new Error('Solo los socios pueden crear otros socios')
+      }
+
+      if (!['partner', 'area_manager'].includes(user.role || '')) {
+        throw new Error('No tienes permisos suficientes para cambiar roles')
+      }
+      
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          role: newRole,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .eq('org_id', user.org_id)
+
+      if (error) {
+        // Handle specific role change validation errors
+        if (error.message.includes('cannot change their own role')) {
+          throw new Error('No puedes cambiar tu propio rol')
+        }
+        if (error.message.includes('Insufficient permissions')) {
+          throw new Error('No tienes permisos suficientes para cambiar roles')
+        }
+        if (error.message.includes('Only existing partners')) {
+          throw new Error('Solo los socios existentes pueden crear otros socios')
+        }
+        throw error
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
+      queryClient.invalidateQueries({ queryKey: ['role-change-audit'] })
       toast.success('Rol actualizado exitosamente')
     },
     onError: (error: any) => {
-      console.error('Error actualizando rol:', error)
-      toast.error('Error actualizando el rol del usuario')
+      console.error('Error updating user role:', error)
+      toast.error(error.message || 'Error actualizando el rol del usuario')
     },
   })
 }
