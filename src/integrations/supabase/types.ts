@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -8920,11 +8920,11 @@ export type Database = {
     }
     Functions: {
       add_business_days: {
-        Args: { start_date: string; days: number }
+        Args: { days: number; start_date: string }
         Returns: string
       }
       calculate_next_billing_date: {
-        Args: { input_date: string; frequency: string; billing_day?: number }
+        Args: { billing_day?: number; frequency: string; input_date: string }
         Returns: string
       }
       calculate_productivity_metrics: {
@@ -8988,40 +8988,40 @@ export type Database = {
         Returns: string
       }
       get_dashboard_stats: {
-        Args: { org_id_param: string; current_month?: string }
+        Args: { current_month?: string; org_id_param: string }
         Returns: Json
       }
       get_historical_revenue: {
-        Args: { org_uuid: string; months_back?: number }
+        Args: { months_back?: number; org_uuid: string }
         Returns: {
-          month_date: string
-          revenue: number
-          proposal_count: number
           conversion_rate: number
+          month_date: string
+          proposal_count: number
+          revenue: number
         }[]
       }
       get_monthly_service_hours: {
         Args: { org_uuid: string; period: string }
         Returns: {
-          service_contract_id: string
-          contact_id: string
-          client_name: string
-          service_type: Database["public"]["Enums"]["service_type"]
-          allocated_hours: number
           actual_hours: number
+          allocated_hours: number
+          client_name: string
+          contact_id: string
           delta_hours: number
+          service_contract_id: string
+          service_type: Database["public"]["Enums"]["service_type"]
         }[]
       }
       get_monthly_time_stats: {
         Args: { org_uuid: string; target_month?: number; target_year?: number }
         Returns: {
-          day_date: string
           billable_hours: number
-          office_admin_hours: number
           business_dev_hours: number
-          internal_hours: number
-          total_hours: number
+          day_date: string
           entry_count: number
+          internal_hours: number
+          office_admin_hours: number
+          total_hours: number
         }[]
       }
       get_office_stats: {
@@ -9035,12 +9035,12 @@ export type Database = {
       get_task_stats: {
         Args: { org_uuid: string }
         Returns: {
-          total_tasks: number
-          pending_tasks: number
-          in_progress_tasks: number
           completed_tasks: number
-          overdue_tasks: number
           high_priority_tasks: number
+          in_progress_tasks: number
+          overdue_tasks: number
+          pending_tasks: number
+          total_tasks: number
         }[]
       }
       get_user_org_id: {
@@ -9052,9 +9052,9 @@ export type Database = {
         Returns: {
           client_id: string
           client_name: string
-          risk_score: number
-          risk_factors: string[]
           last_activity_days: number
+          risk_factors: string[]
+          risk_score: number
         }[]
       }
       is_super_admin: {
@@ -9067,9 +9067,9 @@ export type Database = {
       }
       log_proposal_action: {
         Args: {
-          proposal_id_param: string
           action_type_param: string
           details_param?: string
+          proposal_id_param: string
         }
         Returns: undefined
       }
