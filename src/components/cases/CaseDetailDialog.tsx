@@ -8,6 +8,7 @@ import { Case } from '@/features/cases'
 import { CaseStatsPanel } from './stats/CaseStatsPanel'
 import { CaseTimeline } from './timeline/CaseTimeline'
 import { CaseTasksPanel } from './tasks/CaseTasksPanel'
+import { CaseFlowActions } from './CaseFlowActions'
 
 interface CaseDetailDialogProps {
   case_: Case | null
@@ -64,6 +65,11 @@ export const CaseDetailDialog = ({ case_, open, onClose, onEdit }: CaseDetailDia
             )}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Flow Actions */}
+        <div className="px-6 pb-4 flex-shrink-0">
+          <CaseFlowActions case_={case_} />
+        </div>
 
         <div className="flex-1 overflow-hidden">
           <Tabs defaultValue="overview" className="h-full flex flex-col">
