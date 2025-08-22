@@ -12,6 +12,7 @@ import Unauthorized from '@/pages/Unauthorized'
 const EmployeeOnboarding = lazy(() => import('@/pages/EmployeeOnboarding'))
 const EmployeeOnboardingSuccess = lazy(() => import('@/pages/EmployeeOnboardingSuccess'))
 const OutlookCallback = lazy(() => import('@/pages/OutlookCallback'))
+const ActivateAccount = lazy(() => import('@/pages/ActivateAccount'))
 
 export const authRoutes: RouteModule = {
   routes: [
@@ -48,6 +49,14 @@ export const authRoutes: RouteModule = {
       element: (
         <Suspense fallback={<PageLoadingSkeleton />}>
           <OutlookCallback />
+        </Suspense>
+      )
+    },
+    {
+      path: '/activate-account',
+      element: (
+        <Suspense fallback={<PageLoadingSkeleton />}>
+          <ActivateAccount />
         </Suspense>
       )
     }

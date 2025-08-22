@@ -106,7 +106,7 @@ export function EmailDiagnostics() {
       if (testEmail) {
         console.log('🧪 Test 3: Simulación de invitación')
         try {
-          const invitationUrl = `${window.location.origin}/signup?token=test-token`
+          const invitationUrl = `${window.location.origin}/activate-account?token=test-token`
           const invitationHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #333;">Invitación de Prueba</h2>

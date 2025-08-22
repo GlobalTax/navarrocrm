@@ -152,7 +152,7 @@ export default function Login() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-primary-600">CRM Legal</CardTitle>
           <CardDescription>
-            Inicia sesión en tu cuenta
+            Inicia sesión en tu cuenta. Para acceder por primera vez, contacta con tu administrador.
           </CardDescription>
         </CardHeader>
         <CardContent>

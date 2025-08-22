@@ -36,7 +36,7 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
   const isInitializing = authLoading || setupLoading
 
   // Obtener acciones de autenticación del hook
-  const { signIn, signUp, signOut: baseSignOut } = useAuthActions()
+  const { signIn, activateAccount, signOut: baseSignOut } = useAuthActions()
 
   useEffect(() => {
     if (initializationStarted.current) return
@@ -130,7 +130,7 @@ const AppProviderComponent: React.FC<{ children: React.ReactNode }> = ({ childre
     setupLoading,
     isInitializing,
     signIn,
-    signUp,
+    activateAccount,
     signOut,
   }
 

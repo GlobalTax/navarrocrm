@@ -85,10 +85,37 @@ export const useAuthActions = () => {
     }
   }
 
-  const signUp = async (email: string, password: string, role: UserRole, orgId: string) => {
+  // Función para activar cuenta desde invitación
+  const activateAccount = async (token: string, password: string) => {
     try {
+      // Verificar el token de invitación
+      const { data: invitation, error: invitationError } = await supabase
+        .from('user_invitations')
+        .select('*')
+        .eq('token', token)
+        .eq('status', 'pending')
+        .single()
+
+      if (invitationError || !invitation) {
+        throw createError('Token de invitación inválido o expirado', {
+          severity: 'medium',
+          retryable: false,
+          userMessage: 'El enlace de invitación no es válido o ha expirado'
+        })
+      }
+
+      // Verificar expiración
+      if (new Date(invitation.expires_at) < new Date()) {
+        throw createError('Token expirado', {
+          severity: 'medium',
+          retryable: false,
+          userMessage: 'El enlace de invitación ha expirado'
+        })
+      }
+
+      // Crear usuario en Supabase Auth
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: invitation.email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`
@@ -96,11 +123,11 @@ export const useAuthActions = () => {
       })
       
       if (error) {
-        let userMessage = 'Error al registrar usuario'
+        let userMessage = 'Error al activar la cuenta'
         if (error.message.includes('User already registered')) {
           userMessage = 'Ya existe una cuenta con este email'
         } else if (error.message.includes('Password')) {
-          userMessage = 'La contraseña no cumple los requisitos'
+          userMessage = 'La contraseña no cumple los requisitos mínimos'
         }
         
         throw createError(error.message, {
@@ -113,13 +140,14 @@ export const useAuthActions = () => {
 
       if (data.user) {
         try {
+          // Crear perfil de usuario
           const { error: profileError } = await supabase
             .from('users')
             .insert({
               id: data.user.id,
-              email,
-              role,
-              org_id: orgId
+              email: invitation.email,
+              role: invitation.role,
+              org_id: invitation.org_id
             })
             
           if (profileError) {
@@ -130,6 +158,17 @@ export const useAuthActions = () => {
               technicalMessage: profileError.message
             })
           }
+
+          // Marcar invitación como aceptada
+          await supabase
+            .from('user_invitations')
+            .update({ 
+              status: 'accepted',
+              accepted_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', invitation.id)
+
         } catch (profileError) {
           // Si falla la creación del perfil, intentar limpiar el usuario de auth
           await supabase.auth.signOut()
@@ -141,13 +180,13 @@ export const useAuthActions = () => {
         throw error
       }
       
-      const appError = createError('Error de conexión durante el registro', {
+      const appError = createError('Error de conexión durante la activación', {
         severity: 'high',
         retryable: true,
         userMessage: 'Error de conexión. Verifique su internet e intente de nuevo'
       })
       
-      handleError(appError, 'SignUp')
+      handleError(appError, 'ActivateAccount')
       throw appError
     }
   }
@@ -172,5 +211,5 @@ export const useAuthActions = () => {
     }
   }
 
-  return { signIn, signUp, signOut }
+  return { signIn, activateAccount, signOut }
 }

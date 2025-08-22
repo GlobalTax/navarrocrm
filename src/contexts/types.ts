@@ -23,6 +23,6 @@ export interface AppState {
   
   // Actions
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, role: UserRole, orgId: string) => Promise<void>
+  activateAccount: (token: string, password: string) => Promise<void>
   signOut: () => Promise<void>
 }
