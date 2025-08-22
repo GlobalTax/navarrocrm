@@ -54,7 +54,7 @@ export function SecurityMonitoring() {
     setIsRefreshing(true)
     try {
       await logSecurityEvent({
-        event_type: 'security_scan_manual',
+        type: 'security_scan_manual',
         details: { triggered_by: 'user', scan_time: new Date().toISOString() },
         severity: 'info'
       })
