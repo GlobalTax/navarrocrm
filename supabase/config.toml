@@ -91,3 +91,6 @@ verify_jwt = true
 
 [functions.sync-quantum-invoices]
 verify_jwt = true
+
+[functions.send-invitation-email]
+verify_jwt = false
