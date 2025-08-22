@@ -55,8 +55,7 @@ export function SecurityMonitoring() {
     try {
       await logSecurityEvent({
         type: 'security_scan_manual',
-        details: { triggered_by: 'user', scan_time: new Date().toISOString() },
-        severity: 'info'
+        details: { triggered_by: 'user', scan_time: new Date().toISOString() }
       })
       // Simulate scan refresh - in real implementation would call actual security scanner
       setTimeout(() => {

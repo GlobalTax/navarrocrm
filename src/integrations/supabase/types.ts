@@ -9109,6 +9109,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_security_event: {
+        Args: { details?: Json; event_type: string }
+        Returns: undefined
+      }
       process_scheduled_reports: {
         Args: Record<PropertyKey, never>
         Returns: undefined
