@@ -48,7 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     const roleLabel = roleLabels[role] || role;
-    const activationUrl = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '')}/activate-account?token=${token}`;
+    const activationUrl = `${Deno.env.get("SITE_URL") || "https://jzbbbwfnzpwxmuhpbdya.supabase.co"}/activate-account?token=${token}`;
 
     const emailHtml = `
       <!DOCTYPE html>

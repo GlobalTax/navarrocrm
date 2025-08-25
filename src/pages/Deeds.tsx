@@ -84,7 +84,11 @@ export default function DeedsPage() {
   const { data: users = [] } = useQuery<{ id: string; email: string }[]>({
     queryKey: ['users-basic'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('users').select('id, email').order('email')
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('org_id', (await supabase.rpc('get_user_org_id')).data)
+        .order('email')
       if (error) throw error
       return (data as { id: string; email: string }[]) || []
     }
