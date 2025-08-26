@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react'
-import { useApp } from '@/contexts/AppContext'
+import { useAuth } from '@/contexts/auth'
 import { supabase } from '@/integrations/supabase/client'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
@@ -12,7 +12,7 @@ interface HealthCheck {
 }
 
 export const SystemHealthCheck = () => {
-  const { user, session } = useApp()
+  const { user, session } = useAuth()
   const [checks, setChecks] = useState<HealthCheck[]>([
     { name: 'Autenticación', status: 'checking' },
     { name: 'Base de Datos', status: 'checking' },

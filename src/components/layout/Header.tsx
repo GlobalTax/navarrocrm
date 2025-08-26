@@ -2,14 +2,15 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useApp } from '@/contexts/AppContext'
+import { useAuth } from '@/contexts/auth'
 import { LogOut, User, Search, Bell } from 'lucide-react'
 import { HeaderClock } from './HeaderClock'
 import { NotificationsPanel } from '@/components/notifications/NotificationsPanel'
 import { useNotifications, useNotificationActions } from '@/hooks/useNotifications'
+import { logger } from '@/utils/logging'
 
 export const Header = () => {
-  const { user, signOut } = useApp()
+  const { user, signOut } = useAuth()
   const { data: notificationData } = useNotifications()
   const { markAsRead, markAllAsRead } = useNotificationActions()
   
@@ -26,7 +27,7 @@ export const Header = () => {
     try {
       await signOut()
     } catch (error) {
-      console.error('Error signing out:', error)
+      logger.error('Error signing out', error)
     }
   }
 

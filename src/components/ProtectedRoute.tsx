@@ -1,6 +1,7 @@
 
 import { Navigate, useLocation } from 'react-router-dom'
-import { useApp } from '@/contexts/AppContext'
+import { useAuth } from '@/contexts/auth'
+import { useSystem } from '@/contexts/system/SystemProvider'
 import { routeLogger } from '@/utils/logging'
 
 interface ProtectedRouteProps {
@@ -14,13 +15,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   allowedRoles,
   redirectTo = '/login'
 }) => {
-  const { user, session, isSetup, authLoading } = useApp()
+  const { user, session, isLoading } = useAuth()
+  const { isSetup } = useSystem()
   const location = useLocation()
 
-  routeLogger.debug('Estado ProtectedRoute:', { user: !!user, session: !!session, isSetup, authLoading })
+  routeLogger.debug('Estado ProtectedRoute:', { user: !!user, session: !!session, isSetup, authLoading: isLoading })
 
   // Solo mostrar loading durante carga crítica y por tiempo limitado
-  if (authLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
