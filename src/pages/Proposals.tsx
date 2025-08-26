@@ -120,8 +120,8 @@ export default function Proposals() {
     setFilters({
       status: 'all',
       search: '',
-      dateFrom: undefined,
-      dateTo: undefined,
+      contactId: 'all',
+      dateRange: {},
       type: 'all'
     })
   }

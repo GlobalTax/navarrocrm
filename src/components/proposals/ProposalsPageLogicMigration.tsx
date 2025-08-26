@@ -21,7 +21,7 @@ export const useProposalsPageLogic = (onProposalWon?: (proposal: any) => void) =
     
     // Loading states
     isLoading: result.isLoading,
-    isCreating: result.isCreating,
+    isCreating: result.isCreating || false,
     isSavingRecurrent: false, // Legacy placeholder
     
     // Error state

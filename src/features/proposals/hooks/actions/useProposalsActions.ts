@@ -14,12 +14,12 @@ interface CreateProposalData {
   description?: string
   contact_id: string
   total_amount: number
-  status?: 'draft' | 'sent' | 'won' | 'lost'
+  status?: 'draft' | 'sent' | 'won' | 'lost' | 'archived' | 'negotiating' | 'expired'
 }
 
 interface UpdateProposalStatusData {
   id: string
-  status: 'draft' | 'sent' | 'won' | 'lost'
+  status: 'draft' | 'sent' | 'won' | 'lost' | 'archived' | 'negotiating' | 'expired'
 }
 
 export const useProposalsActions = (onProposalWon?: (proposal: Proposal) => void) => {
