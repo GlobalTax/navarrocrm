@@ -1,5 +1,12 @@
 import { useDocumentsQueries } from './data/useDocumentsQueries'
+import { useDocumentsActions } from './actions/useDocumentsActions'
 
 export const useDocumentsList = () => {
-  return useDocumentsQueries()
+  const queries = useDocumentsQueries()
+  const actions = useDocumentsActions()
+  
+  return {
+    ...queries,
+    ...actions,
+  }
 }
