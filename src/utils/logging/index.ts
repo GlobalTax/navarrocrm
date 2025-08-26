@@ -1,8 +1,7 @@
-/**
- * Sistema de logging profesional centralizado
- * Reemplaza todos los console.log dispersos en la aplicación
- */
+export { logger, createContextLogger, type LogLevel, type LogEntry, type LogContext } from './logger'
 
-export * from './logger'
+// Context-specific loggers
 export * from './context-loggers'
-export * from './types'
+
+// Hook for using logger in components
+export { useLogger } from './useLogger'

@@ -1,6 +1,7 @@
 
 import { BrowserRouter as Router } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { AuthProvider, SystemProvider } from '@/contexts'
 import { AppProvider } from '@/contexts/AppContext'
 import { QueryProvider } from '@/contexts/QueryContext'
 import { OnboardingProvider } from '@/components/onboarding'
@@ -19,8 +20,10 @@ function App() {
   return (
     <GlobalErrorBoundary>
       <QueryProvider>
-        <AppProvider>
-          <OnboardingProvider>
+        <AuthProvider>
+          <SystemProvider>
+            <AppProvider>
+              <OnboardingProvider>
             <SkipLink href="#main-content">
               Saltar al contenido principal
             </SkipLink>
@@ -35,8 +38,10 @@ function App() {
                 </main>
               </div>
             </Router>
-          </OnboardingProvider>
-        </AppProvider>
+              </OnboardingProvider>
+            </AppProvider>
+          </SystemProvider>
+        </AuthProvider>
       </QueryProvider>
     </GlobalErrorBoundary>
   )
