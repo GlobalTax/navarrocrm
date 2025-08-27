@@ -18,6 +18,6 @@ export { QuantumImportDialog } from './components/QuantumImportDialog'
 
 // Hooks
 export { useContactsList } from './hooks'
-export { useContactsQueries, useContactsActions, useContactFormState, useContactFormSubmit } from './hooks'
+export { useContactsQueries, useContactActions, useContactFormState, useContactFormSubmit } from './hooks'
 
 export type { Contact } from '@/hooks/useContacts'

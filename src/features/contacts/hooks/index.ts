@@ -2,9 +2,9 @@
 export { useContactsQueries } from './data/useContactsQueries'
 
 // Actions layer hooks  
-export { useContactsActions } from './actions/useContactsActions'
+export { useContactActions } from './actions/useContactActions'
 
-// UI layer hooks (legacy - to be migrated)
+// UI layer hooks
 export { useContactFormState, useContactFormSubmit } from './ui/useContactFormState'
 
 // Main composite hook
