@@ -63,7 +63,22 @@ export const useResendInvitation = () => {
         await sendReminderEmail(invitation.email, invitation.role, invitation.token)
       } catch (emailError: any) {
         console.error('❌ Error crítico reenviando:', emailError)
-        throw new Error(`Error reenviando el email: ${emailError.message}`)
+        
+        // Manejar diferentes tipos de errores como en sendInvitation
+        const errorDetails = emailError.details || {}
+        const errorCode = errorDetails.errorCode || 'UNKNOWN'
+        const userMessage = errorDetails.userMessage || emailError.message
+        
+        switch (errorCode) {
+          case 'DOMAIN_NOT_VERIFIED':
+            throw new Error('El dominio de email no está verificado. No se puede reenviar la invitación.')
+          case 'TESTING_MODE_ONLY':
+            throw new Error('El servicio de email está en modo testing. No se puede reenviar a esta dirección.')
+          case 'DEV_MODE_RESTRICTED':
+            throw new Error(`Solo se pueden enviar emails a direcciones autorizadas: ${userMessage}`)
+          default:
+            throw new Error(`Error reenviando el email: ${userMessage}`)
+        }
       }
     },
     onSuccess: () => {

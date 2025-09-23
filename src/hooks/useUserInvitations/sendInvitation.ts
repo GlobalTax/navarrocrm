@@ -82,9 +82,43 @@ export const useSendInvitation = () => {
           toast.success('Invitación enviada exitosamente')
         } catch (emailError: any) {
           console.error('❌ Error crítico en envío de email:', emailError)
-          // Mostrar mensaje más específico al usuario
-          const errorMessage = emailError.details?.message || emailError.message || 'Error desconocido'
-          throw new Error(`Error enviando el email de invitación: ${errorMessage}. Por favor, verifica la configuración de email.`)
+          
+          // Manejar diferentes tipos de errores
+          const errorDetails = emailError.details || {}
+          const errorCode = errorDetails.errorCode || 'UNKNOWN'
+          const userMessage = errorDetails.userMessage || emailError.message
+          
+          switch (errorCode) {
+            case 'DOMAIN_NOT_VERIFIED':
+              toast.error('Configuración de email pendiente', {
+                duration: 8000,
+                description: 'El dominio de email no está verificado. La invitación se creó pero no se pudo enviar.'
+              })
+              break
+              
+            case 'TESTING_MODE_ONLY':
+              toast.warning('Modo de desarrollo activo', {
+                duration: 8000,
+                description: 'Solo se pueden enviar emails a direcciones autorizadas. La invitación se creó correctamente.'
+              })
+              break
+              
+            case 'DEV_MODE_RESTRICTED':
+              throw new Error(userMessage) // Este error debe bloquear la creación
+              
+            default:
+              toast.error('Error enviando email', {
+                duration: 6000,
+                description: `La invitación se creó pero no se pudo enviar: ${userMessage}`
+              })
+          }
+          
+          // En algunos casos, la invitación se creó exitosamente aunque el email falló
+          if (!['DEV_MODE_RESTRICTED', 'MISSING_API_KEY'].includes(errorCode)) {
+            console.log('✅ Invitación creada exitosamente (email falló)')
+          } else {
+            throw new Error(userMessage)
+          }
         }
 
         return invitation

@@ -12,6 +12,14 @@ export const getRoleLabel = (role: string) => {
   return labels[role as keyof typeof labels] || role
 }
 
+interface EmailError extends Error {
+  details?: {
+    errorCode: string
+    userMessage: string
+    originalError?: string
+  }
+}
+
 export const sendInvitationEmail = async (
   email: string, 
   role: string, 
@@ -42,10 +50,34 @@ export const sendInvitationEmail = async (
       throw new Error(`Error del servicio de email: ${error.message}`)
     }
     
+    // Si la respuesta indica un error específico (pero no lanzó excepción)
+    if (data && !data.success && data.error) {
+      const errorObj: EmailError = new Error(data.userMessage || data.error)
+      errorObj.details = {
+        errorCode: data.errorCode,
+        userMessage: data.userMessage,
+        originalError: data.error
+      }
+      throw errorObj
+    }
+    
     console.log('✅ Email de invitación enviado exitosamente:', data)
   } catch (error: any) {
     console.error('❌ Error crítico enviando email de invitación:', error)
-    throw error
+    
+    // Si ya tiene detalles específicos, los preservamos
+    if (error.details) {
+      throw error
+    }
+    
+    // Si no, creamos una estructura de error genérica
+    const errorObj: EmailError = new Error(error.message || 'Error desconocido enviando email')
+    errorObj.details = {
+      errorCode: 'EMAIL_SEND_FAILED',
+      userMessage: error.message || 'Error desconocido enviando email',
+      originalError: error.message
+    }
+    throw errorObj
   }
 }
 
@@ -68,9 +100,33 @@ export const sendReminderEmail = async (email: string, role: string, token: stri
       throw new Error(`Error del servicio de email: ${error.message}`)
     }
 
+    // Si la respuesta indica un error específico (pero no lanzó excepción)
+    if (data && !data.success && data.error) {
+      const errorObj: EmailError = new Error(data.userMessage || data.error)
+      errorObj.details = {
+        errorCode: data.errorCode,
+        userMessage: data.userMessage,
+        originalError: data.error
+      }
+      throw errorObj
+    }
+
     console.log('✅ Email de recordatorio enviado exitosamente:', data)
   } catch (error: any) {
     console.error('❌ Error crítico reenviando email:', error)
-    throw error
+    
+    // Si ya tiene detalles específicos, los preservamos
+    if (error.details) {
+      throw error
+    }
+    
+    // Si no, creamos una estructura de error genérica
+    const errorObj: EmailError = new Error(error.message || 'Error desconocido reenviando email')
+    errorObj.details = {
+      errorCode: 'EMAIL_SEND_FAILED',
+      userMessage: error.message || 'Error desconocido reenviando email',
+      originalError: error.message
+    }
+    throw errorObj
   }
 }

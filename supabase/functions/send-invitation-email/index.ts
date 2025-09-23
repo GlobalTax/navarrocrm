@@ -28,13 +28,38 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-    
-    if (!resend) {
-      throw new Error("RESEND_API_KEY not configured");
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendApiKey) {
+      console.error("❌ RESEND_API_KEY not configured");
+      return new Response(JSON.stringify({ 
+        error: "Email service not configured",
+        errorCode: "MISSING_API_KEY",
+        userMessage: "El servicio de email no está configurado. Contacta al administrador."
+      }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
+    const resend = new Resend(resendApiKey);
     const { email, role, token, invitedByEmail, message }: InvitationEmailRequest = await req.json();
+
+    // Verificar modo desarrollo (solo emails del dominio autorizado)
+    const isDevelopmentMode = Deno.env.get("RESEND_DEVELOPMENT_MODE") === "true";
+    const authorizedDomain = Deno.env.get("AUTHORIZED_EMAIL_DOMAIN") || "obn.es";
+    
+    if (isDevelopmentMode && !email.endsWith(`@${authorizedDomain}`)) {
+      console.log(`📧 Modo desarrollo: bloqueando envío a ${email} (solo se permite @${authorizedDomain})`);
+      return new Response(JSON.stringify({
+        error: "Development mode: email not authorized", 
+        errorCode: "DEV_MODE_RESTRICTED",
+        userMessage: `En modo desarrollo solo se pueden enviar invitaciones a emails @${authorizedDomain}`,
+        devMode: true
+      }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     console.log("Sending invitation email", { email, role, invitedByEmail });
 
@@ -111,16 +136,86 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    const emailResponse = await resend.emails.send({
-      from: "CRM Legal <onboarding@resend.dev>",
-      to: [email],
-      subject: `🎉 Invitación al CRM Legal - Rol: ${roleLabel}`,
-      html: emailHtml,
-    });
+    // Intentar enviar el email
+    let emailResponse;
+    try {
+      emailResponse = await resend.emails.send({
+        from: "CRM Legal <onboarding@resend.dev>",
+        to: [email],
+        subject: `🎉 Invitación al CRM Legal - Rol: ${roleLabel}`,
+        html: emailHtml,
+      });
 
-    console.log("Email sent successfully:", emailResponse);
+      // Si Resend devuelve un error en la respuesta (no una excepción)
+      if (emailResponse.error) {
+        const resendError = emailResponse.error;
+        console.error("❌ Error de Resend:", resendError);
+        
+        // Identificar tipos específicos de error
+        if (resendError.message?.includes("verify a domain")) {
+          return new Response(JSON.stringify({
+            error: "Domain verification required",
+            errorCode: "DOMAIN_NOT_VERIFIED", 
+            userMessage: "El dominio de email no está verificado en Resend. Se requiere configuración adicional.",
+            resendError: resendError.message,
+            success: false
+          }), {
+            status: 403,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        }
+        
+        if (resendError.message?.includes("testing emails")) {
+          return new Response(JSON.stringify({
+            error: "Testing mode limitation",
+            errorCode: "TESTING_MODE_ONLY",
+            userMessage: "Resend está en modo testing. Solo se pueden enviar emails a direcciones verificadas.",
+            resendError: resendError.message,
+            success: false
+          }), {
+            status: 403,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        }
 
-    return new Response(JSON.stringify(emailResponse), {
+        // Error genérico de Resend
+        throw new Error(`Resend error: ${resendError.message}`);
+      }
+
+      console.log("✅ Email sent successfully:", emailResponse);
+
+    } catch (emailError: any) {
+      console.error("❌ Error sending email:", emailError);
+      
+      // Determinar el tipo de error y respuesta apropiada
+      let errorCode = "EMAIL_SEND_FAILED";
+      let userMessage = "Error enviando el email de invitación";
+      
+      if (emailError.message?.includes("verify a domain")) {
+        errorCode = "DOMAIN_NOT_VERIFIED";
+        userMessage = "El dominio de email no está verificado. Contacta al administrador.";
+      } else if (emailError.message?.includes("testing emails")) {
+        errorCode = "TESTING_MODE_ONLY";
+        userMessage = "El servicio de email está en modo testing. Contacta al administrador.";
+      }
+
+      return new Response(JSON.stringify({
+        error: emailError.message,
+        errorCode,
+        userMessage,
+        details: emailError,
+        success: false
+      }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      message: "Email de invitación enviado exitosamente",
+      data: emailResponse.data || emailResponse
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
