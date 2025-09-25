@@ -32,7 +32,6 @@ const SystemUsersPage = () => {
   
   // Estados para diálogos
   const [showUserForm, setShowUserForm] = useState(false)
-  const [showInviteDialog, setShowInviteDialog] = useState(false)
   const [showDirectCreation, setShowDirectCreation] = useState(false)
   const [showBulkUpload, setShowBulkUpload] = useState(false)
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
@@ -65,10 +64,6 @@ const SystemUsersPage = () => {
 
   const handleActivateUser = (user: any) => {
     activateUser.mutate(user.id)
-  }
-
-  const handleInviteUser = () => {
-    setShowInviteDialog(true)
   }
 
   const handleCreateDirectUser = () => {
@@ -125,14 +120,6 @@ const SystemUsersPage = () => {
         <UserCog className="h-8 w-8 text-primary" />
         <Button 
           variant="outline" 
-          onClick={handleInviteUser}
-          className="border-0.5 border-black rounded-[10px] hover-lift"
-        >
-          <Mail className="h-4 w-4 mr-2" />
-          Invitar Usuario
-        </Button>
-        <Button 
-          variant="outline" 
           onClick={handleBulkUpload}
           className="border-0.5 border-black rounded-[10px] hover-lift"
         >
@@ -151,43 +138,20 @@ const SystemUsersPage = () => {
         userCount={users.length}
       />
 
-      {/* Tabs para diferentes vistas */}
-      <Tabs defaultValue="users" className="mt-6">
-        <TabsList className="grid w-full grid-cols-2 border-0.5 border-black rounded-[10px]">
-          <TabsTrigger value="users" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
-            <Shield className="h-4 w-4" />
-            Usuarios ({users.length})
-          </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex items-center gap-2 rounded-[10px] data-[state=active]:bg-primary data-[state=active]:text-white">
-            <Mail className="h-4 w-4" />
-            Invitaciones ({invitationCount})
-            {pendingInvitations > 0 && (
-              <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full ml-1 animate-pulse">
-                {pendingInvitations}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="users" className="mt-6">
-          <SystemUserTable
-            users={users}
-            hasFilters={hasFilters}
-            onEditUser={handleEditUser}
-            onManagePermissions={handleManagePermissions}
-            onViewAudit={handleViewAudit}
-            onActivateUser={handleActivateUser}
-            onDeleteUser={handleDeleteUser}
-            onInviteUser={handleInviteUser}
-            onClearFilters={handleClearFilters}
-          />
-        </TabsContent>
-
-        <TabsContent value="invitations" className="mt-6">
-          <InvitationNotifications />
-          <UserInvitationsTable onInviteUser={handleInviteUser} />
-        </TabsContent>
-      </Tabs>
+      {/* Tabla de usuarios del sistema */}
+      <div className="mt-6">
+        <SystemUserTable
+          users={users}
+          hasFilters={hasFilters}
+          onEditUser={handleEditUser}
+          onManagePermissions={handleManagePermissions}
+          onViewAudit={handleViewAudit}
+          onActivateUser={handleActivateUser}
+          onDeleteUser={handleDeleteUser}
+          onInviteUser={handleCreateDirectUser}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
 
       {/* Todos los diálogos agrupados */}
       <UsersPageDialogs
@@ -195,8 +159,6 @@ const SystemUsersPage = () => {
         setShowUserForm={setShowUserForm}
         selectedUser={selectedUser}
         setSelectedUser={setSelectedUser}
-        showInviteDialog={showInviteDialog}
-        setShowInviteDialog={setShowInviteDialog}
         showDirectCreation={showDirectCreation}
         setShowDirectCreation={setShowDirectCreation}
         showBulkUpload={showBulkUpload}

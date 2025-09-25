@@ -1,6 +1,5 @@
 
 import { DirectUserCreationDialog } from './DirectUserCreationDialog'
-import { EnhancedUserInviteDialog } from './EnhancedUserInviteDialog'
 import { UserFormDialog } from './UserFormDialog'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { UserPermissionsDialog } from './UserPermissionsDialog'
@@ -13,10 +12,6 @@ interface UsersPageDialogsProps {
   setShowUserForm: (show: boolean) => void
   selectedUser: any
   setSelectedUser: (user: any) => void
-  
-  // Invite Dialog
-  showInviteDialog: boolean
-  setShowInviteDialog: (show: boolean) => void
   
   // Direct Creation Dialog
   showDirectCreation: boolean
@@ -45,8 +40,6 @@ export const UsersPageDialogs = ({
   setShowUserForm,
   selectedUser,
   setSelectedUser,
-  showInviteDialog,
-  setShowInviteDialog,
   showDirectCreation,
   setShowDirectCreation,
   showBulkUpload,
@@ -86,12 +79,6 @@ export const UsersPageDialogs = ({
         onOpenChange={setShowUserForm}
         user={selectedUser}
         onClose={handleCloseUserForm}
-      />
-
-      <EnhancedUserInviteDialog
-        open={showInviteDialog}
-        onOpenChange={setShowInviteDialog}
-        onClose={() => setShowInviteDialog(false)}
       />
 
       <DirectUserCreationDialog
