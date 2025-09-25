@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(JSON.stringify({ 
       success: true,
       message: `Email enviado exitosamente desde dominio ${usedDomain}`,
-      messageId: emailResponse?.data?.id || emailResponse?.id,
+      messageId: (emailResponse as any)?.data?.id || (emailResponse as any)?.id,
       domain: usedDomain,
       fallbackUsed: false
     }), {

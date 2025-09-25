@@ -72,11 +72,13 @@ serve(async (req) => {
         .eq('user_id', user_id)
         .single()
 
-      userToken.access_token_encrypted = refreshedToken.access_token_encrypted
+      if (refreshedToken?.access_token_encrypted) {
+        userToken.access_token_encrypted = refreshedToken.access_token_encrypted
+      }
     }
 
     // 2. Construir mensaje para Microsoft Graph
-    const messagePayload = {
+    const messagePayload: any = {
       subject: subject,
       body: {
         contentType: body_html ? 'HTML' : 'Text',
@@ -155,7 +157,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error en outlook-email-send:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

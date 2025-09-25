@@ -146,7 +146,7 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
     
     for (const customer of customers) {
       // Verificar duplicados con lógica mejorada usando normalización
-      const isDuplicate = existingContacts.some(contact => {
+      const isDuplicate = existingContacts.some((contact: any) => {
         // Normalizar datos para comparación
         const customerEmail = normalizeEmail(customer.email || '');
         const customerNif = normalizeNif(customer.nif || '');
@@ -288,7 +288,7 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
           contacts_imported: 0,
           contacts_skipped: 0,
           status: 'error',
-          error_message: error.message,
+          error_message: error instanceof Error ? error.message : String(error),
           sync_date: new Date().toISOString()
         });
       }
@@ -402,7 +402,7 @@ serve(async (req) => {
       
     } catch (fetchError) {
       console.error('❌ Error en fetch:', fetchError);
-      throw new Error(`Error al conectar con Quantum Economics: ${fetchError.message}`);
+      throw new Error(`Error al conectar con Quantum Economics: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
     }
 
     console.log('📊 Respuesta API status:', response.status, 'con método:', authMethod);
@@ -511,12 +511,19 @@ serve(async (req) => {
     console.error('❌ Error general al obtener clientes:', error);
     
     // Registrar error en el historial
+    const errorSupabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
     try {
-      await supabase.from('quantum_sync_history').insert({
+      await errorSupabase.from('quantum_sync_history').insert({
         status: 'error',
-        message: `Error al obtener clientes: ${error.message}`,
+        message: `Error al obtener clientes: ${error instanceof Error ? error.message : String(error)}`,
         records_processed: 0,
-        error_details: { error: error.message, stack: error.stack },
+        error_details: { 
+          error: error instanceof Error ? error.message : String(error), 
+          stack: error instanceof Error ? error.stack : undefined 
+        },
         sync_date: new Date().toISOString()
       });
     } catch (historyError) {
@@ -526,7 +533,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Error interno del servidor'
+        error: error instanceof Error ? error.message : String(error) || 'Error interno del servidor'
       }),
       { 
         status: 500, 

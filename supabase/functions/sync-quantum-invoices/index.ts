@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         summary: { processed: 0, created: 0, updated: 0, skipped: 0, errors: 1 }
       }),
       { 
@@ -124,7 +124,7 @@ async function handleScheduledSync(supabase: any, params: SyncRequest): Promise<
       results.push({
         success: false,
         summary: { processed: 0, created: 0, updated: 0, skipped: 0, errors: 1 },
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       })
     }
   }
@@ -286,7 +286,7 @@ async function syncOrganizationInvoices(supabase: any, params: SyncRequest): Pro
     } catch (error) {
       console.error(`❌ [Error] Processing invoice ${invoice.id}:`, error)
       summary.errors++
-      details.push({ action: 'error', invoice_id: invoice.id, error: error.message })
+      details.push({ action: 'error', invoice_id: invoice.id, error: error instanceof Error ? error.message : String(error) })
     }
   }
 

@@ -65,7 +65,9 @@ serve(async (req) => {
         .eq('user_id', user_id)
         .single()
 
-      userToken.access_token_encrypted = refreshedToken.access_token_encrypted
+      if (refreshedToken?.access_token_encrypted) {
+        userToken.access_token_encrypted = refreshedToken.access_token_encrypted
+      }
     }
 
     // 2. Descifrar token de acceso
@@ -123,7 +125,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error en outlook-email-sync:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
@@ -181,13 +183,13 @@ async function syncFolderMessages(
   messagesUrl += (messagesUrl.includes('?') ? '&' : '?') + '$top=50&$expand=attachments'
 
   do {
-    const url = nextLink || messagesUrl
+    const url: string = nextLink || messagesUrl
     
-    const response = await fetch(url, {
+    const response: Response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${accessToken}` }
     })
 
-    const data = await response.json()
+    const data: any = await response.json()
 
     if (!data.value) break
 

@@ -113,7 +113,7 @@ serve(async (req) => {
       }
     } catch (fetchError) {
       console.error('❌ Error en fetch:', fetchError);
-      throw new Error(`Error de conexión con Quantum: ${fetchError.message}`);
+      throw new Error(`Error de conexión con Quantum: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
     }
 
     console.log('📊 Respuesta API status:', response.status, 'con método:', authMethod);
@@ -222,7 +222,7 @@ serve(async (req) => {
         }
       } catch (err) {
         console.error('❌ Error al procesar cuenta:', cuenta.id, err);
-        errores.push(`Error al procesar cuenta ${cuenta.id}: ${err.message}`);
+        errores.push(`Error al procesar cuenta ${cuenta.id}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -288,8 +288,8 @@ serve(async (req) => {
           message: 'Error general en la sincronización',
           records_processed: 0,
           error_details: { 
-            error: error.message, 
-            stack: error.stack,
+            error: error instanceof Error ? error.message : String(error), 
+            stack: error instanceof Error ? error.stack : undefined,
             timestamp: new Date().toISOString()
           }
         });
@@ -301,7 +301,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Error interno del servidor'
+        error: error instanceof Error ? error.message : String(error) || 'Error interno del servidor'
       }),
       { 
         status: 500, 

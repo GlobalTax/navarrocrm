@@ -85,7 +85,7 @@ serve(async (req) => {
         });
       }
     } catch (fetchError) {
-      throw new Error(`Error de conexión con Quantum: ${fetchError.message}`);
+      throw new Error(`Error de conexión con Quantum: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
     }
 
     if (!response.ok) {
@@ -177,7 +177,7 @@ serve(async (req) => {
         registrosProcesados++;
       } catch (err) {
         console.error('❌ Error al procesar cliente:', customer.id, err);
-        errores.push(`Error procesando cliente ${customer.id}: ${err.message}`);
+        errores.push(`Error procesando cliente ${customer.id}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 
@@ -233,7 +233,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'Error interno del servidor'
+        error: error instanceof Error ? error.message : String(error) || 'Error interno del servidor'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

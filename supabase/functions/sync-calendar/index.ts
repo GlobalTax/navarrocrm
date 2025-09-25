@@ -93,7 +93,7 @@ serve(async (req) => {
             displayName: event.location || ''
           },
           isAllDay: event.is_all_day,
-          attendees: event.attendees_emails?.map(email => ({
+          attendees: event.attendees_emails?.map((email: string) => ({
             emailAddress: { address: email, name: email }
           })) || []
         }
@@ -289,7 +289,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error en sync-calendar:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

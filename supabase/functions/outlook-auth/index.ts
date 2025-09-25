@@ -160,7 +160,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Invalid JSON in request body',
-          details: parseError.message
+          details: parseError instanceof Error ? parseError.message : String(parseError)
         }),
         { 
           status: 400, 
@@ -546,11 +546,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ [outlook-auth] Error crítico:', error)
     console.error('🔍 [outlook-auth] Error type:', typeof error)
-    console.error('🔍 [outlook-auth] Stack trace:', error.stack)
+    console.error('🔍 [outlook-auth] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
     
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Error interno del servidor',
+        error: error instanceof Error ? error.message : String(error) || 'Error interno del servidor',
         type: 'server_error',
         details: 'Revisar logs de la función para más detalles'
       }),
