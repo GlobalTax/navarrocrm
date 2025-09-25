@@ -104,7 +104,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in AI bulk validation:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       validatedData: [],
       errors: [],
       suggestions: []
@@ -187,7 +187,7 @@ function validateRowWithAI(row: any, rowNumber: number, dataType: string, aiAnal
   // Aplicar mapeo de columnas sugerido por IA
   if (aiAnalysis.columnMapping) {
     Object.entries(aiAnalysis.columnMapping).forEach(([detected, standard]) => {
-      if (row[detected] && !row[standard]) {
+      if (row[detected as string] && !row[standard as string]) {
         cleanedData[standard as string] = row[detected];
         delete cleanedData[detected];
       }
@@ -237,7 +237,11 @@ function validateRowWithAI(row: any, rowNumber: number, dataType: string, aiAnal
 }
 
 function findIntelligentDuplicates(data: any[], dataType: string) {
-  const suggestions = [];
+  const suggestions: Array<{
+    type: 'duplicate';
+    message: string;
+    data: { row1: number; row2: number };
+  }> = [];
   const seen = new Map();
 
   data.forEach((row, index) => {

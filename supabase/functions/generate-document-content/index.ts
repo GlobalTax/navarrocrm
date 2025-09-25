@@ -88,7 +88,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-document-content function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       details: 'Failed to generate document content'
     }), {
       status: 500,

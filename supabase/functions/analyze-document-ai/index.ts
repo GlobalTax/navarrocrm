@@ -159,7 +159,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in analyze-document-ai function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       details: 'Failed to analyze document'
     }), {
       status: 500,

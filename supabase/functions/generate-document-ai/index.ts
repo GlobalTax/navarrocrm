@@ -158,7 +158,7 @@ Devuelve SOLO el documento procesal mejorado, sin explicaciones adicionales.`;
   } catch (error) {
     console.error('❌ Error en generate-document-ai:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Error interno del servidor',
+      error: (error instanceof Error ? error.message : String(error)) || 'Error interno del servidor',
       details: error
     }), {
       status: 500,

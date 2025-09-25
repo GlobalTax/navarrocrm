@@ -241,7 +241,7 @@ serve(async (req) => {
           });
 
           if (mainErr) {
-            runSummary.errors.push({ type: 'create_task_error', service: key, error: mainErr.message });
+            runSummary.errors.push({ type: 'create_task_error', service: key, error: String(mainErr) });
             continue;
           }
 
@@ -284,7 +284,7 @@ serve(async (req) => {
               });
 
               if (stErr) {
-                runSummary.errors.push({ type: 'create_subtask_error', service: key, title: st.title, error: stErr.message });
+                runSummary.errors.push({ type: 'create_subtask_error', service: key, title: st.title, error: String(stErr) });
                 continue;
               }
 

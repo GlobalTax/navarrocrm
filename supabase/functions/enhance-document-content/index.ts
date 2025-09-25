@@ -108,7 +108,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in enhance-document-content function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       details: 'Failed to enhance document content'
     }), {
       status: 500,

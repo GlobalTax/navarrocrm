@@ -181,8 +181,8 @@ IMPORTANTE:
       const inputCostPer1k = 0.00015 // $0.00015 per 1K input tokens
       const outputCostPer1k = 0.0006 // $0.0006 per 1K output tokens
       
-      const inputCost = (logData.prompt_tokens / 1000) * inputCostPer1k
-      const outputCost = (logData.completion_tokens / 1000) * outputCostPer1k
+      const inputCost = ((logData.prompt_tokens || 0) / 1000) * inputCostPer1k
+      const outputCost = ((logData.completion_tokens || 0) / 1000) * outputCostPer1k
       logData.estimated_cost = inputCost + outputCost
     }
 
@@ -216,7 +216,7 @@ IMPORTANTE:
     
     // Registrar el error
     logData.success = false
-    logData.error_message = error.message
+    logData.error_message = error instanceof Error ? error.message : String(error)
     logData.duration_ms = Date.now() - startTime
     
     if (logData.org_id && logData.user_id) {
@@ -225,11 +225,10 @@ IMPORTANTE:
         .from('ai_usage_logs')
         .insert([logData])
         .select()
-        .catch(console.error) // No fallar si no se puede registrar el log
     }
     
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       response: 'Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo.'
     }), {
       status: 500,

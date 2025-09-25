@@ -68,7 +68,7 @@ serve(async (req) => {
     console.error('Error en sincronización de Nylas:', error)
     return new Response(
       JSON.stringify({
-        error: error.message || 'Error interno del servidor',
+        error: (error instanceof Error ? error.message : String(error)) || 'Error interno del servidor',
         success: false
       }),
       {

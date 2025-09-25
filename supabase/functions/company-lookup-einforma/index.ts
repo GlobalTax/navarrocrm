@@ -127,7 +127,7 @@ serve(async (req) => {
         data: mockCompanyData,
         message: 'Empresa encontrada (datos simulados - error de conexión)',
         isSimulated: true,
-        warning: `Error de conexión con eInforma: ${eInformaError.message}`
+        warning: `Error de conexión con eInforma: ${eInformaError instanceof Error ? eInformaError.message : String(eInformaError)}`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -140,7 +140,7 @@ serve(async (req) => {
       success: false,
       error: 'INTERNAL_ERROR',
       message: 'Error interno del servidor. Inténtalo de nuevo más tarde.',
-      details: error.message
+      details: error instanceof Error ? error.message : String(error)
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
