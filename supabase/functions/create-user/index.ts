@@ -81,8 +81,6 @@ serve(async (req) => {
         email,
         role,
         org_id: orgId,
-        first_name: firstName || null,
-        last_name: lastName || null,
         is_active: true
       })
 
