@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import Papa from "npm:papaparse@5.4.1"
+import Papa from "https://esm.sh/papaparse@5.4.1"
 // pdfjs-dist via esm build for Deno
 import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.4.168/build/pdf.mjs"
 
