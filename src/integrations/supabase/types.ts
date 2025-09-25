@@ -701,6 +701,86 @@ export type Database = {
         }
         Relationships: []
       }
+      approvals: {
+        Row: {
+          approved_at: string | null
+          approver_id: string
+          comments: string | null
+          compliance_risk: string | null
+          created_at: string | null
+          id: string
+          org_id: string
+          post_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approver_id: string
+          comments?: string | null
+          compliance_risk?: string | null
+          created_at?: string | null
+          id?: string
+          org_id: string
+          post_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approver_id?: string
+          comments?: string | null
+          compliance_risk?: string | null
+          created_at?: string | null
+          id?: string
+          org_id?: string
+          post_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brands: {
+        Row: {
+          created_at: string | null
+          disclaimer: string | null
+          id: string
+          industry: string | null
+          name: string
+          org_id: string
+          tone_guidelines: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          disclaimer?: string | null
+          id?: string
+          industry?: string | null
+          name: string
+          org_id: string
+          tone_guidelines?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          disclaimer?: string | null
+          id?: string
+          industry?: string | null
+          name?: string
+          org_id?: string
+          tone_guidelines?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           attendees_emails: string[] | null
@@ -1500,6 +1580,81 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_briefs: {
+        Row: {
+          angle: string | null
+          claims_to_verify: Json | null
+          created_at: string | null
+          created_by: string
+          cta_text: string | null
+          cta_url: string | null
+          id: string
+          key_messages: Json | null
+          objective: string | null
+          org_id: string
+          outline: Json | null
+          primary_channel: string | null
+          seo_keywords: Json | null
+          target_persona_id: string | null
+          title: string
+          topic_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          angle?: string | null
+          claims_to_verify?: Json | null
+          created_at?: string | null
+          created_by: string
+          cta_text?: string | null
+          cta_url?: string | null
+          id?: string
+          key_messages?: Json | null
+          objective?: string | null
+          org_id: string
+          outline?: Json | null
+          primary_channel?: string | null
+          seo_keywords?: Json | null
+          target_persona_id?: string | null
+          title: string
+          topic_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          angle?: string | null
+          claims_to_verify?: Json | null
+          created_at?: string | null
+          created_by?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          id?: string
+          key_messages?: Json | null
+          objective?: string | null
+          org_id?: string
+          outline?: Json | null
+          primary_channel?: string | null
+          seo_keywords?: Json | null
+          target_persona_id?: string | null
+          title?: string
+          topic_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_briefs_target_persona_id_fkey"
+            columns: ["target_persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_briefs_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
@@ -5607,6 +5762,148 @@ export type Database = {
           },
         ]
       }
+      personas: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          pain_points: Json | null
+          preferred_channels: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          pain_points?: Json | null
+          preferred_channels?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          pain_points?: Json | null
+          preferred_channels?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      post_variants: {
+        Row: {
+          channel: string
+          character_count: number | null
+          content: string
+          created_at: string | null
+          hashtags: Json | null
+          id: string
+          language: string | null
+          media_urls: Json | null
+          mentions: Json | null
+          org_id: string
+          post_id: string | null
+          references_json: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel: string
+          character_count?: number | null
+          content: string
+          created_at?: string | null
+          hashtags?: Json | null
+          id?: string
+          language?: string | null
+          media_urls?: Json | null
+          mentions?: Json | null
+          org_id: string
+          post_id?: string | null
+          references_json?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel?: string
+          character_count?: number | null
+          content?: string
+          created_at?: string | null
+          hashtags?: Json | null
+          id?: string
+          language?: string | null
+          media_urls?: Json | null
+          mentions?: Json | null
+          org_id?: string
+          post_id?: string | null
+          references_json?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_variants_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          brief_id: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          org_id: string
+          primary_channel: string
+          published_at: string | null
+          scheduled_for: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          utm_campaign: string | null
+        }
+        Insert: {
+          brief_id?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          org_id: string
+          primary_channel: string
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          utm_campaign?: string | null
+        }
+        Update: {
+          brief_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          org_id?: string
+          primary_channel?: string
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          utm_campaign?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_brief_id_fkey"
+            columns: ["brief_id"]
+            isOneToOne: false
+            referencedRelation: "content_briefs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       practice_areas: {
         Row: {
           color: string | null
@@ -8330,6 +8627,102 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_clusters: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          org_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          org_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          org_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      topics: {
+        Row: {
+          cluster_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          keywords: Json | null
+          org_id: string
+          pillar: string | null
+          priority_score: number | null
+          sector: string | null
+          status: string | null
+          target_persona_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          cluster_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          keywords?: Json | null
+          org_id: string
+          pillar?: string | null
+          priority_score?: number | null
+          sector?: string | null
+          status?: string | null
+          target_persona_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          cluster_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          keywords?: Json | null
+          org_id?: string
+          pillar?: string | null
+          priority_score?: number | null
+          sector?: string | null
+          status?: string | null
+          target_persona_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topics_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "topic_clusters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topics_target_persona_id_fkey"
+            columns: ["target_persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
             referencedColumns: ["id"]
           },
         ]

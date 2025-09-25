@@ -76,49 +76,55 @@ export const useSendInvitation = () => {
 
         console.log('✅ Invitación creada exitosamente:', invitation)
 
-        // Enviar email
-        try {
-          await sendInvitationEmail(email, role, tokenResult, user.email, message)
-          toast.success('Invitación enviada exitosamente')
-        } catch (emailError: any) {
-          console.error('❌ Error crítico en envío de email:', emailError)
-          
-          // Manejar diferentes tipos de errores
-          const errorDetails = emailError.details || {}
-          const errorCode = errorDetails.errorCode || 'UNKNOWN'
-          const userMessage = errorDetails.userMessage || emailError.message
-          
-          switch (errorCode) {
-            case 'DOMAIN_NOT_VERIFIED':
-              toast.error('Configuración de email pendiente', {
-                duration: 8000,
-                description: 'El dominio de email no está verificado. La invitación se creó pero no se pudo enviar.'
-              })
-              break
-              
-            case 'TESTING_MODE_ONLY':
-              toast.warning('Modo de desarrollo activo', {
-                duration: 8000,
-                description: 'Solo se pueden enviar emails a direcciones autorizadas. La invitación se creó correctamente.'
-              })
-              break
-              
-            case 'DEV_MODE_RESTRICTED':
-              throw new Error(userMessage) // Este error debe bloquear la creación
-              
-            default:
-              toast.error('Error enviando email', {
-                duration: 6000,
-                description: `La invitación se creó pero no se pudo enviar: ${userMessage}`
-              })
+        // Modo "sin email" por defecto para aplicación interna
+        console.log('✅ Invitación creada en modo interno (sin email automático)')
+        toast.success('Invitación creada - copia el enlace manual para enviar', {
+          description: 'Aplicación interna: el email no se envía automáticamente'
+        })
+
+        // Intentar envio de email solo si se solicita explícitamente
+        if (message && message.includes('SEND_EMAIL')) {
+          try {
+            await sendInvitationEmail(email, role, tokenResult, user.email, message)
+            toast.success('Email enviado adiccionalmente')
+          } catch (emailError: any) {
+            console.error('❌ Error crítico en envío de email:', emailError)
+            
+            // Manejar diferentes tipos de errores
+            const errorDetails = emailError.details || {}
+            const errorCode = errorDetails.errorCode || 'UNKNOWN'
+            const userMessage = errorDetails.userMessage || emailError.message
+            
+            switch (errorCode) {
+              case 'DOMAIN_NOT_VERIFIED':
+                toast.error('Configuración de email pendiente', {
+                  duration: 8000,
+                  description: 'El dominio de email no está verificado. La invitación se creó pero no se pudo enviar.'
+                })
+                break
+                
+              case 'TESTING_MODE_ONLY':
+                toast.warning('Modo de desarrollo activo', {
+                  duration: 8000,
+                  description: 'Solo se pueden enviar emails a direcciones autorizadas. La invitación se creó correctamente.'
+                })
+                break
+                
+              case 'DEV_MODE_RESTRICTED':
+                throw new Error(userMessage) // Este error debe bloquear la creación
+                
+              default:
+                toast.error('Error enviando email opcional', {
+                  duration: 4000,
+                  description: `Email falló pero la invitación está lista: ${userMessage}`
+                })
+            }
+            
+            // La invitación siempre se crea exitosamente en modo interno
+            console.log('✅ Invitación creada (email opcional falló)')
           }
-          
-          // En algunos casos, la invitación se creó exitosamente aunque el email falló
-          if (!['DEV_MODE_RESTRICTED', 'MISSING_API_KEY'].includes(errorCode)) {
-            console.log('✅ Invitación creada exitosamente (email falló)')
-          } else {
-            throw new Error(userMessage)
-          }
+        } else {
+          // Sin email - modo interno por defecto
         }
 
         return invitation

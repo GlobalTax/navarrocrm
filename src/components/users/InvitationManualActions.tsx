@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -33,7 +32,7 @@ export function InvitationManualActions({ invitation }: InvitationManualActionsP
       return
     }
 
-    const invitationUrl = `${window.location.origin}/signup?token=${invitation.token}`
+    const invitationUrl = `${window.location.origin}/activate-account?token=${invitation.token}`
     navigator.clipboard.writeText(invitationUrl)
     toast.success('Enlace de invitación copiado al portapapeles')
   }
@@ -131,7 +130,7 @@ export function InvitationManualActions({ invitation }: InvitationManualActionsP
           <Label>Enlace de invitación</Label>
           <div className="flex gap-2">
             <Input
-              value={`${window.location.origin}/signup?token=${invitation.token}`}
+              value={`${window.location.origin}/activate-account?token=${invitation.token}`}
               readOnly
               className="border-0.5 border-gray-300 rounded-[10px] bg-gray-50 text-xs"
             />

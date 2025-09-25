@@ -6,9 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useUserInvitations } from '@/hooks/useUserInvitations'
 import { toast } from 'sonner'
-import { useApp } from '@/contexts/AppContext'
-import { supabase } from '@/integrations/supabase/client'
 
 interface UserInviteDialogProps {
   open: boolean
@@ -17,7 +16,7 @@ interface UserInviteDialogProps {
 }
 
 export const UserInviteDialog = ({ open, onOpenChange, onClose }: UserInviteDialogProps) => {
-  const { user: currentUser } = useApp()
+  const { sendInvitation } = useUserInvitations()
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('')
   const [message, setMessage] = useState('')
@@ -32,22 +31,7 @@ export const UserInviteDialog = ({ open, onOpenChange, onClose }: UserInviteDial
 
     setLoading(true)
     try {
-      // Verificar si el usuario ya existe
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .eq('org_id', currentUser?.org_id)
-        .single()
-
-      if (existingUser) {
-        toast.error('Este usuario ya existe en tu organización')
-        return
-      }
-
-      // Crear invitación (por ahora simulamos el proceso)
-      // En una implementación real, aquí enviarías un email de invitación
-      toast.success('Invitación enviada correctamente')
+      await sendInvitation.mutateAsync({ email, role, message })
       
       // Resetear formulario
       setEmail('')
@@ -56,7 +40,7 @@ export const UserInviteDialog = ({ open, onOpenChange, onClose }: UserInviteDial
       onClose()
     } catch (error: any) {
       console.error('Error:', error)
-      toast.error('Error al enviar la invitación')
+      // El error ya se maneja en el hook, no mostramos toast aquí
     } finally {
       setLoading(false)
     }
@@ -117,9 +101,12 @@ export const UserInviteDialog = ({ open, onOpenChange, onClose }: UserInviteDial
             />
           </div>
 
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-700">
-              Se enviará un email de invitación al usuario con las instrucciones para acceder al sistema.
+          <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+            <p className="text-sm text-amber-700 font-medium">
+              🔗 Modo aplicación interna
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              La invitación se creará sin enviar email automático. Deberás copiar y compartir el enlace manualmente desde la tabla de invitaciones.
             </p>
           </div>
 
@@ -128,7 +115,7 @@ export const UserInviteDialog = ({ open, onOpenChange, onClose }: UserInviteDial
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Enviando...' : 'Enviar Invitación'}
+              {loading ? 'Creando...' : 'Crear Invitación'}
             </Button>
           </div>
         </form>
