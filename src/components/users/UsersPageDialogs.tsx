@@ -1,4 +1,5 @@
 
+import { DirectUserCreationDialog } from './DirectUserCreationDialog'
 import { EnhancedUserInviteDialog } from './EnhancedUserInviteDialog'
 import { UserFormDialog } from './UserFormDialog'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
@@ -16,6 +17,10 @@ interface UsersPageDialogsProps {
   // Invite Dialog
   showInviteDialog: boolean
   setShowInviteDialog: (show: boolean) => void
+  
+  // Direct Creation Dialog
+  showDirectCreation: boolean
+  setShowDirectCreation: (show: boolean) => void
   
   // Bulk Upload Dialog
   showBulkUpload: boolean
@@ -42,6 +47,8 @@ export const UsersPageDialogs = ({
   setSelectedUser,
   showInviteDialog,
   setShowInviteDialog,
+  showDirectCreation,
+  setShowDirectCreation,
   showBulkUpload,
   setShowBulkUpload,
   onBulkUploadSuccess,
@@ -85,6 +92,12 @@ export const UsersPageDialogs = ({
         open={showInviteDialog}
         onOpenChange={setShowInviteDialog}
         onClose={() => setShowInviteDialog(false)}
+      />
+
+      <DirectUserCreationDialog
+        open={showDirectCreation}
+        onOpenChange={setShowDirectCreation}
+        onClose={() => setShowDirectCreation(false)}
       />
 
       <AIEnhancedBulkUpload

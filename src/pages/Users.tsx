@@ -35,6 +35,7 @@ const Users = () => {
   // Estados para diálogos
   const [showUserForm, setShowUserForm] = useState(false)
   const [showInviteDialog, setShowInviteDialog] = useState(false)
+  const [showDirectCreation, setShowDirectCreation] = useState(false)
   const [showBulkUpload, setShowBulkUpload] = useState(false)
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -70,6 +71,10 @@ const Users = () => {
 
   const handleInviteUser = () => {
     setShowInviteDialog(true)
+  }
+
+  const handleCreateDirectUser = () => {
+    setShowDirectCreation(true)
   }
 
   const handleBulkUpload = () => {
@@ -113,10 +118,18 @@ const Users = () => {
         title="Gestión de Usuarios"
         description="Administra los usuarios de tu asesoría con funcionalidades avanzadas"
         primaryAction={{
-          label: 'Invitar Usuario',
-          onClick: handleInviteUser
+          label: 'Crear Usuario',
+          onClick: handleCreateDirectUser
         }}
       >
+        <Button 
+          variant="outline" 
+          onClick={handleInviteUser}
+          className="border-0.5 border-black rounded-[10px] hover-lift"
+        >
+          <Mail className="h-4 w-4 mr-2" />
+          Invitar Usuario
+        </Button>
         <Button 
           variant="outline" 
           onClick={handleBulkUpload}
@@ -183,6 +196,8 @@ const Users = () => {
         setSelectedUser={setSelectedUser}
         showInviteDialog={showInviteDialog}
         setShowInviteDialog={setShowInviteDialog}
+        showDirectCreation={showDirectCreation}
+        setShowDirectCreation={setShowDirectCreation}
         showBulkUpload={showBulkUpload}
         setShowBulkUpload={setShowBulkUpload}
         onBulkUploadSuccess={handleBulkUploadSuccess}
