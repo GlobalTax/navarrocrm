@@ -8763,6 +8763,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credentials_temp: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          email: string
+          encrypted_password: string
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          org_id: string
+          user_id: string
+          viewed_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          email: string
+          encrypted_password: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          org_id: string
+          user_id: string
+          viewed_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          email?: string
+          encrypted_password?: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          org_id?: string
+          user_id?: string
+          viewed_count?: number | null
+        }
+        Relationships: []
+      }
       user_invitations: {
         Row: {
           accepted_at: string | null
@@ -9366,6 +9405,10 @@ export type Database = {
       }
       calculate_revenue_metrics: {
         Args: { org_uuid: string; target_date?: string }
+        Returns: undefined
+      }
+      cleanup_expired_credentials: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       cleanup_expired_invitations: {
