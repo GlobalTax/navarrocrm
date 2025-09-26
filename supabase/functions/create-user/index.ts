@@ -99,6 +99,25 @@ serve(async (req) => {
 
     console.log('✅ User created successfully:', authUser.user.id)
 
+    // Almacenar credenciales temporalmente (24 horas)
+    const encryptedPassword = btoa(temporaryPassword) // Simple encoding para la demo
+    const { error: credentialsError } = await supabaseAdmin
+      .from('user_credentials_temp')
+      .insert({
+        user_id: authUser.user.id,
+        email,
+        encrypted_password: encryptedPassword,
+        created_by: (await supabaseAdmin.auth.getUser()).data.user?.id,
+        org_id: orgId,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
+        viewed_count: 0
+      })
+
+    if (credentialsError) {
+      console.error('❌ Error storing temporary credentials:', credentialsError)
+      // No fallar la creación por esto, solo loguear
+    }
+
     return new Response(
       JSON.stringify({
         email,

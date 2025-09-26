@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useDirectUserCreation } from '@/hooks/useDirectUserCreation'
-import { Copy, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { Copy, Eye, EyeOff, CheckCircle, History } from 'lucide-react'
 import { toast } from 'sonner'
+import { SavedCredentialsDialog } from './SavedCredentialsDialog'
 
 interface DirectUserCreationDialogProps {
   open: boolean
@@ -33,6 +34,7 @@ export const DirectUserCreationDialog = ({
   } | null>(null)
   
   const [showPassword, setShowPassword] = useState(false)
+  const [showSavedCredentials, setShowSavedCredentials] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,8 +139,8 @@ export const DirectUserCreationDialog = ({
 
             <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
               <p className="text-xs text-amber-700">
-                <strong>⚠️ Importante:</strong> Copia estas credenciales antes de cerrar. 
-                La contraseña no se volverá a mostrar por seguridad.
+                <strong>⚠️ Importante:</strong> Estas credenciales se guardan por 24 horas. 
+                Puedes verlas nuevamente usando el botón "Ver Guardadas".
               </p>
             </div>
 
@@ -163,82 +165,98 @@ export const DirectUserCreationDialog = ({
 
   // Formulario de creación
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Crear Usuario Directamente</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Crear Usuario Directamente</DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Nombre</Label>
+                <Input
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Juan"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Apellidos</Label>
+                <Input
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Pérez"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="firstName">Nombre</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
-                id="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Juan"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="usuario@ejemplo.com"
+                required
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="lastName">Apellidos</Label>
-              <Input
-                id="lastName"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Pérez"
-              />
+              <Label htmlFor="role">Rol *</Label>
+              <Select value={role} onValueChange={setRole} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((roleOption) => (
+                    <SelectItem key={roleOption.value} value={roleOption.value}>
+                      {roleOption.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="usuario@ejemplo.com"
-              required
-            />
-          </div>
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-700 font-medium">
+                🔐 Creación directa
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Se generará una contraseña temporal automáticamente. 
+                Las credenciales se guardarán por 24 horas para que puedas verlas nuevamente.
+              </p>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">Rol *</Label>
-            <Select value={role} onValueChange={setRole} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona un rol" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((roleOption) => (
-                  <SelectItem key={roleOption.value} value={roleOption.value}>
-                    {roleOption.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={() => setShowSavedCredentials(true)}
+                className="text-xs"
+              >
+                <History className="h-4 w-4 mr-1" />
+                Ver Guardadas
+              </Button>
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? 'Creando...' : 'Crear Usuario'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-700 font-medium">
-              🔐 Creación directa
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Se generará una contraseña temporal automáticamente. 
-              El usuario podrá cambiarla en su primer acceso.
-            </p>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Creando...' : 'Crear Usuario'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <SavedCredentialsDialog
+        open={showSavedCredentials}
+        onOpenChange={setShowSavedCredentials}
+      />
+    </>
   )
 }
