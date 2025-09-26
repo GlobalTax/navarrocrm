@@ -3,13 +3,13 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import React, { useState, Suspense, useMemo } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { createOptimizedLazy, RoutePriority } from '@/utils/routeOptimizer'
 
 export default function EmployeesPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   // Lazy cargar el organigrama
   const EmployeesOrgChart = React.useMemo(() => {
-    const { createOptimizedLazy, RoutePriority } = require('@/utils/routeOptimizer')
     return createOptimizedLazy(
       () => import('@/components/employees/EmployeesOrgChart'),
       RoutePriority.MEDIUM
