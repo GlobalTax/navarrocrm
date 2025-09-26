@@ -97,3 +97,6 @@ verify_jwt = false
 
 [functions.create-user]
 verify_jwt = true
+
+[functions.regenerate-user-password]
+verify_jwt = true

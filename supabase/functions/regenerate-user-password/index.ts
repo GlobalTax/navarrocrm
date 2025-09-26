@@ -4,14 +4,53 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders, status: 200 })
   }
 
   try {
+    // Crear cliente para validar permisos del solicitante
+    const supabaseCaller = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: req.headers.get('Authorization') ?? '',
+          },
+        },
+      }
+    )
+
+    // Validar que el solicitante está autenticado
+    const { data: { user: caller }, error: callerError } = await supabaseCaller.auth.getUser()
+    if (callerError || !caller) {
+      console.error('❌ Caller authentication failed:', callerError)
+      throw new Error('No autorizado')
+    }
+
+    // Obtener información del solicitante desde la tabla users
+    const { data: callerUser, error: callerUserError } = await supabaseCaller
+      .from('users')
+      .select('org_id, role')
+      .eq('id', caller.id)
+      .single()
+
+    if (callerUserError || !callerUser) {
+      console.error('❌ Caller user not found:', callerUserError)
+      throw new Error('Usuario solicitante no encontrado')
+    }
+
+    // Validar que el solicitante tiene permisos (partner)
+    if (callerUser.role !== 'partner') {
+      console.error('❌ Insufficient permissions for user:', caller.id, 'role:', callerUser.role)
+      throw new Error('Permisos insuficientes. Solo los partners pueden regenerar contraseñas.')
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -24,6 +63,12 @@ serve(async (req) => {
     )
 
     const { userId, orgId } = await req.json()
+
+    // Validar que el usuario objetivo pertenece a la misma organización
+    if (orgId !== callerUser.org_id) {
+      console.error('❌ Organization mismatch:', orgId, 'vs caller org:', callerUser.org_id)
+      throw new Error('No puedes regenerar contraseñas de usuarios de otra organización')
+    }
 
     console.log('🔄 Regenerating password for user:', userId, 'in org:', orgId)
 
@@ -79,7 +124,7 @@ serve(async (req) => {
         user_id: userId,
         email: existingUser.email,
         encrypted_password: encryptedPassword,
-        created_by: (await supabaseAdmin.auth.getUser()).data.user?.id,
+        created_by: caller.id,
         org_id: orgId,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
         viewed_count: 0

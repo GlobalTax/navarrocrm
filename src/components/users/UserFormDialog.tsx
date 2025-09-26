@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -110,6 +110,9 @@ export const UserFormDialog = ({ open, onOpenChange, user, onClose }: UserFormDi
               <CheckCircle className="h-5 w-5 text-green-600" />
               Contraseña Regenerada
             </DialogTitle>
+            <DialogDescription>
+              Se ha generado exitosamente una nueva contraseña temporal para el usuario.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
