@@ -70,10 +70,21 @@ export const useDirectUserCreation = () => {
     },
     onError: (error: any) => {
       console.error('Error creando usuario directo:', error)
-      const errorMessage = error.message || 'Error creando el usuario'
+      let errorMessage = error.message || 'Error creando el usuario'
+      let description = 'Por favor, revisa los datos e inténtalo de nuevo.'
+      
+      // Detectar errores específicos
+      if (error.message?.includes('403') || error.message?.includes('401')) {
+        errorMessage = 'Falta configurar la clave de servicio'
+        description = 'Contacta al administrador para configurar SUPABASE_SERVICE_ROLE_KEY en las funciones.'
+      } else if (error.message?.includes('CORS') || error.message?.includes('preflight')) {
+        errorMessage = 'Error de configuración CORS'
+        description = 'Revisa la configuración de CORS en las edge functions.'
+      }
+      
       toast.error(errorMessage, {
         duration: 5000,
-        description: 'Por favor, revisa los datos e inténtalo de nuevo.'
+        description
       })
     },
   })

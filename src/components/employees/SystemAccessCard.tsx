@@ -21,9 +21,10 @@ import { toast } from 'sonner'
 
 interface SystemAccessCardProps {
   employee: SimpleEmployee
+  onCreateUser?: () => void
 }
 
-export const SystemAccessCard = ({ employee }: SystemAccessCardProps) => {
+export const SystemAccessCard = ({ employee, onCreateUser }: SystemAccessCardProps) => {
   const { getUserPermissions, AVAILABLE_MODULES } = useUserPermissions()
   const { regeneratePassword, isRegenerating, regeneratedCredentials } = useRegeneratePassword()
   
@@ -171,7 +172,10 @@ export const SystemAccessCard = ({ employee }: SystemAccessCardProps) => {
                   Este empleado no tiene acceso al sistema. Crea una cuenta para permitir el acceso.
                 </span>
               </div>
-              <Button className="w-full border-0.5 border-black rounded-[10px]">
+              <Button 
+                onClick={onCreateUser}
+                className="w-full border-0.5 border-black rounded-[10px]"
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Crear Cuenta de Usuario
               </Button>

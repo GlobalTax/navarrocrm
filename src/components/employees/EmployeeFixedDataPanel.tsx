@@ -1,7 +1,9 @@
+import React, { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { 
   User, 
   Mail, 
@@ -12,10 +14,14 @@ import {
   Badge as BadgeIcon,
   FileText,
   Clock,
-  BarChart3
+  BarChart3,
+  Pencil, 
+  Plus 
 } from 'lucide-react'
-import type { SimpleEmployee } from '@/hooks/useSimpleEmployees'
 import { SystemAccessCard } from './SystemAccessCard'
+import { DirectUserCreationDialog } from '@/components/users/DirectUserCreationDialog'
+import type { SimpleEmployee } from '@/hooks/useSimpleEmployees'
+import { useSimpleEmployees } from '@/hooks/useSimpleEmployees'
 
 interface EmployeeFixedDataPanelProps {
   employee: SimpleEmployee | null
@@ -50,6 +56,10 @@ const formatDate = (dateString: string) => {
 }
 
 export const EmployeeFixedDataPanel = ({ employee }: EmployeeFixedDataPanelProps) => {
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showCreateUserDialog, setShowCreateUserDialog] = useState(false)
+  const { refreshEmployees } = useSimpleEmployees()
+
   if (!employee) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -237,10 +247,29 @@ export const EmployeeFixedDataPanel = ({ employee }: EmployeeFixedDataPanelProps
           </Card>
         </TabsContent>
 
-        <TabsContent value="configuracion" className="space-y-4 mt-6">
-          <SystemAccessCard employee={employee} />
+        <TabsContent value="configuracion" className="space-y-6">
+          <SystemAccessCard 
+            employee={employee} 
+            onCreateUser={() => setShowCreateUserDialog(true)}
+          />
         </TabsContent>
       </Tabs>
+
+      {/* Diálogos */}
+      <DirectUserCreationDialog
+        open={showCreateUserDialog}
+        onOpenChange={setShowCreateUserDialog}
+        onClose={() => {
+          setShowCreateUserDialog(false)
+          refreshEmployees()
+        }}
+        initialData={{
+          email: employee?.email,
+          firstName: employee?.name?.split(' ')[0] || '',
+          lastName: employee?.name?.split(' ').slice(1).join(' ') || '',
+          role: 'junior' // Rol por defecto sugerido
+        }}
+      />
     </div>
   )
 }

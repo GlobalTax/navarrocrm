@@ -13,19 +13,26 @@ interface DirectUserCreationDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onClose: () => void
+  initialData?: {
+    email?: string
+    firstName?: string
+    lastName?: string
+    role?: string
+  }
 }
 
-export const DirectUserCreationDialog = ({ 
+export const DirectUserCreationDialog: React.FC<DirectUserCreationDialogProps> = ({ 
   open, 
   onOpenChange, 
-  onClose 
-}: DirectUserCreationDialogProps) => {
+  onClose,
+  initialData
+}) => {
   const { mutateAsync: createUser, isPending } = useDirectUserCreation()
   
-  const [email, setEmail] = useState('')
-  const [role, setRole] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState(initialData?.email || '')
+  const [role, setRole] = useState(initialData?.role || '')
+  const [firstName, setFirstName] = useState(initialData?.firstName || '')
+  const [lastName, setLastName] = useState(initialData?.lastName || '')
   
   const [credentials, setCredentials] = useState<{
     email: string

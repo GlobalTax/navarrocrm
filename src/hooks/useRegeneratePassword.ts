@@ -58,6 +58,8 @@ export const useRegeneratePassword = () => {
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['users', user?.org_id] })
       queryClient.invalidateQueries({ queryKey: ['user-credentials-temp', user?.org_id] })
+      queryClient.invalidateQueries({ queryKey: ['enhanced-users'] })
+      queryClient.invalidateQueries({ queryKey: ['employee_profiles'] })
       
       // Guardar credenciales para mostrarlas
       setRegeneratedCredentials(credentials)
@@ -68,10 +70,21 @@ export const useRegeneratePassword = () => {
     },
     onError: (error: any) => {
       console.error('Error regenerando contraseña:', error)
-      const errorMessage = error.message || 'Error regenerando la contraseña'
+      let errorMessage = error.message || 'Error regenerando la contraseña'
+      let description = 'Inténtalo de nuevo más tarde.'
+      
+      // Detectar errores específicos
+      if (error.message?.includes('403') || error.message?.includes('401')) {
+        errorMessage = 'Falta configurar la clave de servicio'
+        description = 'Contacta al administrador para configurar SUPABASE_SERVICE_ROLE_KEY en las funciones.'
+      } else if (error.message?.includes('CORS') || error.message?.includes('preflight')) {
+        errorMessage = 'Error de configuración CORS'
+        description = 'Revisa CORS/OPTIONS en la función y verify_jwt en config.toml.'
+      }
+      
       toast.error(errorMessage, {
         duration: 5000,
-        description: 'Por favor, inténtalo de nuevo.'
+        description
       })
     },
   })
