@@ -15,6 +15,7 @@ import {
   BarChart3
 } from 'lucide-react'
 import type { SimpleEmployee } from '@/hooks/useSimpleEmployees'
+import { SystemAccessCard } from './SystemAccessCard'
 
 interface EmployeeFixedDataPanelProps {
   employee: SimpleEmployee | null
@@ -237,19 +238,7 @@ export const EmployeeFixedDataPanel = ({ employee }: EmployeeFixedDataPanelProps
         </TabsContent>
 
         <TabsContent value="configuracion" className="space-y-4 mt-6">
-          <Card className="border-0.5 border-black rounded-[10px]">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BadgeIcon className="h-5 w-5 mr-2" />
-                Configuración
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Opciones de configuración no disponibles
-              </p>
-            </CardContent>
-          </Card>
+          <SystemAccessCard employee={employee} />
         </TabsContent>
       </Tabs>
     </div>
