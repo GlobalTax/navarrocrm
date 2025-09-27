@@ -3884,6 +3884,132 @@ export type Database = {
           },
         ]
       }
+      employee_profiles: {
+        Row: {
+          address_city: string | null
+          address_country: string | null
+          address_postal_code: string | null
+          address_street: string | null
+          bank_account: string | null
+          benefits: Json | null
+          birth_date: string | null
+          contract_type: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          department_id: string | null
+          department_name: string | null
+          dni_nie: string | null
+          education_level: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          employee_number: string | null
+          employment_status: string | null
+          hire_date: string | null
+          id: string
+          languages: string[] | null
+          manager_id: string | null
+          notes: string | null
+          org_id: string
+          position_title: string | null
+          salary: number | null
+          skills: string[] | null
+          social_security_number: string | null
+          termination_date: string | null
+          updated_at: string
+          user_id: string
+          work_location: string | null
+          working_hours_per_week: number | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_street?: string | null
+          bank_account?: string | null
+          benefits?: Json | null
+          birth_date?: string | null
+          contract_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          department_id?: string | null
+          department_name?: string | null
+          dni_nie?: string | null
+          education_level?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employee_number?: string | null
+          employment_status?: string | null
+          hire_date?: string | null
+          id?: string
+          languages?: string[] | null
+          manager_id?: string | null
+          notes?: string | null
+          org_id: string
+          position_title?: string | null
+          salary?: number | null
+          skills?: string[] | null
+          social_security_number?: string | null
+          termination_date?: string | null
+          updated_at?: string
+          user_id: string
+          work_location?: string | null
+          working_hours_per_week?: number | null
+        }
+        Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_street?: string | null
+          bank_account?: string | null
+          benefits?: Json | null
+          birth_date?: string | null
+          contract_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          department_id?: string | null
+          department_name?: string | null
+          dni_nie?: string | null
+          education_level?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employee_number?: string | null
+          employment_status?: string | null
+          hire_date?: string | null
+          id?: string
+          languages?: string[] | null
+          manager_id?: string | null
+          notes?: string | null
+          org_id?: string
+          position_title?: string | null
+          salary?: number | null
+          skills?: string[] | null
+          social_security_number?: string | null
+          termination_date?: string | null
+          updated_at?: string
+          user_id?: string
+          work_location?: string | null
+          working_hours_per_week?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_profiles_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_projects: {
         Row: {
           achievements: string | null
