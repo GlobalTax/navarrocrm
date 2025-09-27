@@ -9093,41 +9093,53 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_url: string | null
           created_at: string | null
           deleted_at: string | null
           deleted_by: string | null
           department_id: string | null
           email: string
+          first_name: string | null
           id: string
           is_active: boolean
           last_login_at: string | null
+          last_name: string | null
           org_id: string | null
+          phone: string | null
           role: string
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           department_id?: string | null
           email: string
+          first_name?: string | null
           id: string
           is_active?: boolean
           last_login_at?: string | null
+          last_name?: string | null
           org_id?: string | null
+          phone?: string | null
           role: string
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           department_id?: string | null
           email?: string
+          first_name?: string | null
           id?: string
           is_active?: boolean
           last_login_at?: string | null
+          last_name?: string | null
           org_id?: string | null
+          phone?: string | null
           role?: string
           updated_at?: string | null
         }
