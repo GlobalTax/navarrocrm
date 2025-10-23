@@ -28,11 +28,6 @@ export const navigationData: NavigationSection[] = [
         icon: BarChart3,
       },
     {
-      title: "Email",
-      url: "/emails",
-      icon: Mail,
-    },
-    {
       title: "Contactos",
       url: "/contacts",
       icon: Users,

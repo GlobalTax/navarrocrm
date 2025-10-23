@@ -5,10 +5,11 @@ import { CommunicationFeatureBoundary } from '@/components/routing/FeatureBounda
 import { Skeleton } from '@/components/ui/skeleton'
 
 // MEDIUM PRIORITY - Communication Bundle
-const Emails = createOptimizedLazy(
-  () => import('@/pages/Emails'),
-  RoutePriority.MEDIUM
-)
+// Email module temporarily disabled for MVP
+// const Emails = createOptimizedLazy(
+//   () => import('@/pages/Emails'),
+//   RoutePriority.MEDIUM
+// )
 const Calendar = createOptimizedLazy(
   () => import('@/pages/Calendar'),
   RoutePriority.MEDIUM
@@ -33,16 +34,17 @@ const CommunicationsSkeleton = () => (
 )
 
 export const communicationRoutes: RouteConfig[] = [
-  {
-    path: '/emails/*',
-    element: (
-      <Suspense fallback={<CommunicationsSkeleton />}>
-        <CommunicationFeatureBoundary>
-          <Emails />
-        </CommunicationFeatureBoundary>
-      </Suspense>
-    )
-  },
+  // Email routes temporarily disabled for MVP
+  // {
+  //   path: '/emails/*',
+  //   element: (
+  //     <Suspense fallback={<CommunicationsSkeleton />}>
+  //       <CommunicationFeatureBoundary>
+  //         <Emails />
+  //       </CommunicationFeatureBoundary>
+  //     </Suspense>
+  //   )
+  // },
   {
     path: '/calendar',
     element: (
