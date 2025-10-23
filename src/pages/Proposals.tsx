@@ -93,6 +93,7 @@ export default function Proposals() {
   const showingBuilder = pageState.isRecurrentBuilderOpen || pageState.isSpecificBuilderOpen
   if (showingBuilder) {
     return (
+      <StandardPageContainer>
         <ProposalsBuilderManager
           isRecurrentBuilderOpen={pageState.isRecurrentBuilderOpen}
           isSpecificBuilderOpen={pageState.isSpecificBuilderOpen}
@@ -107,6 +108,7 @@ export default function Proposals() {
             pageState.closeEditProposal()
           }}
         />
+      </StandardPageContainer>
     )
   }
 

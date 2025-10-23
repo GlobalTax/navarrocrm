@@ -68,7 +68,7 @@ export const LegalProposalBuilder: React.FC<LegalProposalBuilderProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="w-full bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
         <Card className="shadow-lg">
           <CardContent className="p-0">
