@@ -26,10 +26,10 @@ const RecurrentFees = createOptimizedLazy(
   () => import('@/pages/RecurrentFees'),
   RoutePriority.MEDIUM
 )
-const SubscriptionsPage = createOptimizedLazy(
-  () => import('@/pages/SubscriptionsPage'),
-  RoutePriority.MEDIUM
-)
+// const SubscriptionsPage = createOptimizedLazy(
+//   () => import('@/pages/SubscriptionsPage'),
+//   RoutePriority.MEDIUM
+// )
 const OutgoingSubscriptionsPage = createOptimizedLazy(
   () => import('@/pages/OutgoingSubscriptionsPage'),
   RoutePriority.MEDIUM
@@ -111,16 +111,16 @@ export const businessRoutes: RouteConfig[] = [
       </Suspense>
     )
   },
-  {
-    path: '/subscriptions',
-    element: (
-      <Suspense fallback={<BusinessSkeleton />}>
-        <FeatureBoundary feature="Suscripciones">
-          <SubscriptionsPage />
-        </FeatureBoundary>
-      </Suspense>
-    )
-  },
+  // {
+  //   path: '/subscriptions',
+  //   element: (
+  //     <Suspense fallback={<BusinessSkeleton />}>
+  //       <FeatureBoundary feature="Suscripciones">
+  //         <SubscriptionsPage />
+  //       </FeatureBoundary>
+  //     </Suspense>
+  //   )
+  // },
   {
     path: '/outgoing-subscriptions',
     element: (

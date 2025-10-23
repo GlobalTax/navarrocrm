@@ -53,11 +53,6 @@ export const navigationData: NavigationSection[] = [
         icon: Euro,
       },
       {
-        title: "Suscripciones",
-        url: "/subscriptions",
-        icon: Package,
-      },
-      {
         title: "Suscripciones Pagadas",
         url: "/outgoing-subscriptions",
         icon: CreditCard,

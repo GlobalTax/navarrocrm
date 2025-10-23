@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { formatTimeAgo } from '@/lib/utils/dateUtils'
 import { useNotifications, useNotificationActions } from '@/hooks/useNotifications'
-import { SubscriptionAlert } from '@/components/subscriptions/SubscriptionAlert'
+// import { SubscriptionAlert } from '@/components/subscriptions/SubscriptionAlert'
 
 export const NotificationDropdown = () => {
   const { data: notificationData } = useNotifications()
@@ -49,9 +49,9 @@ export const NotificationDropdown = () => {
                 {unreadCount}
               </Badge>
             )}
-            <div className="absolute -top-2 -right-2">
+            {/* <div className="absolute -top-2 -right-2">
               <SubscriptionAlert showIcon={false} size="sm" />
-            </div>
+            </div> */}
           </Button>
         </DropdownMenuTrigger>
         
