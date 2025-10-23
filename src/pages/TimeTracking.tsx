@@ -1,24 +1,24 @@
 import { useState } from 'react'
-import { TimeTrackingHeader } from '@/components/time-tracking/TimeTrackingHeader'
-import { ModernTimeTrackingDashboard } from '@/components/time-tracking/ModernTimeTrackingDashboard'
-import { AdvancedTimeTrackingDashboard } from '@/components/time-tracking/AdvancedTimeTrackingDashboard'
+// import { TimeTrackingHeader } from '@/components/time-tracking/TimeTrackingHeader'
+// import { ModernTimeTrackingDashboard } from '@/components/time-tracking/ModernTimeTrackingDashboard'
+// import { AdvancedTimeTrackingDashboard } from '@/components/time-tracking/AdvancedTimeTrackingDashboard'
 import { ModernTimer } from '@/components/time-tracking/ModernTimer'
 import { FloatingTimer } from '@/components/time-tracking/FloatingTimer'
-import { TimeTemplateManager } from '@/components/time-tracking/TimeTemplateManager'
+// import { TimeTemplateManager } from '@/components/time-tracking/TimeTemplateManager'
 import { OptimizedTimeEntriesTable } from '@/components/time-tracking/OptimizedTimeEntriesTable'
-import { AdvancedTimeTrackingFilters } from '@/components/time-tracking/AdvancedTimeTrackingFilters'
-import { TimeTrackingSummary } from '@/components/time-tracking/TimeTrackingSummary'
+// import { AdvancedTimeTrackingFilters } from '@/components/time-tracking/AdvancedTimeTrackingFilters'
+// import { TimeTrackingSummary } from '@/components/time-tracking/TimeTrackingSummary'
 import { HeaderTimerDialog } from '@/components/layout/HeaderTimerDialog'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Clock, BarChart3, Timer, FileText, Calendar, DollarSign } from 'lucide-react'
+import { Clock, Timer, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
-import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
+// import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
 import { Link } from 'react-router-dom'
-import { VisibleCard } from '@/components/ui/VisibleCard'
+// import { VisibleCard } from '@/components/ui/VisibleCard'
 import { BillingActions } from '@/components/time/BillingActions'
 import { EnhancedTimeTrackingFilters } from '@/components/time-tracking/EnhancedTimeTrackingFilters'
 import { useUIPreferences } from '@/hooks/useUIPreferences'
@@ -38,7 +38,7 @@ export default function TimeTracking() {
   const [showFloatingTimer, setShowFloatingTimer] = useState(false)
   const [showTimerDialog, setShowTimerDialog] = useState(false)
   const [timerSeconds, setTimerSeconds] = useState(0)
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('timer')
 
   const handleClearFilters = () => {
     setSearchTerm('')
@@ -57,13 +57,7 @@ export default function TimeTracking() {
     toast.success('Tiempo registrado correctamente')
   }
 
-  const { showKpis, toggleKpis } = useUIPreferences('time-tracking', { showKpis: false })
-
-  const handleUseTemplate = (template: any) => {
-    // Auto-llenar formulario de timer con la plantilla
-    toast.success(`Plantilla "${template.name}" aplicada`)
-    console.log('Using template:', template)
-  }
+  // const { showKpis, toggleKpis } = useUIPreferences('time-tracking', { showKpis: false })
 
   return (
     <StandardPageContainer>
@@ -80,40 +74,15 @@ export default function TimeTracking() {
               <Timer className="h-4 w-4 mr-1" />
               {showFloatingTimer ? 'Ocultar' : 'Mostrar'} Timer Flotante
             </Button>
-            <Button variant="outline" size="sm" onClick={toggleKpis}>
-              {showKpis ? 'Ocultar Widgets' : 'Ver Widgets'}
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/reports/monthly-service-hours">Reporte mensual</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/recurring-services/dashboard">Dashboard servicios</Link>
-            </Button>
           </div>
         }
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Dashboard
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="timer" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Timer
-          </TabsTrigger>
-          <TabsTrigger value="summary" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Resumen
-          </TabsTrigger>
-          <TabsTrigger value="planning" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Planificación
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Plantillas
           </TabsTrigger>
           <TabsTrigger value="entries" className="flex items-center gap-2">
             <Timer className="h-4 w-4" />
@@ -125,40 +94,8 @@ export default function TimeTracking() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-6">
-          {showKpis && (
-            <VisibleCard pageKey="time-tracking" cardId="advanced-dashboard" title="Dashboard de tiempo">
-              <AdvancedTimeTrackingDashboard />
-            </VisibleCard>
-          )}
-        </TabsContent>
-
         <TabsContent value="timer" className="space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-            <div className="xl:col-span-1">
-              <ModernTimer />
-            </div>
-            
-            <div className="xl:col-span-3">
-              {showKpis && (
-                <VisibleCard pageKey="time-tracking" cardId="modern-dashboard" title="KPIs del día">
-                  <ModernTimeTrackingDashboard />
-                </VisibleCard>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="summary" className="space-y-6">
-          <TimeTrackingSummary />
-        </TabsContent>
-
-        <TabsContent value="planning" className="space-y-6">
-          <TimePlanningTab />
-        </TabsContent>
-
-        <TabsContent value="templates" className="space-y-6">
-          <TimeTemplateManager onUseTemplate={handleUseTemplate} />
+          <ModernTimer />
         </TabsContent>
 
         <TabsContent value="entries" className="space-y-6">
