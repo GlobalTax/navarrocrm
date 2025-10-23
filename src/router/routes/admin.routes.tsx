@@ -22,10 +22,6 @@ const Workflows = createOptimizedLazy(
   () => import('@/pages/Workflows'),
   RoutePriority.LOW
 )
-const DocumentTemplatesPage = createOptimizedLazy(
-  () => import('@/pages/DocumentTemplatesPage'),
-  RoutePriority.LOW
-)
 const SystemUsersPage = createOptimizedLazy(
   () => import('@/pages/SystemUsersPage'),
   RoutePriority.LOW
@@ -95,16 +91,6 @@ export const adminRoutes: RouteConfig[] = [
         <AdminFeatureBoundary>
           <Workflows />
         </AdminFeatureBoundary>
-      </Suspense>
-    )
-  },
-  {
-    path: '/employees/templates',
-    element: (
-      <Suspense fallback={<AdminSkeleton />}>
-        <FeatureBoundary feature="Plantillas de Documentos">
-          <DocumentTemplatesPage />
-        </FeatureBoundary>
       </Suspense>
     )
   }

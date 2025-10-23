@@ -25,14 +25,33 @@ export function OnboardingStepContent({
     )
   }
 
-  const StepComponent = step.component
-
   const handleStepUpdate = (data: any) => {
     // Actualizar datos del paso específico
     updateStepData(step.id, data)
     
     // También actualizar datos del cliente si es información relevante
     updateClientData(data)
+  }
+
+  // Renderizar el componente del paso
+  const renderStepComponent = () => {
+    const { component } = step
+    
+    // Si es una función, llamarla para obtener el elemento
+    if (typeof component === 'function') {
+      return component()
+    }
+    
+    // Si es un elemento React, clonarlo con las props necesarias
+    if (React.isValidElement(component)) {
+      return React.cloneElement(component, {
+        stepData,
+        clientData,
+        onUpdate: handleStepUpdate
+      } as any)
+    }
+    
+    return null
   }
 
   return (
@@ -47,11 +66,7 @@ export function OnboardingStepContent({
       </div>
 
       <div className="bg-white border border-0.5 border-gray-200 rounded-[10px] p-4">
-        <StepComponent
-          stepData={stepData}
-          clientData={clientData}
-          onUpdate={handleStepUpdate}
-        />
+        {renderStepComponent()}
       </div>
 
       {step.isRequired && (

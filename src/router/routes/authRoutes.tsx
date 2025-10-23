@@ -9,8 +9,6 @@ import Setup from '@/pages/Setup'
 import Unauthorized from '@/pages/Unauthorized'
 
 // Páginas con lazy loading
-const EmployeeOnboarding = lazy(() => import('@/pages/EmployeeOnboarding'))
-const EmployeeOnboardingSuccess = lazy(() => import('@/pages/EmployeeOnboardingSuccess'))
 const OutlookCallback = lazy(() => import('@/pages/OutlookCallback'))
 const ActivateAccount = lazy(() => import('@/pages/ActivateAccount'))
 
@@ -27,22 +25,6 @@ export const authRoutes: RouteModule = {
     {
       path: '/unauthorized',
       element: <Unauthorized />
-    },
-    {
-      path: '/employee-onboarding',
-      element: (
-        <Suspense fallback={<PageLoadingSkeleton />}>
-          <EmployeeOnboarding />
-        </Suspense>
-      )
-    },
-    {
-      path: '/employee-onboarding/success',
-      element: (
-        <Suspense fallback={<PageLoadingSkeleton />}>
-          <EmployeeOnboardingSuccess />
-        </Suspense>
-      )
     },
     {
       path: '/auth/outlook/callback',

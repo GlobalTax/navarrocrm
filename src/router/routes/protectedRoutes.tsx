@@ -9,7 +9,6 @@ import { clientRoutes } from './clients.routes'
 import { caseRoutes } from './cases.routes'
 import { communicationRoutes } from './communications.routes'
 import { businessRoutes } from './business.routes'
-import { hrRoutes } from './hr.routes'
 import { adminRoutes } from './admin.routes'
 import { integrationRoutes } from './integrations.routes'
 import { aiRoutes } from './ai.routes'
@@ -45,7 +44,6 @@ export const protectedRoutes: RouteModule = {
             // MEDIUM priority routes (standard load)
             ...communicationRoutes,
             ...businessRoutes,
-            ...hrRoutes,
             ...deedsRoutes,
             
             // LOW priority routes (deferred load)
