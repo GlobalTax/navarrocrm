@@ -9,7 +9,7 @@ export const useTaskQueries = () => {
 
   const { data: tasks = [], isLoading, error } = useQuery({
     queryKey: ['tasks', user?.org_id],
-    queryFn: async (): Promise<TaskWithRelations[]> => {
+    queryFn: async () => {
       console.log('🔄 Fetching tasks for org:', user?.org_id)
       
       if (!user?.org_id) {
@@ -18,10 +18,35 @@ export const useTaskQueries = () => {
       }
 
       try {
-        // Consulta simplificada sin joins complejos para evitar errores 400
+        // Consulta completa con todas las relaciones
         const { data: tasksData, error: tasksError } = await supabase
           .from('tasks')
-          .select('*')
+          .select(`
+            *,
+            task_assignments!task_assignments_task_id_fkey(
+              id,
+              user_id,
+              user:users!task_assignments_user_id_fkey(
+                id,
+                email,
+                role
+              )
+            ),
+            case:cases!tasks_case_id_fkey(
+              id,
+              title,
+              matter_number
+            ),
+            contact:contacts!tasks_contact_id_fkey(
+              id,
+              name,
+              email
+            ),
+            created_by_user:users!tasks_created_by_fkey(
+              id,
+              email
+            )
+          `)
           .eq('org_id', user.org_id)
           .order('created_at', { ascending: false })
 
@@ -32,19 +57,8 @@ export const useTaskQueries = () => {
 
         console.log('✅ Tasks fetched:', tasksData?.length || 0)
         
-        // Transformar los datos básicos sin relaciones complejas por ahora
-        const transformedTasks: TaskWithRelations[] = (tasksData || []).map(task => ({
-          ...task,
-          // Propiedades opcionales con valores por defecto seguros
-          task_assignments: [],
-          case: null,
-          contact: null,
-          created_by_user: null,
-          subtasks: [],
-          comments: []
-        }))
-
-        return transformedTasks
+        // Transform to match TaskWithRelations type
+        return (tasksData || []) as unknown as TaskWithRelations[]
 
       } catch (error) {
         console.error('❌ Critical error in task query:', error)

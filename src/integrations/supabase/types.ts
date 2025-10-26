@@ -660,7 +660,7 @@ export type Database = {
           errors_count: number | null
           events_count: number | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           org_id: string
           page_views: number | null
           session_id: string
@@ -675,7 +675,7 @@ export type Database = {
           errors_count?: number | null
           events_count?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           org_id: string
           page_views?: number | null
           session_id: string
@@ -690,7 +690,7 @@ export type Database = {
           errors_count?: number | null
           events_count?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           org_id?: string
           page_views?: number | null
           session_id?: string
@@ -747,6 +747,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       brands: {
         Row: {
@@ -1329,6 +1362,41 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "matter_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          nif: string | null
+          org_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          nif?: string | null
+          org_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          nif?: string | null
+          org_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -4781,6 +4849,310 @@ export type Database = {
         }
         Relationships: []
       }
+      hr_employee_costs: {
+        Row: {
+          anticipos: number | null
+          bonificacion: number | null
+          bruto: number | null
+          coste_empresa: number | null
+          created_at: string | null
+          dto_especial: number | null
+          dto_preaviso: number | null
+          dtos_varios: number | null
+          embargos: number | null
+          employee_id: string | null
+          enf_acc: number | null
+          id: string
+          indemnizacion: number | null
+          irpf_dinero: number | null
+          irpf_especie: number | null
+          org_id: string | null
+          period: string
+          porcentaje_imputacion: number | null
+          prestamos: number | null
+          sal_neto: number | null
+          ss_empresa: number | null
+          ss_trabajador: number | null
+          total_tc1: number | null
+        }
+        Insert: {
+          anticipos?: number | null
+          bonificacion?: number | null
+          bruto?: number | null
+          coste_empresa?: number | null
+          created_at?: string | null
+          dto_especial?: number | null
+          dto_preaviso?: number | null
+          dtos_varios?: number | null
+          embargos?: number | null
+          employee_id?: string | null
+          enf_acc?: number | null
+          id?: string
+          indemnizacion?: number | null
+          irpf_dinero?: number | null
+          irpf_especie?: number | null
+          org_id?: string | null
+          period: string
+          porcentaje_imputacion?: number | null
+          prestamos?: number | null
+          sal_neto?: number | null
+          ss_empresa?: number | null
+          ss_trabajador?: number | null
+          total_tc1?: number | null
+        }
+        Update: {
+          anticipos?: number | null
+          bonificacion?: number | null
+          bruto?: number | null
+          coste_empresa?: number | null
+          created_at?: string | null
+          dto_especial?: number | null
+          dto_preaviso?: number | null
+          dtos_varios?: number | null
+          embargos?: number | null
+          employee_id?: string | null
+          enf_acc?: number | null
+          id?: string
+          indemnizacion?: number | null
+          irpf_dinero?: number | null
+          irpf_especie?: number | null
+          org_id?: string | null
+          period?: string
+          porcentaje_imputacion?: number | null
+          prestamos?: number | null
+          sal_neto?: number | null
+          ss_empresa?: number | null
+          ss_trabajador?: number | null
+          total_tc1?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_employee_costs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employee_costs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "hr_employee_costs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_employees: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          company_id: string | null
+          contract_type: string | null
+          created_at: string | null
+          department: string | null
+          dni: string | null
+          email: string | null
+          employee_code: string | null
+          full_name: string
+          hire_date: string | null
+          id: string
+          notes: string | null
+          nss: string | null
+          org_id: string | null
+          phone: string | null
+          position: string | null
+          seniority_date: string | null
+          termination_date: string | null
+          transfer_group: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          company_id?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          department?: string | null
+          dni?: string | null
+          email?: string | null
+          employee_code?: string | null
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          notes?: string | null
+          nss?: string | null
+          org_id?: string | null
+          phone?: string | null
+          position?: string | null
+          seniority_date?: string | null
+          termination_date?: string | null
+          transfer_group?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          company_id?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          department?: string | null
+          dni?: string | null
+          email?: string | null
+          employee_code?: string | null
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          notes?: string | null
+          nss?: string | null
+          org_id?: string | null
+          phone?: string | null
+          position?: string | null
+          seniority_date?: string | null
+          termination_date?: string | null
+          transfer_group?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "vw_costs_by_company_year"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "hr_employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "hr_employees_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_transfers: {
+        Row: {
+          created_at: string | null
+          days_between: number | null
+          employee_id: string | null
+          from_company: string | null
+          id: string
+          org_id: string | null
+          reason: string | null
+          to_company: string | null
+          transfer_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_between?: number | null
+          employee_id?: string | null
+          from_company?: string | null
+          id?: string
+          org_id?: string | null
+          reason?: string | null
+          to_company?: string | null
+          transfer_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_between?: number | null
+          employee_id?: string | null
+          from_company?: string | null
+          id?: string
+          org_id?: string | null
+          reason?: string | null
+          to_company?: string | null
+          transfer_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_transfers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_from_company_fkey"
+            columns: ["from_company"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_from_company_fkey"
+            columns: ["from_company"]
+            isOneToOne: false
+            referencedRelation: "vw_costs_by_company_year"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_from_company_fkey"
+            columns: ["from_company"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_to_company_fkey"
+            columns: ["to_company"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_to_company_fkey"
+            columns: ["to_company"]
+            isOneToOne: false
+            referencedRelation: "vw_costs_by_company_year"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "hr_transfers_to_company_fkey"
+            columns: ["to_company"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["company_id"]
+          },
+        ]
+      }
       interview_feedback: {
         Row: {
           communication_rating: number | null
@@ -4939,7 +5311,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           job_offer_id: string
           org_id: string
           user_agent: string | null
@@ -4950,7 +5322,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           job_offer_id: string
           org_id: string
           user_agent?: string | null
@@ -4961,7 +5333,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           job_offer_id?: string
           org_id?: string
           user_agent?: string | null
@@ -4977,7 +5349,7 @@ export type Database = {
           document_url: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           job_offer_id: string
           org_id: string
           signature_data: string | null
@@ -4994,7 +5366,7 @@ export type Database = {
           document_url?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           job_offer_id: string
           org_id: string
           signature_data?: string | null
@@ -5011,7 +5383,7 @@ export type Database = {
           document_url?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           job_offer_id?: string
           org_id?: string
           signature_data?: string | null
@@ -8578,6 +8950,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -9525,6 +9904,66 @@ export type Database = {
           },
         ]
       }
+      vw_costs_by_company_year: {
+        Row: {
+          bruto_total: number | null
+          company: string | null
+          company_id: string | null
+          coste_total: number | null
+          org_id: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_employee_annual: {
+        Row: {
+          bruto_anual: number | null
+          company: string | null
+          company_id: string | null
+          coste_anual: number | null
+          employee_id: string | null
+          full_name: string | null
+          org_id: string | null
+          year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_employees_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_transfers_summary: {
+        Row: {
+          days_between: number | null
+          from_company: string | null
+          full_name: string | null
+          org_id: string | null
+          reason: string | null
+          to_company: string | null
+          transfer_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_transfers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_business_days: {
@@ -9547,58 +9986,19 @@ export type Database = {
         Args: { org_uuid: string; target_date?: string }
         Returns: undefined
       }
-      cleanup_expired_credentials: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_invitations: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      cleanup_expired_onboarding: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      cleanup_expired_tokens: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_employee_number: {
-        Args: { org_uuid: string }
-        Returns: string
-      }
-      generate_invitation_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_job_offer_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_matter_number: {
-        Args: { org_uuid: string }
-        Returns: string
-      }
-      generate_onboarding_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_proposal_number: {
-        Args: { org_uuid: string }
-        Returns: string
-      }
-      generate_recurring_invoices: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      generate_signature_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_org_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      cleanup_expired_credentials: { Args: never; Returns: undefined }
+      cleanup_expired_invitations: { Args: never; Returns: number }
+      cleanup_expired_onboarding: { Args: never; Returns: number }
+      cleanup_expired_tokens: { Args: never; Returns: undefined }
+      generate_employee_number: { Args: { org_uuid: string }; Returns: string }
+      generate_invitation_token: { Args: never; Returns: string }
+      generate_job_offer_token: { Args: never; Returns: string }
+      generate_matter_number: { Args: { org_uuid: string }; Returns: string }
+      generate_onboarding_token: { Args: never; Returns: string }
+      generate_proposal_number: { Args: { org_uuid: string }; Returns: string }
+      generate_recurring_invoices: { Args: never; Returns: number }
+      generate_signature_token: { Args: never; Returns: string }
+      get_current_user_org_id: { Args: never; Returns: string }
       get_dashboard_stats: {
         Args: { current_month?: string; org_id_param: string }
         Returns: Json
@@ -9636,14 +10036,8 @@ export type Database = {
           total_hours: number
         }[]
       }
-      get_office_stats: {
-        Args: { org_uuid: string }
-        Returns: Json
-      }
-      get_setup_status: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_office_stats: { Args: { org_uuid: string }; Returns: Json }
+      get_setup_status: { Args: never; Returns: Json }
       get_task_stats: {
         Args: { org_uuid: string }
         Returns: {
@@ -9655,9 +10049,10 @@ export type Database = {
           total_tasks: number
         }[]
       }
-      get_user_org_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
+      get_user_org_id: { Args: never; Returns: string }
+      has_role: {
+        Args: { role_name: string; user_uuid: string }
+        Returns: boolean
       }
       identify_churn_risk_clients: {
         Args: { org_uuid: string }
@@ -9669,14 +10064,8 @@ export type Database = {
           risk_score: number
         }[]
       }
-      is_super_admin: {
-        Args: { user_uuid?: string }
-        Returns: boolean
-      }
-      is_system_setup: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_super_admin: { Args: { user_uuid?: string }; Returns: boolean }
+      is_system_setup: { Args: never; Returns: boolean }
       log_proposal_action: {
         Args: {
           action_type_param: string
@@ -9689,22 +10078,10 @@ export type Database = {
         Args: { details?: Json; event_type: string }
         Returns: undefined
       }
-      process_scheduled_reports: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      sincronizar_cuentas_quantum: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      sincronizar_cuentas_quantum_final: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      validate_rls_setup: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      process_scheduled_reports: { Args: never; Returns: undefined }
+      sincronizar_cuentas_quantum: { Args: never; Returns: string }
+      sincronizar_cuentas_quantum_final: { Args: never; Returns: string }
+      validate_rls_setup: { Args: never; Returns: Json }
     }
     Enums: {
       app_role:
