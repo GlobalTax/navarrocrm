@@ -22,18 +22,18 @@ const Documents = createOptimizedLazy(
   () => import('@/pages/Documents'),
   RoutePriority.MEDIUM
 )
-const RecurrentFees = createOptimizedLazy(
-  () => import('@/pages/RecurrentFees'),
-  RoutePriority.MEDIUM
-)
+// const RecurrentFees = createOptimizedLazy(
+//   () => import('@/pages/RecurrentFees'),
+//   RoutePriority.MEDIUM
+// )
 // const SubscriptionsPage = createOptimizedLazy(
 //   () => import('@/pages/SubscriptionsPage'),
 //   RoutePriority.MEDIUM
 // )
-const OutgoingSubscriptionsPage = createOptimizedLazy(
-  () => import('@/pages/OutgoingSubscriptionsPage'),
-  RoutePriority.MEDIUM
-)
+// const OutgoingSubscriptionsPage = createOptimizedLazy(
+//   () => import('@/pages/OutgoingSubscriptionsPage'),
+//   RoutePriority.MEDIUM
+// )
 const ReportsMonthlyServiceHours = createOptimizedLazy(
   () => import('@/pages/ReportsMonthlyServiceHours'),
   RoutePriority.MEDIUM
@@ -101,16 +101,16 @@ export const businessRoutes: RouteConfig[] = [
       </Suspense>
     )
   },
-  {
-    path: '/recurring-fees',
-    element: (
-      <Suspense fallback={<BusinessSkeleton />}>
-        <FeatureBoundary feature="Honorarios Recurrentes">
-          <RecurrentFees />
-        </FeatureBoundary>
-      </Suspense>
-    )
-  },
+  // {
+  //   path: '/recurring-fees',
+  //   element: (
+  //     <Suspense fallback={<BusinessSkeleton />}>
+  //       <FeatureBoundary feature="Honorarios Recurrentes">
+  //         <RecurrentFees />
+  //       </FeatureBoundary>
+  //     </Suspense>
+  //   )
+  // },
   // {
   //   path: '/subscriptions',
   //   element: (
@@ -121,16 +121,16 @@ export const businessRoutes: RouteConfig[] = [
   //     </Suspense>
   //   )
   // },
-  {
-    path: '/outgoing-subscriptions',
-    element: (
-      <Suspense fallback={<BusinessSkeleton />}>
-        <FeatureBoundary feature="Suscripciones Externas">
-          <OutgoingSubscriptionsPage />
-        </FeatureBoundary>
-      </Suspense>
-    )
-  },
+  // {
+  //   path: '/outgoing-subscriptions',
+  //   element: (
+  //     <Suspense fallback={<BusinessSkeleton />}>
+  //       <FeatureBoundary feature="Suscripciones Externas">
+  //         <OutgoingSubscriptionsPage />
+  //       </FeatureBoundary>
+  //     </Suspense>
+  //   )
+  // },
   {
     path: '/reports/monthly-service-hours',
     element: (

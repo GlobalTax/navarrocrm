@@ -47,21 +47,21 @@ export const navigationData: NavigationSection[] = [
         url: "/proposals",
         icon: FileText,
       },
-      {
-        title: "Cuotas Recurrentes",
-        url: "/recurring-fees",
-        icon: Euro,
-      },
-      {
-        title: "Suscripciones Pagadas",
-        url: "/outgoing-subscriptions",
-        icon: CreditCard,
-      },
-      {
-        title: "Facturación Quantum",
-        url: "/quantum/billing",
-        icon: BarChart3,
-      },
+      // {
+      //   title: "Cuotas Recurrentes",
+      //   url: "/recurring-fees",
+      //   icon: Euro,
+      // },
+      // {
+      //   title: "Suscripciones Pagadas",
+      //   url: "/outgoing-subscriptions",
+      //   icon: CreditCard,
+      // },
+      // {
+      //   title: "Facturación Quantum",
+      //   url: "/quantum/billing",
+      //   icon: BarChart3,
+      // },
     ]
   },
   {
@@ -164,10 +164,10 @@ export const quickActions: QuickAction[] = [
     name: "Nueva Propuesta",
     href: "/proposals/new"
   },
-  {
-    name: "Nueva Cuota",
-    href: "/recurring-fees"
-  },
+  // {
+  //   name: "Nueva Cuota",
+  //   href: "/recurring-fees"
+  // },
   {
     name: "Reservar Sala",
     href: "/rooms"

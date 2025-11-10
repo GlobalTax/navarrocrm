@@ -17,10 +17,10 @@ const QuantumImport = createOptimizedLazy(
   () => import('@/pages/QuantumImport'),
   RoutePriority.LOW
 )
-const QuantumBilling = createOptimizedLazy(
-  () => import('@/pages/QuantumBilling'),
-  RoutePriority.LOW
-)
+// const QuantumBilling = createOptimizedLazy(
+//   () => import('@/pages/QuantumBilling'),
+//   RoutePriority.LOW
+// )
 
 // Integrations loading skeleton
 const IntegrationsSkeleton = () => (
@@ -68,14 +68,14 @@ export const integrationRoutes: RouteConfig[] = [
       </Suspense>
     )
   },
-  {
-    path: '/quantum/billing',
-    element: (
-      <Suspense fallback={<IntegrationsSkeleton />}>
-        <FeatureBoundary feature="Quantum Billing">
-          <QuantumBilling />
-        </FeatureBoundary>
-      </Suspense>
-    )
-  }
+  // {
+  //   path: '/quantum/billing',
+  //   element: (
+  //     <Suspense fallback={<IntegrationsSkeleton />}>
+  //       <FeatureBoundary feature="Quantum Billing">
+  //         <QuantumBilling />
+  //       </FeatureBoundary>
+  //     </Suspense>
+  //   )
+  // }
 ]

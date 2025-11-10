@@ -2,10 +2,10 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from "@/lib/utils"
 import { navigationData } from './NavigationData'
-import { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
+// import { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
 
 export const NavigationMenu = () => {
-  const { data: overdueCount = 0 } = useRecurringFeesOverdue()
+  // const { data: overdueCount = 0 } = useRecurringFeesOverdue()
 
   return (
     <div className="space-y-4">
@@ -17,7 +17,7 @@ export const NavigationMenu = () => {
           <div className="space-y-1">
             {section.items.map((item) => {
               const Icon = item.icon
-              const showOverdueBadge = item.url === '/recurring-fees' && overdueCount > 0
+              // const showOverdueBadge = item.url === '/recurring-fees' && overdueCount > 0
               
               return (
                 <NavLink
@@ -39,11 +39,11 @@ export const NavigationMenu = () => {
                       {item.badge}
                     </span>
                   )}
-                  {showOverdueBadge && (
+                  {/* {showOverdueBadge && (
                     <span className="ml-auto bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded">
                       {overdueCount}
                     </span>
-                  )}
+                  )} */}
                 </NavLink>
               )
             })}

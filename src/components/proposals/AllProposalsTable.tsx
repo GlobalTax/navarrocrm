@@ -98,17 +98,10 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
                 </div>
               </TableCell>
               <TableCell>
-                {proposal.is_recurring ? (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                    <Repeat className="w-3 h-3 mr-1" />
-                    Recurrente
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    <FileText className="w-3 h-3 mr-1" />
-                    Puntual
-                  </Badge>
-                )}
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <FileText className="w-3 h-3 mr-1" />
+                  Puntual
+                </Badge>
               </TableCell>
               <TableCell>
                 <Badge className={getStatusColor(proposal.status)}>
@@ -122,23 +115,14 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
                 {formatDate(proposal.created_at)}
               </TableCell>
               <TableCell>
-                {proposal.is_recurring ? (
-                  <RecurringProposalActions
-                    proposal={proposal}
-                    onViewProposal={onViewProposal}
-                    onEditProposal={onEditProposal}
-                    onDuplicateProposal={onDuplicateProposal}
-                    onStatusChange={onStatusChange}
-                  />
-                ) : (
-                  <OneTimeProposalActions
-                    proposal={proposal}
-                    onViewProposal={onViewProposal}
-                    onEditProposal={onEditProposal}
-                    onDuplicateProposal={onDuplicateProposal}
-                    onStatusChange={onStatusChange}
-                  />
-                )}
+                {/* Siempre mostrar acciones de propuesta puntual */}
+                <OneTimeProposalActions
+                  proposal={proposal}
+                  onViewProposal={onViewProposal}
+                  onEditProposal={onEditProposal}
+                  onDuplicateProposal={onDuplicateProposal}
+                  onStatusChange={onStatusChange}
+                />
               </TableCell>
             </TableRow>
           ))}

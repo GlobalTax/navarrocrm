@@ -23,7 +23,7 @@ import {
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { getStatusColor, getStatusLabel, getFrequencyLabel, formatCurrency, formatDate } from './utils/proposalFormatters'
-import { useRecurringFees } from '@/hooks/useRecurringFees'
+// import { useRecurringFees } from '@/hooks/useRecurringFees'
 
 interface ProposalDetailDialogProps {
   proposal: any
@@ -44,9 +44,9 @@ export const ProposalDetailDialog = ({
 }: ProposalDetailDialogProps) => {
   if (!proposal) return null
 
-  // Obtener cuota recurrente asociada si existe
-  const { data: recurringFees = [] } = useRecurringFees()
-  const associatedFee = recurringFees.find(fee => fee.proposal_id === proposal.id)
+  // Obtener cuota recurrente asociada si existe - DESACTIVADO
+  // const { data: recurringFees = [] } = useRecurringFees()
+  // const associatedFee = recurringFees.find(fee => fee.proposal_id === proposal.id)
 
   const handleStatusChange = (newStatus: string) => {
     onStatusChange(proposal.id, newStatus)
@@ -58,11 +58,7 @@ export const ProposalDetailDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              {proposal.is_recurring ? (
-                <Repeat className="h-5 w-5 text-blue-600" />
-              ) : (
-                <FileText className="h-5 w-5 text-green-600" />
-              )}
+              <FileText className="h-5 w-5 text-green-600" />
               {proposal.title}
             </div>
             <Badge className={getStatusColor(proposal.status)}>
@@ -88,9 +84,7 @@ export const ProposalDetailDialog = ({
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Tipo</label>
-                  <p className="text-sm">
-                    {proposal.is_recurring ? 'Recurrente' : 'Puntual'}
-                  </p>
+                  <p className="text-sm">Puntual</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Importe Total</label>
@@ -114,68 +108,19 @@ export const ProposalDetailDialog = ({
 
             <Separator />
 
-            {/* Información recurrente */}
-            {proposal.is_recurring && (
+            {/* Información recurrente - DESACTIVADO */}
+            {/* {proposal.is_recurring && (
               <>
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     <Repeat className="h-4 w-4 text-blue-600" />
                     Configuración Recurrente
                   </h3>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Frecuencia</label>
-                      <p className="text-sm">{getFrequencyLabel(proposal.recurring_frequency)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Día de facturación</label>
-                      <p className="text-sm">{proposal.billing_day || 'No definido'}</p>
-                    </div>
-                    {proposal.retainer_amount > 0 && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Retainer</label>
-                        <p className="text-sm font-semibold">{formatCurrency(proposal.retainer_amount)}</p>
-                      </div>
-                    )}
-                    {proposal.included_hours > 0 && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Horas incluidas</label>
-                        <p className="text-sm">{proposal.included_hours}h</p>
-                      </div>
-                    )}
-                    {proposal.hourly_rate_extra > 0 && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Tarifa extra/hora</label>
-                        <p className="text-sm">{formatCurrency(proposal.hourly_rate_extra)}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Fecha inicio</label>
-                      <p className="text-sm">{formatDate(proposal.contract_start_date)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Fecha fin</label>
-                      <p className="text-sm">{formatDate(proposal.contract_end_date)}</p>
-                    </div>
-                    {proposal.next_billing_date && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Próxima facturación</label>
-                        <p className="text-sm">{formatDate(proposal.next_billing_date)}</p>
-                      </div>
-                    )}
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Auto-renovación</label>
-                      <p className="text-sm">{proposal.auto_renewal ? 'Sí' : 'No'}</p>
-                    </div>
-                  </div>
+                  ...
                 </div>
                 <Separator />
               </>
-            )}
+            )} */}
 
             {/* Fechas importantes */}
             <div className="space-y-4">
@@ -271,8 +216,8 @@ export const ProposalDetailDialog = ({
                   Duplicar Propuesta
                 </Button>
 
-                {/* Mostrar cuota recurrente asociada */}
-                {associatedFee && (
+                {/* Mostrar cuota recurrente asociada - DESACTIVADO */}
+                {/* {associatedFee && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center gap-2 text-green-700 mb-2">
                       <Euro className="h-4 w-4" />
@@ -285,7 +230,7 @@ export const ProposalDetailDialog = ({
                       </p>
                     </div>
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Cambios de estado */}

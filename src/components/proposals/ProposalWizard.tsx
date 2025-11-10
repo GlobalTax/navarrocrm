@@ -368,10 +368,10 @@ export const ProposalWizard: React.FC<ProposalWizardProps> = ({
 
             <Card>
               <CardHeader>
-                <CardTitle>Configuración Recurrente</CardTitle>
+                <CardTitle>Configuración Recurrente - DESACTIVADO</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     id="is_recurring"
@@ -379,47 +379,16 @@ export const ProposalWizard: React.FC<ProposalWizardProps> = ({
                     onChange={(e) => updateFormData('is_recurring', e.target.checked)}
                   />
                   <Label htmlFor="is_recurring">Propuesta Recurrente</Label>
-                </div>
+                </div> */}
 
-                {formData.is_recurring && (
+                {/* {formData.is_recurring && (
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label>Cuota Base (€)</Label>
-                      <Input
-                        type="number"
-                        value={formData.retainerConfig?.retainerAmount || 0}
-                        onChange={(e) => updateFormData('retainerConfig', {
-                          ...formData.retainerConfig,
-                          retainerAmount: Number(e.target.value)
-                        })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Horas Incluidas</Label>
-                      <Input
-                        type="number"
-                        value={formData.retainerConfig?.includedHours || 0}
-                        onChange={(e) => updateFormData('retainerConfig', {
-                          ...formData.retainerConfig,
-                          includedHours: Number(e.target.value)
-                        })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>€/hora Extra</Label>
-                      <Input
-                        type="number"
-                        value={formData.retainerConfig?.extraHourlyRate || 0}
-                        onChange={(e) => updateFormData('retainerConfig', {
-                          ...formData.retainerConfig,
-                          extraHourlyRate: Number(e.target.value)
-                        })}
-                      />
-                    </div>
+...
                   </div>
-                )}
+                )} */}
+                <p className="text-sm text-muted-foreground">
+                  Funcionalidad desactivada - Usar solo propuestas puntuales
+                </p>
               </CardContent>
             </Card>
 
@@ -431,12 +400,12 @@ export const ProposalWizard: React.FC<ProposalWizardProps> = ({
                     <span>Servicios:</span>
                     <span className="font-medium">€{totals.subtotal.toLocaleString()}</span>
                   </div>
-                  {formData.is_recurring && formData.retainerConfig?.retainerAmount && (
+                  {/* {formData.is_recurring && formData.retainerConfig?.retainerAmount && (
                     <div className="flex justify-between">
                       <span>Cuota Base:</span>
                       <span className="font-medium">€{formData.retainerConfig.retainerAmount.toLocaleString()}</span>
                     </div>
-                  )}
+                  )} */}
                   <Separator />
                   <div className="flex justify-between text-lg font-bold text-green-900">
                     <span>Total:</span>
@@ -516,12 +485,12 @@ export const ProposalWizard: React.FC<ProposalWizardProps> = ({
                 <CardHeader>
                   <CardTitle className="text-sm text-muted-foreground">PROPUESTA</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="font-medium">{formData.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.is_recurring ? 'Recurrente' : 'Puntual'} • Válida {formData.validityDays} días
-                  </p>
-                </CardContent>
+              <CardContent>
+                <p className="font-medium">{formData.title}</p>
+                <p className="text-sm text-muted-foreground">
+                  Puntual • Válida {formData.validityDays} días
+                </p>
+              </CardContent>
               </Card>
             </div>
 

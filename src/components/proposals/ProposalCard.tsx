@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ProposalRecurringFeeButton } from './ProposalRecurringFeeButton'
+// import { ProposalRecurringFeeButton } from './ProposalRecurringFeeButton'
 import type { Proposal } from '@/types/proposals'
 import { 
   MoreHorizontal, 
@@ -60,44 +60,25 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
   }
 
   const getProposalTypeBadge = () => {
-    if (proposal.is_recurring) {
-      return (
-        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-          <Repeat className="w-3 h-3 mr-1" />
-          Recurrente
-        </Badge>
-      )
-    } else {
-      return (
-        <Badge className="bg-green-100 text-green-800 border-green-200">
-          <FileText className="w-3 h-3 mr-1" />
-          Puntual
-        </Badge>
-      )
-    }
+    // Propuestas siempre son puntuales ahora
+    return (
+      <Badge className="bg-green-100 text-green-800 border-green-200">
+        <FileText className="w-3 h-3 mr-1" />
+        Puntual
+      </Badge>
+    )
   }
 
   const getConversionInfo = () => {
     if (proposal.status === 'won') {
-      if (proposal.is_recurring) {
-        return (
-          <div className="flex items-center gap-2 text-sm bg-blue-50 text-blue-700 p-2 rounded">
-            <Repeat className="w-3 h-3" />
-            <ArrowRight className="w-3 h-3" />
-            <Target className="w-3 h-3" />
-            <span className="font-medium">Genera Cuota Recurrente</span>
-          </div>
-        )
-      } else {
-        return (
-          <div className="flex items-center gap-2 text-sm bg-green-50 text-green-700 p-2 rounded">
-            <FileText className="w-3 h-3" />
-            <ArrowRight className="w-3 h-3" />
-            <Briefcase className="w-3 h-3" />
-            <span className="font-medium">Genera Expediente</span>
-          </div>
-        )
-      }
+      return (
+        <div className="flex items-center gap-2 text-sm bg-green-50 text-green-700 p-2 rounded">
+          <FileText className="w-3 h-3" />
+          <ArrowRight className="w-3 h-3" />
+          <Briefcase className="w-3 h-3" />
+          <span className="font-medium">Genera Expediente</span>
+        </div>
+      )
     }
     return null
   }
@@ -187,7 +168,7 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
           <div>
             <p className="text-sm text-muted-foreground">Tipo de servicio</p>
             <p className="text-sm font-medium">
-              {proposal.is_recurring ? 'Servicio continuo' : 'Proyecto específico'}
+              Proyecto específico
             </p>
           </div>
         </div>
@@ -195,44 +176,12 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
         {/* Información de conversión */}
         {getConversionInfo()}
 
-        {/* Información de recurrencia */}
-        {proposal.is_recurring && (
+        {/* Información de recurrencia - DESACTIVADO */}
+        {/* {proposal.is_recurring && (
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <p className="text-sm font-medium text-blue-900 mb-1">Configuración Recurrente</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
-              {proposal.recurring_frequency && (
-                <div>
-                  <span>Facturación: </span>
-                  <span className="font-medium">
-                    {proposal.recurring_frequency === 'monthly' ? 'Mensual' :
-                     proposal.recurring_frequency === 'quarterly' ? 'Trimestral' :
-                     proposal.recurring_frequency === 'yearly' ? 'Anual' : proposal.recurring_frequency}
-                  </span>
-                </div>
-              )}
-              {proposal.retainer_amount > 0 && (
-                <div>
-                  <span>Retainer: </span>
-                  <span className="font-medium">{proposal.retainer_amount.toFixed(2)} €</span>
-                </div>
-              )}
-              {proposal.included_hours > 0 && (
-                <div>
-                  <span>Horas incluidas: </span>
-                  <span className="font-medium">{proposal.included_hours}h</span>
-                </div>
-              )}
-              {proposal.contract_start_date && (
-                <div>
-                  <span>Inicio: </span>
-                  <span className="font-medium">
-                    {format(new Date(proposal.contract_start_date), 'dd/MM/yyyy', { locale: es })}
-                  </span>
-                </div>
-              )}
-            </div>
+...
           </div>
-        )}
+        )} */}
 
         {/* Fechas importantes */}
         {(proposal.valid_until || proposal.sent_at || proposal.accepted_at) && (
@@ -271,10 +220,10 @@ export function ProposalCard({ proposal, onStatusChange, onView }: ProposalCardP
           </p>
         )}
 
-        {/* Botón para crear cuota recurrente */}
-        {proposal.is_recurring && proposal.status === 'won' && (
+        {/* Botón para crear cuota recurrente - DESACTIVADO */}
+        {/* {proposal.is_recurring && proposal.status === 'won' && (
           <ProposalRecurringFeeButton proposal={proposal} />
-        )}
+        )} */}
       </CardContent>
     </Card>
   )
