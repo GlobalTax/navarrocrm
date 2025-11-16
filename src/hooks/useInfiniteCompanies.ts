@@ -66,7 +66,13 @@ export const useInfiniteCompanies = () => {
         client_type: 'empresa' as const,
         relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
         email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
-        primary_contact: company.primary_contact || null,
+        // Parse primary_contact desde JSONB
+        primary_contact: company.primary_contact ? {
+          id: (company.primary_contact as any).id,
+          name: (company.primary_contact as any).name,
+          email: (company.primary_contact as any).email || null,
+          phone: (company.primary_contact as any).phone || null
+        } : null,
         total_contacts: Number(company.total_contacts) || 0
       }))
 
