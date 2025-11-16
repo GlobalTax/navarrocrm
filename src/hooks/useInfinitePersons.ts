@@ -95,6 +95,9 @@ export const useInfinitePersons = () => {
       }
     },
     enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000, // 5 minutos - evita refetching innecesario
+    gcTime: 10 * 60 * 1000, // 10 minutos - mantiene cache más tiempo
+    refetchOnWindowFocus: false, // No refetch al volver a la ventana
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
   })
