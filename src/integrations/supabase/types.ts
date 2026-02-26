@@ -11582,39 +11582,16 @@ export type Database = {
           status_filter?: string
         }
         Returns: {
-          address_city: string
-          address_country: string
-          address_postal_code: string
-          address_street: string
-          auto_imported_at: string
-          business_sector: string
-          client_type: string
-          company_id: string
-          contact_preference: string
+          address: string
           created_at: string
-          dni_nif: string
-          email: string
-          email_preferences: Json
-          hourly_rate: number
-          how_found_us: string
+          founded_date: string
           id: string
-          internal_notes: string
-          last_contact_date: string
-          legal_representative: string
+          is_active: boolean
           name: string
+          nif: string
+          notes: string
           org_id: string
-          outlook_id: string
-          payment_method: string
-          phone: string
-          preferred_language: string
-          preferred_meeting_time: string
           primary_contact: Json
-          quantum_customer_id: string
-          relationship_type: string
-          source: string
-          status: string
-          tags: string[]
-          timezone: string
           total_contacts: number
           updated_at: string
         }[]
