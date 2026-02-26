@@ -4,7 +4,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Database } from 'lucide-react'
 import { useContactsList, type Contact } from '@/features/contacts'
-import { useContacts } from '@/hooks/useContacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
@@ -40,7 +39,6 @@ const Contacts = () => {
   const [activeTab, setActiveTab] = useState('persons')
 
   const { contacts, refetch } = useContactsList()
-  const { contacts: allContacts, refetch: refetchAll } = useContacts()
   const { startOnboarding } = useOnboarding()
 
   const handleCreatePerson = () => {
@@ -72,12 +70,10 @@ const Contacts = () => {
     setSelectedPerson(null)
     setSelectedCompany(null)
     refetch()
-    refetchAll()
   }
 
   const handleBulkUploadSuccess = () => {
     refetch()
-    refetchAll()
   }
 
   const handleStartImprovedOnboarding = () => {
@@ -86,14 +82,12 @@ const Contacts = () => {
 
   const handleCloseImprovedOnboarding = () => {
     setIsImprovedOnboardingOpen(false)
-    refetch() // Refrescar datos después del onboarding
-    refetchAll()
+    refetch()
   }
 
   const handleQuantumImportClose = () => {
     setIsQuantumImportOpen(false)
-    refetch() // Refrescar datos después de la importación
-    refetchAll()
+    refetch()
   }
 
   return (
@@ -124,7 +118,7 @@ const Contacts = () => {
 
       {/* Métricas rápidas y estado de sincronización */}
       <div className="space-y-6 mb-6">
-        <ContactQuickMetrics contacts={allContacts} />
+        <ContactQuickMetrics contacts={contacts} />
         <DuplicateAlert />
         <QuantumSyncStatus />
       </div>
