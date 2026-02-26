@@ -19,6 +19,7 @@ import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
 
 import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
+import { ClassificationReviewPanel } from '@/components/contacts/ClassificationReviewPanel'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -151,7 +152,8 @@ const Contacts = () => {
 
         {/* Tab de Migración */}
         {activeTab === 'migration' && (
-          <div className="mt-6">
+          <div className="mt-6 space-y-6">
+            <ClassificationReviewPanel />
             <MigrationDashboard />
           </div>
         )}

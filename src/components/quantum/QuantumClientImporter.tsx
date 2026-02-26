@@ -182,8 +182,21 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
           continue
         }
 
-        // Determinar el tipo de cliente basado en el NIF (empresas suelen empezar con letras)
-        const isCompany = customer.nif && /^[A-Z]/.test(customer.nif.trim())
+        // Determinar el tipo de cliente con heurística mejorada
+        const nameUpper = (customer.name || '').toUpperCase().trim()
+        const nifTrimmed = (customer.nif || '').trim()
+        
+        // Patrones de nombre de empresa
+        const companyNamePatterns = [
+          /\b(S\.?L\.?U?|S\.?A\.?|S\.?L\.?L\.?|S\.?C\.?|S\.?COOP)\b/i,
+          /\b(LIMITED|LTD|GMBH|INC|CORP|LLC|PLC)\b/i,
+          /\b(SOCIEDAD|FUNDACI[OÓ]N|ASOCIACI[OÓ]N|ASSOCIACI[OÓ]|COOPERATIVA)\b/i,
+          /\b(COMMUNITY|GROUP|HOLDING|CAPITAL|CONSULTING|PARTNERS)\b/i,
+        ]
+        const nameMatchesCompany = companyNamePatterns.some(p => p.test(nameUpper))
+        // NIF de empresa: letras A-H, J-N, P-S, U, V, W (excluye X,Y,Z que son NIE)
+        const nifMatchesCompany = nifTrimmed && /^[A-HJ-NP-SUVW]/.test(nifTrimmed)
+        const isCompany = nameMatchesCompany || nifMatchesCompany
         
         // Construir dirección completa
         const addressParts = [
