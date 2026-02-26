@@ -11633,8 +11633,8 @@ export type Database = {
       cleanup_expired_tokens: { Args: never; Returns: undefined }
       detect_misclassified_contacts: {
         Args: {
-          confidence_min?: number
           max_results?: number
+          min_confidence?: number
           org_uuid: string
           source_filter?: string
         }
@@ -11642,9 +11642,10 @@ export type Database = {
           confidence: number
           contact_id: string
           contact_name: string
-          current_client_type: string
-          reason: Json
-          suggested_client_type: string
+          current_type: string
+          matched_pattern: string
+          source: string
+          suggested_type: string
         }[]
       }
       generate_employee_number: { Args: { org_uuid: string }; Returns: string }
