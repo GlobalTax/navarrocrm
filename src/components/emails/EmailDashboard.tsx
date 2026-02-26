@@ -1,11 +1,9 @@
-import { Suspense } from 'react'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { useEmailMetrics } from '@/hooks/useEmailMetrics'
 import { EmailConnectionStatus } from '@/components/emails/EmailConnectionStatus'
 import { EmailMetricsCards } from '@/components/emails/EmailMetricsCards'
 import { RecentEmailsList } from '@/components/emails/RecentEmailsList'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Mail, PenTool, Send, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -17,14 +15,6 @@ import { AlertCircle } from 'lucide-react'
 export function EmailDashboard() {
   const navigate = useNavigate()
   const { user, session, authLoading } = useApp()
-  
-  console.log('📧 [EmailDashboard] Estado de autenticación:', {
-    authLoading,
-    hasUser: !!user,
-    hasSession: !!session,
-    userId: user?.id,
-    orgId: user?.org_id
-  })
   
   // Mientras se está cargando la autenticación
   if (authLoading) {
@@ -50,8 +40,7 @@ export function EmailDashboard() {
   
   // Si no hay sesión válida, redirigir al login
   if (!session || !user) {
-    console.log('⚠️ [EmailDashboard] Sesión no válida, redirigiendo al login')
-    navigate('/login', { 
+    navigate('/login', {
       replace: true,
       state: { from: { pathname: '/emails/dashboard' } }
     })
@@ -83,20 +72,9 @@ export function EmailDashboard() {
 
 function EmailDashboardContent() {
   const navigate = useNavigate()
-  
-  // Hook para métricas de email con manejo de errores
-  let emailMetrics
-  
-  try {
-    emailMetrics = useEmailMetrics()
-  } catch (error) {
-    console.error('Error en useEmailMetrics:', error)
-    emailMetrics = {
-      metrics: null,
-      isLoading: false,
-      error: error as Error
-    }
-  }
+
+  // Hook para métricas de email - los hooks no pueden estar dentro de try/catch
+  const emailMetrics = useEmailMetrics()
 
   return (
     <StandardPageContainer>

@@ -44,7 +44,7 @@ export class TimeEntriesDAL extends BaseDAL<TimeEntry> {
     startDate?: string,
     endDate?: string
   ): Promise<DALListResponse<TimeEntry>> {
-    let filters: any = { user_id: userId }
+    const filters: any = { user_id: userId }
     
     if (startDate && endDate) {
       const query = supabase

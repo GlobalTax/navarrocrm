@@ -50,7 +50,7 @@ export function useUIPreferences(pageKey: string, defaults?: Partial<PageUIPrefe
     const map = readFromStorage(userId)
     const current = map[pageKey]
     if (current) setPrefs(prev => ({ ...prev, ...current }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [userId, pageKey])
 
   // Save on change
