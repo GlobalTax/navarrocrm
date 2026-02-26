@@ -7,14 +7,21 @@ const COMPANY_SUFFIXES = [
   /\b(S\.?L\.?U?)\b/i,
   /\b(S\.?A\.?)\b/i,
   /\b(S\.?L\.?L\.?)\b/i,
+  /\b(S\.?L\.?P\.?U?)\b/i,
   /\b(S\.?C\.?)\b/i,
   /\b(S\.?COOP)\b/i,
   /\b(LIMITED|LTD|GMBH|INC|CORP|LLC|PLC)\b/i,
+  /\b(B\.?V\.?)\b/i,
+  /\b(SAS|SRL)\b/i,
+  /\bSCP\b/i,
+  /\bCB\b/i,
 ]
 
 const COMPANY_KEYWORDS = [
   /\b(SOCIEDAD|FUNDACI[OÓ]N|ASOCIACI[OÓ]N|ASSOCIACI[OÓ]|COOPERATIVA)\b/i,
   /\b(COMMUNITY|GROUP|HOLDING|CAPITAL|CONSULTING|PARTNERS)\b/i,
+  /\bCDAD\.?\s*DE\s*PROP/i,
+  /\b(MISIONERAS|MONASTERIO|CLARISAS)\b/i,
 ]
 
 const NIF_EMPRESA_REGEX = /^[A-HJ-NP-SUVW]/

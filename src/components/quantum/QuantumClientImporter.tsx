@@ -175,56 +175,67 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
       const validationErrors = []
 
       for (const customer of customersToImport) {
-        // Validar customer de Quantum
+        // Validar y normalizar customer de Quantum (coerción number→string)
         const customerValidation = validateQuantumCustomer(customer)
         if (!customerValidation.success) {
-          validationErrors.push(`${customer.name}: ${customerValidation.error.issues.map(i => i.message).join(', ')}`)
+          const fieldErrors = customerValidation.error.issues.map(i => 
+            `${i.path.join('.')}: ${i.message}`
+          ).join(', ')
+          validationErrors.push(`${customer.name || 'Sin nombre'}: ${fieldErrors}`)
           continue
         }
 
+        // Usar datos normalizados del schema (no el customer crudo)
+        const validated = customerValidation.data
+
         // Determinar el tipo de cliente con heurística mejorada
-        const nameUpper = (customer.name || '').toUpperCase().trim()
-        const nifTrimmed = (customer.nif || '').trim()
+        const nameUpper = (validated.name || '').toUpperCase().trim()
+        const nifTrimmed = (validated.nif || '').trim()
         
         // Patrones de nombre de empresa
         const companyNamePatterns = [
           /\b(S\.?L\.?U?|S\.?A\.?|S\.?L\.?L\.?|S\.?C\.?|S\.?COOP)\b/i,
           /\b(LIMITED|LTD|GMBH|INC|CORP|LLC|PLC)\b/i,
+          /\b(B\.?V\.?)\b/i,
+          /\b(SAS|SRL|SLP|S\.?L\.?P\.?)\b/i,
           /\b(SOCIEDAD|FUNDACI[OÓ]N|ASOCIACI[OÓ]N|ASSOCIACI[OÓ]|COOPERATIVA)\b/i,
           /\b(COMMUNITY|GROUP|HOLDING|CAPITAL|CONSULTING|PARTNERS)\b/i,
+          /\bCDAD\.?\s*DE\s*PROP/i,
+          /\bSCP\b/i,
+          /\bCB\b/i,
         ]
         const nameMatchesCompany = companyNamePatterns.some(p => p.test(nameUpper))
         // NIF de empresa: letras A-H, J-N, P-S, U, V, W (excluye X,Y,Z que son NIE)
         const nifMatchesCompany = nifTrimmed && /^[A-HJ-NP-SUVW]/.test(nifTrimmed)
         const isCompany = nameMatchesCompany || nifMatchesCompany
         
-        // Construir dirección completa
+        // Construir dirección completa usando datos validados
         const addressParts = [
-          customer.streetType,
-          customer.streetName,
-          customer.streetNumber,
-          customer.floor && `Piso ${customer.floor}`,
-          customer.room && `Puerta ${customer.room}`
+          validated.streetType,
+          validated.streetName,
+          validated.streetNumber,
+          validated.floor && `Piso ${validated.floor}`,
+          validated.room && `Puerta ${validated.room}`
         ].filter(Boolean)
         
         const fullAddress = addressParts.length > 0 ? addressParts.join(' ') : null
         
         const contactData = {
-          name: customer.name,
-          email: customer.email || null,
-          phone: customer.phone || null,
-          dni_nif: customer.nif || null,
+          name: validated.name,
+          email: validated.email || null,
+          phone: validated.phone || null,
+          dni_nif: validated.nif || null,
           client_type: isCompany ? 'empresa' : mapping.client_type,
           relationship_type: mapping.relationship_type,
           status: mapping.status,
           address_street: fullAddress,
-          address_city: customer.cityCode || null,
-          address_postal_code: customer.postCode || null,
-          address_country: customer.countryISO === 'ES' ? 'España' : customer.countryISO || null,
-          internal_notes: `Importado desde Quantum Economics - ID: ${customer.customerId} (RegID: ${customer.regid})`,
+          address_city: validated.cityCode || null,
+          address_postal_code: validated.postCode || null,
+          address_country: validated.countryISO === 'ES' ? 'España' : validated.countryISO || null,
+          internal_notes: `Importado desde Quantum Economics - ID: ${validated.customerId} (RegID: ${validated.regid})`,
           tags: ['quantum-import'],
           org_id: orgId,
-          quantum_customer_id: customer.customerId,
+          quantum_customer_id: validated.customerId,
           source: 'quantum_import'
         }
 

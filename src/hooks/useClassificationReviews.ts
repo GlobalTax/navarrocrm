@@ -22,10 +22,11 @@ export interface ClassificationReview {
 export interface MisclassifiedContact {
   contact_id: string
   contact_name: string
-  current_client_type: string
-  suggested_client_type: string
+  current_type: string
+  suggested_type: string
   confidence: number
-  reason: Record<string, unknown>
+  matched_pattern: string
+  source: string
 }
 
 export const useClassificationReviews = () => {
@@ -76,10 +77,10 @@ export const useClassificationReviews = () => {
       const reviews = contacts.map(c => ({
         org_id: user.org_id!,
         contact_id: c.contact_id,
-        current_client_type: c.current_client_type,
-        suggested_client_type: c.suggested_client_type,
+        current_client_type: c.current_type,
+        suggested_client_type: c.suggested_type,
         confidence: c.confidence,
-        reason: c.reason as unknown as Record<string, never>,
+        reason: { pattern: c.matched_pattern, source: c.source } as unknown as Record<string, never>,
         source: 'rule_engine' as const,
         status: c.confidence >= 0.90 ? 'auto_applied' : 'pending',
       }))

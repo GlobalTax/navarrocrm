@@ -87,14 +87,20 @@ function detectEntityType(customer: QuantumCustomer): 'empresa' | 'particular' {
     's.l.', 'sl.', 'sl', 's.l', 'sociedad limitada',
     's.a.', 'sa.', 'sa', 's.a', 'sociedad anónima', 
     's.l.u.', 'slu.', 'slu', 's.l.u', 'sociedad limitada unipersonal',
+    's.l.p.', 'slp.', 'slp', 's.l.p', 'sociedad limitada profesional',
     'c.b.', 'cb.', 'cb', 'c.b', 'comunidad de bienes',
     's.c.', 'sc.', 'sc', 's.c', 'sociedad colectiva',
     's.coop.', 'scoop.', 'cooperativa',
+    'b.v.', 'bv', 'b.v',
+    'sas', 'srl',
+    'scp',
     'fundacion', 'fundación', 'asociacion', 'asociación',
     'ayuntamiento', 'diputacion', 'diputación', 'junta',
     'empresa', 'sociedad', 'comercial', 'industrial',
     'consulting', 'consultoria', 'consultoría', 'servicios',
-    'construcciones', 'inmobiliaria', 'promociones'
+    'construcciones', 'inmobiliaria', 'promociones',
+    'cdad. de prop', 'cdad de prop', 'comunidad de prop',
+    'misioneras', 'monasterio', 'clarisas'
   ];
   
   // Verificar si el nombre contiene palabras clave de empresa
