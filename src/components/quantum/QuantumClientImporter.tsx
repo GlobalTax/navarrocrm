@@ -261,13 +261,16 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
 
       const { error } = await supabase
         .from('contacts')
-        .insert(contactsData)
+        .upsert(contactsData, {
+          onConflict: 'org_id,quantum_customer_id',
+          ignoreDuplicates: false
+        })
 
       if (error) {
         throw createQuantumError('DATABASE_ERROR', `Error al insertar contactos: ${error.message}`)
       }
 
-      toast.success(`${contactsData.length} contactos importados correctamente`)
+      toast.success(`${contactsData.length} contactos importados/actualizados correctamente`)
       setSelectedClients([])
       
     } catch (error) {
