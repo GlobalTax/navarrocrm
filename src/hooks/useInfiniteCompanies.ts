@@ -20,7 +20,6 @@ export const useInfiniteCompanies = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sectorFilter, setSectorFilter] = useState<string>('all')
   
-  // Debounce search to avoid excessive API calls
   const debouncedSearchTerm = useDebounced(searchTerm, 300)
 
   const {
@@ -34,92 +33,44 @@ export const useInfiniteCompanies = () => {
   } = useInfiniteQuery({
     queryKey: ['infinite-companies', user?.org_id, debouncedSearchTerm, statusFilter, sectorFilter],
     queryFn: async ({ pageParam = 0 }): Promise<CompaniesPage> => {
-      console.log('🔄 Fetching companies page:', pageParam, 'for org:', user?.org_id)
-      
       if (!user?.org_id) {
-        console.log('❌ No org_id available')
         return { companies: [], nextCursor: null, hasMore: false }
       }
 
-      let query = supabase
-        .from('contacts')
-        .select('*')
-        .eq('org_id', user.org_id)
-        .eq('client_type', 'empresa')
-        .order('name', { ascending: true })
-        .range(pageParam * PAGE_SIZE, (pageParam + 1) * PAGE_SIZE - 1)
+      // Una sola query RPC en lugar de N+1
+      const { data: companiesData, error: rpcError } = await supabase.rpc('get_companies_with_contacts', {
+        org_uuid: user.org_id,
+        page_size: PAGE_SIZE,
+        page_offset: pageParam * PAGE_SIZE,
+        search_term: debouncedSearchTerm || null,
+        status_filter: statusFilter !== 'all' ? statusFilter : null,
+        sector_filter: sectorFilter !== 'all' ? sectorFilter : null,
+      })
 
-      // Aplicar filtros
-      if (debouncedSearchTerm) {
-        query = query.or(`name.ilike.%${debouncedSearchTerm}%,email.ilike.%${debouncedSearchTerm}%,phone.ilike.%${debouncedSearchTerm}%`)
-      }
-      
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter)
-      }
-      
-      if (sectorFilter !== 'all') {
-        query = query.eq('business_sector', sectorFilter)
+      if (rpcError) {
+        console.error('❌ Error fetching companies:', rpcError)
+        throw rpcError
       }
 
-      const { data: companiesData, error: companiesError } = await query
-
-      if (companiesError) {
-        console.error('❌ Error fetching companies:', companiesError)
-        throw companiesError
-      }
-
-      // Ya no necesitamos filtrar duplicados después de la limpieza de BD
-      const uniqueCompaniesData = companiesData || []
-
-      // Procesar datos de contactos para cada empresa única
-      const companiesWithContacts = await Promise.all(
-        uniqueCompaniesData.map(async (company) => {
-          try {
-            const { data: contactsData } = await supabase
-              .from('contacts')
-              .select('id, name, email, phone')
-              .eq('company_id', company.id)
-              .eq('org_id', user.org_id)
-              .limit(1)
-
-            const { count: totalContacts } = await supabase
-              .from('contacts')
-              .select('*', { count: 'exact', head: true })
-              .eq('company_id', company.id)
-              .eq('org_id', user.org_id)
-
-            return {
-              ...company,
-              client_type: 'empresa' as const,
-              relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-              email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
-              primary_contact: contactsData?.[0] || null,
-              total_contacts: totalContacts || 0
-            }
-          } catch (error) {
-            console.error('❌ Error processing company', company.name, ':', error)
-            return {
-              ...company,
-              client_type: 'empresa' as const,
-              relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-              email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
-              primary_contact: null,
-              total_contacts: 0
-            }
-          }
-        })
-      )
-
-      console.log('✅ Companies page fetched:', companiesWithContacts.length)
+      const typedCompanies: Company[] = (companiesData || []).map((company: any) => ({
+        ...company,
+        client_type: 'empresa' as const,
+        relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+        email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
+        primary_contact: company.primary_contact || null,
+        total_contacts: Number(company.total_contacts) || 0,
+      }))
 
       return {
-        companies: companiesWithContacts,
-        nextCursor: companiesWithContacts.length === PAGE_SIZE ? pageParam + 1 : null,
-        hasMore: companiesWithContacts.length === PAGE_SIZE
+        companies: typedCompanies,
+        nextCursor: typedCompanies.length === PAGE_SIZE ? pageParam + 1 : null,
+        hasMore: typedCompanies.length === PAGE_SIZE
       }
     },
     enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
   })
