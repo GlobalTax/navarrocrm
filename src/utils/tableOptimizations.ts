@@ -18,7 +18,7 @@ export const tableOptimizations = {
     const maxColumnWidth = 300
     
     // Distribute width evenly, respecting min/max constraints
-    let availableWidth = containerWidth - (totalColumns * 20) // Account for padding
+    const availableWidth = containerWidth - (totalColumns * 20) // Account for padding
     let columnWidth = Math.max(availableWidth / totalColumns, minColumnWidth)
     columnWidth = Math.min(columnWidth, maxColumnWidth)
     
