@@ -1,100 +1,45 @@
 
-Objetivo inmediato
-- Dejar operativa la importación desde Quantum (ahora está bloqueada).
-- Terminar de limpiar empresas que aún aparecen en “Personas Físicas”.
-- Evitar que vuelva a pasar en próximas sincronizaciones/importaciones.
 
-Diagnóstico confirmado (con evidencia)
-1) Error funcional real (bloqueante)
-- La importación Quantum falla por validación de tipos en frontend:
-  - `src/lib/quantum/validation.ts` exige `regid: z.string()`.
-  - Quantum devuelve `regid` numérico en múltiples registros.
-  - Resultado: casi todos los seleccionados fallan con `Invalid input: expected string, received number`.
-- Consecuencia: `contactsData.length === 0` y se lanza `QuantumError: No hay contactos válidos para importar`.
+## Corregir importación Quantum: usar upsert en lugar de insert
 
-2) Problema residual de clasificación
-- El filtro del listado de personas funciona (consulta por `client_type in ('particular','autonomo')`).
-- Quedan contactos mal clasificados por huecos en patrones (ej. `B.V.` / `BV`):
-  - Ejemplos detectados en DB: `3WEBAPPS B.V.`, `BV SPARK LEGAL AND POLICY CONS`.
-- La RPC `detect_misclassified_contacts` no los detecta porque no contempla esos sufijos.
+### Problema
+La importación Quantum falla con `duplicate key value violates unique constraint "idx_contacts_quantum_unique"` porque el codigo usa `.insert()` (linea 262-264 de `QuantumClientImporter.tsx`). Cuando un contacto ya fue importado previamente, el insert falla porque ya existe un registro con el mismo `quantum_customer_id` + `org_id`.
 
-3) Ruido de consola que NO es la causa
-- 403 de `api.lovable.dev/.../gitsync`, warnings CSP de Tailwind CDN, `osano.js` y `frame-ancestors` no provienen del código de tu app.
-- Son warnings del entorno/iframe/editor y no explican el fallo de importación de Quantum.
+Ademas, hay 3 contactos con emails invalidos que fallan la validacion pero esto es comportamiento correcto (se saltan y se reportan).
 
-Plan de implementación propuesto
+### Solucion
 
-Fase 1 — Hotfix de importación Quantum (prioridad alta)
-1. Robustecer validación y normalización de payload Quantum
-- Archivo: `src/lib/quantum/validation.ts`
-- Cambios:
-  - Permitir y normalizar campos string-like que llegan como número (`regid`, potencialmente `customerId`, `streetNumber`, etc.).
-  - Usar coerción/preprocess para convertir number -> string antes de validar.
-  - Mantener reglas de negocio (email válido o vacío, name requerido, etc.).
-- Resultado esperado:
-  - Dejar de rechazar registros válidos por tipado.
+**Archivo:** `src/components/quantum/QuantumClientImporter.tsx`
 
-2. Consumir el dato normalizado tras `safeParse`
-- Archivo: `src/components/quantum/QuantumClientImporter.tsx`
-- Cambios:
-  - En vez de usar el `customer` crudo, usar `customerValidation.data` (ya normalizado).
-  - Mejorar mensaje de error por fila incluyendo campo (`path`) para diagnóstico real (no solo texto genérico).
-- Resultado esperado:
-  - Importación parcial/total funcional incluso con datos heterogéneos de Quantum.
+Cambiar el `.insert(contactsData)` por `.upsert()` con `onConflict` apuntando a la constraint existente `idx_contacts_quantum_unique` (que es sobre `org_id, quantum_customer_id`):
 
-Fase 2 — Completar clasificación de empresas residuales
-1. Ampliar heurística de empresa
-- Archivo: `src/lib/contactClassification.ts`
-- Añadir patrones de formas jurídicas internacionales faltantes (mínimo `B.V.`/`BV`; opcionalmente `SAS`, `SRL`, `SLP` según política).
-- Mantener score de confianza alto para sufijos jurídicos claros.
+```typescript
+// ANTES (linea 262-264):
+const { error } = await supabase
+  .from('contacts')
+  .insert(contactsData)
 
-2. Alinear SQL de detección con la misma lógica
-- Archivo: nueva migración SQL (en `supabase/migrations/...`)
-- Actualizar función `detect_misclassified_contacts` para incluir los nuevos sufijos.
-- Aplicar saneamiento puntual e idempotente para contactos de alta confianza que queden en `particular/autonomo`.
+// DESPUES:
+const { error } = await supabase
+  .from('contacts')
+  .upsert(contactsData, {
+    onConflict: 'org_id,quantum_customer_id',
+    ignoreDuplicates: false  // false = actualizar datos si ya existe
+  })
+```
 
-3. Fortalecer detección en origen Quantum
-- Archivo: `supabase/functions/quantum-clients/index.ts`
-- Extender `detectEntityType` con los mismos patrones para que entren bien clasificados desde el inicio.
+Con `ignoreDuplicates: false`, los contactos que ya existan se **actualizaran** con los datos mas recientes de Quantum (nombre, direccion, telefono, etc.). Si se prefiere simplemente saltar los duplicados sin actualizar, se cambiaria a `true`.
 
-Fase 3 — Hardening y consistencia
-1. Evitar deriva de reglas entre frontend/DB/edge
-- Unificar catálogo de patrones (misma semántica en:
-  - `contactClassification.ts`
-  - RPC SQL `detect_misclassified_contacts`
-  - `detectEntityType` de edge function)
+Tambien se mejorara el mensaje de exito para indicar cuantos fueron creados vs actualizados (aunque Supabase no distingue esto en la respuesta, se puede informar al usuario que los duplicados fueron actualizados).
 
-2. (Recomendado) Normalizar triggers duplicados en `contacts`
-- En DB hay dos triggers de validación relacionados:
-  - `trigger_validate_person_company_relation`
-  - `validate_person_company_relation_trigger`
-- Consolidar a uno para evitar comportamiento duplicado y deuda técnica.
+### Archivos afectados
 
-Validación funcional (E2E) tras implementación
-1. Quantum import
-- Seleccionar lote grande desde Quantum.
-- Verificar que no aparece el error masivo de “expected string, received number”.
-- Confirmar inserciones reales en `contacts` y toast de éxito con conteo correcto.
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/quantum/QuantumClientImporter.tsx` | Cambiar `.insert()` por `.upsert()` con `onConflict` |
 
-2. Clasificación residual
-- Ejecutar “Detectar mal clasificados” en panel.
-- Confirmar que registros tipo `B.V./BV` aparecen y se reclasifican.
-- Verificar en `/contacts` que dejan de verse en “Personas Físicas” y pasan a “Empresas”.
+### Resultado esperado
+- Importar contactos de Quantum funciona tanto la primera vez como en reimportaciones.
+- Los contactos existentes se actualizan con los datos mas recientes.
+- Los 3 contactos con email invalido siguen saltandose (comportamiento correcto).
 
-3. Regresión
-- Alta manual de persona no empresa: sin falsas alarmas.
-- Alta con nombre empresarial evidente: warning de prevención sigue funcionando.
-
-Archivos a tocar
-- `src/lib/quantum/validation.ts`
-- `src/components/quantum/QuantumClientImporter.tsx`
-- `src/lib/contactClassification.ts`
-- `supabase/functions/quantum-clients/index.ts`
-- `supabase/migrations/<nueva_migracion_detect_misclassified_y_saneamiento>.sql`
-- (Opcional hardening) `supabase/migrations/<nueva_migracion_unificar_trigger>.sql`
-
-Criterios de aceptación
-- Importación Quantum deja de bloquearse por errores de tipo.
-- Se importan contactos válidos correctamente desde el mismo flujo actual.
-- No quedan empresas evidentes en listado de personas por sufijos `B.V./BV` (ni otros añadidos).
-- Los warnings de consola externos pueden seguir apareciendo, pero ya no afectan la funcionalidad de negocio.
