@@ -1684,6 +1684,73 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_classification_reviews: {
+        Row: {
+          confidence: number
+          contact_id: string
+          created_at: string
+          current_client_type: string
+          id: string
+          org_id: string
+          reason: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+          suggested_client_type: string
+        }
+        Insert: {
+          confidence?: number
+          contact_id: string
+          created_at?: string
+          current_client_type: string
+          id?: string
+          org_id: string
+          reason?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          suggested_client_type: string
+        }
+        Update: {
+          confidence?: number
+          contact_id?: string
+          created_at?: string
+          current_client_type?: string
+          id?: string
+          org_id?: string
+          reason?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          suggested_client_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_classification_reviews_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_classification_reviews_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_classification_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_documents: {
         Row: {
           contact_id: string
@@ -11564,6 +11631,22 @@ export type Database = {
       cleanup_expired_invitations: { Args: never; Returns: number }
       cleanup_expired_onboarding: { Args: never; Returns: number }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
+      detect_misclassified_contacts: {
+        Args: {
+          confidence_min?: number
+          max_results?: number
+          org_uuid: string
+          source_filter?: string
+        }
+        Returns: {
+          confidence: number
+          contact_id: string
+          contact_name: string
+          current_client_type: string
+          reason: Json
+          suggested_client_type: string
+        }[]
+      }
       generate_employee_number: { Args: { org_uuid: string }; Returns: string }
       generate_invitation_token: { Args: never; Returns: string }
       generate_job_offer_token: { Args: never; Returns: string }
