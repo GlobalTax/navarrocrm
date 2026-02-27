@@ -22,14 +22,35 @@ const COMPANY_KEYWORDS = [
   /\b(COMMUNITY|GROUP|HOLDING|CAPITAL|CONSULTING|PARTNERS)\b/i,
   /\bCDAD\.?\s*DE\s*PROP/i,
   /\b(MISIONERAS|MONASTERIO|CLARISAS)\b/i,
+  // Keywords de negocio ampliados
+  /\b(ABOGADOS|HOTELES?|HOSPEDERA|MARKETING|PATRIMONIAL)\b/i,
+  /\b(INMOBILIARIA|CONSTRUCCI[OÓ]N|TRANSPORTES?|COMERCIAL)\b/i,
+  /\b(DISTRIBUIDORA|INSTALACIONES|EL[EÉ]CTRICAS?|SERVICIOS)\b/i,
+  /\b(PROMOTORA|INVERSIONES|GESTI[OÓ]N|ASESOR[IÍ]A|CONSULTOR[IÍ]A)\b/i,
+  /\b(HOSTELERA|ALIMENTACI[OÓ]N|FARMAC[IÍ]A|CL[IÍ]NICA)\b/i,
+  // Abreviaturas catalanas y variantes
+  /\bFUNDACIO\b/i,
+  /\bINDUST\b\.?/i,
+  /\bINST\b\.?/i,
 ]
 
 const NIF_EMPRESA_REGEX = /^[A-HJ-NP-SUVW]/
+
+// Patrones de registros contables/basura que no son contactos reales
+const JUNK_PATTERNS = [
+  /\.{3,}/,                               // Nombres con puntos suspensivos
+  /\bNO\s+USAR\b/i,
+  /\bCLIENTES\s+(VARIOS|DUDOSO)\b/i,
+  /\bDEUDORES\b/i,
+  /\bREGISTRO\s+MERCANTIL\b/i,
+  /\bFACT\.?\s*PEND/i,
+]
 
 export interface ClassificationResult {
   looksLikeCompany: boolean
   confidence: number
   matchedPatterns: string[]
+  isJunk?: boolean
 }
 
 /**
@@ -39,10 +60,20 @@ export interface ClassificationResult {
 export function detectCompanyPattern(name: string, dniNif?: string): ClassificationResult {
   const matchedPatterns: string[] = []
   let confidence = 0
+  let isJunk = false
 
-  if (!name) return { looksLikeCompany: false, confidence: 0, matchedPatterns: [] }
+  if (!name) return { looksLikeCompany: false, confidence: 0, matchedPatterns: [], isJunk: false }
 
   const trimmedName = name.trim()
+
+  // Detectar registros basura primero
+  for (const regex of JUNK_PATTERNS) {
+    if (regex.test(trimmedName)) {
+      isJunk = true
+      matchedPatterns.push('junk')
+      break
+    }
+  }
 
   for (const regex of COMPANY_SUFFIXES) {
     if (regex.test(trimmedName)) {
@@ -69,5 +100,6 @@ export function detectCompanyPattern(name: string, dniNif?: string): Classificat
     looksLikeCompany: confidence >= 0.70,
     confidence,
     matchedPatterns,
+    isJunk,
   }
 }

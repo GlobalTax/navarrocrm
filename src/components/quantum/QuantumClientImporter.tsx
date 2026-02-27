@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { useExistingContacts, detectDuplicate, type ExistingContact } from '@/hooks/useExistingContacts'
+import { detectCompanyPattern } from '@/lib/contactClassification'
 import { getUserOrgId } from '@/lib/quantum/orgId'
 import { validateQuantumCustomer, validateContactForInsert } from '@/lib/quantum/validation'
 import { handleQuantumError, createQuantumError } from '@/lib/quantum/errors'
@@ -132,8 +133,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
   }, [customersWithDuplicates])
 
   const handleSelectAll = () => {
-    // Solo seleccionar contactos que no son duplicados
-    const selectableCustomers = filteredCustomers.filter(c => !c.duplicateInfo.isDuplicate)
+    const selectableCustomers = filteredCustomers
     
     if (selectedClients.length === selectableCustomers.length) {
       setSelectedClients([])
@@ -143,10 +143,6 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
   }
 
   const handleClientToggle = (customerId: string) => {
-    // Verificar si es un duplicado antes de permitir la selección
-    const customer = customersWithDuplicates.find(c => c.customerId === customerId)
-    if (customer?.duplicateInfo.isDuplicate) return
-    
     setSelectedClients(prev => 
       prev.includes(customerId) 
         ? prev.filter(id => id !== customerId)
@@ -164,7 +160,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
     
     try {
       const customersToImport = customersWithDuplicates.filter(customer => 
-        selectedClients.includes(customer.customerId) && !customer.duplicateInfo.isDuplicate
+        selectedClients.includes(customer.customerId)
       )
       
       // Obtener org_id de forma centralizada
@@ -188,26 +184,9 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
         // Usar datos normalizados del schema (no el customer crudo)
         const validated = customerValidation.data
 
-        // Determinar el tipo de cliente con heurística mejorada
-        const nameUpper = (validated.name || '').toUpperCase().trim()
-        const nifTrimmed = (validated.nif || '').trim()
-        
-        // Patrones de nombre de empresa
-        const companyNamePatterns = [
-          /\b(S\.?L\.?U?|S\.?A\.?|S\.?L\.?L\.?|S\.?C\.?|S\.?COOP)\b/i,
-          /\b(LIMITED|LTD|GMBH|INC|CORP|LLC|PLC)\b/i,
-          /\b(B\.?V\.?)\b/i,
-          /\b(SAS|SRL|SLP|S\.?L\.?P\.?)\b/i,
-          /\b(SOCIEDAD|FUNDACI[OÓ]N|ASOCIACI[OÓ]N|ASSOCIACI[OÓ]|COOPERATIVA)\b/i,
-          /\b(COMMUNITY|GROUP|HOLDING|CAPITAL|CONSULTING|PARTNERS)\b/i,
-          /\bCDAD\.?\s*DE\s*PROP/i,
-          /\bSCP\b/i,
-          /\bCB\b/i,
-        ]
-        const nameMatchesCompany = companyNamePatterns.some(p => p.test(nameUpper))
-        // NIF de empresa: letras A-H, J-N, P-S, U, V, W (excluye X,Y,Z que son NIE)
-        const nifMatchesCompany = nifTrimmed && /^[A-HJ-NP-SUVW]/.test(nifTrimmed)
-        const isCompany = nameMatchesCompany || nifMatchesCompany
+        // Determinar el tipo de cliente con heurística centralizada
+        const classification = detectCompanyPattern(validated.name || '', validated.nif || '')
+        const isCompany = classification.looksLikeCompany
         
         // Construir dirección completa usando datos validados
         const addressParts = [
@@ -485,9 +464,9 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
               variant="outline" 
               size="sm"
               onClick={handleSelectAll}
-              disabled={filteredCustomers.filter(c => !c.duplicateInfo.isDuplicate).length === 0}
+              disabled={filteredCustomers.length === 0}
             >
-              {selectedClients.length === filteredCustomers.filter(c => !c.duplicateInfo.isDuplicate).length ? 'Deseleccionar' : 'Seleccionar'} Nuevos
+              {selectedClients.length === filteredCustomers.length && filteredCustomers.length > 0 ? 'Deseleccionar' : 'Seleccionar'} Todos
             </Button>
           </div>
 
@@ -495,7 +474,8 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
           <ScrollArea className="h-[400px]">
             <div className="space-y-2">
               {filteredCustomers.map((customer) => {
-                const isCompany = customer.nif && /^[A-Z]/.test(customer.nif.trim())
+                const classification = detectCompanyPattern(customer.name || '', customer.nif || '')
+                const isCompany = classification.looksLikeCompany
                 const addressParts = [
                   customer.streetType,
                   customer.streetName,
@@ -509,7 +489,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                     key={customer.customerId} 
                     className={`flex items-center space-x-4 p-3 border rounded-lg transition-colors ${
                       isDuplicate 
-                        ? 'bg-yellow-50 border-yellow-200 opacity-60' 
+                        ? 'bg-yellow-50 border-yellow-200' 
                         : 'hover:bg-muted/50'
                     }`}
                   >
@@ -520,14 +500,13 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                             <Checkbox 
                               checked={selectedClients.includes(customer.customerId)}
                               onCheckedChange={() => handleClientToggle(customer.customerId)}
-                              disabled={isDuplicate}
-                              className={isDuplicate ? 'opacity-50' : ''}
                             />
                           </div>
                         </TooltipTrigger>
                         {isDuplicate && (
                           <TooltipContent>
                             <p>Ya existe: {customer.duplicateInfo.reason}</p>
+                            <p className="text-xs mt-1 font-medium">Selecciona para actualizar datos</p>
                             {customer.duplicateInfo.existingContact && (
                               <p className="text-xs mt-1">
                                 Contacto: {customer.duplicateInfo.existingContact.name}
@@ -545,7 +524,7 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                         ) : (
                           <User className="w-4 h-4 text-muted-foreground" />
                         )}
-                        <span className={`font-medium truncate ${isDuplicate ? 'line-through text-muted-foreground' : ''}`}>
+                        <span className="font-medium truncate">
                           {customer.name}
                         </span>
                         <Badge variant="outline" className="text-xs">
@@ -557,8 +536,8 @@ export function QuantumClientImporter({ type }: QuantumClientImporterProps) {
                           </Badge>
                         )}
                         {isDuplicate && (
-                          <Badge variant="destructive" className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300">
-                            Ya existe
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            Actualizar
                           </Badge>
                         )}
                       </div>

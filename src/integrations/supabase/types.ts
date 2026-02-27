@@ -11631,23 +11631,35 @@ export type Database = {
       cleanup_expired_invitations: { Args: never; Returns: number }
       cleanup_expired_onboarding: { Args: never; Returns: number }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
-      detect_misclassified_contacts: {
-        Args: {
-          max_results?: number
-          min_confidence?: number
-          org_uuid: string
-          source_filter?: string
-        }
-        Returns: {
-          confidence: number
-          contact_id: string
-          contact_name: string
-          current_type: string
-          matched_pattern: string
-          source: string
-          suggested_type: string
-        }[]
-      }
+      detect_misclassified_contacts:
+        | {
+            Args: { org_uuid: string }
+            Returns: {
+              confidence: number
+              contact_id: string
+              contact_name: string
+              current_type: string
+              reason: string
+              suggested_type: string
+            }[]
+          }
+        | {
+            Args: {
+              max_results?: number
+              min_confidence?: number
+              org_uuid: string
+              source_filter?: string
+            }
+            Returns: {
+              confidence: number
+              contact_id: string
+              contact_name: string
+              current_type: string
+              matched_pattern: string
+              source: string
+              suggested_type: string
+            }[]
+          }
       generate_employee_number: { Args: { org_uuid: string }; Returns: string }
       generate_invitation_token: { Args: never; Returns: string }
       generate_job_offer_token: { Args: never; Returns: string }
