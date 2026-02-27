@@ -1,77 +1,53 @@
 
 
-## Plan: Corregir clasificación de contactos y importación Quantum
+## Corregir sincronización automática Quantum: 0 importados, 1001 omitidos
 
-### Diagnóstico confirmado con datos reales
+### Problema
 
-He consultado la base de datos y encontrado los problemas concretos:
+El flujo de "sincronización manual" (`QuantumSyncStatus` -> edge function con `auto_sync: true`) usa una lógica diferente al importador manual. La función `processAutomaticSync` en `supabase/functions/quantum-clients/index.ts`:
 
-**1. Empresas/entidades mal clasificadas como "particular" (561 registros como particular, varios son empresas)**
+1. **Detecta como "duplicado" todo contacto que ya tenga `quantum_customer_id` coincidente** (línea 163) y lo salta completamente.
+2. **Solo intenta `.insert()` los nuevos** (línea 237), nunca actualiza los existentes.
 
-Ejemplos reales encontrados en tu BD:
-- "APL ABOGADOS Y ADMIN DE FINCAS" (particular)
-- "FUNDACIO COL.M.DEU MONTSE" (particular)
-- "INDUST.CAFETALES HISPANO" (particular)
-- "INST.H.SGDA.FAMILIA URGEL" (particular)
-- "LA INTERNACIONAL HOSPEDERA, S." (particular)
-- "NH HOTELES ESPAÑA" (particular)
-- "ONE TO ONE MARKETING SERVICES," (particular)
-- "PATRIMONIAL BILBILITANA 2005," (particular)
+Como los 1001 contactos ya fueron importados previamente, todos se marcan como duplicados y se saltan. Resultado: 0 importados, 1001 omitidos.
 
-Ademas hay registros contables que no son contactos reales:
-- "CLIENTES DUDOSO COBRO", "CLIENTES VARIOS..........", "DEUDORES,FACT.PEND.FORMAL.....", "REGISTRO MERCANTIL.......", "NO USAR"
+### Solución
 
-El problema: los `dni_nif` de Quantum son IDs internos cortos (ej. "1675", "644") en vez de CIF/NIF reales, asi que la heuristica de NIF no funciona con estos datos. Ademas faltan patrones de nombre como ABOGADOS, HOTELES, MARKETING, PATRIMONIAL, FUNDACIO, INDUST., etc.
+Cambiar `processAutomaticSync` para que use **upsert** en lugar de insert, y que no salte los contactos que ya existen por `quantum_customer_id`, sino que los actualice.
 
-**2. Importacion Quantum: no permite actualizar contactos existentes**
+### Cambios en `supabase/functions/quantum-clients/index.ts`
 
-El codigo actual bloquea la seleccion de contactos "duplicados" (ya importados), asi que el usuario no puede actualizar datos. El upsert esta bien configurado pero nunca se ejecuta para contactos existentes porque la UI no deja seleccionarlos.
+**Estrategia**: En vez de separar "nuevos" vs "duplicados" y solo insertar los nuevos, procesar TODOS los contactos con upsert:
 
----
+1. Eliminar la lógica de detección de duplicados por `quantum_customer_id` (líneas 148-208) que marca todo como "skip".
+2. Procesar todos los contactos con `.upsert()` usando `onConflict: 'org_id,quantum_customer_id'`.
+3. Para mayor eficiencia, hacer upsert en lotes (batches de ~100) en vez de uno a uno.
+4. Mantener el conteo de "importados" (nuevos + actualizados) y "omitidos" (errores de validación).
 
-### Cambios propuestos
+Esquema simplificado del nuevo flujo:
 
-#### Fase 1: Ampliar heuristica de clasificacion
+```text
+customers (1001)
+    |
+    v
+[Validar datos basicos]
+    |
+    +-- invalidos --> skipped (con log)
+    |
+    +-- validos --> upsert en batch
+                      |
+                      v
+                 imported count
+```
 
-**Archivo: `src/lib/contactClassification.ts`**
-- Añadir keywords de negocio: ABOGADOS, HOTELES, HOSPEDERA, MARKETING, PATRIMONIAL, INMOBILIARIA, CONSTRUCCION, TRANSPORTES, COMERCIAL, DISTRIBUIDORA, INSTALACIONES, ELECTRICAS, SERVICIOS
-- Añadir palabras clave de entidades: FUNDACIO (sin tilde), INDUST., INST., CDAD.
-- Añadir deteccion de "registros basura": patron de nombre con puntos suspensivos, o keywords NO USAR, CLIENTES VARIOS, DEUDORES, REGISTRO MERCANTIL
-
-**Archivo: `src/components/quantum/QuantumClientImporter.tsx`**
-- Reutilizar la funcion centralizada `detectCompanyPattern` del modulo de clasificacion en lugar de duplicar los regex
-- Añadir los mismos patrones nuevos
-
-#### Fase 2: Permitir actualizacion de contactos existentes en Quantum import
-
-**Archivo: `src/components/quantum/QuantumClientImporter.tsx`**
-- Cambiar la logica de seleccion: permitir seleccionar contactos duplicados (ya importados) con un badge visual "Actualizar"
-- El upsert ya esta bien configurado, solo falta dejar pasar los datos
-
-#### Fase 3: Saneamiento de datos existentes
-
-**Migracion SQL (nueva)**
-- UPDATE de contactos existentes que matchean los nuevos patrones ampliados
-- Reclasificar a `empresa` los de alta confianza
-- Marcar como `inactivo` los registros contables/basura
-
-#### Fase 4: Alinear SQL RPC con heuristica ampliada
-
-**Migracion SQL**
-- Actualizar `detect_misclassified_contacts` con los nuevos patrones
-
----
-
-### Archivos a modificar
+### Archivo a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/lib/contactClassification.ts` | Ampliar con ~15 keywords de negocio + deteccion de registros basura |
-| `src/components/quantum/QuantumClientImporter.tsx` | Usar `detectCompanyPattern` centralizado + permitir seleccion de duplicados para update |
-| Nueva migracion SQL | Saneamiento masivo + actualizar RPC `detect_misclassified_contacts` |
+| `supabase/functions/quantum-clients/index.ts` | Reescribir `processAutomaticSync` para usar upsert en batch en vez de skip+insert individual |
 
 ### Resultado esperado
-- Los ~15 registros evidentes de empresa/entidad pasan automaticamente a "empresa"
-- Los registros basura (CLIENTES VARIOS, DEUDORES, etc.) se marcan como inactivos
-- Quantum import permite reimportar/actualizar contactos existentes
-- La logica de clasificacion esta centralizada (un solo lugar)
+- La sincronización actualiza los 1001 contactos existentes con datos frescos de Quantum.
+- Contactos nuevos que aparezcan en Quantum se crean automáticamente.
+- El toast muestra "1001 contactos importados" (o similar) en vez de "0 importados, 1001 omitidos".
+
