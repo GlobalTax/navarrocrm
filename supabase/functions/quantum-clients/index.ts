@@ -120,10 +120,9 @@ function detectEntityType(customer: QuantumCustomer): 'empresa' | 'particular' {
 }
 
 async function processAutomaticSync(supabase: any, customers: QuantumCustomer[], authMethod: string, endpoint: string) {
-  console.log('🤖 Procesando sincronización automática...');
+  console.log('🤖 Procesando sincronización automática con upsert...');
   
   try {
-    // Obtener todas las organizaciones activas
     const { data: orgs, error: orgsError } = await supabase
       .from('organizations')
       .select('id')
@@ -135,157 +134,102 @@ async function processAutomaticSync(supabase: any, customers: QuantumCustomer[],
     
     const orgId = orgs[0].id;
     
-    // Obtener contactos existentes para detectar duplicados (mejorado)
-    const { data: existingContacts, error: contactsError } = await supabase
-      .from('contacts')
-      .select('email, dni_nif, name, phone, quantum_customer_id')
-      .eq('org_id', orgId);
-    
-    if (contactsError) {
-      throw new Error(`Error al obtener contactos existentes: ${contactsError.message}`);
-    }
-    
-    // Detectar contactos nuevos (no duplicados) con lógica mejorada
-    const newContacts = [];
-    const skippedContacts = [];
-    const entityTypeStats = { empresas: 0, particulares: 0 };
+    // Preparar todos los contactos válidos para upsert
+    const validContacts: any[] = [];
+    let skipped = 0;
     
     for (const customer of customers) {
-      // Verificar duplicados con lógica mejorada usando normalización
-      const isDuplicate = existingContacts.some((contact: any) => {
-        // Normalizar datos para comparación
-        const customerEmail = normalizeEmail(customer.email || '');
-        const customerNif = normalizeNif(customer.nif || '');
-        const customerPhone = normalizePhone(customer.phone || '');
-        const customerName = normalizeText(customer.name || '');
-        
-        // Prioridad 1: quantum_customer_id (más confiable)
-        if (customer.customerId && contact.quantum_customer_id === customer.customerId) {
-          return true;
-        }
-        
-        // Prioridad 2: DNI/NIF exacto con normalización
-        if (customerNif && contact.dni_nif) {
-          const contactNif = normalizeNif(contact.dni_nif);
-          if (customerNif === contactNif && customerNif.length > 3) {
-            return true;
-          }
-        }
-        
-        // Prioridad 3: Email exacto con normalización
-        if (customerEmail && contact.email) {
-          const contactEmail = normalizeEmail(contact.email);
-          if (customerEmail === contactEmail && customerEmail.length > 5) {
-            return true;
-          }
-        }
-        
-        // Prioridad 4: Nombre exacto + teléfono con normalización
-        if (customerPhone && contact.phone && customerName && contact.name) {
-          const contactPhone = normalizePhone(contact.phone);
-          const contactName = normalizeText(contact.name);
-          
-          if (customerPhone === contactPhone && 
-              customerName === contactName && 
-              customerPhone.length >= 9 && 
-              customerName.length > 3) {
-            return true;
-          }
-        }
-        
-        return false;
-      });
-      
-      if (isDuplicate) {
-        skippedContacts.push(customer);
-        console.log(`⏭️ Omitiendo duplicado: ${customer.name}`);
-      } else {
-        newContacts.push(customer);
-        // Contar tipos de entidad
-        const entityType = detectEntityType(customer);
-        entityTypeStats[entityType === 'empresa' ? 'empresas' : 'particulares']++;
+      if (!customer.name?.trim()) {
+        skipped++;
+        console.log(`⏭️ Omitido por nombre vacío: regid=${customer.regid}`);
+        continue;
       }
-    }
-    
-    console.log(`📊 Análisis: ${newContacts.length} nuevos, ${skippedContacts.length} duplicados`);
-    console.log(`🏢 Tipos detectados: ${entityTypeStats.empresas} empresas, ${entityTypeStats.particulares} particulares`);
-    
-    // Importar solo contactos nuevos con clasificación correcta
-    const importedContacts = [];
-    for (const customer of newContacts) {
+      
       const entityType = detectEntityType(customer);
       
-        const contactData = {
-          org_id: orgId,
-          name: customer.name,
-          email: customer.email || null,
-          phone: customer.phone || null,
-          dni_nif: customer.nif || null,
-          address_street: [customer.streetType, customer.streetName, customer.streetNumber]
-            .filter(Boolean).join(' ') || null,
-          address_postal_code: customer.postCode || null,
-          client_type: entityType, // Usar detección automática de tipo
-          relationship_type: 'cliente', // CAMBIO: Todos los de Quantum son clientes
-          source: 'quantum_auto',
-          auto_imported_at: new Date().toISOString(),
-          quantum_customer_id: customer.customerId,
-          status: 'activo'
-        };
+      validContacts.push({
+        org_id: orgId,
+        name: customer.name.trim(),
+        email: customer.email || null,
+        phone: customer.phone || null,
+        dni_nif: customer.nif || null,
+        address_street: [customer.streetType, customer.streetName, customer.streetNumber]
+          .filter(Boolean).join(' ') || null,
+        address_postal_code: customer.postCode || null,
+        client_type: entityType,
+        relationship_type: 'cliente',
+        source: 'quantum_auto',
+        auto_imported_at: new Date().toISOString(),
+        quantum_customer_id: customer.customerId,
+        status: 'activo',
+        updated_at: new Date().toISOString()
+      });
+    }
+    
+    console.log(`📊 Contactos válidos: ${validContacts.length}, omitidos: ${skipped}`);
+    
+    // Upsert en batches de 100
+    const BATCH_SIZE = 100;
+    let upserted = 0;
+    let errors = 0;
+    
+    for (let i = 0; i < validContacts.length; i += BATCH_SIZE) {
+      const batch = validContacts.slice(i, i + BATCH_SIZE);
       
-      const { data: insertedContact, error: insertError } = await supabase
+      const { error: upsertError } = await supabase
         .from('contacts')
-        .insert(contactData)
-        .select()
-        .single();
+        .upsert(batch, { 
+          onConflict: 'org_id,quantum_customer_id',
+          ignoreDuplicates: false 
+        });
       
-      if (insertError) {
-        console.error('❌ Error al importar contacto:', customer.name, insertError);
+      if (upsertError) {
+        console.error(`❌ Error en batch ${Math.floor(i / BATCH_SIZE) + 1}:`, upsertError.message);
+        errors += batch.length;
       } else {
-        importedContacts.push(insertedContact);
-        console.log('✅ Contacto importado:', customer.name);
+        upserted += batch.length;
+        console.log(`✅ Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length} contactos procesados`);
       }
     }
     
-    // Registrar notificación de sincronización
+    console.log(`🎉 Sincronización completada: ${upserted} importados/actualizados, ${skipped} omitidos, ${errors} errores`);
+    
+    // Registrar notificación
     await supabase.from('quantum_sync_notifications').insert({
       org_id: orgId,
-      contacts_imported: importedContacts.length,
-      contacts_skipped: skippedContacts.length,
-      status: 'success',
+      contacts_imported: upserted,
+      contacts_skipped: skipped,
+      status: errors > 0 ? 'partial' : 'success',
       sync_date: new Date().toISOString()
     });
     
     // Registrar en historial
     await supabase.from('quantum_sync_history').insert({
-      status: 'success',
-      message: `Sincronización automática: ${importedContacts.length} importados, ${skippedContacts.length} omitidos`,
+      status: errors > 0 ? 'partial' : 'success',
+      message: `Sincronización automática: ${upserted} importados/actualizados, ${skipped} omitidos, ${errors} errores`,
       records_processed: customers.length,
       sync_date: new Date().toISOString()
     });
-    
-    console.log('🎉 Sincronización automática completada');
     
     return new Response(
       JSON.stringify({ 
         success: true,
         data: {
           total_customers: customers.length,
-          imported: importedContacts.length,
-          skipped: skippedContacts.length,
+          imported: upserted,
+          skipped: skipped,
+          errors: errors,
           authMethod,
           endpoint,
           auto_sync: true
         }
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     
   } catch (error) {
     console.error('❌ Error en sincronización automática:', error);
     
-    // Registrar error en notificaciones
     try {
       const { data: orgs } = await supabase.from('organizations').select('id').limit(1);
       if (orgs && orgs.length > 0) {
