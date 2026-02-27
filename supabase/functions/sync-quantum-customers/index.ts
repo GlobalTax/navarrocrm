@@ -2,18 +2,24 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 interface QuantumCustomer {
-  id: string;
+  regid: string;
+  customerId: string;
   name: string;
+  nif?: string;
   email?: string;
   phone?: string;
-  address?: string;
-  nif?: string;
-  sector?: string;
+  countryISO?: string;
+  streetType?: string;
+  streetName?: string;
+  streetNumber?: string;
+  postCode?: string;
+  cityCode?: string;
+  [key: string]: any;
 }
 
 interface QuantumCustomersResponse {
+  error?: { message: string; errorCode: string };
   customers?: QuantumCustomer[];
-  getCustomers?: QuantumCustomer[];
 }
 
 const corsHeaders = {
@@ -59,9 +65,9 @@ serve(async (req) => {
       );
     }
 
-    // Llamar a la API de clientes de Quantum
-    const apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/customers?companyId=${companyId}`;
-    console.log('📡 Llamando a API Quantum customers:', apiUrl.replace(companyId, `***${companyId.slice(-4)}`));
+    // Llamar a la API de clientes de Quantum (endpoint singular: /customer)
+    const apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/customer?companyId=${companyId}`;
+    console.log('📡 Llamando a API Quantum customer:', apiUrl.replace(companyId, `***${companyId.slice(-4)}`));
 
     let response: Response;
     try {
@@ -101,11 +107,21 @@ serve(async (req) => {
     const data: QuantumCustomersResponse = await response.json();
     console.log('📋 Estructura de respuesta:', Object.keys(data));
 
-    const customers = data.customers || data.getCustomers;
+    // Verificar error en respuesta (errorCode "0" = éxito)
+    if (data.error && data.error.errorCode && data.error.errorCode !== "0") {
+      const errorMsg = `Error de Quantum API: ${data.error.message} (Código: ${data.error.errorCode})`;
+      console.error('❌', errorMsg);
+      return new Response(
+        JSON.stringify({ success: false, error: errorMsg }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const customers = data.customers;
     if (!customers || !Array.isArray(customers)) {
       const errorMsg = 'Respuesta inválida de la API de Quantum - no se encontraron clientes';
       console.error('❌', errorMsg);
-      
+
       return new Response(
         JSON.stringify({ success: false, error: errorMsg }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -135,22 +151,35 @@ serve(async (req) => {
 
     for (const customer of customers) {
       try {
-        if (!customer.id || !customer.name?.trim()) {
+        if (!customer.customerId || !customer.name?.trim()) {
           console.warn('⚠️ Cliente con datos incompletos:', customer);
-          errores.push(`Cliente con ID o nombre vacío: ${JSON.stringify(customer)}`);
+          errores.push(`Cliente con customerId o nombre vacío: ${JSON.stringify(customer)}`);
           registrosOmitidos++;
           continue;
         }
 
+        // Construir dirección completa a partir de los campos de Quantum
+        const addressParts = [
+          customer.streetType,
+          customer.streetName,
+          customer.streetNumber
+        ].filter(Boolean);
+        const fullAddress = addressParts.length > 0 ? addressParts.join(' ') : null;
+
+        // Detectar tipo de entidad por NIF/CIF
+        const nif = customer.nif?.trim() || '';
+        const companyCifLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'N', 'P', 'Q', 'R', 'S', 'U', 'V', 'W'];
+        const isCompany = nif.length > 0 && companyCifLetters.includes(nif.charAt(0).toUpperCase());
+
         const customerData = {
-          quantum_customer_id: customer.id,
+          quantum_customer_id: customer.customerId,
           name: customer.name.trim(),
           email: customer.email?.trim() || null,
           phone: customer.phone?.trim() || null,
-          address_street: customer.address?.trim() || null,
-          dni_nif: customer.nif?.trim() || null,
-          business_sector: customer.sector?.trim() || null,
-          client_type: 'empresa',
+          address_street: fullAddress,
+          address_postal_code: customer.postCode || null,
+          dni_nif: nif || null,
+          client_type: isCompany ? 'empresa' : 'particular',
           source: 'quantum_auto',
           relationship_type: 'cliente',
           status: 'activo',
@@ -158,26 +187,47 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         };
 
-        // Usar UPSERT para manejar duplicados automáticamente
-        const { error: upsertError } = await supabase
+        // Verificar si ya existe por quantum_customer_id
+        const { data: existing } = await supabase
           .from('contacts')
-          .upsert(customerData, { 
-            onConflict: 'quantum_customer_id,org_id',
-            ignoreDuplicates: false 
-          });
+          .select('id')
+          .eq('org_id', defaultOrgId)
+          .eq('quantum_customer_id', customer.customerId)
+          .single();
 
-        if (upsertError) {
-          console.error('❌ Error al procesar cliente:', customer.id, upsertError);
-          errores.push(`Error procesando cliente ${customer.id}: ${upsertError.message}`);
+        if (existing) {
+          // Actualizar contacto existente
+          const { error: updateError } = await supabase
+            .from('contacts')
+            .update(customerData)
+            .eq('id', existing.id);
+
+          if (updateError) {
+            console.error('❌ Error al actualizar cliente:', customer.customerId, updateError);
+            errores.push(`Error actualizando cliente ${customer.customerId}: ${updateError.message}`);
+          } else {
+            registrosActualizados++;
+            console.log('✅ Cliente actualizado:', customer.customerId, customer.name);
+          }
         } else {
-          registrosActualizados++;
-          console.log('✅ Cliente procesado:', customer.id, customer.name);
+          // Insertar nuevo contacto
+          const { error: insertError } = await supabase
+            .from('contacts')
+            .insert(customerData);
+
+          if (insertError) {
+            console.error('❌ Error al insertar cliente:', customer.customerId, insertError);
+            errores.push(`Error insertando cliente ${customer.customerId}: ${insertError.message}`);
+          } else {
+            registrosNuevos++;
+            console.log('✅ Cliente nuevo importado:', customer.customerId, customer.name);
+          }
         }
-        
+
         registrosProcesados++;
       } catch (err) {
-        console.error('❌ Error al procesar cliente:', customer.id, err);
-        errores.push(`Error procesando cliente ${customer.id}: ${err instanceof Error ? err.message : String(err)}`);
+        console.error('❌ Error al procesar cliente:', customer.customerId, err);
+        errores.push(`Error procesando cliente ${customer.customerId}: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 

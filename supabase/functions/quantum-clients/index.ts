@@ -337,11 +337,11 @@ serve(async (req) => {
 
     // Obtener credenciales de Quantum desde secretos
     const quantumToken = Deno.env.get('quantum_api_token');
-    const companyId = '28171';
-    
+    const companyId = Deno.env.get('quantum_company_id') || '28171';
+
     console.log('🔑 Verificando credenciales...');
     console.log('Token presente:', quantumToken ? 'SÍ' : 'NO');
-    console.log('Company ID:', companyId);
+    console.log('Company ID:', companyId ? `***${companyId.slice(-4)}` : 'NO CONFIGURADO');
 
     if (!quantumToken) {
       const errorMsg = 'Error: Token de Quantum Economics no configurado.';

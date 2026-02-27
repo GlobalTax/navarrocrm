@@ -168,8 +168,8 @@ async function syncOrganizationInvoices(supabase: any, params: SyncRequest): Pro
   console.log(`📊 [Sync] Starting sync for org ${params.org_id}`)
   
   // Obtener credenciales de Quantum para esta organización
-  const quantumToken = Deno.env.get('QUANTUM_API_TOKEN')
-  const quantumCompanyId = Deno.env.get('QUANTUM_COMPANY_ID')
+  const quantumToken = Deno.env.get('quantum_api_token')
+  const quantumCompanyId = Deno.env.get('quantum_company_id')
 
   if (!quantumToken || !quantumCompanyId) {
     throw new Error('Quantum API credentials not configured')
@@ -183,10 +183,10 @@ async function syncOrganizationInvoices(supabase: any, params: SyncRequest): Pro
 
   // Construir URL de API de Quantum
   let apiUrl = `https://app.quantumeconomics.es/contabilidad/ws/invoice?companyId=${quantumCompanyId}`
-  apiUrl += `&dateStart=${startDate}&dateEnd=${endDate}`
-  
+  apiUrl += `&startDate=${startDate}&endDate=${endDate}`
+
   if (invoiceType !== 'ALL') {
-    apiUrl += `&invoiceType=${invoiceType}`
+    apiUrl += `&type=${invoiceType}`
   }
 
   console.log(`🌐 [API] Calling Quantum API: ${apiUrl}`)
