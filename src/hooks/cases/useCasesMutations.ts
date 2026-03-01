@@ -20,14 +20,14 @@ export const useCasesMutations = () => {
       // Prepare data for insertion, making sure contact_id has a default value
       const insertData = {
         title: caseData.title,
-        description: caseData.description,
+        description: caseData.description || null,
         status: caseData.status,
-        contact_id: caseData.contact_id || user.id, // Use user ID as fallback
-        practice_area: caseData.practice_area,
-        responsible_solicitor_id: caseData.responsible_solicitor_id,
-        originating_solicitor_id: caseData.originating_solicitor_id,
+        contact_id: caseData.contact_id || user.id,
+        practice_area: caseData.practice_area || null,
+        responsible_solicitor_id: caseData.responsible_solicitor_id || null,
+        originating_solicitor_id: caseData.originating_solicitor_id || null,
         billing_method: caseData.billing_method,
-        estimated_budget: caseData.estimated_budget,
+        estimated_budget: caseData.estimated_budget || null,
         org_id: user.org_id
       }
 
