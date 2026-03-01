@@ -1,26 +1,48 @@
 
-## Buscador de clientes en el selector de propuestas
+## Reconectar el constructor de propuestas puntuales
 
 ### Problema
-Con 953 clientes, el desplegable `Select` actual no tiene campo de busqueda, obligando a hacer scroll manual para encontrar un cliente.
+El `ProposalsBuilderManager` siempre abre el `LegalProposalBuilder` (recurrente) sin importar si el usuario pulsa "Propuesta Especifica" o "Propuesta Recurrente". El `ProfessionalProposalBuilder` existe completo pero no se usa.
 
 ### Solucion
-Reemplazar el `Select` por un **Combobox** basado en `Popover` + `Command` (cmdk), que ya esta instalado en el proyecto. Esto anade un campo de texto para filtrar clientes por nombre o email en tiempo real.
+Modificar `ProposalsBuilderManager` para que enrute correctamente:
+- **Recurrente** (`isRecurrentBuilderOpen`) -> `LegalProposalBuilder` (sin cambios)
+- **Puntual** (`isSpecificBuilderOpen`) -> `ProfessionalProposalBuilder`
 
 ### Cambios
 
-**1. Archivo: `src/components/proposals/ClientSelectorWithProspect.tsx`**
-- Reemplazar el `Select` + `SelectContent` por un `Popover` + `Command` (cmdk)
-- El `CommandInput` permite escribir para filtrar clientes por nombre o email
-- Cada `CommandItem` muestra nombre, email y badge de tipo (Empresa/Particular) igual que ahora
-- Se mantiene el mismo callback `onClientSelected` y la misma UI de confirmacion verde
-- Limitar la lista visible con `CommandList` con max-height para evitar overflow
+**Archivo: `src/features/proposals/components/ProposalsBuilderManager.tsx`**
 
-**2. Imports a cambiar**
-- Quitar: `Select, SelectContent, SelectItem, SelectTrigger, SelectValue`
-- Anadir: `Popover, PopoverContent, PopoverTrigger` desde `@/components/ui/popover`
-- Anadir: `Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList` desde `@/components/ui/command`
-- Anadir: `ChevronsUpDown` de lucide-react para el icono del trigger
+Reemplazar el bloque condicional unico (lineas 28-39) por dos bloques separados:
+
+```
+if (isRecurrentBuilderOpen) {
+  return (
+    <LegalProposalBuilder
+      onClose={onCloseRecurrentBuilder}
+      onSave={isEditMode && editingProposal && onUpdateProposal 
+        ? (data) => onUpdateProposal(editingProposal.id, data)
+        : onSaveRecurrentProposal
+      }
+      isSaving={isSavingRecurrent}
+    />
+  )
+}
+
+if (isSpecificBuilderOpen) {
+  return (
+    <ProfessionalProposalBuilder
+      onBack={onCloseSpecificBuilder}
+    />
+  )
+}
+```
+
+El `ProfessionalProposalBuilder` ya tiene su propio sistema de guardado interno via `useProposalProfessional`, asi que solo necesita el callback `onBack` para cerrar.
+
+**Archivo: `src/components/proposals/ProposalsBuilderManager.tsx`** (copia duplicada)
+- Aplicar el mismo cambio para mantener ambos archivos sincronizados.
 
 ### Resultado
-Un selector con campo de busqueda integrado que filtra los 953 clientes al escribir, mucho mas comodo que hacer scroll.
+- Boton "Propuesta Recurrente" abre el wizard legal con servicios recurrentes y retainer
+- Boton "Propuesta Especifica" abre el constructor profesional con fases, equipo, plantillas y vista previa
