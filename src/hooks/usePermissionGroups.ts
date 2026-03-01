@@ -177,6 +177,66 @@ export const usePermissionGroups = () => {
     onError: (e: any) => toast.error('Error: ' + e.message),
   })
 
+  const applyGroupToMultipleUsers = useMutation({
+    mutationFn: async (params: { userIds: string[]; groupId: string; onProgress?: (current: number, total: number) => void }) => {
+      if (!orgId) throw new Error('No org')
+
+      const { data: items, error: itemsError } = await supabase
+        .from('permission_group_items')
+        .select('module, permission')
+        .eq('group_id', params.groupId)
+
+      if (itemsError) throw itemsError
+      if (!items || items.length === 0) throw new Error('El grupo no tiene permisos')
+
+      let completed = 0
+      const errors: string[] = []
+
+      for (const userId of params.userIds) {
+        try {
+          const permissionsToInsert = items.map(i => ({
+            user_id: userId,
+            org_id: orgId,
+            module: i.module,
+            permission: i.permission,
+            granted_by: user?.id || '',
+          }))
+
+          for (const perm of permissionsToInsert) {
+            await supabase
+              .from('user_permissions')
+              .upsert(perm, { onConflict: 'user_id,module,permission' })
+          }
+
+          await supabase
+            .from('user_permission_groups')
+            .upsert({
+              user_id: userId,
+              group_id: params.groupId,
+              org_id: orgId,
+              assigned_by: user?.id,
+            }, { onConflict: 'user_id,group_id' })
+
+          completed++
+          params.onProgress?.(completed, params.userIds.length)
+        } catch (e: any) {
+          errors.push(userId)
+          completed++
+          params.onProgress?.(completed, params.userIds.length)
+        }
+      }
+
+      if (errors.length > 0) {
+        throw new Error(`Falló en ${errors.length} de ${params.userIds.length} usuarios`)
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-permissions'] })
+      queryClient.invalidateQueries({ queryKey: ['permission-groups'] })
+    },
+    onError: (e: any) => toast.error('Error: ' + e.message),
+  })
+
   return {
     groups: groupsQuery.data || [],
     isLoading: groupsQuery.isLoading,
@@ -184,5 +244,6 @@ export const usePermissionGroups = () => {
     updateGroup,
     deleteGroup,
     applyGroupToUser,
+    applyGroupToMultipleUsers,
   }
 }
