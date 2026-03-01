@@ -106,7 +106,7 @@ export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) 
           )}
           
           {!error && !isLoading && persons.length > 0 && (
-            <ParametricTable<Person>
+            <ParametricTable
               columns={columns}
               data={persons}
               keyExtractor={(p) => p.id}
