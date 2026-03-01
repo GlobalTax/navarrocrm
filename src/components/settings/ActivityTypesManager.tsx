@@ -52,7 +52,7 @@ export const ActivityTypesManager = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Settings2 className="h-4 w-4" />
-            Tipos de Actividad
+            Tipos de Tarea
           </CardTitle>
           <Button size="sm" className="rounded-[10px] h-8" onClick={openCreate}>
             <Plus className="h-3.5 w-3.5 mr-1" />
