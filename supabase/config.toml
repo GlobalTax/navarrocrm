@@ -100,3 +100,6 @@ verify_jwt = true
 
 [functions.regenerate-user-password]
 verify_jwt = false
+
+[functions.extract-task-from-image]
+verify_jwt = false
