@@ -47,11 +47,11 @@ export default {
 			},
 			fontWeight: {
 				light: '300',
-				normal: '400',
+				normal: '300',
 				medium: '500',
-				semibold: '600',
-				bold: '700',
-				extrabold: '800',
+				semibold: '500',
+				bold: '500',
+				extrabold: '500',
 			},
 			colors: {
 				border: 'hsl(var(--border))',

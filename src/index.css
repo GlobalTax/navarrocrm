@@ -138,6 +138,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-weight: 300;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 500;
   }
 }
 
@@ -184,11 +188,11 @@
 
   /* Typography classes for consistent text sizing */
   .crm-page-title {
-    @apply text-3xl font-bold text-foreground;
+    @apply text-3xl font-medium text-foreground;
   }
 
   .crm-section-title {
-    @apply text-xl font-semibold text-foreground;
+    @apply text-xl font-medium text-foreground;
   }
 
   .crm-card-title {
@@ -196,15 +200,15 @@
   }
 
   .crm-body-text {
-    @apply text-base text-muted-foreground;
+    @apply text-base font-light text-muted-foreground;
   }
 
   .crm-button-text {
-    @apply text-sm font-medium;
+    @apply text-sm font-light;
   }
 
   .crm-badge-text {
-    @apply text-xs font-medium;
+    @apply text-xs font-light;
   }
 
   /* Compact typography for dense layouts */
@@ -213,11 +217,11 @@
   }
 
   .crm-table-cell {
-    @apply text-sm text-foreground;
+    @apply text-sm font-light text-foreground;
   }
 
   .crm-table-cell-secondary {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm font-light text-muted-foreground;
   }
 
   .crm-compact-title {
@@ -225,24 +229,24 @@
   }
 
   .crm-compact-text {
-    @apply text-sm text-muted-foreground;
+    @apply text-sm font-light text-muted-foreground;
   }
 
   .crm-compact-label {
-    @apply text-xs font-medium text-muted-foreground;
+    @apply text-xs font-light text-muted-foreground;
   }
 
   .crm-list-item {
-    @apply text-sm text-foreground;
+    @apply text-sm font-light text-foreground;
   }
 
   .crm-list-item-secondary {
-    @apply text-xs text-muted-foreground;
+    @apply text-xs font-light text-muted-foreground;
   }
 
   /* Responsive title that adapts to screen size */
   .crm-responsive-title {
-    @apply text-2xl sm:text-3xl font-bold text-foreground;
+    @apply text-2xl sm:text-3xl font-medium text-foreground;
   }
 
   /* Status-specific colors using semantic tokens */
