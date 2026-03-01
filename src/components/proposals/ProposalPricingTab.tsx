@@ -4,11 +4,13 @@ import { useApp } from '@/contexts/AppContext'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Calculator, Package } from 'lucide-react'
+import { generateProposalPDF, openProposalPrintWindow } from './utils/generateProposalPDF'
 
 interface ClientInfo {
   name: string
   email?: string
   dni_nif?: string
+  phone?: string
 }
 
 interface ProposalPricingTabProps {
@@ -110,86 +112,35 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
           {lineItems.length > 0 && (
             <button
               onClick={() => {
-                const fmt = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency, minimumFractionDigits: 2 }).format(n)
                 const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
                 const refNumber = proposalNumber || `REF-${proposalId.slice(0, 8).toUpperCase()}`
-                const validDate = validUntil ? new Date(validUntil).toLocaleDateString('es-ES') : null
+                const validDate = validUntil ? new Date(validUntil).toLocaleDateString('es-ES') : undefined
 
-                const fmtDiscount = (item: any) => {
+                const fmtDiscount = (item: ProposalLineItem) => {
                   if (!item.discount_type || !item.discount_amount) return ''
-                  return item.discount_type === 'percentage' ? `-${item.discount_value}%` : `-${fmt(item.discount_value)}`
+                  return item.discount_type === 'percentage' ? `-${item.discount_value}%` : `-${new Intl.NumberFormat('es-ES', { style: 'currency', currency, minimumFractionDigits: 2 }).format(item.discount_value || 0)}`
                 }
 
-                const rows = lineItems.map(item => `
-                  <tr>
-                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5">${item.name}${item.description ? `<br><small style="color:#666">${item.description}</small>` : ''}</td>
-                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:center">${item.quantity}</td>
-                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right">${fmt(item.unit_price)}</td>
-                    ${hasAnyDiscount ? `<td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;color:#dc2626">${fmtDiscount(item)}</td>` : ''}
-                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600">${fmt(item.total_price)}</td>
-                  </tr>
-                `).join('')
-
-                const clientBlock = client ? `
-                  <div style="background:#f8f9fa;border:1px solid #e5e5e5;border-radius:8px;padding:16px;margin-bottom:24px">
-                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:8px;font-weight:600">Datos del cliente</div>
-                    <div style="font-weight:600;font-size:15px;margin-bottom:4px">${client.name}</div>
-                    ${client.dni_nif ? `<div style="font-size:13px;color:#555">NIF/CIF: ${client.dni_nif}</div>` : ''}
-                    ${client.email ? `<div style="font-size:13px;color:#555">${client.email}</div>` : ''}
-                  </div>
-                ` : ''
-
-                const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propuesta Comercial - ${refNumber}</title>
-                <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-                <style>
-                  *{margin:0;padding:0;box-sizing:border-box}
-                  body{font-family:'Manrope',sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto}
-                  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid #0061FF}
-                  .header-left h1{font-size:22px;font-weight:700;color:#0061FF;margin-bottom:4px}
-                  .header-left .subtitle{font-size:13px;color:#666}
-                  .header-right{text-align:right;font-size:12px;color:#666;line-height:1.6}
-                  .header-right .ref{font-size:14px;font-weight:700;color:#1a1a1a}
-                  .proposal-title{font-size:18px;font-weight:600;margin-bottom:24px;color:#1a1a1a}
-                  table{width:100%;border-collapse:collapse;margin-bottom:32px}
-                  th{background:#f5f5f5;padding:10px 12px;text-align:left;font-weight:600;font-size:13px;border-bottom:2px solid #e0e0e0}
-                  th:nth-child(2){text-align:center}
-                  th:nth-child(3),th:nth-child(4){text-align:right}
-                  .totals{margin-left:auto;width:300px}
-                  .totals .row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
-                  .totals .total-row{border-top:2px solid #1a1a1a;padding-top:10px;margin-top:6px;font-size:18px;font-weight:700}
-                  .footer{margin-top:48px;padding-top:16px;border-top:1px solid #e5e5e5;font-size:11px;color:#999;text-align:center;line-height:1.8}
-                  @media print{body{padding:20px}}
-                </style></head><body>
-                <div class="header">
-                  <div class="header-left">
-                    <h1>Propuesta Comercial</h1>
-                    <div class="subtitle">Documento generado automáticamente</div>
-                  </div>
-                  <div class="header-right">
-                    <div class="ref">${refNumber}</div>
-                    <div>Fecha: ${today}</div>
-                    ${validDate ? `<div>Válida hasta: ${validDate}</div>` : ''}
-                  </div>
-                </div>
-                ${proposalTitle ? `<div class="proposal-title">${proposalTitle}</div>` : ''}
-                ${clientBlock}
-                <table>
-                  <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio Unit.</th>${hasAnyDiscount ? '<th style="text-align:right">Dto.</th>' : ''}<th style="text-align:right">Total</th></tr></thead>
-                  <tbody>${rows}</tbody>
-                </table>
-                <div class="totals">
-                  <div class="row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
-                  <div class="row"><span>IVA (21%)</span><span>${fmt(taxAmount)}</span></div>
-                  <div class="row total-row"><span>Total</span><span>${fmt(calculatedTotal)}</span></div>
-                </div>
-                <div class="footer">
-                  Documento generado el ${today}<br>
-                  Esta propuesta tiene carácter informativo y no constituye factura. Precios sujetos a IVA vigente.
-                </div>
-                </body></html>`
-
-                const w = window.open('', '_blank')
-                if (w) { w.document.write(html); w.document.close(); w.print() }
+                const html = generateProposalPDF({
+                  type: 'one-time',
+                  title: proposalTitle || '',
+                  refNumber,
+                  date: today,
+                  validUntil: validDate,
+                  client: client ? { name: client.name, nif: client.dni_nif, email: client.email, phone: client.phone } : undefined,
+                  rows: lineItems.map(item => ({
+                    name: item.name,
+                    description: item.description,
+                    quantity: item.quantity,
+                    unitPrice: item.unit_price,
+                    total: item.total_price,
+                    discountLabel: fmtDiscount(item),
+                  })),
+                  hasDiscountColumn: hasAnyDiscount,
+                  totals: { subtotal, tax: taxAmount, taxRate: 21, total: calculatedTotal },
+                  currency,
+                })
+                openProposalPrintWindow(html)
               }}
               className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
             >
