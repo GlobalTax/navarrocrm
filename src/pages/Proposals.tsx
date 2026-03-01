@@ -60,6 +60,7 @@ export default function Proposals() {
     handleViewProposal, 
     handleEditProposal,
     handleDuplicateProposal,
+    handleDeleteProposal,
     handleDetailStatusChange,
     handleSaveRecurrentProposal,
     selectedProposal,
@@ -183,6 +184,7 @@ export default function Proposals() {
           onViewProposal={handleViewProposal}
           onEditProposal={handleEditProposal}
           onDuplicateProposal={handleDuplicateProposal}
+          onDeleteProposal={handleDeleteProposal}
           onOpenRecurrentBuilder={pageState.openRecurrentBuilder}
           onOpenSpecificBuilder={pageState.openSpecificBuilder}
         />

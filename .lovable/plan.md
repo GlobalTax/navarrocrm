@@ -1,75 +1,92 @@
 
 
-## Importación Masiva de Usuarios (Creación Directa)
+## Crear Grupos de Permisos
 
-### Objetivo
-Crear un nuevo componente de importación masiva que **cree usuarios reales** (con auth + perfil) usando la edge function `create-user`, en lugar del flujo actual que solo crea invitaciones.
+### Problema actual
+Para asignar permisos a un usuario hay que ir modulo por modulo, permiso por permiso. Con 8 modulos y 4 niveles, configurar un usuario completo requiere hasta 32 clics.
 
----
+### Solucion
+Crear **Grupos de Permisos** (plantillas predefinidas) que agrupan multiples permisos. Al asignar un grupo a un usuario, se aplican todos los permisos del grupo de una vez.
 
-### Cambios a Realizar
+### Modelo de datos
 
-#### 1. Nuevo componente: `UserBulkCreation.tsx`
+**Nueva tabla: `permission_groups`**
+| Columna | Tipo | Descripcion |
+|---------|------|-------------|
+| id | uuid PK | Identificador |
+| org_id | uuid FK | Organizacion |
+| name | varchar | Nombre del grupo (ej: "Lectura basica", "Gestor de expedientes") |
+| description | text | Descripcion del grupo |
+| is_system | boolean | Si es plantilla del sistema (no editable) |
+| created_by | uuid | Quien lo creo |
+| created_at / updated_at | timestamptz | Timestamps |
 
-Reemplazar el uso de `AIEnhancedBulkUpload` (que inserta en `user_invitations`) por un componente dedicado que:
+**Nueva tabla: `permission_group_items`**
+| Columna | Tipo | Descripcion |
+|---------|------|-------------|
+| id | uuid PK | Identificador |
+| group_id | uuid FK | Referencia al grupo |
+| module | varchar | Modulo (cases, contacts, etc.) |
+| permission | varchar | Nivel (read, write, delete, admin) |
 
-- Acepte CSV con columnas: `email`, `role`, `first_name`, `last_name`
-- Valide localmente (email formato, rol valido, duplicados en el CSV)
-- Procese cada usuario llamando a `supabase.functions.invoke('create-user')` secuencialmente (para evitar rate limiting)
-- Muestre progreso en tiempo real con barra de progreso
-- Al finalizar, muestre un resumen con las credenciales generadas (email + password temporal) para cada usuario creado
-- Permita descargar las credenciales como CSV
-- Incluya botón de descarga de plantilla CSV
+**Nueva tabla: `user_permission_groups`**
+| Columna | Tipo | Descripcion |
+|---------|------|-------------|
+| id | uuid PK | Identificador |
+| user_id | uuid | Usuario |
+| group_id | uuid FK | Grupo asignado |
+| org_id | uuid | Organizacion |
+| assigned_by | uuid | Quien asigno |
+| created_at | timestamptz | Timestamp |
 
-**Estructura del componente:**
-- Paso 1: Subir CSV (drag & drop con react-dropzone)
-- Paso 2: Validación y vista previa en tabla
-- Paso 3: Procesamiento con progreso
-- Paso 4: Resumen con credenciales descargables
+RLS en las 3 tablas por `org_id`, solo partners/area_managers pueden gestionar.
 
-#### 2. Actualizar `UsersPageDialogs.tsx`
+### Plantillas predefinidas (seed)
+Se insertaran grupos por defecto al crear la migracion:
+- **Solo Lectura**: read en todos los modulos
+- **Operativo**: read + write en cases, contacts, time_tracking, proposals
+- **Gestor de Area**: read + write + delete en cases, contacts, proposals, time_tracking, reports
+- **Administrador**: admin en todos los modulos
+- **Finanzas**: admin en billing, read en reports, cases, contacts
 
-Reemplazar el `AIEnhancedBulkUpload` por el nuevo `UserBulkCreation` en el diálogo de importación masiva.
+### Cambios en el frontend
 
-#### 3. Plantilla CSV
+**1. Nueva pestana "Grupos de Permisos" en la pagina de Usuarios del Sistema**
+- Anadir una pestana `Tabs` en `SystemUsersPage.tsx` con dos secciones: "Usuarios" (actual) y "Grupos de Permisos"
+- La pestana de grupos mostrara una tabla con los grupos existentes y un boton para crear nuevos
 
-La plantilla incluira estos campos:
-```text
-email,role,first_name,last_name
-juan.perez@empresa.com,senior,Juan,Pérez
-maria.garcia@empresa.com,junior,María,García
-```
+**2. Nuevo componente `PermissionGroupsTab.tsx`**
+- Tabla inline con columnas: Nombre, Descripcion, Permisos (badges), Acciones
+- Boton "Crear Grupo" que abre un dialog
+- Acciones: editar, eliminar, ver usuarios asignados
 
-Roles validos: partner, area_manager, senior, junior, finance
+**3. Nuevo componente `PermissionGroupDialog.tsx`**
+- Formulario para crear/editar un grupo
+- Campo nombre y descripcion
+- Matriz de checkboxes: modulos (filas) x niveles (columnas) para seleccionar permisos
+- Boton guardar
 
----
+**4. Actualizar `UserPermissionsDialog.tsx`**
+- Anadir seccion superior "Asignar Grupo" con un Select de grupos disponibles
+- Al seleccionar un grupo, se aplican automaticamente todos los permisos del grupo (INSERT masivo en `user_permissions`)
+- Mantener la seccion actual de permisos individuales como "ajuste fino"
 
-### Flujo del Usuario
+**5. Nuevo hook `usePermissionGroups.ts`**
+- Query para listar grupos con sus items
+- Mutations: crear grupo, editar grupo, eliminar grupo
+- Mutation: asignar grupo a usuario (inserta todos los permisos del grupo en `user_permissions`)
 
-1. Clic en "Importacion Masiva" en la pagina de usuarios
-2. Se abre el dialogo con opcion de descargar plantilla CSV
-3. Sube el CSV (drag & drop o clic)
-4. Se valida localmente: emails validos, roles correctos, sin duplicados
-5. Vista previa en tabla con los usuarios a crear
-6. Clic en "Crear Usuarios" -- se procesan de 1 en 1 (con pausa de 500ms entre cada uno para evitar rate limiting)
-7. Barra de progreso muestra avance y resultados parciales
-8. Al terminar: tabla resumen con email + password temporal
-9. Boton "Descargar Credenciales CSV" para guardar las credenciales
+### Archivos a crear
+| Archivo | Proposito |
+|---------|-----------|
+| `src/hooks/usePermissionGroups.ts` | Hook con queries y mutations |
+| `src/components/users/PermissionGroupsTab.tsx` | Pestana de gestion de grupos |
+| `src/components/users/PermissionGroupDialog.tsx` | Dialog crear/editar grupo |
 
----
-
-### Detalles Tecnicos
-
-- **Procesamiento:** Secuencial (1 usuario a la vez) usando `useDirectUserCreation` hook existente
-- **Manejo de errores:** Si un usuario falla, se registra el error y continua con el siguiente
-- **Credenciales:** Se almacenan temporalmente en estado local y se pueden descargar como CSV
-- **Validacion:** Email regex, roles en whitelist, deteccion de duplicados dentro del CSV
-- **Rate limiting:** Pausa de 500ms entre creaciones para no sobrecargar la edge function
-
-### Archivos Afectados
-
+### Archivos a modificar
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/users/UserBulkCreation.tsx` | Nuevo componente |
-| `src/components/users/UsersPageDialogs.tsx` | Reemplazar AIEnhancedBulkUpload por UserBulkCreation |
+| `src/pages/SystemUsersPage.tsx` | Anadir Tabs con pestana de grupos |
+| `src/components/users/UserPermissionsDialog.tsx` | Anadir selector de grupo para asignacion rapida |
+| Migracion SQL | Crear tablas + seed de plantillas |
 

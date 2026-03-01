@@ -1684,6 +1684,73 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_classification_reviews: {
+        Row: {
+          confidence: number
+          contact_id: string
+          created_at: string
+          current_client_type: string
+          id: string
+          org_id: string
+          reason: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+          suggested_client_type: string
+        }
+        Insert: {
+          confidence?: number
+          contact_id: string
+          created_at?: string
+          current_client_type: string
+          id?: string
+          org_id: string
+          reason?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          suggested_client_type: string
+        }
+        Update: {
+          confidence?: number
+          contact_id?: string
+          created_at?: string
+          current_client_type?: string
+          id?: string
+          org_id?: string
+          reason?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          suggested_client_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_classification_reviews_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_classification_reviews_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_classification_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_documents: {
         Row: {
           contact_id: string
@@ -7178,6 +7245,76 @@ export type Database = {
           },
         ]
       }
+      permission_group_items: {
+        Row: {
+          group_id: string
+          id: string
+          module: string
+          permission: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          module: string
+          permission: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          module?: string
+          permission?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_group_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permission_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_groups_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personas: {
         Row: {
           created_at: string | null
@@ -10776,6 +10913,48 @@ export type Database = {
           },
         ]
       }
+      user_permission_groups: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          group_id: string
+          id: string
+          org_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          org_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          org_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permission_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_groups_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_permissions: {
         Row: {
           created_at: string
@@ -11564,6 +11743,35 @@ export type Database = {
       cleanup_expired_invitations: { Args: never; Returns: number }
       cleanup_expired_onboarding: { Args: never; Returns: number }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
+      detect_misclassified_contacts:
+        | {
+            Args: { org_uuid: string }
+            Returns: {
+              confidence: number
+              contact_id: string
+              contact_name: string
+              current_type: string
+              reason: string
+              suggested_type: string
+            }[]
+          }
+        | {
+            Args: {
+              max_results?: number
+              min_confidence?: number
+              org_uuid: string
+              source_filter?: string
+            }
+            Returns: {
+              confidence: number
+              contact_id: string
+              contact_name: string
+              current_type: string
+              matched_pattern: string
+              source: string
+              suggested_type: string
+            }[]
+          }
       generate_employee_number: { Args: { org_uuid: string }; Returns: string }
       generate_invitation_token: { Args: never; Returns: string }
       generate_job_offer_token: { Args: never; Returns: string }

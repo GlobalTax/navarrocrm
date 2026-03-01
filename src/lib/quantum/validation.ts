@@ -1,31 +1,44 @@
 /**
  * Validación de datos de Quantum Economics usando Zod
+ * Con coerción de tipos para campos que llegan como número desde la API
  */
 
 import { z } from 'zod'
 
+// Helper: acepta string o number, siempre devuelve string
+const coerceToString = z.preprocess(
+  (val) => (val == null ? '' : String(val)),
+  z.string()
+)
+
+// Helper: acepta string o number, devuelve string con min(1)
+const coerceToStringRequired = z.preprocess(
+  (val) => (val == null ? '' : String(val)),
+  z.string().min(1)
+)
+
 // Esquema para validar datos de customer de Quantum
 export const QuantumCustomerSchema = z.object({
-  regid: z.string().min(1, 'RegID requerido'),
-  customerId: z.string().min(1, 'Customer ID requerido'),
+  regid: coerceToStringRequired,
+  customerId: coerceToStringRequired,
   name: z.string().min(1, 'Nombre requerido').max(255, 'Nombre demasiado largo'),
   nif: z.string().optional(),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
-  phone: z.string().optional(),
+  phone: coerceToString.optional(),
   countryISO: z.string().optional(),
   streetType: z.string().optional(),
   streetName: z.string().optional(),
-  streetNumber: z.string().optional(),
-  staircase: z.string().optional(),
-  floor: z.string().optional(),
-  room: z.string().optional(),
-  postCode: z.string().optional(),
-  cityCode: z.string().optional(),
+  streetNumber: coerceToString.optional(),
+  staircase: coerceToString.optional(),
+  floor: coerceToString.optional(),
+  room: coerceToString.optional(),
+  postCode: coerceToString.optional(),
+  cityCode: coerceToString.optional(),
   iban: z.string().optional(),
   swift: z.string().optional(),
   paymentMethod: z.string().optional(),
   family: z.number().optional(),
-  mandateReference: z.string().optional(),
+  mandateReference: coerceToString.optional(),
   mandateDate: z.string().optional()
 })
 
@@ -60,7 +73,7 @@ export const QuantumApiResponseSchema = z.object({
 })
 
 /**
- * Valida un customer de Quantum
+ * Valida un customer de Quantum (con coerción de tipos)
  */
 export const validateQuantumCustomer = (customer: unknown) => {
   return QuantumCustomerSchema.safeParse(customer)

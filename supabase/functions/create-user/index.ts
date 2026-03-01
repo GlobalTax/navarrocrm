@@ -81,6 +81,8 @@ serve(async (req) => {
         id: authUser.user.id,
         email,
         role,
+        first_name: firstName,
+        last_name: lastName,
         org_id: orgId,
         is_active: true
       })
