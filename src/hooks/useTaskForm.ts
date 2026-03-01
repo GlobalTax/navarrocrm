@@ -223,6 +223,23 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
     }
   }
 
+  const prefillFromExtraction = (data: {
+    title: string
+    description: string
+    priority: string
+    due_date: string
+    estimated_hours: number
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      title: data.title || prev.title,
+      description: data.description || prev.description,
+      priority: (['low', 'medium', 'high', 'urgent'].includes(data.priority) ? data.priority : prev.priority) as TaskPriority,
+      due_date: data.due_date || prev.due_date,
+      estimated_hours: data.estimated_hours || prev.estimated_hours
+    }))
+  }
+
   return {
     formData,
     errors,
@@ -230,6 +247,7 @@ export const useTaskForm = ({ task, isOpen, onClose }: UseTaskFormProps) => {
     handleSubmit,
     isCreating,
     isUpdating,
-    isValid: Object.keys(errors).length === 0
+    isValid: Object.keys(errors).length === 0,
+    prefillFromExtraction
   }
 }
