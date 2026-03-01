@@ -176,14 +176,22 @@ export const useProposalActions = () => {
     setIsLoading(true)
     
     try {
-      // Separar line_items del resto de datos
-      const { line_items, ...proposalMainData } = proposalData
+      // Separar line_items y campos que no son columnas de la BD
+      const { line_items, clientId, client, contact, selectedServices, client_id, ...rest } = proposalData
+      
+      // Construir datos limpios para la BD
+      const cleanData: Record<string, any> = { ...rest }
+      
+      // Mapear clientId (camelCase del formulario) a contact_id (columna BD)
+      if (clientId) {
+        cleanData.contact_id = clientId
+      }
       
       // Actualizar la propuesta principal
       const { error: updateError } = await supabase
         .from('proposals')
         .update({
-          ...proposalMainData,
+          ...cleanData,
           updated_at: new Date().toISOString()
         })
         .eq('id', proposalId)
