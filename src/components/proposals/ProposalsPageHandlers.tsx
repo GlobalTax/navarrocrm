@@ -153,9 +153,15 @@ export const useProposalsPageHandlers = ({
     
     console.log('Pasando datos directamente al hook:', recurrentProposalData)
     
-    // Pasar datos directamente al hook - sin wrapper
-    saveRecurrentProposal(recurrentProposalData)
-    closeRecurrentBuilder()
+    // Cerrar builder solo tras éxito
+    saveRecurrentProposal(recurrentProposalData, {
+      onSuccess: () => {
+        closeRecurrentBuilder()
+      },
+      onError: (error: any) => {
+        console.error('Error guardando propuesta:', error)
+      }
+    })
   }
 
   const closeDetailDialog = () => {
