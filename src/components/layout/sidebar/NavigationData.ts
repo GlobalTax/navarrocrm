@@ -73,6 +73,11 @@ export const navigationData: NavigationSection[] = [
         icon: Clock,
       },
       {
+        title: "Cuotas Recurrentes",
+        url: "/recurring-fees",
+        icon: CreditCard,
+      },
+      {
         title: "Calendario",
         url: "/calendar",
         icon: Calendar,
@@ -159,10 +164,10 @@ export const quickActions: QuickAction[] = [
     name: "Nueva Propuesta",
     href: "/proposals/new"
   },
-  // {
-  //   name: "Nueva Cuota",
-  //   href: "/recurring-fees"
-  // },
+  {
+    name: "Nueva Cuota",
+    href: "/recurring-fees"
+  },
   {
     name: "Reservar Sala",
     href: "/rooms"
