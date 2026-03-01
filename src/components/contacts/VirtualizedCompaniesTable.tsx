@@ -104,7 +104,7 @@ const CompanyRow = ({ index, style, data }: CompanyRowProps) => {
       onClick={handleViewCompany}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <Avatar className="h-10 w-10 bg-gradient-to-br from-emerald-500 to-teal-600 border-2 border-white shadow-lg flex-shrink-0">
+        <Avatar className="h-10 w-10 bg-gradient-to-br from-emerald-500 to-teal-600 flex-shrink-0">
           <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-sm font-semibold">
             {getInitials(company.name)}
           </AvatarFallback>
