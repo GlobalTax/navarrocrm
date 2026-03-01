@@ -8,6 +8,7 @@ import { UserEmptyState } from './states/UserEmptyState'
 interface SystemUserTableProps {
   users: any[]
   hasFilters: boolean
+  permissionGroupMap?: Record<string, string>
   onEditUser: (user: any) => void
   onManagePermissions: (user: any) => void
   onViewAudit: (user: any) => void
@@ -20,6 +21,7 @@ interface SystemUserTableProps {
 export const SystemUserTable = ({
   users,
   hasFilters,
+  permissionGroupMap = {},
   onEditUser,
   onManagePermissions,
   onViewAudit,
@@ -89,6 +91,7 @@ export const SystemUserTable = ({
               <TableHead>Apellido</TableHead>
               <TableHead>Correo</TableHead>
               <TableHead>Rol</TableHead>
+              <TableHead>Permisos</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -107,6 +110,11 @@ export const SystemUserTable = ({
                   <TableCell>
                     <Badge className={`${getRoleColor(user.role)} border-[0.5px] rounded-[10px] text-xs`}>
                       {getRoleLabel(user.role)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`${permissionGroupMap[user.id] ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200'} border-[0.5px] rounded-[10px] text-xs`}>
+                      {permissionGroupMap[user.id] || 'Sin asignar'}
                     </Badge>
                   </TableCell>
                   <TableCell>
