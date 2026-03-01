@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Users, Shield } from 'lucide-react'
+import { Users, Shield, Mail } from 'lucide-react'
 import { UserActionsMenu } from './UserActionsMenu'
 import { UserEmptyState } from './states/UserEmptyState'
 import { BulkPermissionAssignDialog } from './BulkPermissionAssignDialog'
+import { BulkSendAccessEmailDialog } from './BulkSendAccessEmailDialog'
 
 interface SystemUserTableProps {
   users: any[]
@@ -20,6 +21,7 @@ interface SystemUserTableProps {
   onDeleteUser: (user: any) => void
   onInviteUser: () => void
   onClearFilters: () => void
+  onSendAccessEmail?: (user: any) => void
 }
 
 export const SystemUserTable = ({
@@ -32,10 +34,12 @@ export const SystemUserTable = ({
   onActivateUser,
   onDeleteUser,
   onInviteUser,
-  onClearFilters
+  onClearFilters,
+  onSendAccessEmail
 }: SystemUserTableProps) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [showBulkPermissions, setShowBulkPermissions] = useState(false)
+  const [showBulkEmail, setShowBulkEmail] = useState(false)
 
   const allSelected = users.length > 0 && selectedIds.size === users.length
   const someSelected = selectedIds.size > 0
@@ -126,6 +130,14 @@ export const SystemUserTable = ({
               <Shield className="h-4 w-4" />
               Asignar permisos
             </Button>
+            <Button
+              size="sm"
+              onClick={() => setShowBulkEmail(true)}
+              className="border-[0.5px] border-black rounded-[10px] gap-1.5"
+            >
+              <Mail className="h-4 w-4" />
+              Enviar email de acceso
+            </Button>
           </div>
         </div>
       )}
@@ -198,6 +210,7 @@ export const SystemUserTable = ({
                         onViewAudit={onViewAudit}
                         onActivate={onActivateUser}
                         onDelete={onDeleteUser}
+                        onSendAccessEmail={onSendAccessEmail}
                       />
                     </TableCell>
                   </TableRow>
@@ -212,6 +225,13 @@ export const SystemUserTable = ({
         open={showBulkPermissions}
         onOpenChange={setShowBulkPermissions}
         selectedUserIds={Array.from(selectedIds)}
+        onComplete={() => setSelectedIds(new Set())}
+      />
+
+      <BulkSendAccessEmailDialog
+        open={showBulkEmail}
+        onOpenChange={setShowBulkEmail}
+        users={users.filter(u => selectedIds.has(u.id))}
         onComplete={() => setSelectedIds(new Set())}
       />
     </>

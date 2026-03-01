@@ -7,7 +7,8 @@ import {
   Trash2,
   UserCog,
   FileText,
-  RefreshCw
+  RefreshCw,
+  Mail
 } from 'lucide-react'
 
 interface UserActionsMenuProps {
@@ -17,6 +18,7 @@ interface UserActionsMenuProps {
   onViewAudit: (user: any) => void
   onActivate: (user: any) => void
   onDelete: (user: any) => void
+  onSendAccessEmail?: (user: any) => void
 }
 
 export const UserActionsMenu = ({ 
@@ -25,7 +27,8 @@ export const UserActionsMenu = ({
   onManagePermissions, 
   onViewAudit, 
   onActivate, 
-  onDelete 
+  onDelete,
+  onSendAccessEmail
 }: UserActionsMenuProps) => {
   return (
     <DropdownMenu>
@@ -43,6 +46,12 @@ export const UserActionsMenu = ({
           <UserCog className="h-4 w-4 mr-2" />
           Permisos
         </DropdownMenuItem>
+        {onSendAccessEmail && (
+          <DropdownMenuItem onClick={() => onSendAccessEmail(user)}>
+            <Mail className="h-4 w-4 mr-2" />
+            Enviar email de acceso
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={() => onViewAudit(user)}>
           <FileText className="h-4 w-4 mr-2" />
           Historial

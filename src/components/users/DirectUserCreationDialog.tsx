@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useDirectUserCreation } from '@/hooks/useDirectUserCreation'
-import { Copy, Eye, EyeOff, CheckCircle, History } from 'lucide-react'
+import { Copy, Eye, EyeOff, CheckCircle, History, Mail, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { SavedCredentialsDialog } from './SavedCredentialsDialog'
+import { supabase } from '@/integrations/supabase/client'
 
 interface DirectUserCreationDialogProps {
   open: boolean
@@ -42,6 +43,8 @@ export const DirectUserCreationDialog: React.FC<DirectUserCreationDialogProps> =
   
   const [showPassword, setShowPassword] = useState(false)
   const [showSavedCredentials, setShowSavedCredentials] = useState(false)
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,14 +76,37 @@ export const DirectUserCreationDialog: React.FC<DirectUserCreationDialogProps> =
   }
 
   const handleClose = () => {
-    // Reset form
     setEmail('')
     setRole('')
     setFirstName('')
     setLastName('')
     setCredentials(null)
     setShowPassword(false)
+    setEmailSent(false)
     onClose()
+  }
+
+  const handleSendCredentialsEmail = async () => {
+    if (!credentials) return
+    setIsSendingEmail(true)
+    try {
+      const { error } = await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          mode: 'credentials',
+          email: credentials.email,
+          password: credentials.password,
+          role,
+          firstName
+        }
+      })
+      if (error) throw error
+      setEmailSent(true)
+      toast.success('Credenciales enviadas por email')
+    } catch (err: any) {
+      toast.error(err.message || 'Error enviando el email')
+    } finally {
+      setIsSendingEmail(false)
+    }
   }
 
   const roles = [
@@ -151,17 +177,34 @@ export const DirectUserCreationDialog: React.FC<DirectUserCreationDialogProps> =
               </p>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button 
-                onClick={handleCopyCredentials}
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleCopyCredentials}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Credenciales
+                </Button>
+                <Button onClick={handleClose} className="flex-1">
+                  Finalizar
+                </Button>
+              </div>
+              <Button
+                onClick={handleSendCredentialsEmail}
                 variant="outline"
-                className="flex-1"
+                disabled={isSendingEmail || emailSent}
+                className="w-full border-[0.5px] border-black rounded-[10px]"
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar Credenciales
-              </Button>
-              <Button onClick={handleClose} className="flex-1">
-                Finalizar
+                {isSendingEmail ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : emailSent ? (
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
+                {emailSent ? 'Email enviado ✓' : 'Enviar credenciales por email'}
               </Button>
             </div>
           </div>
