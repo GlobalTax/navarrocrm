@@ -2,8 +2,6 @@
 import { useMemo } from 'react'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useTimeTrackingPermissions } from '@/hooks/useTimeTrackingPermissions'
-import { useTeams } from '@/hooks/useTeams'
-import { useUsers } from '@/hooks/useUsers'
 import { useTeamMetricsCalculation } from './useTeamMetricsCalculation'
 import { filterTimeEntriesByPeriod, calculateOverallMetrics } from './utils'
 import type { TimeMetrics, TeamMetrics, MetricsPeriod } from './types'
@@ -13,9 +11,8 @@ export type { TimeMetrics, TeamMetrics, MetricsPeriod }
 
 export const useTimeTrackingMetrics = (selectedPeriod: MetricsPeriod = 'week') => {
   const { timeEntries } = useTimeEntries()
-  const { visibleUserIds, visibleTeamIds, accessLevel } = useTimeTrackingPermissions()
-  const { teams, memberships } = useTeams()
-  const { users } = useUsers()
+  const permissions = useTimeTrackingPermissions()
+  const { visibleUserIds, visibleTeamIds, accessLevel, teams, memberships, users } = permissions
 
   // Filter time entries based on period and permissions
   const filteredTimeEntries = useMemo(() => {

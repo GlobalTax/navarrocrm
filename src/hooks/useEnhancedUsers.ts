@@ -58,6 +58,7 @@ export const useEnhancedUsers = (filters: UserFilters) => {
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000,
   })
 
   const activateUser = useMutation({
