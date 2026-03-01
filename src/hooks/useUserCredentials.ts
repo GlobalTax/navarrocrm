@@ -76,21 +76,10 @@ export const useUserCredentials = () => {
     }
   })
 
-  // Función para decodificar contraseña
-  const decodePassword = (encryptedPassword: string) => {
-    try {
-      return atob(encryptedPassword)
-    } catch (error) {
-      console.error('Error decoding password:', error)
-      return 'Error al decodificar'
-    }
-  }
-
   return {
     credentials: credentials || [],
     isLoading,
     error,
     viewCredential: viewCredentialMutation.mutate,
-    decodePassword
   }
 }

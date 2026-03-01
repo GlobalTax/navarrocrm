@@ -102,14 +102,19 @@ serve(async (req) => {
 
     console.log('✅ User created successfully:', authUser.user.id)
 
-    // Almacenar credenciales temporalmente (24 horas)
-    const encryptedPassword = btoa(temporaryPassword) // Simple encoding para la demo
+    // Almacenar credenciales temporalmente (24 horas) con encriptación real
+    const encoder = new TextEncoder()
+    const passwordBytes = encoder.encode(temporaryPassword)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', passwordBytes)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
     const { error: credentialsError } = await supabaseAdmin
       .from('user_credentials_temp')
       .insert({
         user_id: authUser.user.id,
         email,
-        encrypted_password: encryptedPassword,
+        encrypted_password: hashedPassword,
         created_by: (await supabaseAdmin.auth.getUser()).data.user?.id,
         org_id: orgId,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
@@ -118,14 +123,16 @@ serve(async (req) => {
 
     if (credentialsError) {
       console.error('❌ Error storing temporary credentials:', credentialsError)
-      // No fallar la creación por esto, solo loguear
     }
 
+    // Devolver contraseña temporal solo en la respuesta inmediata de creación
+    // El admin la comunica al usuario de forma segura (presencial, llamada, etc.)
     return new Response(
       JSON.stringify({
         email,
-        password: temporaryPassword,
-        userId: authUser.user.id
+        temporaryPassword,
+        userId: authUser.user.id,
+        warning: 'Comunica esta contraseña al usuario de forma segura. No se podrá recuperar después.'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

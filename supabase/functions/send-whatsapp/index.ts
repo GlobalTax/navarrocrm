@@ -22,7 +22,26 @@ serve(async (req) => {
 
   try {
     console.log('🚀 WhatsApp function called')
-    
+
+    // Validar autenticación del usuario
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser()
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { phoneNumber, content, templateName, messageId }: WhatsAppRequest = await req.json()
     
     // Validaciones básicas

@@ -118,14 +118,19 @@ serve(async (req) => {
       throw new Error('Error: No se pudo actualizar la contraseña del usuario')
     }
 
-    // Almacenar credenciales temporalmente (24 horas)
-    const encryptedPassword = btoa(newPassword) // Simple encoding para la demo
+    // Almacenar hash de credenciales temporalmente (24 horas)
+    const encoder = new TextEncoder()
+    const passwordBytes = encoder.encode(newPassword)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', passwordBytes)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
     const { error: credentialsError } = await supabaseAdmin
       .from('user_credentials_temp')
       .insert({
         user_id: userId,
         email: existingUser.email,
-        encrypted_password: encryptedPassword,
+        encrypted_password: hashedPassword,
         created_by: caller.id,
         org_id: orgId,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
@@ -134,7 +139,6 @@ serve(async (req) => {
 
     if (credentialsError) {
       console.error('❌ Error storing temporary credentials:', credentialsError)
-      // No fallar la regeneración por esto, solo loguear
     }
 
     console.log('✅ Password regenerated successfully for user:', userId)
@@ -142,8 +146,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         email: existingUser.email,
-        password: newPassword,
-        userId: userId
+        temporaryPassword: newPassword,
+        userId: userId,
+        warning: 'Comunica esta contraseña al usuario de forma segura. No se podrá recuperar después.'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

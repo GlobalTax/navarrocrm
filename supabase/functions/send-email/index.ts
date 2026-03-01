@@ -22,7 +22,24 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     console.log('📧 [Send Email] Iniciando función de envío de email...');
-    
+
+    // Validar autenticación del usuario
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'No autorizado', success: false, errorCode: 'UNAUTHORIZED' }), {
+        status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+    const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !authUser) {
+      return new Response(JSON.stringify({ error: 'No autorizado', success: false, errorCode: 'UNAUTHORIZED' }), {
+        status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
+    }
+
     // Verificar configuración de Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) {
@@ -100,12 +117,11 @@ const handler = async (req: Request): Promise<Response> => {
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         });
       } catch (testError: any) {
-        console.error('❌ [Send Email] Error en test:', testError);
-        return new Response(JSON.stringify({ 
-          error: `Error en test de configuración: ${testError.message}`,
+        console.error('❌ [Send Email] Error en test:', testError.message);
+        return new Response(JSON.stringify({
+          error: 'Error en test de configuración',
           success: false,
-          errorCode: 'TEST_FAILED',
-          details: testError
+          errorCode: 'TEST_FAILED'
         }), {
           status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -180,20 +196,12 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error('❌ [Send Email] Error completo:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    
-    return new Response(JSON.stringify({ 
-      error: `Error enviando email: ${error.message}`,
+    console.error('❌ [Send Email] Error:', error.message);
+
+    return new Response(JSON.stringify({
+      error: 'Error enviando email',
       success: false,
-      errorCode: 'SEND_FAILED',
-      details: {
-        message: error.message,
-        name: error.name
-      }
+      errorCode: 'SEND_FAILED'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },

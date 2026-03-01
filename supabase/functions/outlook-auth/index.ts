@@ -544,15 +544,12 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error('❌ [outlook-auth] Error crítico:', error)
-    console.error('🔍 [outlook-auth] Error type:', typeof error)
-    console.error('🔍 [outlook-auth] Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
-    
+    console.error('❌ [outlook-auth] Error crítico:', error instanceof Error ? error.message : String(error))
+
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : String(error) || 'Error interno del servidor',
-        type: 'server_error',
-        details: 'Revisar logs de la función para más detalles'
+      JSON.stringify({
+        error: 'Error interno del servidor',
+        type: 'server_error'
       }),
       { 
         status: 500, 

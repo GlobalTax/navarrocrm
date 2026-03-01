@@ -19,7 +19,7 @@ export const SavedCredentialsDialog = ({
   open, 
   onOpenChange 
 }: SavedCredentialsDialogProps) => {
-  const { credentials, isLoading, viewCredential, decodePassword } = useUserCredentials()
+  const { credentials, isLoading, viewCredential } = useUserCredentials()
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set())
 
   const togglePasswordVisibility = (credentialId: string) => {
@@ -133,22 +133,13 @@ export const SavedCredentialsDialog = ({
                     <div>
                       <Label className="text-xs text-muted-foreground">Contraseña temporal</Label>
                       <div className="flex items-center gap-2 mt-1">
-                        <Input 
-                          type={isPasswordVisible ? "text" : "password"}
-                          value={isPasswordVisible ? decodePassword(credential.encrypted_password) : '••••••••••••'} 
-                          readOnly 
-                          className="font-mono text-sm"
+                        <Input
+                          type="text"
+                          value="Solo disponible en el momento de creación"
+                          readOnly
+                          disabled
+                          className="font-mono text-sm text-muted-foreground"
                         />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => togglePasswordVisibility(credential.id)}
-                          className="h-9 w-9"
-                          disabled={isCredentialExpired}
-                        >
-                          {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
                       </div>
                     </div>
                   </div>
@@ -172,18 +163,18 @@ export const SavedCredentialsDialog = ({
                       )}
                     </div>
                     
-                    <Button 
-                      onClick={() => copyCredentials(
-                        credential.email, 
-                        decodePassword(credential.encrypted_password)
-                      )}
+                    <Button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`Usuario: ${credential.email}`)
+                        toast.success('Email copiado al portapapeles')
+                      }}
                       variant="outline"
                       size="sm"
                       className="text-xs"
                       disabled={isCredentialExpired}
                     >
                       <Copy className="h-3 w-3 mr-1" />
-                      Copiar
+                      Copiar email
                     </Button>
                   </div>
                 </div>
