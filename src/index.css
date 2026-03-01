@@ -8,8 +8,8 @@
 
 @font-face {
   font-family: 'General Sans';
-  src: url('/fonts/GeneralSans-Medium.otf') format('opentype');
-  font-weight: 500;
+  src: url('/fonts/GeneralSans-Regular.otf') format('opentype');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -141,7 +141,7 @@
     font-weight: 300;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 500;
+    font-weight: 400;
   }
 }
 
@@ -188,15 +188,15 @@
 
   /* Typography classes for consistent text sizing */
   .crm-page-title {
-    @apply text-3xl font-medium text-foreground;
+    @apply text-3xl font-normal text-foreground;
   }
 
   .crm-section-title {
-    @apply text-xl font-medium text-foreground;
+    @apply text-xl font-normal text-foreground;
   }
 
   .crm-card-title {
-    @apply text-lg font-medium text-foreground;
+    @apply text-lg font-normal text-foreground;
   }
 
   .crm-body-text {
@@ -213,7 +213,7 @@
 
   /* Compact typography for dense layouts */
   .crm-table-header {
-    @apply text-xs font-medium text-muted-foreground uppercase tracking-wide;
+    @apply text-xs font-normal text-muted-foreground uppercase tracking-wide;
   }
 
   .crm-table-cell {
@@ -225,7 +225,7 @@
   }
 
   .crm-compact-title {
-    @apply text-base font-medium text-foreground;
+    @apply text-base font-normal text-foreground;
   }
 
   .crm-compact-text {
@@ -246,7 +246,7 @@
 
   /* Responsive title that adapts to screen size */
   .crm-responsive-title {
-    @apply text-2xl sm:text-3xl font-medium text-foreground;
+    @apply text-2xl sm:text-3xl font-normal text-foreground;
   }
 
   /* Status-specific colors using semantic tokens */
