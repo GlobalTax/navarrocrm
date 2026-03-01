@@ -37,7 +37,7 @@ export const useTimeTrackingMetrics = (selectedPeriod: string = 'week') => {
 
   const filteredTimeEntries = useMemo(() => {
     const now = new Date()
-    let startDate = new Date()
+    const startDate = new Date()
     
     switch (selectedPeriod) {
       case 'today':

@@ -20,9 +20,7 @@ Sentry.init({
 // Initialize route optimization - SAFE MODE
 try {
   initializeRouteOptimization()
-  console.log('✅ [Main] Route optimization initialized successfully')
-} catch (error) {
-  console.error('❌ [Main] Route optimization failed:', error)
+} catch {
   // Continue without optimization to avoid breaking the app
 }
 

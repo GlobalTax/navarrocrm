@@ -1684,6 +1684,73 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_classification_reviews: {
+        Row: {
+          confidence: number
+          contact_id: string
+          created_at: string
+          current_client_type: string
+          id: string
+          org_id: string
+          reason: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: string
+          suggested_client_type: string
+        }
+        Insert: {
+          confidence?: number
+          contact_id: string
+          created_at?: string
+          current_client_type: string
+          id?: string
+          org_id: string
+          reason?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          suggested_client_type: string
+        }
+        Update: {
+          confidence?: number
+          contact_id?: string
+          created_at?: string
+          current_client_type?: string
+          id?: string
+          org_id?: string
+          reason?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: string
+          suggested_client_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_classification_reviews_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_classification_reviews_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_classification_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_documents: {
         Row: {
           contact_id: string
@@ -2118,6 +2185,136 @@ export type Database = {
           created_at?: string | null
           deal_id?: string
           employee_id?: string
+          id?: string
+          participation_pct?: number
+          role_in_deal?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_participants_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_participants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_participants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "deal_participants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_costs_summary"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          client_name: string | null
+          close_date: string | null
+          created_at: string | null
+          deal_name: string
+          deal_type: string | null
+          fiscal_year: number | null
+          id: string
+          lead_partner_id: string | null
+          notes: string | null
+          status: string
+          success_fee_pool: number | null
+          total_fees: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_name?: string | null
+          close_date?: string | null
+          created_at?: string | null
+          deal_name: string
+          deal_type?: string | null
+          fiscal_year?: number | null
+          id?: string
+          lead_partner_id?: string | null
+          notes?: string | null
+          status?: string
+          success_fee_pool?: number | null
+          total_fees?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_name?: string | null
+          close_date?: string | null
+          created_at?: string | null
+          deal_name?: string
+          deal_type?: string | null
+          fiscal_year?: number | null
+          id?: string
+          lead_partner_id?: string | null
+          notes?: string | null
+          status?: string
+          success_fee_pool?: number | null
+          total_fees?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_lead_partner_id_fkey"
+            columns: ["lead_partner_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_lead_partner_id_fkey"
+            columns: ["lead_partner_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "deals_lead_partner_id_fkey"
+            columns: ["lead_partner_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_costs_summary"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      deed_assignees: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          deed_id: string
+          id: string
+          org_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          deed_id: string
+          id?: string
+          org_id: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          deed_id?: string
           id?: string
           participation_pct?: number
           role_in_deal?: string | null
@@ -7178,6 +7375,197 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          org_id: string | null
+          route: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          org_id?: string | null
+          route: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          org_id?: string | null
+          route?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      performance_reviews: {
+        Row: {
+          areas_improvement: string | null
+          bonus_multiplier: number | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          performance_score: number | null
+          review_date: string | null
+          review_period: string
+          reviewer_id: string | null
+          strengths: string | null
+        }
+        Insert: {
+          areas_improvement?: string | null
+          bonus_multiplier?: number | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          performance_score?: number | null
+          review_date?: string | null
+          review_period: string
+          reviewer_id?: string | null
+          strengths?: string | null
+        }
+        Update: {
+          areas_improvement?: string | null
+          bonus_multiplier?: number | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          performance_score?: number | null
+          review_date?: string | null
+          review_period?: string
+          reviewer_id?: string | null
+          strengths?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_costs_summary"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_costs_summary"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      permission_group_items: {
+        Row: {
+          group_id: string
+          id: string
+          module: string
+          permission: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          module: string
+          permission: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          module?: string
+          permission?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_group_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permission_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_groups_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personas: {
         Row: {
           created_at: string | null
@@ -9288,6 +9676,98 @@ export type Database = {
           },
         ]
       }
+      scheduled_exports: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          export_type: string
+          frequency: string
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          last_run_error: string | null
+          last_run_status: string | null
+          metadata: Json | null
+          next_run_at: string | null
+          org_id: string | null
+          recipient_emails: string[]
+          schedule_day: number
+          schedule_time: string
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          export_type: string
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_error?: string | null
+          last_run_status?: string | null
+          metadata?: Json | null
+          next_run_at?: string | null
+          org_id?: string | null
+          recipient_emails?: string[]
+          schedule_day: number
+          schedule_time?: string
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          export_type?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_error?: string | null
+          last_run_status?: string | null
+          metadata?: Json | null
+          next_run_at?: string | null
+          org_id?: string | null
+          recipient_emails?: string[]
+          schedule_day?: number
+          schedule_time?: string
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_exports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_exports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "vw_company_costs_monthly"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "scheduled_exports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "vw_costs_by_company_year"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "scheduled_exports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "vw_employee_annual"
+            referencedColumns: ["company_id"]
+          },
+        ]
+      }
       scheduled_reports: {
         Row: {
           created_at: string
@@ -10776,6 +11256,48 @@ export type Database = {
           },
         ]
       }
+      user_permission_groups: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          group_id: string
+          id: string
+          org_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          org_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          org_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permission_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "permission_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_groups_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_permissions: {
         Row: {
           created_at: string
@@ -11564,6 +12086,35 @@ export type Database = {
       cleanup_expired_invitations: { Args: never; Returns: number }
       cleanup_expired_onboarding: { Args: never; Returns: number }
       cleanup_expired_tokens: { Args: never; Returns: undefined }
+      detect_misclassified_contacts:
+        | {
+            Args: { org_uuid: string }
+            Returns: {
+              confidence: number
+              contact_id: string
+              contact_name: string
+              current_type: string
+              reason: string
+              suggested_type: string
+            }[]
+          }
+        | {
+            Args: {
+              max_results?: number
+              min_confidence?: number
+              org_uuid: string
+              source_filter?: string
+            }
+            Returns: {
+              confidence: number
+              contact_id: string
+              contact_name: string
+              current_type: string
+              matched_pattern: string
+              source: string
+              suggested_type: string
+            }[]
+          }
       generate_employee_number: { Args: { org_uuid: string }; Returns: string }
       generate_invitation_token: { Args: never; Returns: string }
       generate_job_offer_token: { Args: never; Returns: string }

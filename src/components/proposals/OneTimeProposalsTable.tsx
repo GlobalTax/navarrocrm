@@ -21,6 +21,7 @@ interface OneTimeProposalsTableProps {
   onViewProposal: (proposal: any) => void
   onEditProposal?: (proposal: any) => void
   onDuplicateProposal?: (proposal: any) => void
+  onDeleteProposal?: (proposal: any) => void
 }
 
 export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
@@ -28,7 +29,8 @@ export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
   onStatusChange,
   onViewProposal,
   onEditProposal = () => {},
-  onDuplicateProposal = () => {}
+  onDuplicateProposal = () => {},
+  onDeleteProposal
 }) => {
   if (proposals.length === 0) {
     return (
@@ -85,6 +87,7 @@ export const OneTimeProposalsTable: React.FC<OneTimeProposalsTableProps> = ({
                   onViewProposal={onViewProposal}
                   onEditProposal={onEditProposal}
                   onDuplicateProposal={onDuplicateProposal}
+                  onDeleteProposal={onDeleteProposal}
                   onStatusChange={onStatusChange}
                 />
               </TableCell>

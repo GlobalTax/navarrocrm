@@ -20,7 +20,6 @@ export const useInfiniteCompanies = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sectorFilter, setSectorFilter] = useState<string>('all')
   
-  // Debounce search to avoid excessive API calls
   const debouncedSearchTerm = useDebounced(searchTerm, 300)
 
   const {
@@ -34,10 +33,7 @@ export const useInfiniteCompanies = () => {
   } = useInfiniteQuery({
     queryKey: ['infinite-companies', user?.org_id, debouncedSearchTerm, statusFilter, sectorFilter],
     queryFn: async ({ pageParam = 0 }): Promise<CompaniesPage> => {
-      console.log('🔄 Fetching companies page:', pageParam, 'for org:', user?.org_id)
-      
       if (!user?.org_id) {
-        console.log('❌ No org_id available')
         return { companies: [], nextCursor: null, hasMore: false }
       }
 

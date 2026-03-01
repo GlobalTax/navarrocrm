@@ -56,19 +56,17 @@ export function useRenderOptimization(componentName?: string) {
 export function useStableFunctions<T extends Record<string, (...args: any[]) => any>>(
   functions: T
 ): T {
-  const stableFunctions = useRef<T>()
-  
-  return useMemo(() => {
-    if (!stableFunctions.current) {
-      stableFunctions.current = {} as T
-      
-      for (const [key, fn] of Object.entries(functions)) {
-        stableFunctions.current[key as keyof T] = useCallback(fn, []) as T[keyof T]
-      }
+  const stableFunctionsRef = useRef<T | null>(null)
+
+  if (!stableFunctionsRef.current) {
+    const stable = {} as T
+    for (const [key, fn] of Object.entries(functions)) {
+      stable[key as keyof T] = ((...args: any[]) => fn(...args)) as T[keyof T]
     }
-    
-    return stableFunctions.current
-  }, [])
+    stableFunctionsRef.current = stable
+  }
+
+  return stableFunctionsRef.current
 }
 
 // Hook para callbacks optimizados con dependencias complejas
@@ -78,30 +76,21 @@ export function useOptimizedCallback<T extends (...args: any[]) => any>(
   debugName?: string
 ): T {
   const logger = useLogger('OptimizedCallback')
-  const prevDepsRef = useRef<React.DependencyList>()
-  const callbackRef = useRef<T>()
+  const callbackRef = useRef<T>(callback)
 
-  return useMemo(() => {
-    const depsChanged = !prevDepsRef.current || 
-      deps.some((dep, index) => dep !== prevDepsRef.current![index])
+  // Update the ref when deps change
+  const memoizedCallback = useCallback((...args: any[]) => {
+    return callbackRef.current(...args)
+  }, deps) as T
 
-    if (depsChanged) {
-      if (debugName && prevDepsRef.current) {
-        logger.debug(`Callback recreated: ${debugName}`, {
-          depsLength: deps.length,
-          recreationCount: (callbackRef.current as any)?._recreations || 1
-        })
-      }
-      
-      const newCallback = useCallback(callback, deps) as T
-      ;(newCallback as any)._recreations = ((callbackRef.current as any)?._recreations || 0) + 1
-      
-      callbackRef.current = newCallback
-      prevDepsRef.current = deps
-    }
+  // Track the latest callback
+  callbackRef.current = callback
 
-    return callbackRef.current!
-  }, deps)
+  if (debugName) {
+    logger.debug(`Callback: ${debugName}`, { depsLength: deps.length })
+  }
+
+  return memoizedCallback
 }
 
 // Hook para valores memoizados con invalidación inteligente

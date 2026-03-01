@@ -83,7 +83,17 @@ export const ServicesList: React.FC<ServicesListProps> = ({
   }
 
   const handleCheckboxChange = (service: any, checked: boolean | string) => {
-    onServiceToggle(service.id, service)
+    const isSelected = selectedServices.includes(service.id)
+    const shouldBeSelected = checked === true
+
+    // Evitar doble toggle cuando checkbox y card disparan eventos en cascada
+    if (shouldBeSelected && !isSelected) {
+      onServiceToggle(service.id, service)
+    }
+
+    if (!shouldBeSelected && isSelected) {
+      onServiceToggle(service.id, service)
+    }
   }
 
   if (isLoading) {
@@ -135,24 +145,29 @@ export const ServicesList: React.FC<ServicesListProps> = ({
           <div className="space-y-4">
             {availableServices.map((service) => {
               const isSelected = selectedServices.includes(service.id)
-              
+
               return (
                 <div
                   key={service.id}
                   className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-sm ${
-                    isSelected 
-                      ? 'border-blue-500 bg-blue-50' 
+                    isSelected
+                      ? 'border-blue-500 bg-blue-50'
                       : 'hover:border-gray-300'
                   }`}
-                  onClick={() => handleServiceClick(service)}
+                  onClick={(e) => {
+                    const target = e.target as HTMLElement
+                    if (target.closest('[data-service-checkbox="true"]')) return
+                    handleServiceClick(service)
+                  }}
                 >
                   <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={(checked) => handleCheckboxChange(service, checked)}
-                      className="mt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    <div data-service-checkbox="true" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) => handleCheckboxChange(service, checked)}
+                        className="mt-1"
+                      />
+                    </div>
                     
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">

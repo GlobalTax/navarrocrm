@@ -1,11 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Plus, Filter, Users } from 'lucide-react'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Users } from 'lucide-react'
 import { UserActionsMenu } from './UserActionsMenu'
 import { UserEmptyState } from './states/UserEmptyState'
-import { formatDistanceToNow } from 'date-fns'
-import { es } from 'date-fns/locale'
 
 interface SystemUserTableProps {
   users: any[]
@@ -84,62 +82,53 @@ export const SystemUserTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="space-y-2 p-6">
-          {users.map((user) => {
-            const systemStatus = getSystemStatus(user)
-            
-            return (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-[10px] hover-lift transition-all duration-200 bg-white"
-              >
-                <div className="flex-1 space-y-2">
-                  {/* Línea principal */}
-                  <div className="flex items-center gap-3">
-                    <div className="font-medium text-foreground">
-                      {user.email}
-                    </div>
-                    <Badge className={`${getRoleColor(user.role)} border-0.5 rounded-[10px] text-xs`}>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Apellido</TableHead>
+              <TableHead>Correo</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => {
+              const systemStatus = getSystemStatus(user)
+              return (
+                <TableRow
+                  key={user.id}
+                  className={!user.is_active ? 'bg-destructive/5' : ''}
+                >
+                  <TableCell className="font-medium">{user.first_name || '-'}</TableCell>
+                  <TableCell>{user.last_name || '-'}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge className={`${getRoleColor(user.role)} border-[0.5px] rounded-[10px] text-xs`}>
                       {getRoleLabel(user.role)}
                     </Badge>
-                    <Badge className={`${systemStatus.color} border-0.5 rounded-[10px] text-xs`}>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`${systemStatus.color} border-[0.5px] rounded-[10px] text-xs`}>
                       {systemStatus.label}
                     </Badge>
-                  </div>
-                  
-                  {/* Línea secundaria con información técnica */}
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>ID: {user.id.slice(0, 8)}...</span>
-                    <span>
-                      Creado: {formatDistanceToNow(new Date(user.created_at), { 
-                        addSuffix: true, 
-                        locale: es 
-                      })}
-                    </span>
-                    {user.last_login && (
-                      <span>
-                        Último acceso: {formatDistanceToNow(new Date(user.last_login), { 
-                          addSuffix: true, 
-                          locale: es 
-                        })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Menú de acciones */}
-                <UserActionsMenu
-                  user={user}
-                  onEdit={onEditUser}
-                  onManagePermissions={onManagePermissions}
-                  onViewAudit={onViewAudit}
-                  onActivate={onActivateUser}
-                  onDelete={onDeleteUser}
-                />
-              </div>
-            )
-          })}
-        </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <UserActionsMenu
+                      user={user}
+                      onEdit={onEditUser}
+                      onManagePermissions={onManagePermissions}
+                      onViewAudit={onViewAudit}
+                      onActivate={onActivateUser}
+                      onDelete={onDeleteUser}
+                    />
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )

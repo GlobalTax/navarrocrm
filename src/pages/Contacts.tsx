@@ -20,6 +20,7 @@ import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
 
 import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
+import { ClassificationReviewPanel } from '@/components/contacts/ClassificationReviewPanel'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -72,12 +73,10 @@ const Contacts = () => {
     setSelectedPerson(null)
     setSelectedCompany(null)
     refetch()
-    refetchAll()
   }
 
   const handleBulkUploadSuccess = () => {
     refetch()
-    refetchAll()
   }
 
   const handleStartImprovedOnboarding = () => {
@@ -86,14 +85,12 @@ const Contacts = () => {
 
   const handleCloseImprovedOnboarding = () => {
     setIsImprovedOnboardingOpen(false)
-    refetch() // Refrescar datos después del onboarding
-    refetchAll()
+    refetch()
   }
 
   const handleQuantumImportClose = () => {
     setIsQuantumImportOpen(false)
-    refetch() // Refrescar datos después de la importación
-    refetchAll()
+    refetch()
   }
 
   return (
@@ -124,7 +121,7 @@ const Contacts = () => {
 
       {/* Métricas rápidas y estado de sincronización */}
       <div className="space-y-6 mb-6">
-        <ContactQuickMetrics contacts={allContacts} />
+        <ContactQuickMetrics contacts={contacts} />
         <DuplicateAlert />
         <QuantumSyncStatus />
       </div>
@@ -157,7 +154,8 @@ const Contacts = () => {
 
         {/* Tab de Migración */}
         {activeTab === 'migration' && (
-          <div className="mt-6">
+          <div className="mt-6 space-y-6">
+            <ClassificationReviewPanel />
             <MigrationDashboard />
           </div>
         )}
