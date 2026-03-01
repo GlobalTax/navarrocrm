@@ -22,6 +22,8 @@ interface UserFormDialogProps {
 export const UserFormDialog = ({ open, onOpenChange, user, onClose }: UserFormDialogProps) => {
   const { user: currentUser } = useApp()
   const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [role, setRole] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -36,9 +38,13 @@ export const UserFormDialog = ({ open, onOpenChange, user, onClose }: UserFormDi
   useEffect(() => {
     if (user) {
       setEmail(user.email || '')
+      setFirstName(user.first_name || '')
+      setLastName(user.last_name || '')
       setRole(user.role || '')
     } else {
       setEmail('')
+      setFirstName('')
+      setLastName('')
       setRole('')
     }
     // Limpiar credenciales al cambiar de usuario
@@ -58,7 +64,7 @@ export const UserFormDialog = ({ open, onOpenChange, user, onClose }: UserFormDi
         // Actualizar usuario existente
         const { error } = await supabase
           .from('users')
-          .update({ role })
+          .update({ role, first_name: firstName, last_name: lastName })
           .eq('id', user.id)
 
         if (error) throw error
@@ -192,6 +198,27 @@ export const UserFormDialog = ({ open, onOpenChange, user, onClose }: UserFormDi
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Nombre</Label>
+              <Input
+                id="firstName"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="Nombre"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Apellido</Label>
+              <Input
+                id="lastName"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Apellido"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -200,7 +227,7 @@ export const UserFormDialog = ({ open, onOpenChange, user, onClose }: UserFormDi
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="usuario@ejemplo.com"
-              disabled={!!user} // Email no editable para usuarios existentes
+              disabled={!!user}
               required
             />
           </div>
