@@ -1,26 +1,32 @@
 
-## Convertir SystemUserTable a tabla inline
 
-### Problema
-La pagina `/system-users` usa el componente `SystemUserTable.tsx`, que es diferente al `UserTable.tsx` que ya se actualizo. Este componente sigue mostrando tarjetas (cards) en vez de una tabla inline.
+## Corregir nombres/apellidos y edicion de usuarios
 
-### Solucion
+### Problemas encontrados
 
-**Archivo: `src/components/users/SystemUserTable.tsx`**
+1. **Los nombres no se guardan al crear usuarios**: La edge function `create-user` recibe `firstName` y `lastName` pero NO los incluye en el INSERT a la tabla `users` (linea 80-86). Solo guarda `id`, `email`, `role`, `org_id` e `is_active`.
 
-Reemplazar el layout de cards (`div` + `space-y-2`) por una tabla HTML real usando los componentes `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell`.
+2. **El formulario de edicion no permite modificar nombres**: El dialogo `UserFormDialog` solo muestra email (no editable) y rol. No tiene campos para nombre ni apellido, y el UPDATE solo modifica el `role`.
 
-**Columnas:**
-| Nombre | Apellido | Correo | Rol | Estado | Acciones |
+### Cambios
 
-**Cambios concretos:**
-- Importar componentes de tabla desde `@/components/ui/table`
-- Eliminar imports no usados (`formatDistanceToNow`, `es`)
-- Reemplazar el `div.space-y-2` (lineas 87-142) por una estructura `Table` con filas por usuario
-- Mostrar `first_name`, `last_name`, `email` en columnas separadas
-- Mantener badges de rol y estado con los colores existentes
-- Mantener el `UserActionsMenu` en la columna de acciones
-- Resaltado rojo sutil para usuarios inactivos (`bg-destructive/5`)
-- Estilo consistente con el sistema de diseno: `border-[0.5px] border-black rounded-[10px]`
+**1. Edge Function `supabase/functions/create-user/index.ts`**
+- Agregar `first_name` y `last_name` al objeto del INSERT (linea 80-86)
 
-Basicamente se replica la misma estructura que ya tiene `UserTable.tsx` pero adaptada a `SystemUserTable.tsx`, manteniendo la logica de `getSystemStatus` que incluye deteccion de inactividad por dias.
+**2. Redesplegar la edge function**
+- Tras el cambio, redesplegar `create-user`
+
+**3. Formulario de edicion `src/components/users/UserFormDialog.tsx`**
+- Agregar estados `firstName` y `lastName` que se inicialicen con `user.first_name` y `user.last_name`
+- Agregar campos de input para nombre y apellido en el formulario
+- Incluir `first_name` y `last_name` en el UPDATE de Supabase junto con el `role`
+
+**4. Actualizar usuarios existentes (one-time fix)**
+- Ejecutar un UPDATE SQL en Supabase que ponga los nombres correctos a los usuarios ya creados, usando los datos de `PRELOADED_USERS` que ya estan definidos en `UserBulkPreloaded.tsx`
+- Esto se hara mediante una query SQL directa
+
+### Resultado
+- Los nuevos usuarios se crearan con nombre y apellido
+- Los usuarios existentes se podran editar (nombre, apellido, rol)
+- Los usuarios de NRRO ya creados tendran sus nombres rellenados
+
