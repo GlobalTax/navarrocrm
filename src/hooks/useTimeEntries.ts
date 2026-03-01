@@ -14,7 +14,7 @@ export interface TimeEntry {
   duration_minutes: number
   is_billable: boolean
   billing_status: 'unbilled' | 'billed' | 'invoiced'
-  entry_type: 'billable' | 'office_admin' | 'business_development' | 'internal'
+  entry_type: string | null
   created_at: string
   updated_at: string
   case?: {
@@ -32,7 +32,7 @@ export interface CreateTimeEntryData {
   description?: string
   duration_minutes: number
   is_billable?: boolean
-  entry_type?: 'billable' | 'office_admin' | 'business_development' | 'internal'
+  entry_type?: string
   service_contract_id?: string | null
   service_type?: 'accounting' | 'tax' | 'labor' | null
   recurring_fee_id?: string | null
