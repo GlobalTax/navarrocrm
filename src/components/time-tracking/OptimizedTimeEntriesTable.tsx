@@ -111,15 +111,11 @@ export const OptimizedTimeEntriesTable = () => {
           <div className="flex items-center gap-4">
             <div className="text-center">
               <div className="text-lg font-bold text-blue-600">{stats.total}h</div>
-              <div className="text-xs text-gray-500">Total</div>
+              <div className="text-xs text-muted-foreground">Total</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-green-600">{stats.billable}h</div>
-              <div className="text-xs text-gray-500">Facturable</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-purple-600">{stats.rate}%</div>
-              <div className="text-xs text-gray-500">Tasa</div>
+              <div className="text-lg font-bold text-muted-foreground">{stats.entries}</div>
+              <div className="text-xs text-muted-foreground">Entradas</div>
             </div>
           </div>
         </div>
@@ -151,10 +147,6 @@ export const OptimizedTimeEntriesTable = () => {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <span className="text-gray-600">
-                        <DollarSign className="h-3 w-3 inline mr-1" />
-                        {formatDuration(dayBillableMinutes)}
-                      </span>
                       <span className="font-medium">
                         Total: {formatDuration(dayMinutes)}
                       </span>
@@ -170,7 +162,7 @@ export const OptimizedTimeEntriesTable = () => {
                           <TableHead>Descripción</TableHead>
                           <TableHead className="w-32">Caso</TableHead>
                           <TableHead className="w-20">Tiempo</TableHead>
-                          <TableHead className="w-24">Tipo</TableHead>
+                          <TableHead className="w-20">Tiempo</TableHead>
                           <TableHead className="w-28">Estado</TableHead>
                           <TableHead className="w-16"></TableHead>
                         </TableRow>
@@ -206,14 +198,6 @@ export const OptimizedTimeEntriesTable = () => {
                               <span className="font-mono text-sm font-medium">
                                 {formatDuration(entry.duration_minutes)}
                               </span>
-                            </TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={entry.is_billable ? 'default' : 'secondary'}
-                                className="text-xs"
-                              >
-                                {entry.is_billable ? 'Fact.' : 'No fact.'}
-                              </Badge>
                             </TableCell>
                             <TableCell>
                               {entry.is_billable && entry.billing_status ? (
