@@ -14,6 +14,7 @@ import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesA
 import { RecurringFeesFilters } from '@/components/recurring-fees/RecurringFeesFilters'
 import { RecurringFeesList } from '@/components/recurring-fees/RecurringFeesList'
 import { RecurringFeesDashboard } from '@/components/recurring-fees/RecurringFeesDashboard'
+import { RecurringFeesHoursChart } from '@/components/recurring-fees/RecurringFeesHoursChart'
 import { StandardPageContainer } from '@/components/layout/StandardPageContainer'
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Link } from 'react-router-dom'
@@ -189,6 +190,8 @@ const RecurrentFees = () => {
       />
 
       <RecurringFeesDashboard fees={recurringFees} hoursMap={hoursMap} />
+
+      <RecurringFeesHoursChart fees={recurringFees} hoursMap={hoursMap} />
 
       <QuickTimeEntry fees={recurringFees} />
 
