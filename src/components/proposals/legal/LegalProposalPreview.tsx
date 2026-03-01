@@ -15,6 +15,13 @@ interface SelectedService {
   total: number
 }
 
+interface ClientInfo {
+  name: string
+  nif?: string
+  email?: string
+  phone?: string
+}
+
 interface LegalProposalPreviewProps {
   title: string
   clientName: string
@@ -30,6 +37,7 @@ interface LegalProposalPreviewProps {
     contractDuration: number
   }
   validityDays: number
+  client?: ClientInfo
   onGeneratePDF: () => void
   onSendProposal: () => void
 }
@@ -43,6 +51,7 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
   selectedServices = [],
   retainerConfig,
   validityDays,
+  client,
   onGeneratePDF,
   onSendProposal
 }) => {
@@ -148,7 +157,10 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b">
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Cliente:</h4>
-              <p className="text-gray-700">{clientName}</p>
+              <p className="text-gray-700 font-medium">{client?.name || clientName}</p>
+              {client?.nif && <p className="text-sm text-gray-500">NIF/CIF: {client.nif}</p>}
+              {client?.email && <p className="text-sm text-gray-500">{client.email}</p>}
+              {client?.phone && <p className="text-sm text-gray-500">{client.phone}</p>}
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Área de Práctica:</h4>
