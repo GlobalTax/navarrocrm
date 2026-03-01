@@ -6,6 +6,7 @@ export interface NavigationItem {
   icon: any
   badge?: string
   isActive?: boolean
+  allowedRoles?: string[]
 }
 
 export interface NavigationSection {
@@ -76,6 +77,7 @@ export const navigationData: NavigationSection[] = [
         title: "Cuotas Recurrentes",
         url: "/recurring-fees",
         icon: CreditCard,
+        allowedRoles: ['partner'],
       },
       {
         title: "Calendario",
@@ -111,6 +113,7 @@ export const navigationData: NavigationSection[] = [
         title: "Usuarios del Sistema",
         url: "/system-users",
         icon: UserCog,
+        allowedRoles: ['partner'],
       },
       {
         title: "Integraciones",
@@ -136,6 +139,7 @@ export const navigationData: NavigationSection[] = [
         title: "Admin Academia",
         url: "/academia/admin",
         icon: Wrench,
+        allowedRoles: ['partner'],
       },
       {
         title: "Asistente IA",
@@ -146,6 +150,7 @@ export const navigationData: NavigationSection[] = [
         title: "Admin IA",
         url: "/ai-admin",
         icon: Shield,
+        allowedRoles: ['partner'],
       },
     ]
   }
