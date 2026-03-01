@@ -17,6 +17,7 @@ import { useCasesList } from '@/features/cases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useRecurringFeesForTimer } from '@/hooks/recurringFees/useRecurringFeesForTimer'
 import { useApp } from '@/contexts/AppContext'
+import { useActivityTypes } from '@/hooks/useActivityTypes'
 import { supabase } from '@/integrations/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -81,7 +82,7 @@ export const ModernTimer = () => {
   const [selectedRecurringFeeId, setSelectedRecurringFeeId] = useState<string>('no-fee')
   const [description, setDescription] = useState('')
   
-  const [entryType, setEntryType] = useState<'billable' | 'office_admin' | 'business_development' | 'internal'>('billable')
+  const [entryType, setEntryType] = useState<string>('billable')
   const [showMoreOptions, setShowMoreOptions] = useState(false)
 
   // Estado cronómetro
@@ -94,6 +95,7 @@ export const ModernTimer = () => {
   const { createTimeEntry, isCreating } = useTimeEntries()
   const { activeFees } = useRecurringFeesForTimer()
   const { data: metrics } = useQuickMetrics()
+  const { availableTypes } = useActivityTypes()
 
   const handleRecurringFeeChange = (value: string) => {
     setSelectedRecurringFeeId(value)
@@ -374,15 +376,21 @@ export const ModernTimer = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Tipo de actividad</Label>
-                  <Select value={entryType} onValueChange={(v: any) => setEntryType(v)}>
+                  <Select value={entryType} onValueChange={setEntryType}>
                     <SelectTrigger className="border-[0.5px] border-black rounded-[10px] h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="billable">Facturable</SelectItem>
-                      <SelectItem value="office_admin">Admin. Oficina</SelectItem>
-                      <SelectItem value="business_development">Desarrollo Negocio</SelectItem>
-                      <SelectItem value="internal">Interno</SelectItem>
+                      {availableTypes.map((t) => (
+                        <SelectItem key={t.id} value={t.category}>
+                          <span className="flex items-center gap-2">
+                            {t.color && (
+                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                            )}
+                            {t.name}
+                          </span>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

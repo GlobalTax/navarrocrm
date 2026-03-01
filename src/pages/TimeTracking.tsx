@@ -14,7 +14,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Clock, Timer, DollarSign } from 'lucide-react'
+import { Clock, Timer, DollarSign, Settings2 } from 'lucide-react'
 import { toast } from 'sonner'
 // import { TimePlanningTab } from '@/components/time-tracking/TimePlanningTab'
 import { Link } from 'react-router-dom'
@@ -22,6 +22,7 @@ import { Link } from 'react-router-dom'
 import { BillingActions } from '@/components/time/BillingActions'
 import { EnhancedTimeTrackingFilters } from '@/components/time-tracking/EnhancedTimeTrackingFilters'
 import { useUIPreferences } from '@/hooks/useUIPreferences'
+import { ActivityTypesManager } from '@/components/settings/ActivityTypesManager'
 
 export default function TimeTracking() {
   const {
@@ -79,7 +80,7 @@ export default function TimeTracking() {
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="timer" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Timer
@@ -91,6 +92,10 @@ export default function TimeTracking() {
           <TabsTrigger value="billing" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             Facturación
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4" />
+            Tipos
           </TabsTrigger>
         </TabsList>
 
@@ -107,6 +112,10 @@ export default function TimeTracking() {
 
         <TabsContent value="billing" className="space-y-6">
           <BillingActions timeEntries={timeEntries} />
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <ActivityTypesManager />
         </TabsContent>
       </Tabs>
 

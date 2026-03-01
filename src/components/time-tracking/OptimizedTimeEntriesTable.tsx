@@ -162,7 +162,7 @@ export const OptimizedTimeEntriesTable = () => {
                           <TableHead>Descripción</TableHead>
                           <TableHead className="w-32">Caso</TableHead>
                           <TableHead className="w-20">Tiempo</TableHead>
-                          <TableHead className="w-20">Tiempo</TableHead>
+                          <TableHead className="w-28">Estado</TableHead>
                           <TableHead className="w-28">Estado</TableHead>
                           <TableHead className="w-16"></TableHead>
                         </TableRow>
