@@ -115,7 +115,7 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ fontFamily: "'Manrope', Arial, Helvetica, sans-serif" }}>
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold flex items-center gap-2">
           <FileText className="h-5 w-5" />
@@ -210,8 +210,40 @@ export const LegalProposalPreview: React.FC<LegalProposalPreviewProps> = ({
             </div>
           )}
 
+          {/* Configuración de Retainer */}
+          {safeRetainerConfig.retainerAmount > 0 && (
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Condiciones del Retainer</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Cuota {safeRetainerConfig.billingFrequency}</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatCurrency(safeRetainerConfig.retainerAmount)}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Horas incluidas</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {safeRetainerConfig.includedHours} h/{safeRetainerConfig.billingFrequency === 'mensual' ? 'mes' : safeRetainerConfig.billingFrequency}
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Tarifa hora extra</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatCurrency(safeRetainerConfig.extraHourlyRate)}/h
+                  </p>
+                </div>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500">Duración del contrato</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {safeRetainerConfig.contractDuration} meses
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-          {/* Términos y Condiciones */}
+
           {terms && (
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Términos y Condiciones</h4>
