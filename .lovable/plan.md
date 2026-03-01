@@ -1,35 +1,19 @@
 
 
-## Dashboard visual de horas consumidas vs incluidas por cuota recurrente
+## Añadir enlace de Cuotas Recurrentes al Sidebar
 
-### Objetivo
-Crear un componente con graficos visuales (barras y donuts) que muestre la comparativa de horas consumidas vs incluidas para cada cuota recurrente activa, integrado en la pagina de Cuotas Recurrentes.
+### Cambios
 
-### Componente nuevo
+**1. Descomentar la ruta en `src/router/routes/business.routes.tsx`**
+- Descomentar el import de `RecurrentFees` y su ruta `/recurring-fees` para que la pagina sea accesible.
 
-**`src/components/recurring-fees/RecurringFeesHoursChart.tsx`**
-
-Contenido:
-- **Grafico de barras horizontal** (recharts `BarChart`): cada barra representa una cuota recurrente, mostrando horas incluidas vs consumidas lado a lado, con colores diferenciados (verde para incluidas, azul para consumidas, rojo si se exceden).
-- **Indicadores visuales por cuota**: barra de progreso con porcentaje de utilizacion, coloreada segun umbrales (verde < 80%, ambar 80-100%, rojo > 100%).
-- **Resumen global**: grafico tipo `PieChart` o `RadialBarChart` con la utilizacion total agregada.
-- **Tabla compacta** debajo del grafico con columnas: Cliente, Cuota, Horas incluidas, Horas usadas, Horas extra, Importe extra.
-
-### Datos
-- Se reutiliza el `hoursMap` existente (de `useAllRecurringFeesHours`) que ya se pasa a `RecurringFeesDashboard`.
-- Se cruza con la lista de `fees` para obtener nombre del cliente y nombre de la cuota.
-
-### Integracion
-- Se inserta en `src/pages/RecurrentFees.tsx` justo despues de `RecurringFeesDashboard`, pasandole `fees` y `hoursMap` como props.
-
-### Librerias
-- `recharts` (ya instalada): `BarChart`, `Bar`, `XAxis`, `YAxis`, `Tooltip`, `ResponsiveContainer`, `Cell`.
-- Estilos consistentes con el sistema de diseno: bordes 0.5px, rounded-[10px], fuente Manrope.
+**2. Añadir entrada en el sidebar (`src/components/layout/sidebar/NavigationData.ts`)**
+- Añadir "Cuotas Recurrentes" en la seccion "Productividad" (despues de "Time Tracking"), con icono `CreditCard` (ya importado) y url `/recurring-fees`.
+- Descomentar la accion rapida "Nueva Cuota" en `quickActions`.
 
 ### Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/recurring-fees/RecurringFeesHoursChart.tsx` | Nuevo - graficos de horas |
-| `src/pages/RecurrentFees.tsx` | Importar e insertar el nuevo componente |
-
+| `src/components/layout/sidebar/NavigationData.ts` | Añadir item "Cuotas Recurrentes" + descomentar accion rapida |
+| `src/router/routes/business.routes.tsx` | Descomentar ruta `/recurring-fees` y su import |
