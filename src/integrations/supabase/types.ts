@@ -11799,16 +11799,27 @@ export type Database = {
           status_filter?: string
         }
         Returns: {
-          address: string
+          address_city: string
+          address_country: string
+          address_postal_code: string
+          address_street: string
+          business_sector: string
           created_at: string
-          founded_date: string
+          dni_nif: string
+          email: string
+          email_preferences: Json
+          hourly_rate: number
           id: string
-          is_active: boolean
+          internal_notes: string
           name: string
-          nif: string
-          notes: string
           org_id: string
+          phone: string
           primary_contact: Json
+          quantum_customer_id: string
+          relationship_type: string
+          source: string
+          status: string
+          tags: string[]
           total_contacts: number
           updated_at: string
         }[]

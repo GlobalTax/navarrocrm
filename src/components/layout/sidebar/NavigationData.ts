@@ -1,4 +1,4 @@
-import { Users, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package, CreditCard, FileSignature } from 'lucide-react'
+import { Users, User, Building2, FileText, Clock, Calendar, FolderOpen, Settings, BarChart3, BookOpen, Bot, Shield, Briefcase, UserCog, Wrench, Monitor, Grid3X3, Mail, Euro, Package, CreditCard, FileSignature } from 'lucide-react'
 
 export interface NavigationItem {
   title: string
@@ -27,11 +27,6 @@ export const navigationData: NavigationSection[] = [
         url: "/",
         icon: BarChart3,
       },
-    {
-      title: "Contactos",
-      url: "/contacts",
-      icon: Users,
-    },
       {
         title: "Casos",
         url: "/cases",
@@ -47,21 +42,21 @@ export const navigationData: NavigationSection[] = [
         url: "/proposals",
         icon: FileText,
       },
-      // {
-      //   title: "Cuotas Recurrentes",
-      //   url: "/recurring-fees",
-      //   icon: Euro,
-      // },
-      // {
-      //   title: "Suscripciones Pagadas",
-      //   url: "/outgoing-subscriptions",
-      //   icon: CreditCard,
-      // },
-      // {
-      //   title: "Facturación Quantum",
-      //   url: "/quantum/billing",
-      //   icon: BarChart3,
-      // },
+    ]
+  },
+  {
+    title: "Contactos",
+    items: [
+      {
+        title: "Personas Físicas",
+        url: "/contacts?tab=persons",
+        icon: User,
+      },
+      {
+        title: "Empresas",
+        url: "/contacts?tab=companies",
+        icon: Building2,
+      },
     ]
   },
   {
