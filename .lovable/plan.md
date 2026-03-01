@@ -1,42 +1,31 @@
 
-## Plan: Implementar eliminación de propuestas
 
-### Resumen
-Agregar un botón de eliminar (papelera) en las tablas de propuestas, con diálogo de confirmación antes de borrar. Se eliminará la propuesta y sus line items asociados de la base de datos.
+## Convertir la lista de usuarios a tabla inline
+
+### Problema actual
+La vista de usuarios muestra tarjetas apiladas (cards) con solo el email. No muestra nombre ni apellido, y las acciones estan en un menu desplegable poco accesible.
+
+### Solucion
+Reemplazar el layout de cards por una tabla HTML real (`<Table>`) usando los componentes de `src/components/ui/table.tsx` ya existentes.
+
+### Columnas de la tabla
+| Nombre | Apellido | Correo | Rol | Estado | Acciones |
+|--------|----------|--------|-----|--------|----------|
 
 ### Cambios
 
-**1. Crear función `deleteProposal` en `src/hooks/proposals/useProposalActions.ts`**
-- Agregar función que elimine primero los `proposal_line_items` asociados y luego la propuesta
-- Registrar la acción en el audit log antes de eliminar
-- Invalidar queries de React Query tras el borrado
-- Mostrar toast de confirmación
+**Archivo: `src/components/users/UserTable.tsx`**
 
-**2. Agregar botón eliminar en `OneTimeProposalActions.tsx`**
-- Agregar prop `onDeleteProposal`
-- Agregar icono Trash2 con tooltip "Eliminar propuesta"
-- Estilo rojo coherente con el sistema de diseño
+- Importar los componentes `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` de `@/components/ui/table`
+- Reemplazar el layout actual de `div` + cards por una tabla inline con las columnas: Nombre, Apellido, Correo, Rol, Estado, Acciones
+- Mostrar `user.first_name` y `user.last_name` en sus columnas respectivas (con fallback a "-" si estan vacios)
+- Mantener el Badge de rol con los colores actuales
+- Mantener el Badge "Inactivo" en la columna Estado
+- Mantener el `UserActionsMenu` (menu de 3 puntos) en la columna Acciones
+- Aplicar estilos del sistema de diseno: `border-0.5 border-black rounded-[10px]` en la Card contenedora
+- Filas con hover sutil y resaltado rojo para usuarios inactivos
 
-**3. Agregar botón eliminar en `RecurringProposalActions.tsx`**
-- Mismo cambio que en OneTimeProposalActions
-
-**4. Propagar `onDeleteProposal` por la cadena de componentes**
-- `ProposalsTabsView.tsx` — agregar prop y pasarla a las 3 tablas (All, OneTime, Recurring)
-- `AllProposalsTable.tsx` — agregar prop y pasarla a los Actions
-- `OneTimeProposalsTable.tsx` — agregar prop y pasarla
-- `RecurringProposalsTable.tsx` — agregar prop y pasarla
-
-**5. Conectar en `Proposals.tsx` (pagina principal)**
-- Usar `deleteProposal` del hook `useProposalActions`
-- Crear handler `handleDeleteProposal` que abra el diálogo de confirmación existente (`ProposalConfirmationDialog`) antes de ejecutar el borrado
-- Pasar `onDeleteProposal` a `ProposalsTabsView`
-
-### Flujo del usuario
-1. Click en icono papelera en cualquier propuesta
-2. Se abre diálogo: "¿Eliminar propuesta [titulo]? Esta accion no se puede deshacer."
-3. Confirmar → se elimina de la BD → toast de exito → tabla se actualiza
-
-### Detalle tecnico
-- Se reutiliza el `ProposalConfirmationDialog` que ya existe con variant `destructive`
-- Se eliminan primero los `proposal_line_items` (FK) y luego la propuesta
-- Se invalidan las queries `['proposals']` y `['proposal-history']`
+### Sin cambios necesarios en otros archivos
+- `useUsers.ts` ya trae `first_name` y `last_name` con `select('*')`
+- `UserActionsMenu.tsx` se mantiene igual
+- No se necesitan cambios en la pagina ni en otros hooks
