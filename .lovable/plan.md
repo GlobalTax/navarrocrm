@@ -1,58 +1,18 @@
 
-## Corregir error "Could not find the 'clientId' column" al actualizar propuestas
+## Corregir error "retainerConfig column not found" al actualizar propuestas
 
 ### Problema
 
-En `src/hooks/proposals/useProposalActions.ts`, la funcion `updateProposal` (linea 185-188) hace un spread directo de los datos del formulario hacia Supabase:
-
-```typescript
-.update({
-  ...proposalMainData,  // <-- incluye clientId, que no existe en la BD
-  updated_at: new Date().toISOString()
-})
-```
-
-El formulario usa `clientId` (camelCase) pero la columna real en la base de datos es `contact_id`. PostgREST rechaza el campo desconocido.
+El mismo problema que con `clientId`: el formulario de propuestas incluye un campo `retainerConfig` (objeto JavaScript con la configuracion del retainer) que se pasa tal cual al `.update()` de Supabase. Como no existe una columna `retainerConfig` en la tabla `proposals`, PostgREST lo rechaza.
 
 ### Solucion
 
-**Archivo: `src/hooks/proposals/useProposalActions.ts`** (lineas 178-191)
+**Archivo: `src/hooks/proposals/useProposalActions.ts`** (linea 180)
 
-En lugar de hacer spread directo de todos los datos, mapear explicitamente los campos del formulario a las columnas de la BD y filtrar campos que no pertenecen a la tabla `proposals`:
+Anadir `retainerConfig` a la lista de campos destructurados que se excluyen del spread:
 
 ```typescript
-// Separar line_items y campos del formulario que necesitan mapeo
-const { line_items, clientId, client, contact, selectedServices, ...rest } = proposalData
-
-// Construir datos limpios para la BD
-const cleanData: Record<string, any> = { ...rest }
-
-// Mapear clientId a contact_id si viene del formulario
-if (clientId) {
-  cleanData.contact_id = clientId
-}
-
-// Eliminar campos computados/join que no son columnas
-delete cleanData.client_id
-
-const { error: updateError } = await supabase
-  .from('proposals')
-  .update({
-    ...cleanData,
-    updated_at: new Date().toISOString()
-  })
-  .eq('id', proposalId)
+const { line_items, clientId, client, contact, selectedServices, client_id, retainerConfig, ...rest } = proposalData
 ```
 
-### Campos a excluir del spread
-
-Estos campos vienen del formulario o de JOINs pero no son columnas de `proposals`:
-- `clientId` → se mapea a `contact_id`
-- `client` → datos del JOIN con contacts
-- `contact` → datos del JOIN con contacts  
-- `selectedServices` → se procesan aparte como line_items
-- `client_id` → campo computado de compatibilidad
-
-### Resultado
-
-Las propuestas se actualizaran correctamente sin el error de columna no encontrada en el schema cache.
+Es un cambio de una sola linea. Los datos del retainer ya se guardan en columnas individuales de la tabla (`retainer_amount`, `included_hours`, `hourly_rate_extra`, etc.), por lo que el objeto `retainerConfig` es solo una estructura temporal del formulario que no debe enviarse a la BD.
