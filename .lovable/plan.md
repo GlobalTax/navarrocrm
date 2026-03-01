@@ -1,47 +1,43 @@
 
 
-## Corregir errores de compilacion y guardado de propuestas
+## Corregir descarga de PDF en propuestas legales recurrentes
 
-Hay dos problemas que resolver:
+### Problema
 
-### Problema 1: Identificadores duplicados en types.ts
+El boton "Generar PDF" en la vista previa de la propuesta legal no funciona porque:
 
-El archivo `src/integrations/supabase/types.ts` tiene bloques duplicados que impiden la compilacion. Cada una de estas entidades aparece dos veces:
+1. Usa `fetch('/functions/v1/generate-proposal-pdf')` con una ruta relativa incorrecta (deberia usar `supabase.functions.invoke()`)
+2. La edge function `generate-proposal-pdf` espera un `proposalId` de una propuesta ya guardada en BD, pero desde el builder legal se envian datos crudos (titulo, servicios, etc.) sin un ID guardado
+3. El resultado es siempre un error de red o un 404/400
 
-- `deals` (lineas 2223 y 2353)
-- `deed_assignees` (lineas 2293 y 2423)
-- `performance_metrics` (lineas 7257 y 7378)
-- `performance_reviews` (lineas 7296 y 7417)
-- `scheduled_exports` (lineas 9587 y 9679)
+### Solucion: Generar el PDF en el cliente
 
-**Solucion**: Eliminar la segunda copia duplicada de cada bloque. Los duplicados son identicos, asi que simplemente se borran las lineas repetidas.
+En lugar de depender de la edge function (que requiere una propuesta guardada), generaremos el HTML del PDF directamente en el cliente y abriremos una ventana para imprimir/guardar como PDF. Esto es consistente con como ya funciona `DocumentPreview.tsx` (que usa `window.print()`).
 
-Bloques a eliminar:
-- Lineas 2353-2477 (segundo `deals` + segundo `deed_assignees`)
-- Lineas 7378-7498 (segundo `performance_metrics` + segundo `performance_reviews`)
-- Lineas 9679-9770 (segundo `scheduled_exports`)
+### Cambios
 
-### Problema 2: El builder se cierra antes de confirmar el guardado
+**Archivo: `src/components/proposals/legal/components/LegalProposalStepContent.tsx`**
 
-En `src/components/proposals/ProposalsPageHandlers.tsx` (lineas 157-158), `saveRecurrentProposal()` se llama y luego inmediatamente `closeRecurrentBuilder()`. Como la mutacion es asincrona, si falla el usuario no ve el error porque el builder ya se cerro.
+Reemplazar el handler `onGeneratePDF` (lineas 131-171) para que:
+1. Construya un HTML completo con todos los datos de la propuesta (titulo, cliente, area, servicios, retainer, terminos)
+2. Use fuente Manrope (sans-serif) segun el sistema de diseno
+3. Incluya toda la informacion: servicios con precios, condiciones de retainer, introduccion, terminos
+4. Abra una nueva ventana con `window.open()` y llame a `window.print()` para que el usuario pueda guardar como PDF
 
-**Solucion**: Usar los callbacks `onSuccess`/`onError` de la mutacion:
+El HTML generado incluira:
+- Cabecera con titulo y area de practica
+- Datos del cliente
+- Fecha y validez
+- Seccion de introduccion
+- Tabla de servicios con cantidades, precios unitarios y totales
+- Condiciones del retainer (cuota, horas incluidas, tarifa extra, duracion)
+- Subtotal, IVA (21%) y total
+- Terminos y condiciones
+- Bloque de firmas y aceptacion
 
-```typescript
-saveRecurrentProposal(recurrentProposalData, {
-  onSuccess: () => {
-    closeRecurrentBuilder()
-  },
-  onError: (error) => {
-    console.error('Error guardando propuesta:', error)
-  }
-})
-```
+**No se necesitan cambios en la edge function** ya que la generacion sera 100% cliente.
 
-Esto asegura que el builder solo se cierra si el guardado fue exitoso, y si hay error el usuario lo ve via toast (ya configurado en `useSaveProposal`).
+### Resultado esperado
 
-### Archivos a modificar
-
-1. `src/integrations/supabase/types.ts` - Eliminar bloques duplicados
-2. `src/components/proposals/ProposalsPageHandlers.tsx` - Cerrar builder solo tras exito
+Al hacer clic en "Generar PDF", se abrira una nueva pestana con el documento formateado y el dialogo de impresion del navegador, donde el usuario puede seleccionar "Guardar como PDF" para descargarlo.
 
