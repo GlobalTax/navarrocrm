@@ -1,33 +1,38 @@
 
-## Cambiar tipografia a General Sans
+## Tipografia: Medium para titulos, Light para el resto
 
-### Cambios necesarios
+### Estrategia
+En lugar de modificar 458 archivos con clases `font-bold`, `font-semibold`, etc., el cambio se hace en 2 puntos centrales:
 
-**1. Copiar los archivos de fuente al proyecto**
-- Copiar `GeneralSans-Light.otf` y `GeneralSans-Medium.otf` a `public/fonts/`
-- Se usa `public/` porque las fuentes se referencian desde CSS con `@font-face`
+### 1. CSS base (`src/index.css`)
+- Establecer `font-weight: 300` en `body` para que todo el texto sea Light por defecto
+- Anadir regla para `h1, h2, h3, h4, h5, h6` con `font-weight: 500` (Medium)
+- Actualizar las clases CRM del design system:
+  - `.crm-page-title`, `.crm-section-title`, `.crm-card-title`, `.crm-compact-title` -> `font-weight: 500`
+  - `.crm-body-text`, `.crm-button-text`, `.crm-badge-text`, `.crm-table-cell`, etc. -> `font-weight: 300`
 
-**2. Actualizar `src/index.css`**
-- Eliminar el `@import` de Google Fonts (Manrope)
-- Anadir dos declaraciones `@font-face` para General Sans:
-  - `GeneralSans-Light` (weight 300)
-  - `GeneralSans-Medium` (weight 500)
-- Cambiar la referencia en `body` de `'Manrope'` a `'General Sans'`
+### 2. Tailwind config (`tailwind.config.ts`)
+- Remapear los pesos para que todas las variantes de Tailwind se reduzcan a los 2 disponibles:
 
-**3. Actualizar `tailwind.config.ts`**
-- Cambiar `fontFamily.sans` de `['Manrope', ...]` a `['General Sans', ...]`
+```text
+fontWeight:
+  light:     300   (sin cambio)
+  normal:    300   (era 400 -> ahora Light)
+  medium:    500   (sin cambio)
+  semibold:  500   (era 600 -> ahora Medium)
+  bold:      500   (era 700 -> ahora Medium)
+  extrabold: 500   (era 800 -> ahora Medium)
+```
 
-**4. Actualizar `index.html`**
-- Eliminar los `<link>` de preconnect y carga de Google Fonts para Manrope
+Asi, cualquier clase `font-bold` o `font-semibold` existente en los 458 archivos se renderizara automaticamente como Medium (500), y `font-normal` o `font-light` como Light (300). No hay que tocar ningun componente individual.
 
-### Nota sobre pesos disponibles
-Solo se dispone de Light (300) y Medium (500). El proyecto usa pesos desde 200 a 800. Los textos que usen `font-bold` (700) o `font-semibold` (600) se renderizaran con Medium (500) como fallback del navegador. Si se necesitan mas pesos, habra que subir los archivos adicionales.
-
-### Archivos afectados
+### Archivos a modificar
 | Archivo | Cambio |
 |---------|--------|
-| `public/fonts/GeneralSans-Light.otf` | Nuevo - copiar fuente |
-| `public/fonts/GeneralSans-Medium.otf` | Nuevo - copiar fuente |
-| `src/index.css` | Quitar import Manrope, anadir @font-face, cambiar body font |
-| `tailwind.config.ts` | Cambiar font-family sans |
-| `index.html` | Quitar links Google Fonts |
+| `src/index.css` | body font-weight 300, headings font-weight 500, actualizar clases CRM |
+| `tailwind.config.ts` | Remapear fontWeight para que todo apunte a 300 o 500 |
+
+### Resultado
+- Titulos y encabezados: General Sans Medium (500)
+- Todo lo demas (parrafos, badges, botones, tablas): General Sans Light (300)
+- Cero cambios en componentes individuales
