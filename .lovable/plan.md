@@ -1,60 +1,113 @@
 
-Objetivo: corregir definitivamente el error al eliminar propuestas (`23503` sobre `proposal_audit_log_proposal_id_fkey`) sin romper el historial de altas/ediciones.
 
-Diagnóstico confirmado (con evidencia):
-1) La petición que falla es el `DELETE /rest/v1/proposals?id=eq...` (HTTP 409).
-2) El detalle exacto de BD dice: `Key (proposal_id)=... is not present in table "proposals"`.
-3) En BD existe este trigger activo:
-   - `proposal_audit_trigger AFTER INSERT OR DELETE OR UPDATE ON public.proposals`
-4) La función `log_proposal_changes()` inserta siempre en `proposal_audit_log` usando `proposal_id = COALESCE(NEW.id, OLD.id)`.
-5) En un `AFTER DELETE`, la propuesta ya no existe; por eso el insert en `proposal_audit_log` viola la FK hacia `proposals`.
-6) La FK `proposal_audit_log_proposal_id_fkey` ya está en `ON DELETE CASCADE`; por tanto el problema no es “faltar CASCADE”, sino el intento de insertar auditoría después del borrado.
+## Plantillas de Propuesta Profesional + Rediseno de Vista Previa
 
-Plan de implementación (secuenciado):
+### Contexto
+Se han analizado dos modelos reales de propuestas del despacho:
+- **Modelo A "Documento Formal"** (Tarragona Sol): Estilo carta legal con logo arriba, secciones numeradas, texto justificado, tabla de honorarios por fases, clausula de confidencialidad y bloque de aceptacion con firma.
+- **Modelo B "Presentacion Visual"** (Capital Riesgo): Estilo slide corporativo con portada destacada, titulos grandes en color oscuro (#1a3a2a), esquemas graficos y tabla de honorarios minimalista.
 
-1. Migración SQL de corrección del trigger (capa backend, arreglo real)
-- Crear una nueva migración que:
-  - Elimine triggers antiguos por ambos nombres (para evitar residuos históricos):
-    - `DROP TRIGGER IF EXISTS proposal_audit_trigger ON public.proposals;`
-    - `DROP TRIGGER IF EXISTS log_proposal_changes ON public.proposals;`
-  - Recree el trigger de auditoría SOLO para `INSERT` y `UPDATE`:
-    - `CREATE TRIGGER proposal_audit_trigger AFTER INSERT OR UPDATE ON public.proposals ...`
-- Resultado: deja de ejecutarse auditoría automática en `DELETE`, eliminando el fallo FK en todos los borrados (UI, API, SQL).
+### Parte 1: Guardar los dos modelos como plantillas reutilizables
 
-2. Hardening de la función `log_proposal_changes` (defensa extra)
-- Actualizar la función para cortar explícitamente en `DELETE`:
-  - Si `TG_OP = 'DELETE'` → `RETURN OLD` sin `INSERT` en `proposal_audit_log`.
-- Aunque alguien vuelva a incluir `DELETE` en un trigger en el futuro, no reaparecerá este error.
+**Ampliar la tabla `proposal_templates`** anadiendo columnas al campo `template_data` (JSONB) para almacenar la estructura completa de cada modelo:
 
-3. Ajuste en frontend para evitar trabajo inútil al borrar
-- En `src/hooks/proposals/useProposalActions.ts`, dentro de `deleteProposal`, quitar el `logProposalAction(..., 'deleted', ...)` previo al borrado.
-- Motivo: ese registro se elimina inmediatamente por cascada al borrar la propuesta, así que hoy añade latencia sin valor real.
-- Mantener intacto:
-  - borrado de `proposal_line_items` (aunque exista cascade, no molesta),
-  - invalidaciones de React Query (`proposals`, `proposal-history`),
-  - toasts de éxito/error.
+```text
+template_data = {
+  style: "formal" | "visual",           // Tipo de diseno
+  companyName: string,                    // Nombre del despacho
+  companyDescription: string,             // Descripcion corporativa
+  defaultIntroduction: string,            // Texto introductorio con placeholders
+  sections: [                             // Secciones del documento
+    { id, title, type: "text"|"phases"|"team"|"fees"|"terms"|"acceptance", 
+      defaultContent: string }
+  ],
+  phases: [                               // Fases predefinidas
+    { name, description, deliverables[], paymentSplit: "70/30" }
+  ],
+  team: [                                 // Equipo tipo
+    { role, name, experience }
+  ],
+  termsDefaults: {
+    validityDays: number,
+    confidentiality: boolean,
+    expensesClause: string,
+    paymentTerms: string
+  }
+}
+```
 
-4. Verificación técnica después de aplicar
-- Validar en BD:
-  - `SELECT pg_get_triggerdef(...)` y confirmar que `proposal_audit_trigger` ya no contiene `DELETE`.
-- Validar en UI:
-  - Eliminar una propuesta en `/proposals` y comprobar:
-    - sin toast de error,
-    - lista refrescada correctamente.
-- Validar que sigue habiendo auditoría de creación/edición:
-  - crear o editar propuesta y confirmar entradas en `proposal_audit_log`.
+**Crear dos plantillas seed** insertando en `proposal_templates` los datos extraidos de los PDFs:
+- "Propuesta Formal - Proyecto por Fases" (basado en Tarragona Sol)
+- "Propuesta Visual - Servicios Corporativos" (basado en Capital Riesgo)
 
-5. Riesgos/impacto
-- Impacto funcional esperado: se soluciona el bloqueo de borrado sin tocar RLS ni estructura de tablas.
-- Cambio de comportamiento: ya no habrá evento “deleted” persistido en `proposal_audit_log` (coherente con el modelo actual con FK a `proposals`).
-- Si se requiere auditoría histórica de borrados a futuro, se propone fase 2 separada:
-  - tabla de auditoría de borrados sin FK dura a `proposals` (o con snapshot en JSON y `proposal_id` sin restricción).
+No se necesitan nuevas tablas, solo una migracion SQL con los INSERTs.
 
-Archivos a modificar:
-- Nueva migración SQL en `supabase/migrations/...sql` (trigger + función)
-- `src/hooks/proposals/useProposalActions.ts` (eliminar log manual previo al delete)
+### Parte 2: Redisenar la vista previa para que refleje los modelos reales
 
-Criterio de éxito:
-- El usuario puede eliminar propuestas sin error 409/23503.
-- Continúa funcionando la auditoría automática de INSERT/UPDATE.
-- La UI se actualiza al instante tras borrar.
+**2.1 Nuevo componente `ProposalPreviewFormal.tsx`**
+Replica el estilo del modelo Tarragona Sol:
+- Logo/nombre del despacho arriba a la izquierda
+- Titulo "PROPUESTA DE HONORARIOS PROFESIONALES" en negrita
+- Lugar y fecha
+- Re: nombre del cliente
+- Ref: titulo del proyecto en negrita/italica
+- Saludo formal "Estimado [nombre]:"
+- Parrafo introductorio
+- Seccion 1: Informacion General sobre el despacho
+- Seccion 2: Alcance - Fases con entregables en bullet points
+- Seccion 3: Equipo Responsable con roles en negrita
+- Seccion 4: Honorarios - tabla con Fase / Importe / Condiciones de pago
+- Seccion 5: Gastos y Suplidos
+- Seccion 6: Confidencialidad
+- Seccion 7: Duracion y Modificacion
+- Bloque de Aceptacion con linea de firma
+- Tipografia: serif para cuerpo, sans-serif para titulos, texto justificado
+
+**2.2 Nuevo componente `ProposalPreviewVisual.tsx`**
+Replica el estilo del modelo Capital Riesgo:
+- Portada: fondo claro con titulo grande en verde oscuro (#1a3a2a), subtitulo, fecha
+- Pagina de indice con secciones numeradas
+- Paginas de contenido con titulos grandes y texto descriptivo
+- Tabla de honorarios minimalista con borde lateral
+- Pagina de aceptacion
+- Pagina de cierre con "Gracias" y contacto
+
+**2.3 Actualizar `ProfessionalProposalBuilder.tsx`**
+- Anadir un selector de "Estilo de propuesta" (Formal / Visual) en la pestana de Informacion Basica
+- En la pestana "Vista Previa", renderizar el componente correspondiente segun el estilo seleccionado
+- Anadir boton "Cargar desde plantilla" que rellena los campos del formulario con los datos de la plantilla seleccionada
+
+**2.4 Actualizar la edge function `generate-proposal-pdf`**
+- Recibir un parametro `style: "formal" | "visual"`
+- Generar HTML diferente segun el estilo:
+  - Formal: tipografia limpia, secciones numeradas, tabla de honorarios, bloque de firma
+  - Visual: portada con fondo, titulos grandes, diseno tipo presentacion
+- Mantener la misma logica de datos (propuesta, contacto, line items)
+
+### Parte 3: Integrar selector de plantilla al crear propuesta
+
+**Actualizar `NewProposalDialog.tsx` o el flujo de creacion**
+- Antes de abrir el builder, mostrar un paso previo: "Seleccionar plantilla"
+- Mostrar las plantillas disponibles como cards con preview miniatura
+- Al seleccionar una, pre-rellenar el `ProfessionalProposalBuilder` con los datos de la plantilla
+
+### Archivos a crear
+| Archivo | Proposito |
+|---------|-----------|
+| `src/components/proposals/previews/ProposalPreviewFormal.tsx` | Vista previa estilo documento legal |
+| `src/components/proposals/previews/ProposalPreviewVisual.tsx` | Vista previa estilo presentacion corporativa |
+| `src/components/proposals/ProposalTemplateSelector.tsx` | Selector de plantilla al crear propuesta |
+
+### Archivos a modificar
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/proposals/ProfessionalProposalBuilder.tsx` | Selector de estilo + cargar plantilla + render condicional de preview |
+| `supabase/functions/generate-proposal-pdf/index.ts` | Dos estilos de HTML segun parametro |
+| Migracion SQL | INSERT de las dos plantillas seed |
+
+### Secuencia de implementacion
+1. Migracion SQL con las plantillas seed
+2. Crear los dos componentes de vista previa (Formal y Visual)
+3. Crear el selector de plantillas
+4. Integrar todo en el ProfessionalProposalBuilder
+5. Actualizar la edge function para generar ambos estilos de HTML/PDF
