@@ -69,6 +69,9 @@ export interface ProposalLineItem {
   total_price: number
   billing_unit: string
   sort_order: number
+  discount_type?: 'percentage' | 'fixed' | null
+  discount_value?: number
+  discount_amount?: number
 }
 
 export interface CreateProposalData {

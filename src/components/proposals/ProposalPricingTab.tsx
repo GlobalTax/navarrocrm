@@ -32,6 +32,9 @@ interface ProposalLineItem {
   total_price: number
   billing_unit: string
   sort_order: number
+  discount_type?: 'percentage' | 'fixed' | null
+  discount_value?: number
+  discount_amount?: number
 }
 
 export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', proposalTitle, proposalNumber, validUntil, client }: ProposalPricingTabProps) => {
@@ -40,7 +43,7 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
   // Fetch line items for this proposal
   const { data: lineItems = [], isLoading, error } = useQuery({
     queryKey: ['proposal-line-items', proposalId],
-    queryFn: async (): Promise<ProposalLineItem[]> => {
+    queryFn: async () => {
       if (!user?.org_id) return []
       
       const { data, error } = await supabase
@@ -50,7 +53,10 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
         .order('sort_order', { ascending: true })
 
       if (error) throw error
-      return data || []
+      return (data || []).map(item => ({
+        ...item,
+        discount_type: (item as any).discount_type as ProposalLineItem['discount_type'],
+      })) as ProposalLineItem[]
     },
     enabled: !!proposalId && !!user?.org_id,
   })
@@ -83,6 +89,8 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
   }
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.total_price, 0)
+  const totalDiscount = lineItems.reduce((sum, item) => sum + (item.discount_amount || 0), 0)
+  const hasAnyDiscount = lineItems.some(item => item.discount_type && item.discount_amount && item.discount_amount > 0)
   const taxRate = 0.21 // IVA 21%
   const taxAmount = subtotal * taxRate
   const calculatedTotal = subtotal + taxAmount
@@ -107,11 +115,17 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
                 const refNumber = proposalNumber || `REF-${proposalId.slice(0, 8).toUpperCase()}`
                 const validDate = validUntil ? new Date(validUntil).toLocaleDateString('es-ES') : null
 
+                const fmtDiscount = (item: any) => {
+                  if (!item.discount_type || !item.discount_amount) return ''
+                  return item.discount_type === 'percentage' ? `-${item.discount_value}%` : `-${fmt(item.discount_value)}`
+                }
+
                 const rows = lineItems.map(item => `
                   <tr>
                     <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5">${item.name}${item.description ? `<br><small style="color:#666">${item.description}</small>` : ''}</td>
                     <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:center">${item.quantity}</td>
                     <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right">${fmt(item.unit_price)}</td>
+                    ${hasAnyDiscount ? `<td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;color:#dc2626">${fmtDiscount(item)}</td>` : ''}
                     <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600">${fmt(item.total_price)}</td>
                   </tr>
                 `).join('')
@@ -160,7 +174,7 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
                 ${proposalTitle ? `<div class="proposal-title">${proposalTitle}</div>` : ''}
                 ${clientBlock}
                 <table>
-                  <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th></tr></thead>
+                  <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio Unit.</th>${hasAnyDiscount ? '<th style="text-align:right">Dto.</th>' : ''}<th style="text-align:right">Total</th></tr></thead>
                   <tbody>${rows}</tbody>
                 </table>
                 <div class="totals">
@@ -203,6 +217,9 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
                     <th className="text-center p-4 font-semibold text-muted-foreground">Cantidad</th>
                     <th className="text-center p-4 font-semibold text-muted-foreground">Unidad</th>
                     <th className="text-right p-4 font-semibold text-muted-foreground">Precio Unit.</th>
+                    {hasAnyDiscount && (
+                      <th className="text-right p-4 font-semibold text-muted-foreground">Descuento</th>
+                    )}
                     <th className="text-right p-4 font-semibold text-muted-foreground">Total</th>
                   </tr>
                 </thead>
@@ -226,6 +243,15 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', 
                       <td className="p-4 text-right text-card-foreground">
                         {formatCurrency(item.unit_price)}
                       </td>
+                      {hasAnyDiscount && (
+                        <td className="p-4 text-right text-destructive">
+                          {item.discount_type && item.discount_amount
+                            ? item.discount_type === 'percentage'
+                              ? `-${item.discount_value}%`
+                              : `-${formatCurrency(item.discount_value || 0)}`
+                            : '—'}
+                        </td>
+                      )}
                       <td className="p-4 text-right font-semibold text-card-foreground">
                         {formatCurrency(item.total_price)}
                       </td>
