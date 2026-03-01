@@ -1,11 +1,13 @@
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import DOMPurify from 'dompurify'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Eye, Send, FileText, Euro } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+import { Eye, Send, FileText, Euro, Loader2, Mail } from 'lucide-react'
+import { supabase } from '@/integrations/supabase/client'
+import { toast } from 'sonner'
 
 interface ProposalEmailPreviewProps {
   proposalTitle: string
@@ -15,6 +17,10 @@ interface ProposalEmailPreviewProps {
   validUntil?: Date
   isEnabled: boolean
   onToggle: (enabled: boolean) => void
+  // Nuevas props para envío real
+  proposalId?: string
+  clientEmail?: string
+  onSent?: () => void
 }
 
 export const ProposalEmailPreview = ({
@@ -24,9 +30,14 @@ export const ProposalEmailPreview = ({
   currency,
   validUntil,
   isEnabled,
-  onToggle
+  onToggle,
+  proposalId,
+  clientEmail,
+  onSent
 }: ProposalEmailPreviewProps) => {
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('es-ES', {
@@ -90,12 +101,43 @@ export const ProposalEmailPreview = ({
     `
   }
 
+  const handleSendEmail = async () => {
+    if (!clientEmail || !proposalId) {
+      toast.error('Falta el email del cliente o el ID de la propuesta')
+      return
+    }
+
+    setIsSending(true)
+    try {
+      const htmlContent = generateEmailPreview()
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: clientEmail,
+          subject: `Propuesta Comercial: ${proposalTitle}`,
+          html: htmlContent
+        }
+      })
+
+      if (error) throw error
+      if (data && !data.success) throw new Error(data.error || 'Error desconocido al enviar')
+
+      toast.success(`Email enviado correctamente a ${clientEmail}`)
+      setConfirmOpen(false)
+      onSent?.()
+    } catch (error: any) {
+      console.error('Error sending proposal email:', error)
+      toast.error(`Error al enviar email: ${error.message}`)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
     <Card className="mt-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Send className="h-5 w-5" />
-          Envío Automático de Propuesta
+          Envío de Propuesta por Email
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -122,31 +164,92 @@ export const ProposalEmailPreview = ({
             <div className="flex items-center justify-between pt-3 border-t">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-600" />
+                  <FileText className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">{proposalTitle}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Euro className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-gray-600">{formatAmount(totalAmount)}</span>
+                  <Euro className="h-4 w-4 text-chart-2" />
+                  <span className="text-sm text-muted-foreground">{formatAmount(totalAmount)}</span>
                 </div>
+                {clientEmail && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{clientEmail}</span>
+                  </div>
+                )}
               </div>
-              <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview Email
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Preview de Email de Propuesta</DialogTitle>
-                  </DialogHeader>
-                  <div 
-                    className="border rounded-lg p-4 bg-white"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generateEmailPreview()) }}
-                  />
-                </DialogContent>
-              </Dialog>
+              <div className="flex gap-2">
+                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Preview de Email de Propuesta</DialogTitle>
+                    </DialogHeader>
+                    <div 
+                      className="border rounded-lg p-4 bg-white"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generateEmailPreview()) }}
+                    />
+                  </DialogContent>
+                </Dialog>
+
+                {clientEmail && proposalId && (
+                  <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" disabled={isSending}>
+                        <Send className="h-4 w-4 mr-2" />
+                        Enviar Email
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Confirmar envío de propuesta</DialogTitle>
+                        <DialogDescription>
+                          Se enviará la propuesta comercial al siguiente destinatario:
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="py-4 space-y-3">
+                        <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">{clientEmail}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">{proposalTitle}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Euro className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">{formatAmount(totalAmount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={isSending}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleSendEmail} disabled={isSending}>
+                          {isSending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Enviando...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="h-4 w-4 mr-2" />
+                              Confirmar Envío
+                            </>
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             </div>
           </>
         )}
