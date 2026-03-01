@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Database } from 'lucide-react'
-import { useContactsList, type Contact } from '@/features/contacts'
+import { type Contact } from '@/features/contacts'
+import { useInfiniteContacts } from '@/hooks/useInfiniteContacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
@@ -39,7 +40,8 @@ const Contacts = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [activeTab, setActiveTab] = useState('persons')
 
-  const { contacts, refetch } = useContactsList()
+  // ⚡ OPTIMIZACIÓN: Usar solo useInfiniteContacts (elimina queries duplicadas)
+  const { contacts, refetch } = useInfiniteContacts()
   const { startOnboarding } = useOnboarding()
 
   const handleCreatePerson = () => {
