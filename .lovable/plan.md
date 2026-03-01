@@ -1,77 +1,31 @@
 
-## Plan: Vincular horas de time tracking a cuotas recurrentes
 
-### Problema actual
-Las cuotas recurrentes tienen campos de "horas incluidas" y "tarifa horas extra", pero no hay forma de registrar tiempo contra ellas. El timer y el formulario de time entries no permiten seleccionar una cuota recurrente.
+## Fix: Error al crear expediente - UUID vacío
+
+### Problema
+Al crear un expediente, los campos opcionales de tipo UUID (`responsible_solicitor_id`, `originating_solicitor_id`, `practice_area`) se envían como cadenas vacías `""` en lugar de `null`. Postgres rechaza `""` como valor UUID valido con el error `22P02`.
 
 ### Solucion
 
-Conectar `time_entries` con `recurring_fees` para que al registrar tiempo se pueda asociar a una cuota recurrente, y luego mostrar el consumo de horas en las tarjetas y dashboard de cuotas.
+**Archivo:** `src/hooks/cases/useCasesMutations.ts`
 
----
+Sanitizar los campos UUID opcionales antes de insertar, convirtiendo cadenas vacías y el valor `"none"` a `null`:
 
-### Cambio 1 -- Anadir columna `recurring_fee_id` a `time_entries`
+```typescript
+const insertData = {
+  title: caseData.title,
+  description: caseData.description || null,
+  status: caseData.status,
+  contact_id: caseData.contact_id || user.id,
+  practice_area: caseData.practice_area || null,
+  responsible_solicitor_id: caseData.responsible_solicitor_id || null,
+  originating_solicitor_id: caseData.originating_solicitor_id || null,
+  billing_method: caseData.billing_method,
+  estimated_budget: caseData.estimated_budget || null,
+  org_id: user.org_id
+}
+```
 
-Migracion SQL:
-- `ALTER TABLE time_entries ADD COLUMN recurring_fee_id UUID REFERENCES recurring_fees(id)`
-- Indice en `recurring_fee_id`
+Usando `|| null`, cualquier valor falsy (cadena vacia, undefined, "none" ya convertido a undefined por el wizard) se convierte en `null`, que Postgres acepta para columnas UUID nullable.
 
-Esto permite vincular cada entrada de tiempo a una cuota recurrente.
-
-### Cambio 2 -- Selector de cuota recurrente en el timer
-
-**Archivo:** `src/components/time-tracking/ModernTimer.tsx`
-
-- Anadir un dropdown "Cuota recurrente" (opcional) junto al selector de expediente
-- Cargar cuotas activas con horas incluidas > 0 desde `recurring_fees`
-- Al seleccionar una cuota, autocompletar el cliente y marcar como facturable
-- Pasar `recurring_fee_id` al crear la time entry
-
-**Archivo:** `src/hooks/useTimeEntries.ts`
-
-- Anadir `recurring_fee_id` al tipo `CreateTimeEntryData`
-- Incluirlo en el insert a `time_entries`
-
-### Cambio 3 -- Mostrar consumo de horas en la tarjeta de cuota recurrente
-
-**Archivo:** `src/components/recurring-fees/RecurringFeeCard.tsx`
-
-- Consultar horas consumidas del periodo actual (mes/trimestre/ano segun frecuencia)
-- Mostrar barra de progreso: "X de Y horas consumidas"
-- Indicador visual cuando se superan las horas incluidas (rojo)
-
-### Cambio 4 -- Panel de horas en detalle de cuota recurrente
-
-**Archivo:** `src/components/recurring-fees/RecurringFeesDashboard.tsx`
-
-- Anadir metrica global de horas consumidas vs incluidas
-- Porcentaje de utilizacion de horas
-
-### Cambio 5 -- Hook para consultar horas por cuota
-
-**Archivo:** `src/hooks/recurringFees/useRecurringFeeTimeEntries.ts` (nuevo)
-
-Hook que consulta `time_entries` filtradas por `recurring_fee_id` y periodo de facturacion actual, calculando:
-- Horas usadas
-- Horas restantes
-- Horas extra
-- Importe extra estimado
-
----
-
-### Resumen tecnico
-
-| Archivo | Accion |
-|---------|--------|
-| Migracion SQL | Anadir `recurring_fee_id` a `time_entries` |
-| `src/hooks/useTimeEntries.ts` | Anadir campo `recurring_fee_id` |
-| `src/hooks/recurringFees/useRecurringFeeTimeEntries.ts` | Crear -- hook de horas por cuota |
-| `src/components/time-tracking/ModernTimer.tsx` | Anadir selector de cuota recurrente |
-| `src/components/recurring-fees/RecurringFeeCard.tsx` | Mostrar barra de consumo de horas |
-| `src/components/recurring-fees/RecurringFeesDashboard.tsx` | Metricas globales de horas |
-
-### Flujo del usuario
-
-1. Al registrar tiempo en el timer, selecciona opcionalmente una cuota recurrente
-2. En la lista de cuotas recurrentes, cada tarjeta muestra cuantas horas se han consumido del periodo actual
-3. Si se superan las horas incluidas, se calcula automaticamente el importe extra con la tarifa configurada
+Es un cambio de una sola linea logica en un solo archivo.
