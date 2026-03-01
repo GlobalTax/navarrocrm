@@ -3,7 +3,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { UserCog, Mail, Upload, Shield, Activity } from 'lucide-react'
+import { UserCog, Mail, Upload, Shield, Activity, UsersRound } from 'lucide-react'
 
 // Hooks y componentes
 import { useApp } from '@/contexts/AppContext'
@@ -18,6 +18,7 @@ import { SystemUserMetrics } from '@/components/users/SystemUserMetrics'
 import { SystemUserTable } from '@/components/users/SystemUserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
 import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
+import { UserBulkPreloaded } from '@/components/users/UserBulkPreloaded'
 
 const SystemUsersPage = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -34,6 +35,7 @@ const SystemUsersPage = () => {
   const [showUserForm, setShowUserForm] = useState(false)
   const [showDirectCreation, setShowDirectCreation] = useState(false)
   const [showBulkUpload, setShowBulkUpload] = useState(false)
+  const [showBulkPreloaded, setShowBulkPreloaded] = useState(false)
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showAuditDialog, setShowAuditDialog] = useState(false)
@@ -120,6 +122,14 @@ const SystemUsersPage = () => {
         <UserCog className="h-8 w-8 text-primary" />
         <Button 
           variant="outline" 
+          onClick={() => setShowBulkPreloaded(true)}
+          className="border-0.5 border-black rounded-[10px] hover-lift"
+        >
+          <UsersRound className="h-4 w-4 mr-2" />
+          Alta equipo NRRO
+        </Button>
+        <Button 
+          variant="outline" 
           onClick={handleBulkUpload}
           className="border-0.5 border-black rounded-[10px] hover-lift"
         >
@@ -170,6 +180,11 @@ const SystemUsersPage = () => {
         setShowDeleteDialog={setShowDeleteDialog}
         showAuditDialog={showAuditDialog}
         setShowAuditDialog={setShowAuditDialog}
+      />
+
+      <UserBulkPreloaded
+        open={showBulkPreloaded}
+        onOpenChange={setShowBulkPreloaded}
       />
     </StandardPageContainer>
   )
