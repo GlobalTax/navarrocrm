@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -80,7 +80,7 @@ export const ModernTimer = () => {
   const [selectedCaseId, setSelectedCaseId] = useState<string>('no-case')
   const [selectedRecurringFeeId, setSelectedRecurringFeeId] = useState<string>('no-fee')
   const [description, setDescription] = useState('')
-  const [isBillable, setIsBillable] = useState(true)
+  
   const [entryType, setEntryType] = useState<'billable' | 'office_admin' | 'business_development' | 'internal'>('billable')
   const [showMoreOptions, setShowMoreOptions] = useState(false)
 
@@ -98,7 +98,6 @@ export const ModernTimer = () => {
   const handleRecurringFeeChange = (value: string) => {
     setSelectedRecurringFeeId(value)
     if (value !== 'no-fee') {
-      setIsBillable(true)
       setEntryType('billable')
     }
   }
@@ -143,7 +142,7 @@ export const ModernTimer = () => {
       case_id: selectedCaseId === 'no-case' ? undefined : selectedCaseId,
       description: description.trim(),
       duration_minutes: totalMinutes,
-      is_billable: isBillable,
+      is_billable: true,
       entry_type: entryType,
       recurring_fee_id: selectedRecurringFeeId === 'no-fee' ? null : selectedRecurringFeeId,
     })
@@ -172,7 +171,7 @@ export const ModernTimer = () => {
       case_id: selectedCaseId === 'no-case' ? undefined : selectedCaseId,
       description: description.trim(),
       duration_minutes: minutes,
-      is_billable: isBillable,
+      is_billable: true,
       entry_type: entryType,
       recurring_fee_id: selectedRecurringFeeId === 'no-fee' ? null : selectedRecurringFeeId,
     })
@@ -356,16 +355,8 @@ export const ModernTimer = () => {
             </Button>
           </div>
 
-          {/* Facturable + Más opciones */}
+          {/* Más opciones */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                id="billable"
-                checked={isBillable}
-                onCheckedChange={setIsBillable}
-              />
-              <Label htmlFor="billable" className="text-xs">Facturable</Label>
-            </div>
 
             <Collapsible open={showMoreOptions} onOpenChange={setShowMoreOptions}>
               <CollapsibleTrigger asChild>
