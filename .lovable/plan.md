@@ -1,31 +1,26 @@
 
 
-## Fix: Error al crear expediente - UUID vacío
+## Fix: Los expedientes creados no aparecen en el listado
 
 ### Problema
-Al crear un expediente, los campos opcionales de tipo UUID (`responsible_solicitor_id`, `originating_solicitor_id`, `practice_area`) se envían como cadenas vacías `""` en lugar de `null`. Postgres rechaza `""` como valor UUID valido con el error `22P02`.
+El filtro por defecto es `"active"`, que en el lado del cliente significa "todos los expedientes que no estan cerrados" (`status !== 'closed'`). Sin embargo, la query a Supabase envia `.eq('status', 'active')` literalmente, y ese valor no existe en la base de datos (los valores validos son `open`, `on_hold`, `closed`).
+
+Por eso la query devuelve 0 resultados aunque el expediente se haya creado correctamente con `status: "open"`.
 
 ### Solucion
 
-**Archivo:** `src/hooks/cases/useCasesMutations.ts`
+**Archivo:** `src/hooks/cases/useCasesQueries.ts` (linea 51-53)
 
-Sanitizar los campos UUID opcionales antes de insertar, convirtiendo cadenas vacías y el valor `"none"` a `null`:
+Cambiar la logica del filtro de status en la query del servidor para que cuando el valor sea `"active"`, en lugar de buscar `status = 'active'`, use `.neq('status', 'closed')` (todos excepto cerrados):
 
 ```typescript
-const insertData = {
-  title: caseData.title,
-  description: caseData.description || null,
-  status: caseData.status,
-  contact_id: caseData.contact_id || user.id,
-  practice_area: caseData.practice_area || null,
-  responsible_solicitor_id: caseData.responsible_solicitor_id || null,
-  originating_solicitor_id: caseData.originating_solicitor_id || null,
-  billing_method: caseData.billing_method,
-  estimated_budget: caseData.estimated_budget || null,
-  org_id: user.org_id
+if (filters.statusFilter && filters.statusFilter !== 'all') {
+  if (filters.statusFilter === 'active') {
+    query = query.neq('status', 'closed')
+  } else {
+    query = query.eq('status', filters.statusFilter)
+  }
 }
 ```
 
-Usando `|| null`, cualquier valor falsy (cadena vacia, undefined, "none" ya convertido a undefined por el wizard) se convierte en `null`, que Postgres acepta para columnas UUID nullable.
-
-Es un cambio de una sola linea logica en un solo archivo.
+Es un cambio de 3 lineas en un solo archivo. Tambien se aplicara la misma logica en la query de paginacion infinita mas abajo en el mismo archivo.
