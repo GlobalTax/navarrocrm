@@ -1,43 +1,58 @@
 
-
-## Corregir descarga de PDF en propuestas legales recurrentes
+## Corregir error "Could not find the 'clientId' column" al actualizar propuestas
 
 ### Problema
 
-El boton "Generar PDF" en la vista previa de la propuesta legal no funciona porque:
+En `src/hooks/proposals/useProposalActions.ts`, la funcion `updateProposal` (linea 185-188) hace un spread directo de los datos del formulario hacia Supabase:
 
-1. Usa `fetch('/functions/v1/generate-proposal-pdf')` con una ruta relativa incorrecta (deberia usar `supabase.functions.invoke()`)
-2. La edge function `generate-proposal-pdf` espera un `proposalId` de una propuesta ya guardada en BD, pero desde el builder legal se envian datos crudos (titulo, servicios, etc.) sin un ID guardado
-3. El resultado es siempre un error de red o un 404/400
+```typescript
+.update({
+  ...proposalMainData,  // <-- incluye clientId, que no existe en la BD
+  updated_at: new Date().toISOString()
+})
+```
 
-### Solucion: Generar el PDF en el cliente
+El formulario usa `clientId` (camelCase) pero la columna real en la base de datos es `contact_id`. PostgREST rechaza el campo desconocido.
 
-En lugar de depender de la edge function (que requiere una propuesta guardada), generaremos el HTML del PDF directamente en el cliente y abriremos una ventana para imprimir/guardar como PDF. Esto es consistente con como ya funciona `DocumentPreview.tsx` (que usa `window.print()`).
+### Solucion
 
-### Cambios
+**Archivo: `src/hooks/proposals/useProposalActions.ts`** (lineas 178-191)
 
-**Archivo: `src/components/proposals/legal/components/LegalProposalStepContent.tsx`**
+En lugar de hacer spread directo de todos los datos, mapear explicitamente los campos del formulario a las columnas de la BD y filtrar campos que no pertenecen a la tabla `proposals`:
 
-Reemplazar el handler `onGeneratePDF` (lineas 131-171) para que:
-1. Construya un HTML completo con todos los datos de la propuesta (titulo, cliente, area, servicios, retainer, terminos)
-2. Use fuente Manrope (sans-serif) segun el sistema de diseno
-3. Incluya toda la informacion: servicios con precios, condiciones de retainer, introduccion, terminos
-4. Abra una nueva ventana con `window.open()` y llame a `window.print()` para que el usuario pueda guardar como PDF
+```typescript
+// Separar line_items y campos del formulario que necesitan mapeo
+const { line_items, clientId, client, contact, selectedServices, ...rest } = proposalData
 
-El HTML generado incluira:
-- Cabecera con titulo y area de practica
-- Datos del cliente
-- Fecha y validez
-- Seccion de introduccion
-- Tabla de servicios con cantidades, precios unitarios y totales
-- Condiciones del retainer (cuota, horas incluidas, tarifa extra, duracion)
-- Subtotal, IVA (21%) y total
-- Terminos y condiciones
-- Bloque de firmas y aceptacion
+// Construir datos limpios para la BD
+const cleanData: Record<string, any> = { ...rest }
 
-**No se necesitan cambios en la edge function** ya que la generacion sera 100% cliente.
+// Mapear clientId a contact_id si viene del formulario
+if (clientId) {
+  cleanData.contact_id = clientId
+}
 
-### Resultado esperado
+// Eliminar campos computados/join que no son columnas
+delete cleanData.client_id
 
-Al hacer clic en "Generar PDF", se abrira una nueva pestana con el documento formateado y el dialogo de impresion del navegador, donde el usuario puede seleccionar "Guardar como PDF" para descargarlo.
+const { error: updateError } = await supabase
+  .from('proposals')
+  .update({
+    ...cleanData,
+    updated_at: new Date().toISOString()
+  })
+  .eq('id', proposalId)
+```
 
+### Campos a excluir del spread
+
+Estos campos vienen del formulario o de JOINs pero no son columnas de `proposals`:
+- `clientId` → se mapea a `contact_id`
+- `client` → datos del JOIN con contacts
+- `contact` → datos del JOIN con contacts  
+- `selectedServices` → se procesan aparte como line_items
+- `client_id` → campo computado de compatibilidad
+
+### Resultado
+
+Las propuestas se actualizaran correctamente sin el error de columna no encontrada en el schema cache.
