@@ -5,8 +5,11 @@ import { RefreshCw } from 'lucide-react'
 import { useInfiniteCompanies } from '@/hooks/useInfiniteCompanies'
 import { Company } from '@/hooks/useCompanies'
 import { CompaniesFilters } from './CompaniesFilters'
-import { VirtualizedCompaniesTable } from './VirtualizedCompaniesTable'
 import { CompaniesEmptyState } from './CompaniesEmptyState'
+import { ParametricTable } from '@/components/shared/ParametricTable'
+import { createCompanyColumns } from './columns/companyColumns'
+import { useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
 
 interface CompaniesListProps {
   onCreateCompany: () => void
@@ -14,6 +17,8 @@ interface CompaniesListProps {
 }
 
 export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListProps) => {
+  const navigate = useNavigate()
+  const columns = useMemo(() => createCompanyColumns(onEditCompany), [onEditCompany])
   const {
     companies,
     fetchNextPage,
@@ -102,9 +107,11 @@ export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListP
           )}
           
           {!error && !isLoading && companies.length > 0 && (
-            <VirtualizedCompaniesTable
-              companies={companies}
-              onEditCompany={onEditCompany}
+            <ParametricTable<Company>
+              columns={columns}
+              data={companies}
+              keyExtractor={(c) => c.id}
+              onRowClick={(c) => navigate(`/contacts/${c.id}`)}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}

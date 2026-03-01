@@ -1,12 +1,14 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw } from 'lucide-react'
 import { useInfinitePersons } from '@/hooks/useInfinitePersons'
 import { Person } from '@/hooks/usePersons'
 import { PersonsFilters } from './PersonsFilters'
-import { VirtualizedPersonsTable } from './VirtualizedPersonsTable'
 import { PersonsEmptyState } from './PersonsEmptyState'
+import { ParametricTable } from '@/components/shared/ParametricTable'
+import { createPersonColumns } from './columns/personColumns'
+import { useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
 
 interface PersonsListProps {
   onCreatePerson: () => void
@@ -14,6 +16,8 @@ interface PersonsListProps {
 }
 
 export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) => {
+  const navigate = useNavigate()
+  const columns = useMemo(() => createPersonColumns(onEditPerson), [onEditPerson])
   const {
     persons,
     fetchNextPage,
@@ -102,9 +106,11 @@ export const PersonsList = ({ onCreatePerson, onEditPerson }: PersonsListProps) 
           )}
           
           {!error && !isLoading && persons.length > 0 && (
-            <VirtualizedPersonsTable
-              persons={persons}
-              onEditPerson={onEditPerson}
+            <ParametricTable<Person>
+              columns={columns}
+              data={persons}
+              keyExtractor={(p) => p.id}
+              onRowClick={(p) => navigate(`/contacts/${p.id}`)}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
