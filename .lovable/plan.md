@@ -1,92 +1,77 @@
 
+## Plan: Vincular horas de time tracking a cuotas recurrentes
 
-## Plan: Email de bienvenida para primer acceso
+### Problema actual
+Las cuotas recurrentes tienen campos de "horas incluidas" y "tarifa horas extra", pero no hay forma de registrar tiempo contra ellas. El timer y el formulario de time entries no permiten seleccionar una cuota recurrente.
 
-### Objetivo
-Permitir enviar un email de bienvenida a usuarios nuevos con dos modalidades: (A) credenciales temporales o (B) enlace de activacion. Ademas, poder reenviar el email desde la tabla de usuarios existentes.
+### Solucion
 
----
-
-### Cambio 1 -- Crear edge function `send-welcome-email`
-
-**Archivo:** `supabase/functions/send-welcome-email/index.ts`
-
-Nueva edge function que soporta dos modos:
-
-- **Modo "credentials"**: Recibe `email`, `password`, `role`, `firstName`. Envia email con las credenciales (email + contrasena temporal) y un boton para ir al login.
-- **Modo "activation"**: Recibe `email`, `role`, `token`. Envia email con enlace a `/activate-account?token=...` (reutiliza la pagina existente).
-
-Usa `RESEND_API_KEY` (ya configurada) y Resend para enviar. El template HTML seguira el mismo estilo del email de invitacion existente (colores `#0061FF`, fuente del sistema, border-radius 10px).
-
-La URL base se construira con `SITE_URL` o fallback a la URL publicada del proyecto (`https://navarrocrm.lovable.app`).
-
-### Cambio 2 -- Opcion de enviar email al crear usuario directo
-
-**Archivo:** `src/components/users/DirectUserCreationDialog.tsx`
-
-Tras crear exitosamente un usuario (pantalla de credenciales):
-- Anadir boton "Enviar credenciales por email" junto al boton "Copiar Credenciales"
-- Al hacer click, llama a `send-welcome-email` en modo "credentials"
-- Feedback con toast de exito/error
-
-### Cambio 3 -- Checkbox en formulario de creacion
-
-**Archivo:** `src/components/users/DirectUserCreationDialog.tsx`
-
-En el formulario de creacion, anadir un checkbox: "Enviar email de bienvenida con enlace de activacion" (desactivado por defecto).
-
-Si esta marcado, tras crear el usuario:
-1. Crea una invitacion en `user_invitations` con token
-2. Envia email via `send-welcome-email` en modo "activation"
-3. El usuario recibira un enlace para establecer su propia contrasena
-
-### Cambio 4 -- Accion "Enviar email de acceso" en menu de usuario
-
-**Archivo:** `src/components/users/UserActionsMenu.tsx`
-
-Anadir opcion "Enviar email de acceso" en el `DropdownMenu` de cada usuario, con icono `Mail`.
-
-**Archivo:** `src/components/users/SendAccessEmailDialog.tsx` (nuevo)
-
-Modal que permite elegir:
-- **Opcion A**: "Regenerar contrasena y enviar credenciales" -- llama a `regenerate-user-password` (ya existe) y luego `send-welcome-email` modo credentials
-- **Opcion B**: "Enviar enlace de activacion" -- genera token de invitacion y envia email modo activation
-
-### Cambio 5 -- Envio masivo desde la barra de seleccion
-
-**Archivo:** `src/components/users/SystemUserTable.tsx`
-
-Junto al boton "Asignar permisos" en la barra de acciones masivas, anadir boton "Enviar email de acceso" con icono `Mail`.
-
-**Archivo:** `src/components/users/BulkSendAccessEmailDialog.tsx` (nuevo)
-
-Modal similar al individual pero para multiples usuarios:
-- Elegir modo (credenciales o activacion)
-- Barra de progreso durante el envio secuencial
-- Resumen al finalizar (enviados / fallidos)
-
-### Cambio 6 -- Conectar callbacks en la pagina padre
-
-**Archivo:** Pagina de System Users (donde se renderiza `SystemUserTable`)
-
-Pasar el nuevo callback `onSendAccessEmail` al `UserActionsMenu` y gestionar el estado del dialogo.
+Conectar `time_entries` con `recurring_fees` para que al registrar tiempo se pueda asociar a una cuota recurrente, y luego mostrar el consumo de horas en las tarjetas y dashboard de cuotas.
 
 ---
 
-### Archivos
+### Cambio 1 -- Anadir columna `recurring_fee_id` a `time_entries`
+
+Migracion SQL:
+- `ALTER TABLE time_entries ADD COLUMN recurring_fee_id UUID REFERENCES recurring_fees(id)`
+- Indice en `recurring_fee_id`
+
+Esto permite vincular cada entrada de tiempo a una cuota recurrente.
+
+### Cambio 2 -- Selector de cuota recurrente en el timer
+
+**Archivo:** `src/components/time-tracking/ModernTimer.tsx`
+
+- Anadir un dropdown "Cuota recurrente" (opcional) junto al selector de expediente
+- Cargar cuotas activas con horas incluidas > 0 desde `recurring_fees`
+- Al seleccionar una cuota, autocompletar el cliente y marcar como facturable
+- Pasar `recurring_fee_id` al crear la time entry
+
+**Archivo:** `src/hooks/useTimeEntries.ts`
+
+- Anadir `recurring_fee_id` al tipo `CreateTimeEntryData`
+- Incluirlo en el insert a `time_entries`
+
+### Cambio 3 -- Mostrar consumo de horas en la tarjeta de cuota recurrente
+
+**Archivo:** `src/components/recurring-fees/RecurringFeeCard.tsx`
+
+- Consultar horas consumidas del periodo actual (mes/trimestre/ano segun frecuencia)
+- Mostrar barra de progreso: "X de Y horas consumidas"
+- Indicador visual cuando se superan las horas incluidas (rojo)
+
+### Cambio 4 -- Panel de horas en detalle de cuota recurrente
+
+**Archivo:** `src/components/recurring-fees/RecurringFeesDashboard.tsx`
+
+- Anadir metrica global de horas consumidas vs incluidas
+- Porcentaje de utilizacion de horas
+
+### Cambio 5 -- Hook para consultar horas por cuota
+
+**Archivo:** `src/hooks/recurringFees/useRecurringFeeTimeEntries.ts` (nuevo)
+
+Hook que consulta `time_entries` filtradas por `recurring_fee_id` y periodo de facturacion actual, calculando:
+- Horas usadas
+- Horas restantes
+- Horas extra
+- Importe extra estimado
+
+---
+
+### Resumen tecnico
 
 | Archivo | Accion |
 |---------|--------|
-| `supabase/functions/send-welcome-email/index.ts` | Crear -- edge function de envio |
-| `src/components/users/DirectUserCreationDialog.tsx` | Modificar -- boton enviar + checkbox activacion |
-| `src/components/users/UserActionsMenu.tsx` | Modificar -- nueva opcion menu |
-| `src/components/users/SendAccessEmailDialog.tsx` | Crear -- modal individual |
-| `src/components/users/BulkSendAccessEmailDialog.tsx` | Crear -- modal masivo |
-| `src/components/users/SystemUserTable.tsx` | Modificar -- boton masivo |
-| Pagina padre System Users | Modificar -- conectar dialogo |
+| Migracion SQL | Anadir `recurring_fee_id` a `time_entries` |
+| `src/hooks/useTimeEntries.ts` | Anadir campo `recurring_fee_id` |
+| `src/hooks/recurringFees/useRecurringFeeTimeEntries.ts` | Crear -- hook de horas por cuota |
+| `src/components/time-tracking/ModernTimer.tsx` | Anadir selector de cuota recurrente |
+| `src/components/recurring-fees/RecurringFeeCard.tsx` | Mostrar barra de consumo de horas |
+| `src/components/recurring-fees/RecurringFeesDashboard.tsx` | Metricas globales de horas |
 
-### Flujo resumido
+### Flujo del usuario
 
-1. **Al crear usuario**: opcionalmente enviar email con credenciales o enlace de activacion
-2. **Desde la tabla**: click en "..." de un usuario y "Enviar email de acceso", elige modo
-3. **Masivo**: seleccionar varios usuarios, click "Enviar email de acceso", elige modo, procesamiento con progreso
+1. Al registrar tiempo en el timer, selecciona opcionalmente una cuota recurrente
+2. En la lista de cuotas recurrentes, cada tarjeta muestra cuantas horas se han consumido del periodo actual
+3. Si se superan las horas incluidas, se calcula automaticamente el importe extra con la tarifa configurada
