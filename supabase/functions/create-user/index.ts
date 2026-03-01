@@ -97,7 +97,7 @@ serve(async (req) => {
     const temporaryPassword = generateSecurePassword()
 
     // Crear usuario en Supabase Auth usando Admin API
-    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authUser, error: createAuthError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password: temporaryPassword,
       email_confirm: true, // Auto-confirmar email para aplicación interna
@@ -109,9 +109,9 @@ serve(async (req) => {
       }
     })
 
-    if (authError) {
-      console.error('❌ Error creating user in Auth:', authError)
-      throw new Error(`Error creando usuario: ${authError.message}`)
+    if (createAuthError) {
+      console.error('❌ Error creating user in Auth:', createAuthError)
+      throw new Error(`Error creando usuario: ${createAuthError.message}`)
     }
 
     if (!authUser.user) {
