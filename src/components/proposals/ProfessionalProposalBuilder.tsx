@@ -14,6 +14,10 @@ import { useClients } from '@/hooks/useClients'
 import { useProposalProfessional, ProposalData, ProposalPhase, ProposalTeamMember } from '@/hooks/useProposalProfessional'
 import { PhaseManager } from './PhaseManager'
 import { TeamManager } from './TeamManager'
+import { ProposalTemplateSelector, ProposalStyle, BuiltInTemplate } from './ProposalTemplateSelector'
+import { ProposalPreviewFormal } from './previews/ProposalPreviewFormal'
+import { ProposalPreviewVisual } from './previews/ProposalPreviewVisual'
+import { toast } from 'sonner'
 
 interface ProfessionalProposalBuilderProps {
   onBack: () => void
@@ -22,6 +26,7 @@ interface ProfessionalProposalBuilderProps {
 export const ProfessionalProposalBuilder: React.FC<ProfessionalProposalBuilderProps> = ({ onBack }) => {
   const { clients } = useClients()
   const { saveProposal, isSaving } = useProposalProfessional()
+  const [proposalStyle, setProposalStyle] = useState<ProposalStyle>('formal')
 
   const [formData, setFormData] = useState<ProposalData>({
     title: '',
@@ -71,6 +76,25 @@ export const ProfessionalProposalBuilder: React.FC<ProfessionalProposalBuilderPr
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleLoadTemplate = (template: BuiltInTemplate) => {
+    const d = template.defaults
+    setFormData(prev => ({
+      ...prev,
+      companyName: d.companyName ?? prev.companyName,
+      companyDescription: d.companyDescription ?? prev.companyDescription,
+      introduction: d.introduction ?? prev.introduction,
+      validityDays: d.validityDays ?? prev.validityDays,
+      paymentTerms: d.paymentTerms ?? prev.paymentTerms,
+      confidentialityClause: d.confidentialityClause ?? prev.confidentialityClause,
+      expensesIncluded: d.expensesIncluded ?? prev.expensesIncluded,
+      iva: d.iva ?? prev.iva,
+      phases: d.phases ?? prev.phases,
+      team: d.team ?? prev.team,
+    }))
+    setProposalStyle(template.style)
+    toast.success(`Plantilla "${template.name}" cargada`)
+  }
+
   const handleSave = async () => {
     if (!formData.clientId || !formData.title || formData.phases.length === 0) {
       return
@@ -90,187 +114,6 @@ export const ProfessionalProposalBuilder: React.FC<ProfessionalProposalBuilderPr
     }
   }
 
-  const generatePreview = () => {
-    const today = new Date().toLocaleDateString('es-ES', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    })
-
-    return (
-      <div className="max-w-4xl mx-auto p-8 bg-white text-black">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-2">PROPUESTA DE HONORARIOS PROFESIONALES</h1>
-          <p className="text-sm text-gray-600">
-            En Barcelona, a {today}
-          </p>
-          {selectedClient && (
-            <p className="text-sm text-gray-600 mt-2">
-              Re: {selectedClient.name}
-            </p>
-          )}
-          {formData.projectReference && (
-            <p className="text-sm text-gray-600">
-              Ref.: {formData.projectReference}
-            </p>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <p>Estimado {selectedClient?.name?.split(' ')[0] || 'Cliente'}:</p>
-          <p className="mt-4 text-justify">
-            {formData.introduction || 'De acuerdo con nuestra reciente reunión y su solicitud de colaboración, tenemos el gusto de remitirles la presente propuesta de servicios profesionales.'}
-          </p>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-3">1. Información General sobre {formData.companyName}</h2>
-          <p className="text-justify">
-            {formData.companyDescription}
-          </p>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-3">2. Alcance de Nuestra Colaboración</h2>
-          <p className="mb-4">
-            Nuestra colaboración se estructurará por fases, permitiendo un enfoque modular y adaptado al progreso del proyecto:
-          </p>
-          
-          {formData.phases.map((phase, index) => (
-            <div key={phase.id} className="mb-6">
-              <h3 className="font-semibold mb-2">
-                Fase {index + 1} – {phase.name}
-                {phase.estimatedDuration && ` (${phase.estimatedDuration})`}
-              </h3>
-              <p className="mb-3 text-justify">{phase.description}</p>
-              
-              {phase.deliverables.length > 0 && (
-                <div className="mb-3">
-                  <p className="font-medium">Entregables:</p>
-                  <ul className="list-disc list-inside ml-4">
-                    {phase.deliverables.map((deliverable, idx) => (
-                      <li key={idx}>{deliverable}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {phase.services.length > 0 && (
-                <div className="mb-3">
-                  <p className="font-medium">Servicios incluidos:</p>
-                  <ul className="list-disc list-inside ml-4">
-                    {phase.services.map((service) => (
-                      <li key={service.id}>
-                        {service.name}: {service.description}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <p className="text-sm">
-                <strong>Honorarios estimados:</strong> {
-                  phase.services.reduce((total, service) => total + service.total, 0).toFixed(2)
-                } € ({phase.paymentPercentage}% al inicio, {100 - phase.paymentPercentage}% al completar)
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {formData.team.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold mb-3">3. Equipo Responsable</h2>
-            <p className="mb-3">
-              Para la prestación de estos servicios {formData.companyName} asignará un equipo multidisciplinar:
-            </p>
-            <ul className="list-disc list-inside ml-4">
-              {formData.team.map((member) => (
-                <li key={member.id} className="mb-2">
-                  <strong>{member.role}:</strong> {member.name}
-                  {member.experience && `, ${member.experience}`}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-3">4. Honorarios Profesionales</h2>
-          <table className="w-full border border-gray-300 mb-4">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border border-gray-300 p-2 text-left">Fase</th>
-                <th className="border border-gray-300 p-2 text-right">Importe</th>
-                <th className="border border-gray-300 p-2 text-left">Condiciones de Pago</th>
-              </tr>
-            </thead>
-            <tbody>
-              {formData.phases.map((phase, index) => {
-                const phaseTotal = phase.services.reduce((total, service) => total + service.total, 0)
-                return (
-                  <tr key={phase.id}>
-                    <td className="border border-gray-300 p-2">Fase {index + 1} - {phase.name}</td>
-                    <td className="border border-gray-300 p-2 text-right">{phaseTotal.toFixed(2)} €</td>
-                    <td className="border border-gray-300 p-2">
-                      {phase.paymentPercentage}% inicio, {100 - phase.paymentPercentage}% finalización
-                    </td>
-                  </tr>
-                )
-              })}
-              <tr className="bg-gray-50 font-semibold">
-                <td className="border border-gray-300 p-2">SUBTOTAL</td>
-                <td className="border border-gray-300 p-2 text-right">{totals.subtotal.toFixed(2)} €</td>
-                <td className="border border-gray-300 p-2">-</td>
-              </tr>
-              <tr>
-                <td className="border border-gray-300 p-2">IVA ({formData.iva}%)</td>
-                <td className="border border-gray-300 p-2 text-right">{totals.ivaAmount.toFixed(2)} €</td>
-                <td className="border border-gray-300 p-2">-</td>
-              </tr>
-              <tr className="bg-gray-100 font-bold">
-                <td className="border border-gray-300 p-2">TOTAL</td>
-                <td className="border border-gray-300 p-2 text-right">{totals.total.toFixed(2)} €</td>
-                <td className="border border-gray-300 p-2">-</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-3">5. Gastos y Suplidos</h2>
-          <p className="text-justify">
-            {formData.expensesIncluded 
-              ? "Los gastos y suplidos están incluidos en los honorarios anteriores."
-              : "Los gastos y suplidos (aranceles notariales, registrales, tasas, etc.) no están incluidos en los honorarios y correrán a cargo del cliente, previa justificación."
-            }
-          </p>
-        </div>
-
-        {formData.confidentialityClause && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold mb-3">6. Confidencialidad</h2>
-            <p className="text-justify">
-              {formData.companyName} se compromete a mantener la más estricta confidencialidad sobre toda la información y documentación facilitada, de conformidad con la normativa aplicable y nuestro código deontológico.
-            </p>
-          </div>
-        )}
-
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-3">7. Duración y Modificación</h2>
-          <p className="text-justify">
-            La presente Propuesta tendrá una validez de {formData.validityDays} días desde la fecha de emisión. 
-            La colaboración se iniciará formalmente tras la recepción de una copia de esta Propuesta debidamente firmada.
-          </p>
-        </div>
-
-        <div className="mt-8 text-center">
-          <p>Reciban un cordial saludo,</p>
-          <p className="mt-4 font-semibold">{formData.companyName}</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-7xl mx-auto py-6">
       <div className="flex items-center gap-4 mb-6">
@@ -281,14 +124,30 @@ export const ProfessionalProposalBuilder: React.FC<ProfessionalProposalBuilderPr
         <h1 className="text-2xl font-bold">Constructor de Propuesta Profesional</h1>
       </div>
 
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="style" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="style">Estilo</TabsTrigger>
           <TabsTrigger value="basic">Información Básica</TabsTrigger>
           <TabsTrigger value="phases">Fases y Servicios</TabsTrigger>
           <TabsTrigger value="team">Equipo</TabsTrigger>
           <TabsTrigger value="terms">Términos</TabsTrigger>
           <TabsTrigger value="preview">Vista Previa</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="style" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Estilo y Plantilla</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProposalTemplateSelector
+                selectedStyle={proposalStyle}
+                onSelectTemplate={handleLoadTemplate}
+                onStyleChange={setProposalStyle}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="basic" className="space-y-6">
           <Card>
@@ -457,7 +316,7 @@ export const ProfessionalProposalBuilder: React.FC<ProfessionalProposalBuilderPr
                 <Label htmlFor="expenses">Gastos y suplidos incluidos en honorarios</Label>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">Resumen Financiero</h3>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
@@ -487,12 +346,24 @@ export const ProfessionalProposalBuilder: React.FC<ProfessionalProposalBuilderPr
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Vista Previa de la Propuesta
+                Vista Previa — Estilo {proposalStyle === 'formal' ? 'Formal' : 'Visual'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-96 w-full border rounded-md p-4">
-                {generatePreview()}
+              <ScrollArea className="h-[600px] w-full border rounded-md">
+                {proposalStyle === 'formal' ? (
+                  <ProposalPreviewFormal
+                    formData={formData}
+                    clientName={selectedClient?.name}
+                    totals={totals}
+                  />
+                ) : (
+                  <ProposalPreviewVisual
+                    formData={formData}
+                    clientName={selectedClient?.name}
+                    totals={totals}
+                  />
+                )}
               </ScrollArea>
             </CardContent>
           </Card>
