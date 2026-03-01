@@ -2,10 +2,10 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from "@/lib/utils"
 import { navigationData } from './NavigationData'
-// import { useRecurringFeesOverdue } from '@/hooks/useRecurringFeesOverdue'
+import { useApp } from '@/contexts/AppContext'
 
 export const NavigationMenu = () => {
-  // const { data: overdueCount = 0 } = useRecurringFeesOverdue()
+  const { user } = useApp()
 
   return (
     <div className="space-y-4">
@@ -15,7 +15,7 @@ export const NavigationMenu = () => {
             {section.title}
           </h3>
           <div className="space-y-1">
-            {section.items.map((item) => {
+            {section.items.filter(item => !item.allowedRoles || item.allowedRoles.includes(user?.role ?? '')).map((item) => {
               const Icon = item.icon
               // const showOverdueBadge = item.url === '/recurring-fees' && overdueCount > 0
               
