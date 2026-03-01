@@ -96,7 +96,7 @@ export class UsersDAL extends BaseDAL<User> {
       .from('users')
       .select('*', { count: 'exact' })
       .eq('org_id', orgId)
-      .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+      .or(`first_name.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%,last_name.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%,email.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%`)
       .order('first_name', { ascending: true })
     
     return this.handleListResponse<User>(query)

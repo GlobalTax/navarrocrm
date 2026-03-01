@@ -55,9 +55,12 @@ export const useInfinitePersons = () => {
         .order('name', { ascending: true })
         .range(pageParam * PAGE_SIZE, (pageParam + 1) * PAGE_SIZE - 1)
 
-      // Aplicar filtros
+      // Aplicar filtros (sanitizar para evitar inyección en filtro PostgREST)
       if (debouncedSearchTerm) {
-        query = query.or(`name.ilike.%${debouncedSearchTerm}%,email.ilike.%${debouncedSearchTerm}%,phone.ilike.%${debouncedSearchTerm}%`)
+        const sanitized = debouncedSearchTerm.replace(/[,%().*\\]/g, '')
+        if (sanitized) {
+          query = query.or(`name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`)
+        }
       }
       
       if (statusFilter !== 'all') {

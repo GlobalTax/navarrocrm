@@ -45,7 +45,10 @@ export const useCasesQueries = (filters: CasesFilters = {}) => {
 
       // Aplicar filtros
       if (filters.searchTerm) {
-        query = query.or(`title.ilike.%${filters.searchTerm}%,matter_number.ilike.%${filters.searchTerm}%`)
+        const sanitized = filters.searchTerm.replace(/[,%().*\\]/g, '')
+        if (sanitized) {
+          query = query.or(`title.ilike.%${sanitized}%,matter_number.ilike.%${sanitized}%`)
+        }
       }
       
       if (filters.statusFilter && filters.statusFilter !== 'all') {
@@ -101,9 +104,12 @@ export const useCasesQueries = (filters: CasesFilters = {}) => {
 
         // Aplicar filtros
         if (filters.searchTerm) {
-          query = query.or(`title.ilike.%${filters.searchTerm}%,matter_number.ilike.%${filters.searchTerm}%`)
+          const sanitized = filters.searchTerm.replace(/[,%().*\\]/g, '')
+          if (sanitized) {
+            query = query.or(`title.ilike.%${sanitized}%,matter_number.ilike.%${sanitized}%`)
+          }
         }
-        
+
         if (filters.statusFilter && filters.statusFilter !== 'all') {
           query = query.eq('status', filters.statusFilter)
         }

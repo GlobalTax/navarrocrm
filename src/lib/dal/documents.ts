@@ -87,7 +87,7 @@ export class DocumentsDAL extends BaseDAL<Document> {
       .from('contact_documents')
       .select('*', { count: 'exact' })
       .eq('org_id', orgId)
-      .or(`file_name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
+      .or(`file_name.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%,description.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%`)
       .order('created_at', { ascending: false })
     
     return this.handleListResponse<Document>(query)

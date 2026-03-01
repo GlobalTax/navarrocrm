@@ -91,7 +91,7 @@ export class CasesDAL extends BaseDAL<Case> {
       .from('cases')
       .select('*', { count: 'exact' })
       .eq('org_id', orgId)
-      .or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,matter_number.ilike.%${searchTerm}%`)
+      .or(`title.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%,description.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%,matter_number.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%`)
       .order('created_at', { ascending: false })
     
     return this.handleListResponse<Case>(query)

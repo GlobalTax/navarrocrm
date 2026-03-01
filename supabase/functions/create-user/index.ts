@@ -4,15 +4,37 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { 
-      headers: { 
-        ...corsHeaders, 
-        'Access-Control-Allow-Methods': 'POST, OPTIONS' 
-      } 
+    return new Response('ok', {
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      }
     })
   }
 
   try {
+    // Verificar autenticación del caller
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+    const { data: { user: caller }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -24,9 +46,29 @@ serve(async (req) => {
       }
     )
 
+    // Verificar que el caller tiene rol admin en su org
+    const { data: callerProfile } = await supabaseAdmin
+      .from('users')
+      .select('role, org_id')
+      .eq('id', caller.id)
+      .single()
+
+    if (!callerProfile || !['admin', 'superadmin'].includes(callerProfile.role)) {
+      return new Response(
+        JSON.stringify({ error: 'Solo administradores pueden crear usuarios' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { email, role, firstName = '', lastName = '', orgId } = await req.json()
 
-    console.log('🔄 Creating user:', email, 'with role:', role)
+    // Verificar que el admin pertenece a la misma org
+    if (callerProfile.org_id !== orgId) {
+      return new Response(
+        JSON.stringify({ error: 'No puedes crear usuarios en otra organización' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Verificar si el usuario ya existe
     const { data: existingUser } = await supabaseAdmin
@@ -40,12 +82,14 @@ serve(async (req) => {
       throw new Error('Este usuario ya existe en tu organización')
     }
 
-    // Generar contraseña temporal
+    // Generar contraseña temporal con crypto seguro
     const generateSecurePassword = () => {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*'
+      const randomValues = new Uint32Array(16)
+      crypto.getRandomValues(randomValues)
       let password = ''
-      for (let i = 0; i < 12; i++) {
-        password += chars.charAt(Math.floor(Math.random() * chars.length))
+      for (let i = 0; i < 16; i++) {
+        password += chars.charAt(randomValues[i] % chars.length)
       }
       return password
     }
@@ -100,7 +144,7 @@ serve(async (req) => {
       throw new Error(`Error creando perfil: ${profileError.message}`)
     }
 
-    console.log('✅ User created successfully:', authUser.user.id)
+    console.log('✅ User created successfully')
 
     // Almacenar credenciales temporalmente (24 horas) con encriptación real
     const encoder = new TextEncoder()
@@ -115,7 +159,7 @@ serve(async (req) => {
         user_id: authUser.user.id,
         email,
         encrypted_password: hashedPassword,
-        created_by: (await supabaseAdmin.auth.getUser()).data.user?.id,
+        created_by: caller.id,
         org_id: orgId,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
         viewed_count: 0

@@ -34,10 +34,7 @@ export const useInfiniteContacts = () => {
   } = useInfiniteQuery({
     queryKey: ['infinite-contacts', user?.org_id, debouncedSearchTerm, statusFilter, relationshipFilter],
     queryFn: async ({ pageParam = 0 }): Promise<ContactsPage> => {
-      console.log('🔄 Fetching contacts page:', pageParam, 'for org:', user?.org_id)
-      
       if (!user?.org_id) {
-        console.log('❌ No org_id available')
         return { contacts: [], nextCursor: null, hasMore: false }
       }
 
@@ -48,9 +45,12 @@ export const useInfiniteContacts = () => {
         .order('name', { ascending: true })
         .range(pageParam * PAGE_SIZE, (pageParam + 1) * PAGE_SIZE - 1)
 
-      // Aplicar filtros
+      // Aplicar filtros (sanitizar para evitar inyección en filtro PostgREST)
       if (debouncedSearchTerm) {
-        query = query.or(`name.ilike.%${debouncedSearchTerm}%,email.ilike.%${debouncedSearchTerm}%,phone.ilike.%${debouncedSearchTerm}%`)
+        const sanitized = debouncedSearchTerm.replace(/[,%().*\\]/g, '')
+        if (sanitized) {
+          query = query.or(`name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`)
+        }
       }
       
       if (statusFilter !== 'all') {
@@ -73,8 +73,6 @@ export const useInfiniteContacts = () => {
         relationship_type: (contact.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
         email_preferences: parseEmailPreferences(contact.email_preferences) || defaultEmailPreferences
       }))
-
-      console.log('✅ Contacts page fetched:', typedContacts.length)
 
       return {
         contacts: typedContacts,

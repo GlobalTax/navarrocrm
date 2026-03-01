@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    console.log('📧 [Send Email] API Key encontrada, longitud:', resendApiKey.length);
+    console.log('📧 [Send Email] API Key configurada');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -63,13 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { to, subject, html, invitationToken, testMode }: EmailRequest = await req.json();
 
-    console.log('📧 [Send Email] Datos recibidos:', { 
-      to, 
-      subject, 
-      hasToken: !!invitationToken,
-      htmlLength: html.length,
-      testMode: !!testMode
-    });
+    console.log('📧 [Send Email] Procesando solicitud, testMode:', !!testMode);
 
     // Validar datos de entrada
     if (!to || !subject || !html) {

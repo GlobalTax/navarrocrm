@@ -87,7 +87,7 @@ export class ContactsDAL extends BaseDAL<Contact> {
       .from('contacts')
       .select('*', { count: 'exact' })
       .eq('org_id', orgId)
-      .or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+      .or(`name.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%,email.ilike.%${searchTerm.replace(/[,%().*\\]/g, '')}%`)
       .order('created_at', { ascending: false })
     
     return this.handleListResponse<Contact>(query)
