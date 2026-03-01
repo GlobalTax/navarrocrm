@@ -9,6 +9,7 @@ import { Users as UsersIcon, Mail, Upload, Building, FileText, UserCog } from 'l
 // Hooks y componentes refactorizados
 import { useApp } from '@/contexts/AppContext'
 import { useEnhancedUsers } from '@/hooks/useEnhancedUsers'
+import { useUserPermissionGroupNames } from '@/hooks/useUserPermissionGroupNames'
 import { UserAdvancedFilters, UserFilters } from '@/components/users/UserAdvancedFilters'
 import { UserTableSkeleton } from '@/components/users/skeleton/UserTableSkeleton'
 import { UserMetricsSkeleton } from '@/components/users/skeleton/UserMetricsSkeleton'
@@ -31,6 +32,7 @@ const Users = () => {
   const { user } = useApp()
   const { users, isLoading, activateUser, getFilteredStats } = useEnhancedUsers(filters)
   const { invitationCount, pendingInvitations } = useUsersPageStats()
+  const { data: permissionGroupMap = {} } = useUserPermissionGroupNames()
   
   // Estados para diálogos
   const [showUserForm, setShowUserForm] = useState(false)
@@ -142,6 +144,7 @@ const Users = () => {
         <UserTable
           users={users}
           hasFilters={hasFilters}
+          permissionGroupMap={permissionGroupMap}
           onEditUser={handleEditUser}
           onManagePermissions={handleManagePermissions}
           onViewAudit={handleViewAudit}
