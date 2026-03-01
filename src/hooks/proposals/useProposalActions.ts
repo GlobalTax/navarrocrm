@@ -276,6 +276,32 @@ export const useProposalActions = () => {
     }
   }
 
+  const markAsSent = async (proposalId: string) => {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase
+        .from('proposals')
+        .update({
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', proposalId)
+
+      if (error) throw error
+
+      await logProposalAction(proposalId, 'sent', 'Email enviado al cliente')
+      await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      await queryClient.invalidateQueries({ queryKey: ['proposal', proposalId] })
+      await queryClient.invalidateQueries({ queryKey: ['proposal-history'] })
+    } catch (error: any) {
+      console.error('Error marking proposal as sent:', error)
+      toast.error(`Error al marcar como enviada: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     duplicateProposal,
     deleteProposal,
@@ -283,6 +309,7 @@ export const useProposalActions = () => {
     updateProposal,
     validateStatusTransition,
     logProposalAction,
+    markAsSent,
     isLoading
   }
 }

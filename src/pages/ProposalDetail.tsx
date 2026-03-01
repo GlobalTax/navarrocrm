@@ -15,6 +15,8 @@ import { useState } from 'react'
 import { useProposalsActions } from '@/features/proposals'
 import { ProposalPricingTab } from '@/components/proposals/ProposalPricingTab'
 import { ProposalHistoryTab } from '@/components/proposals/ProposalHistoryTab'
+import { ProposalEmailPreview } from '@/components/proposals/ProposalEmailPreview'
+import { useProposalActions } from '@/hooks/proposals/useProposalActions'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
 import { toast } from 'sonner'
@@ -62,6 +64,8 @@ export default function ProposalDetail() {
   const navigate = useNavigate()
   const { user } = useApp()
   const { updateProposalStatus: updateStatus, isUpdating } = useProposalsActions()
+  const { markAsSent } = useProposalActions()
+  const [emailEnabled, setEmailEnabled] = useState(true)
   
   // Estado para manejo de wizards de propuestas
   const {
@@ -586,10 +590,21 @@ export default function ProposalDetail() {
               </TabsContent>
               
               <TabsContent value="documents">
-                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2 text-card-foreground">Documentos</div>
-                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
-                </div>
+                <ProposalEmailPreview
+                  proposalTitle={proposal.title}
+                  clientName={proposal.client?.name || 'Cliente'}
+                  totalAmount={proposal.total_amount}
+                  currency={proposal.currency || 'EUR'}
+                  validUntil={proposal.valid_until ? new Date(proposal.valid_until) : undefined}
+                  isEnabled={emailEnabled}
+                  onToggle={setEmailEnabled}
+                  proposalId={proposal.id}
+                  clientEmail={proposal.client?.email || undefined}
+                  onSent={async () => {
+                    await markAsSent(proposal.id)
+                    await refetch()
+                  }}
+                />
               </TabsContent>
 
               <TabsContent value="history">
