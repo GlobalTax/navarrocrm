@@ -21,6 +21,7 @@ interface AllProposalsTableProps {
   onViewProposal: (proposal: any) => void
   onEditProposal?: (proposal: any) => void
   onDuplicateProposal?: (proposal: any) => void
+  onDeleteProposal?: (proposal: any) => void
 }
 
 export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
@@ -28,7 +29,8 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
   onStatusChange,
   onViewProposal,
   onEditProposal = () => {},
-  onDuplicateProposal = () => {}
+  onDuplicateProposal = () => {},
+  onDeleteProposal
 }) => {
   const navigate = useNavigate()
 
@@ -121,6 +123,7 @@ export const AllProposalsTable: React.FC<AllProposalsTableProps> = ({
                   onViewProposal={onViewProposal}
                   onEditProposal={onEditProposal}
                   onDuplicateProposal={onDuplicateProposal}
+                  onDeleteProposal={onDeleteProposal}
                   onStatusChange={onStatusChange}
                 />
               </TableCell>

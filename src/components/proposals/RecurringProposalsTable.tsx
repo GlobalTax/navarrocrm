@@ -20,6 +20,7 @@ interface RecurringProposalsTableProps {
   onViewProposal: (proposal: any) => void
   onEditProposal?: (proposal: any) => void
   onDuplicateProposal?: (proposal: any) => void
+  onDeleteProposal?: (proposal: any) => void
 }
 
 export const RecurringProposalsTable: React.FC<RecurringProposalsTableProps> = ({
@@ -27,7 +28,8 @@ export const RecurringProposalsTable: React.FC<RecurringProposalsTableProps> = (
   onStatusChange,
   onViewProposal,
   onEditProposal = () => {},
-  onDuplicateProposal = () => {}
+  onDuplicateProposal = () => {},
+  onDeleteProposal
 }) => {
   if (proposals.length === 0) {
     return (
@@ -88,6 +90,7 @@ export const RecurringProposalsTable: React.FC<RecurringProposalsTableProps> = (
                   onViewProposal={onViewProposal}
                   onEditProposal={onEditProposal}
                   onDuplicateProposal={onDuplicateProposal}
+                  onDeleteProposal={onDeleteProposal}
                   onStatusChange={onStatusChange}
                 />
               </TableCell>
