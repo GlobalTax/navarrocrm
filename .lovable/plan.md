@@ -1,48 +1,64 @@
 
-## Plan: Corregir alineacion de columnas en tablas virtualizadas
 
-### Problema
-En las tablas de **Empresas** y **Personas Fisicas**, las columnas de datos no se alinean con las cabeceras. Esto ocurre porque:
+## Plan: Corregir alineacion definitiva en tablas de Empresas y Personas
 
-1. La **cabecera** usa `grid-cols-7` (o `grid-cols-6`) ocupando todo el ancho
-2. Las **filas** tienen un Avatar (40px + gap) **fuera** del grid, desplazando todas las columnas hacia la derecha
-3. Resultado: los datos aparecen debajo de la cabecera incorrecta (nombre truncado, sectores cortados, etc.)
+### Problema raiz
+
+El fix anterior (anadir spacer `w-10` en la cabecera) no es suficiente porque:
+
+1. **Avatar con borde extra**: El avatar en las filas tiene `border-2 border-white shadow-lg`, lo que anade 4px al ancho real (44px vs 40px del spacer)
+2. **Estructura de nesting diferente**: Las filas tienen un `div` wrapper adicional (`flex items-center gap-3 flex-1 min-w-0`) que la cabecera no replica exactamente
+3. **Padding interno inconsistente**: Las filas usan `px-6 py-4` en el `div style={style}` mientras que la cabecera usa `px-6 py-4` en un wrapper diferente
 
 ### Solucion
 
-Igualar la estructura de cabecera y filas para que el avatar forme parte del mismo layout.
+Unificar la estructura exacta de cabecera y filas, eliminando cualquier diferencia de tamanio.
 
 ---
 
-### Cambio 1 -- `VirtualizedCompaniesTable.tsx` (cabecera empresas)
+### Cambio 1 -- `VirtualizedCompaniesTable.tsx` (cabecera)
 
-- Cambiar la cabecera para que tenga un placeholder del mismo ancho que el avatar (40px + gap) antes del grid
-- Estructura: `flex` con un `div` de 52px (avatar 40px + gap 12px) + `grid-cols-7`
-- Asi la cabecera se alinea exactamente con las filas
+Ajustar el spacer de la cabecera para que coincida exactamente con el avatar incluyendo su borde:
+- Cambiar `w-10` a `w-10 h-10` con el mismo border invisible (`border-2 border-transparent`) para igualar el box model
+- O simplemente usar un ancho fijo con `min-w-[44px]` que coincida con el avatar real
 
-### Cambio 2 -- `CompanyRow` en `VirtualizedCompaniesTable.tsx` (filas empresas)
+### Cambio 2 -- `CompanyRow` en `VirtualizedCompaniesTable.tsx` (filas)
 
-- Asegurar que el grid interior usa las mismas proporciones que la cabecera
-- Sin cambio estructural grande, solo garantizar coherencia de anchos
+- Eliminar `border-2 border-white shadow-lg` del Avatar para simplificar y que coincida con `w-10` exacto
+- Esto alinea perfectamente con el spacer `w-10` de la cabecera
 
-### Cambio 3 -- `PersonTableHeader.tsx` (cabecera personas)
+### Cambio 3 -- `PersonRow.tsx` (filas personas)
 
-- Mismo ajuste: anadir spacer de 52px antes del `grid-cols-6`
+- Mismo cambio: eliminar `border-2 border-white shadow-lg` del Avatar
+- Asegurar que la estructura `flex > avatar(w-10) + grid-cols-6` coincide con la cabecera
 
-### Cambio 4 -- `PersonRow.tsx` (filas personas)
+### Cambio 4 -- `PersonTableHeader.tsx` (cabecera personas)
 
-- Verificar que el grid interior coincide con la cabecera ajustada
+- Verificar que el spacer `w-10` esta correcto (ya fue actualizado en el fix anterior)
 
 ---
 
-### Resultado esperado
+### Detalle tecnico
 
-Las columnas Empresa/Sector/Contacto Principal/Informacion/Contactos/Estado/Acciones quedaran perfectamente alineadas con sus cabeceras, y los nombres dejaran de aparecer truncados innecesariamente.
+**Antes (desalineado):**
+```text
+Cabecera: [spacer 40px] [gap 12px] [grid-cols-7 ...]
+Fila:     [avatar 44px] [gap 12px] [grid-cols-7 ...]
+                 ^-- 4px de diferencia por border-2
+```
 
-### Archivos afectados
+**Despues (alineado):**
+```text
+Cabecera: [spacer 40px] [gap 12px] [grid-cols-7 ...]
+Fila:     [avatar 40px] [gap 12px] [grid-cols-7 ...]
+```
+
+### Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/contacts/VirtualizedCompaniesTable.tsx` | Ajustar cabecera y filas para alinear con avatar |
-| `src/components/contacts/PersonTableHeader.tsx` | Anadir spacer para el avatar |
-| `src/components/contacts/PersonRow.tsx` | Verificar coherencia del grid |
+| `src/components/contacts/VirtualizedCompaniesTable.tsx` | Quitar border-2/shadow del avatar en CompanyRow |
+| `src/components/contacts/PersonRow.tsx` | Quitar border-2/shadow del avatar en PersonRow |
+
+Son cambios minimos (2 lineas por archivo) que resuelven la raiz del desajuste.
+
