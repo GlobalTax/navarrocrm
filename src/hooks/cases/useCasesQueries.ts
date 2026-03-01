@@ -49,7 +49,11 @@ export const useCasesQueries = (filters: CasesFilters = {}) => {
       }
       
       if (filters.statusFilter && filters.statusFilter !== 'all') {
-        query = query.eq('status', filters.statusFilter)
+        if (filters.statusFilter === 'active') {
+          query = query.neq('status', 'closed')
+        } else {
+          query = query.eq('status', filters.statusFilter)
+        }
       }
       
       if (filters.practiceAreaFilter && filters.practiceAreaFilter !== 'all') {
@@ -105,7 +109,11 @@ export const useCasesQueries = (filters: CasesFilters = {}) => {
         }
         
         if (filters.statusFilter && filters.statusFilter !== 'all') {
-          query = query.eq('status', filters.statusFilter)
+          if (filters.statusFilter === 'active') {
+            query = query.neq('status', 'closed')
+          } else {
+            query = query.eq('status', filters.statusFilter)
+          }
         }
         
         if (filters.practiceAreaFilter && filters.practiceAreaFilter !== 'all') {
