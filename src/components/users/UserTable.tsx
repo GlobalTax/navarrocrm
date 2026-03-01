@@ -1,7 +1,7 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Mail, Shield, UsersIcon } from 'lucide-react'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { UsersIcon } from 'lucide-react'
 import { UserActionsMenu } from './UserActionsMenu'
 import { UserEmptyState } from './states/UserEmptyState'
 
@@ -61,7 +61,7 @@ export const UserTable = ({
   }
 
   return (
-    <Card className="border-0.5 border-black rounded-[10px]">
+    <Card className="border-[0.5px] border-black rounded-[10px]">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-medium text-foreground flex items-center gap-2">
           <UsersIcon className="h-5 w-5" />
@@ -69,61 +69,52 @@ export const UserTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {users.map((user) => (
-            <div key={user.id} className={`flex items-center justify-between p-4 border rounded-[10px] transition-all duration-200 hover-lift ${
-              user.is_active 
-                ? 'border-muted hover:bg-muted/50' 
-                : 'border-destructive/20 bg-destructive/5 hover:bg-destructive/10'
-            }`}>
-              <div className="flex items-center gap-4 flex-1">
-                <div className={`p-2 rounded-[10px] ${
-                  user.is_active ? 'bg-muted' : 'bg-destructive/10'
-                }`}>
-                  <Mail className={`h-5 w-5 ${
-                    user.is_active ? 'text-muted-foreground' : 'text-destructive'
-                  }`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className={`font-medium ${
-                      user.is_active ? 'text-foreground' : 'text-destructive'
-                    }`}>
-                      {user.email}
-                    </h4>
-                    <Badge className={`${getRoleColor(user.role)} text-xs font-medium border-0.5 rounded-[10px]`}>
-                      {getRoleLabel(user.role)}
-                    </Badge>
-                    {!user.is_active && (
-                      <Badge variant="destructive" className="text-xs font-medium border-0.5 rounded-[10px]">
-                        Inactivo
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Shield className="h-3 w-3" />
-                      {getRoleLabel(user.role)}
-                    </div>
-                    <span>Creado: {new Date(user.created_at).toLocaleDateString('es-ES')}</span>
-                    {user.last_login_at && (
-                      <span>Último acceso: {new Date(user.last_login_at).toLocaleDateString('es-ES')}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <UserActionsMenu
-                user={user}
-                onEdit={onEditUser}
-                onManagePermissions={onManagePermissions}
-                onViewAudit={onViewAudit}
-                onActivate={onActivateUser}
-                onDelete={onDeleteUser}
-              />
-            </div>
-          ))}
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Apellido</TableHead>
+              <TableHead>Correo</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow 
+                key={user.id} 
+                className={!user.is_active ? 'bg-destructive/5 hover:bg-destructive/10' : ''}
+              >
+                <TableCell className="font-medium">{user.first_name || '-'}</TableCell>
+                <TableCell>{user.last_name || '-'}</TableCell>
+                <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                <TableCell>
+                  <Badge className={`${getRoleColor(user.role)} text-xs font-medium border-[0.5px] rounded-[10px]`}>
+                    {getRoleLabel(user.role)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {user.is_active ? (
+                    <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs border-[0.5px] rounded-[10px]">Activo</Badge>
+                  ) : (
+                    <Badge variant="destructive" className="text-xs border-[0.5px] rounded-[10px]">Inactivo</Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <UserActionsMenu
+                    user={user}
+                    onEdit={onEditUser}
+                    onManagePermissions={onManagePermissions}
+                    onViewAudit={onViewAudit}
+                    onActivate={onActivateUser}
+                    onDelete={onDeleteUser}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )
