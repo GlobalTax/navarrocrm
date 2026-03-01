@@ -2,31 +2,99 @@ import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Play, Pause, Square, Clock, Zap, Coffee, Target, RotateCcw } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Plus, Clock, Timer, CalendarIcon, ChevronDown, Play, Pause, Square, RotateCcw } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { useCasesList } from '@/features/cases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
 import { useRecurringFeesForTimer } from '@/hooks/recurringFees/useRecurringFeesForTimer'
+import { useApp } from '@/contexts/AppContext'
+import { supabase } from '@/integrations/supabase/client'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+// Hook para métricas rápidas (hoy / semana / mes)
+const useQuickMetrics = () => {
+  const { user } = useApp()
+
+  return useQuery({
+    queryKey: ['time-quick-metrics', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { today: 0, week: 0, month: 0 }
+
+      const now = new Date()
+      const todayStr = format(now, 'yyyy-MM-dd')
+
+      const weekStart = new Date(now)
+      weekStart.setDate(now.getDate() - now.getDay() + 1) // lunes
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd')
+
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const monthStartStr = format(monthStart, 'yyyy-MM-dd')
+
+      const { data, error } = await supabase
+        .from('time_entries')
+        .select('duration_minutes, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', monthStartStr)
+
+      if (error) throw error
+
+      let today = 0, week = 0, month = 0
+      for (const entry of data || []) {
+        const d = entry.created_at?.slice(0, 10) || ''
+        const mins = entry.duration_minutes || 0
+        month += mins
+        if (d >= weekStartStr) week += mins
+        if (d === todayStr) today += mins
+      }
+
+      return {
+        today: Math.round((today / 60) * 10) / 10,
+        week: Math.round((week / 60) * 10) / 10,
+        month: Math.round((month / 60) * 10) / 10,
+      }
+    },
+    enabled: !!user?.id,
+  })
+}
+
 export const ModernTimer = () => {
-  const [isRunning, setIsRunning] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [seconds, setSeconds] = useState(0)
+  // Modo: manual (por defecto) o cronómetro
+  const [mode, setMode] = useState<'manual' | 'timer'>('manual')
+
+  // Estado entrada manual
+  const [manualHours, setManualHours] = useState(0)
+  const [manualMinutes, setManualMinutes] = useState(30)
+  const [entryDate, setEntryDate] = useState<Date>(new Date())
+
+  // Estado compartido
   const [selectedCaseId, setSelectedCaseId] = useState<string>('no-case')
   const [selectedRecurringFeeId, setSelectedRecurringFeeId] = useState<string>('no-fee')
   const [description, setDescription] = useState('')
   const [isBillable, setIsBillable] = useState(true)
   const [entryType, setEntryType] = useState<'billable' | 'office_admin' | 'business_development' | 'internal'>('billable')
+  const [showMoreOptions, setShowMoreOptions] = useState(false)
+
+  // Estado cronómetro
+  const [isRunning, setIsRunning] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const [seconds, setSeconds] = useState(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const { cases } = useCasesList()
   const { createTimeEntry, isCreating } = useTimeEntries()
   const { activeFees } = useRecurringFeesForTimer()
+  const { data: metrics } = useQuickMetrics()
 
-  // Cuando se selecciona una cuota recurrente, marcar como facturable
   const handleRecurringFeeChange = (value: string) => {
     setSelectedRecurringFeeId(value)
     if (value !== 'no-fee') {
@@ -35,6 +103,7 @@ export const ModernTimer = () => {
     }
   }
 
+  // Timer logic
   useEffect(() => {
     if (isRunning && !isPaused) {
       intervalRef.current = setInterval(() => {
@@ -46,291 +115,306 @@ export const ModernTimer = () => {
         intervalRef.current = null
       }
     }
-
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [isRunning, isPaused])
 
   const formatTime = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600)
-    const minutes = Math.floor((totalSeconds % 3600) / 60)
-    const secs = totalSeconds % 60
-    
-    if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-    }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    const h = Math.floor(totalSeconds / 3600)
+    const m = Math.floor((totalSeconds % 3600) / 60)
+    const s = totalSeconds % 60
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
   }
 
-  const handleStart = () => {
-    setIsRunning(true)
-    setIsPaused(false)
-  }
-
-  const handlePause = () => {
-    setIsPaused(true)
-  }
-
-  const handleResume = () => {
-    setIsPaused(false)
-  }
-
-  const handleStop = async () => {
-    if (seconds === 0) {
-      toast.error('No hay tiempo registrado para guardar')
+  // Registro manual
+  const handleManualRegister = () => {
+    const totalMinutes = manualHours * 60 + manualMinutes
+    if (totalMinutes === 0) {
+      toast.error('Introduce al menos 1 minuto')
       return
     }
-
     if (!description.trim()) {
-      toast.error('Añade una descripción antes de guardar el tiempo')
+      toast.error('Añade una descripción')
       return
     }
 
-    try {
-      const minutes = Math.round(seconds / 60)
-      
-      await createTimeEntry({
-        case_id: selectedCaseId === 'no-case' ? null : selectedCaseId,
-        description: description.trim(),
-        duration_minutes: minutes,
-        is_billable: isBillable,
-        entry_type: entryType,
-        recurring_fee_id: selectedRecurringFeeId === 'no-fee' ? null : selectedRecurringFeeId,
-      })
+    createTimeEntry({
+      case_id: selectedCaseId === 'no-case' ? undefined : selectedCaseId,
+      description: description.trim(),
+      duration_minutes: totalMinutes,
+      is_billable: isBillable,
+      entry_type: entryType,
+      recurring_fee_id: selectedRecurringFeeId === 'no-fee' ? null : selectedRecurringFeeId,
+    })
 
-      // Reset timer
-      setIsRunning(false)
-      setIsPaused(false)
-      setSeconds(0)
-      setDescription('')
-      setSelectedRecurringFeeId('no-fee')
-
-      toast.success(`Tiempo registrado: ${minutes} minutos`)
-    } catch (error) {
-      console.error('❌ Error al registrar tiempo:', error)
-      toast.error('Error al registrar el tiempo')
-    }
+    // Reset
+    setManualHours(0)
+    setManualMinutes(30)
+    setDescription('')
+    setSelectedRecurringFeeId('no-fee')
+    toast.success(`Registradas ${manualHours}h ${manualMinutes}min`)
   }
 
-  const handleReset = () => {
+  // Registro desde cronómetro
+  const handleTimerSave = () => {
+    if (seconds === 0) {
+      toast.error('No hay tiempo registrado')
+      return
+    }
+    if (!description.trim()) {
+      toast.error('Añade una descripción')
+      return
+    }
+
+    const minutes = Math.max(1, Math.round(seconds / 60))
+    createTimeEntry({
+      case_id: selectedCaseId === 'no-case' ? undefined : selectedCaseId,
+      description: description.trim(),
+      duration_minutes: minutes,
+      is_billable: isBillable,
+      entry_type: entryType,
+      recurring_fee_id: selectedRecurringFeeId === 'no-fee' ? null : selectedRecurringFeeId,
+    })
+
     setIsRunning(false)
     setIsPaused(false)
     setSeconds(0)
-  }
-
-  const addQuickTime = (minutes: number) => {
-    setSeconds(prev => prev + (minutes * 60))
-  }
-
-  const getTimerColor = () => {
-    if (!isRunning) return 'text-gray-400'
-    if (isPaused) return 'text-yellow-500'
-    return 'text-green-500'
-  }
-
-  const getTimerBg = () => {
-    if (!isRunning) return 'bg-gray-50'
-    if (isPaused) return 'bg-yellow-50'
-    return 'bg-green-50'
-  }
-
-  const getEntryTypeLabel = (type: string) => {
-    switch (type) {
-      case 'billable': return 'Facturable'
-      case 'office_admin': return 'Admin. Oficina'
-      case 'business_development': return 'Desarrollo Negocio'
-      case 'internal': return 'Interno'
-      default: return type
-    }
+    setDescription('')
+    setSelectedRecurringFeeId('no-fee')
+    toast.success(`Registrados ${minutes} minutos`)
   }
 
   return (
-    <Card className="w-full">
-      <CardContent className="p-6">
-        {/* Timer Display Circular */}
-        <div className="text-center mb-6">
-          <div className={`mx-auto w-32 h-32 rounded-full border-8 flex items-center justify-center ${getTimerBg()} border-current ${getTimerColor()}`}>
-            <div className="text-center">
-              <div className={`text-xl font-mono font-bold ${getTimerColor()}`}>
-                {formatTime(seconds)}
-              </div>
-              <div className="text-xs text-gray-500">
-                {isRunning ? (isPaused ? 'PAUSADO' : 'ACTIVO') : 'DETENIDO'}
-              </div>
-            </div>
+    <Card className="w-full border-[0.5px] border-black rounded-[10px]">
+      <CardContent className="p-5">
+        {/* Métricas rápidas */}
+        <div className="flex items-center gap-6 mb-5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Hoy</span>
+            <span className="text-sm font-semibold">{metrics?.today ?? 0}h</span>
           </div>
-        </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Semana</span>
+            <span className="text-sm font-semibold">{metrics?.week ?? 0}h</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">Mes</span>
+            <span className="text-sm font-semibold">{metrics?.month ?? 0}h</span>
+          </div>
 
-        {/* Controles principales */}
-        <div className="flex justify-center gap-3 mb-6">
-          {!isRunning ? (
+          {/* Toggle modo */}
+          <div className="ml-auto flex items-center gap-1 border-[0.5px] border-black rounded-[10px] p-0.5">
             <Button
-              onClick={handleStart}
-              size="lg"
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-              disabled={isCreating}
-            >
-              <Play className="h-5 w-5" />
-              Iniciar
-            </Button>
-          ) : (
-            <>
-              {!isPaused ? (
-                <Button
-                  onClick={handlePause}
-                  variant="outline"
-                  size="lg"
-                  className="flex items-center gap-2 border-yellow-300 text-yellow-600 hover:bg-yellow-50"
-                >
-                  <Pause className="h-5 w-5" />
-                  Pausar
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleResume}
-                  size="lg"
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                >
-                  <Play className="h-5 w-5" />
-                  Continuar
-                </Button>
-              )}
-              
-              <Button
-                onClick={handleStop}
-                size="lg"
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
-                disabled={isCreating}
-              >
-                <Square className="h-5 w-5" />
-                Guardar
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Quick time buttons */}
-        <div className="flex justify-center gap-2 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addQuickTime(15)}
-            className="flex items-center gap-1"
-          >
-            <Clock className="h-3 w-3" />
-            +15m
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addQuickTime(30)}
-            className="flex items-center gap-1"
-          >
-            <Coffee className="h-3 w-3" />
-            +30m
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addQuickTime(60)}
-            className="flex items-center gap-1"
-          >
-            <Target className="h-3 w-3" />
-            +1h
-          </Button>
-          {(isRunning || seconds > 0) && (
-            <Button
-              variant="outline"
+              variant={mode === 'manual' ? 'default' : 'ghost'}
               size="sm"
-              onClick={handleReset}
-              disabled={isCreating}
+              className="h-7 px-2.5 text-xs rounded-[8px]"
+              onClick={() => setMode('manual')}
             >
-              Reset
+              <Clock className="h-3 w-3 mr-1" />
+              Manual
             </Button>
-          )}
+            <Button
+              variant={mode === 'timer' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-7 px-2.5 text-xs rounded-[8px]"
+              onClick={() => setMode('timer')}
+            >
+              <Timer className="h-3 w-3 mr-1" />
+              Cronómetro
+            </Button>
+          </div>
         </div>
 
-        {/* Formulario compacto */}
+        {/* Formulario principal */}
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">
-              ¿En qué trabajaste?
-            </Label>
-            <Textarea
-              id="description"
-              placeholder="Descripción del trabajo..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="resize-none h-20"
-              rows={2}
-            />
-          </div>
+          {/* Fila 1: Tiempo + Fecha + Caso */}
+          <div className="grid grid-cols-1 sm:grid-cols-[auto_auto_1fr_1fr] gap-3 items-end">
+            {mode === 'manual' ? (
+              <>
+                {/* Horas */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Horas</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={23}
+                    value={manualHours}
+                    onChange={e => setManualHours(Math.min(23, Math.max(0, parseInt(e.target.value) || 0)))}
+                    className="w-20 border-[0.5px] border-black rounded-[10px] text-center font-semibold"
+                  />
+                </div>
+                {/* Minutos */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Min</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={59}
+                    step={5}
+                    value={manualMinutes}
+                    onChange={e => setManualMinutes(Math.min(59, Math.max(0, parseInt(e.target.value) || 0)))}
+                    className="w-20 border-[0.5px] border-black rounded-[10px] text-center font-semibold"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="col-span-2 flex items-end gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Tiempo</Label>
+                  <div className="h-9 px-3 flex items-center font-mono font-semibold text-lg border-[0.5px] border-black rounded-[10px] min-w-[140px] justify-center">
+                    {formatTime(seconds)}
+                  </div>
+                </div>
+                <div className="flex gap-1 pb-0.5">
+                  {!isRunning ? (
+                    <Button size="icon" className="h-9 w-9 rounded-[10px]" onClick={() => { setIsRunning(true); setIsPaused(false) }}>
+                      <Play className="h-4 w-4" />
+                    </Button>
+                  ) : !isPaused ? (
+                    <Button size="icon" variant="outline" className="h-9 w-9 border-[0.5px] border-black rounded-[10px]" onClick={() => setIsPaused(true)}>
+                      <Pause className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button size="icon" className="h-9 w-9 rounded-[10px]" onClick={() => setIsPaused(false)}>
+                      <Play className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {(isRunning || seconds > 0) && (
+                    <Button size="icon" variant="outline" className="h-9 w-9 border-[0.5px] border-black rounded-[10px]" onClick={() => { setIsRunning(false); setIsPaused(false); setSeconds(0) }}>
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="case-select" className="text-sm font-medium">Caso</Label>
+            {/* Date picker */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Fecha</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal border-[0.5px] border-black rounded-[10px] h-9",
+                      !entryDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                    {format(entryDate, 'dd MMM yyyy', { locale: es })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={entryDate}
+                    onSelect={(d) => d && setEntryDate(d)}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Caso / Expediente */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Expediente</Label>
               <Select value={selectedCaseId} onValueChange={setSelectedCaseId}>
-                <SelectTrigger id="case-select">
-                  <SelectValue placeholder="Seleccionar..." />
+                <SelectTrigger className="border-[0.5px] border-black rounded-[10px] h-9">
+                  <SelectValue placeholder="Sin expediente" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="no-case">Sin caso específico</SelectItem>
-                  {cases.map((case_) => (
-                    <SelectItem key={case_.id} value={case_.id}>
-                      {case_.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="recurring-fee-select" className="text-sm font-medium">Cuota recurrente</Label>
-              <Select value={selectedRecurringFeeId} onValueChange={handleRecurringFeeChange}>
-                <SelectTrigger id="recurring-fee-select">
-                  <SelectValue placeholder="Seleccionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no-fee">Sin cuota</SelectItem>
-                  {activeFees.map((fee: any) => (
-                    <SelectItem key={fee.id} value={fee.id}>
-                      {fee.name} ({fee.included_hours}h)
-                    </SelectItem>
+                  <SelectItem value="no-case">Sin expediente</SelectItem>
+                  {cases.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            <div className="space-y-2">
-              <Label htmlFor="entry-type" className="text-sm font-medium">Tipo de Actividad</Label>
-              <Select value={entryType} onValueChange={(value: any) => setEntryType(value)}>
-                <SelectTrigger id="entry-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="billable">Facturable</SelectItem>
-                  <SelectItem value="office_admin">Admin. Oficina</SelectItem>
-                  <SelectItem value="business_development">Desarrollo Negocio</SelectItem>
-                  <SelectItem value="internal">Interno</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Fila 2: Descripción + Botón registrar */}
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 space-y-1">
+              <Label className="text-xs text-muted-foreground">Descripción</Label>
+              <Textarea
+                placeholder="¿En qué trabajaste?"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="resize-none h-9 min-h-[36px] border-[0.5px] border-black rounded-[10px] py-2"
+                rows={1}
+              />
             </div>
+            <Button
+              onClick={mode === 'manual' ? handleManualRegister : handleTimerSave}
+              disabled={isCreating}
+              className="h-9 rounded-[10px] px-4"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Registrar
+            </Button>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <Label htmlFor="billable" className="text-sm font-medium">Facturable</Label>
-            <Switch
-              id="billable"
-              checked={isBillable}
-              onCheckedChange={setIsBillable}
-            />
+          {/* Facturable + Más opciones */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="billable"
+                checked={isBillable}
+                onCheckedChange={setIsBillable}
+              />
+              <Label htmlFor="billable" className="text-xs">Facturable</Label>
+            </div>
+
+            <Collapsible open={showMoreOptions} onOpenChange={setShowMoreOptions}>
+              <CollapsibleTrigger asChild>
+                <Button variant="link" size="sm" className="text-xs p-0 h-auto text-muted-foreground">
+                  Más opciones
+                  <ChevronDown className={cn("h-3 w-3 ml-1 transition-transform", showMoreOptions && "rotate-180")} />
+                </Button>
+              </CollapsibleTrigger>
+            </Collapsible>
           </div>
+
+          {/* Opciones expandibles */}
+          <Collapsible open={showMoreOptions} onOpenChange={setShowMoreOptions}>
+            <CollapsibleContent className="space-y-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Tipo de actividad</Label>
+                  <Select value={entryType} onValueChange={(v: any) => setEntryType(v)}>
+                    <SelectTrigger className="border-[0.5px] border-black rounded-[10px] h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="billable">Facturable</SelectItem>
+                      <SelectItem value="office_admin">Admin. Oficina</SelectItem>
+                      <SelectItem value="business_development">Desarrollo Negocio</SelectItem>
+                      <SelectItem value="internal">Interno</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Cuota recurrente</Label>
+                  <Select value={selectedRecurringFeeId} onValueChange={handleRecurringFeeChange}>
+                    <SelectTrigger className="border-[0.5px] border-black rounded-[10px] h-9">
+                      <SelectValue placeholder="Sin cuota" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no-fee">Sin cuota</SelectItem>
+                      {activeFees.map((fee: any) => (
+                        <SelectItem key={fee.id} value={fee.id}>
+                          {fee.name} ({fee.included_hours}h)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </CardContent>
     </Card>
