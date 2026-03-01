@@ -23,7 +23,7 @@ export const ProposalPreviewVisual: React.FC<ProposalPreviewVisualProps> = ({
   })
 
   return (
-    <div className="max-w-4xl mx-auto" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+    <div className="max-w-4xl mx-auto" style={{ fontFamily: "'Manrope', Arial, Helvetica, sans-serif" }}>
       {/* PORTADA */}
       <div
         className="p-12 mb-1 min-h-[400px] flex flex-col justify-between"

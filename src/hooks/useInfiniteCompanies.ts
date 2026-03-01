@@ -57,20 +57,22 @@ export const useInfiniteCompanies = () => {
         throw companiesError
       }
 
-      const typedCompanies = (companiesData || []).map(company => ({
-        ...company,
-        client_type: 'empresa' as const,
-        relationship_type: (company.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
-        email_preferences: parseEmailPreferences(company.email_preferences) || defaultEmailPreferences,
-        // Parse primary_contact desde JSONB
-        primary_contact: company.primary_contact ? {
-          id: (company.primary_contact as any).id,
-          name: (company.primary_contact as any).name,
-          email: (company.primary_contact as any).email || null,
-          phone: (company.primary_contact as any).phone || null
-        } : null,
-        total_contacts: Number(company.total_contacts) || 0
-      }))
+      const typedCompanies = (companiesData || []).map(company => {
+        const raw = company as any
+        return {
+          ...raw,
+          client_type: 'empresa' as const,
+          relationship_type: (raw.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
+          email_preferences: parseEmailPreferences(raw.email_preferences) || defaultEmailPreferences,
+          primary_contact: raw.primary_contact ? {
+            id: raw.primary_contact.id,
+            name: raw.primary_contact.name,
+            email: raw.primary_contact.email || null,
+            phone: raw.primary_contact.phone || null
+          } : null,
+          total_contacts: Number(raw.total_contacts) || 0
+        } as Company
+      })
 
       console.log('✅ Companies page fetched:', typedCompanies.length)
 

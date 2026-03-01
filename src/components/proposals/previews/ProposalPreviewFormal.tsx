@@ -21,15 +21,15 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
   const firstName = clientName?.split(' ')[0] || 'Cliente'
 
   return (
-    <div className="max-w-4xl mx-auto bg-white text-black" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+    <div className="max-w-4xl mx-auto bg-white text-black" style={{ fontFamily: "'Manrope', Arial, Helvetica, sans-serif" }}>
       {/* Header */}
       <div className="px-10 pt-10 pb-6">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h2 className="text-xl font-bold" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+            <h2 className="text-xl font-bold">
               {formData.companyName}
             </h2>
-            <p className="text-xs text-gray-500 mt-1" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <p className="text-xs text-gray-500 mt-1">
               Asesores Legales y Tributarios
             </p>
           </div>
@@ -40,7 +40,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
         <div className="border-b-2 border-black mb-6" />
 
-        <h1 className="text-center text-lg font-bold tracking-wide mb-6" style={{ fontFamily: 'Arial, Helvetica, sans-serif', letterSpacing: '0.05em' }}>
+        <h1 className="text-center text-lg font-bold tracking-wide mb-6" style={{ letterSpacing: '0.05em' }}>
           PROPUESTA DE HONORARIOS PROFESIONALES
         </h1>
 
@@ -61,7 +61,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
       {/* Sección 1: Información General */}
       <div className="px-10 mb-6">
-        <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <h2 className="text-base font-bold mb-3">
           1. Información General sobre {formData.companyName}
         </h2>
         <p className="text-justify leading-relaxed text-sm">
@@ -71,7 +71,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
       {/* Sección 2: Alcance */}
       <div className="px-10 mb-6">
-        <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <h2 className="text-base font-bold mb-3">
           2. Alcance de Nuestra Colaboración
         </h2>
         <p className="text-sm mb-4 text-justify leading-relaxed">
@@ -80,7 +80,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
         {formData.phases.map((phase, index) => (
           <div key={phase.id} className="mb-5 ml-4">
-            <h3 className="font-bold text-sm mb-2" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <h3 className="font-bold text-sm mb-2">
               Fase {index + 1} – {phase.name}
               {phase.estimatedDuration && <span className="font-normal text-gray-600"> ({phase.estimatedDuration})</span>}
             </h3>
@@ -114,7 +114,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
       {/* Sección 3: Equipo */}
       {formData.team.length > 0 && (
         <div className="px-10 mb-6">
-          <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <h2 className="text-base font-bold mb-3">
             3. Equipo Responsable
           </h2>
           <p className="text-sm mb-3 text-justify">
@@ -133,7 +133,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
       {/* Sección 4: Honorarios */}
       <div className="px-10 mb-6">
-        <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <h2 className="text-base font-bold mb-3">
           4. Honorarios Profesionales
         </h2>
         <table className="w-full text-sm border-collapse mb-4">
@@ -178,7 +178,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
       {/* Sección 5: Gastos */}
       <div className="px-10 mb-6">
-        <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <h2 className="text-base font-bold mb-3">
           5. Gastos y Suplidos
         </h2>
         <p className="text-sm text-justify leading-relaxed">
@@ -191,7 +191,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
       {/* Sección 6: Confidencialidad */}
       {formData.confidentialityClause && (
         <div className="px-10 mb-6">
-          <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <h2 className="text-base font-bold mb-3">
             6. Confidencialidad
           </h2>
           <p className="text-sm text-justify leading-relaxed">
@@ -202,7 +202,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
 
       {/* Sección 7: Duración */}
       <div className="px-10 mb-6">
-        <h2 className="text-base font-bold mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <h2 className="text-base font-bold mb-3">
           7. Duración y Modificación
         </h2>
         <p className="text-sm text-justify leading-relaxed">
@@ -221,7 +221,7 @@ export const ProposalPreviewFormal: React.FC<ProposalPreviewFormalProps> = ({
           <p className="text-center font-bold text-sm mb-10">{formData.companyName}</p>
 
           <div className="mt-12 pt-6 border-t border-gray-400">
-            <p className="text-sm font-bold mb-6 text-center" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <p className="text-sm font-bold mb-6 text-center">
               ACEPTACIÓN DE LA PROPUESTA
             </p>
             <div className="grid grid-cols-2 gap-16 mt-8">
