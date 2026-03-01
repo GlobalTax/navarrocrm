@@ -1,76 +1,85 @@
 
-
-## Plan: Mostrar nivel de permisos en la tabla de usuarios
+## Plan: Crear tareas a partir de imagenes (emails, capturas, etc.)
 
 ### Objetivo
-Agregar una columna "Permisos" en las tablas de usuarios (general y sistema) que muestre el nombre del grupo de permisos asignado a cada usuario (ej. "Administrador", "Solo Lectura", "Operativo"), o un indicador "Sin asignar" si no tiene grupo.
+Permitir al usuario subir una imagen (captura de un email, documento, etc.) y que la IA extraiga automaticamente los datos relevantes para pre-rellenar el formulario de creacion de tareas (titulo, descripcion, prioridad, fecha limite).
 
-### Cambios
+---
 
-**1. Crear hook `useUserPermissionGroupNames`**
+### Paso 1 -- Configurar secreto de OpenAI
 
-Nuevo archivo: `src/hooks/useUserPermissionGroupNames.ts`
+Se necesita una API key de OpenAI para usar el modelo de vision (GPT-4o). Se solicitara al usuario que proporcione su clave.
 
-Un hook que consulta `user_permission_groups` con join a `permission_groups` para obtener un mapa `{ [user_id]: nombre_grupo }`. Se usa con `useQuery` filtrando por `org_id`.
+---
 
-Consulta:
+### Paso 2 -- Crear Edge Function `extract-task-from-image`
+
+**Nuevo archivo: `supabase/functions/extract-task-from-image/index.ts`**
+
+Recibe una imagen en base64 y la envia a la API de OpenAI (GPT-4o con vision) con un prompt que le pide extraer:
+- `title`: Titulo conciso de la tarea
+- `description`: Descripcion detallada
+- `priority`: low / medium / high / urgent
+- `due_date`: Fecha limite si se detecta (formato ISO)
+- `estimated_hours`: Horas estimadas si es posible inferir
+
+El prompt estara orientado a emails y documentos en castellano. Devuelve JSON estructurado.
+
+---
+
+### Paso 3 -- Anadir boton "Crear desde imagen" al formulario de tareas
+
+**Archivo modificado: `src/components/tasks/TaskFormDialog.tsx`**
+
+- Anadir un boton con icono de camara/imagen en la cabecera del dialogo
+- Al pulsar, abre un area de drop/upload (usando `react-dropzone`, ya instalado)
+- Al subir la imagen, llama a la edge function
+- Con la respuesta, pre-rellena los campos del formulario (`title`, `description`, `priority`, `due_date`)
+- Muestra un indicador de carga mientras se procesa
+
+---
+
+### Paso 4 -- Crear componente de extraccion de imagen
+
+**Nuevo archivo: `src/components/tasks/TaskImageExtractor.tsx`**
+
+Componente reutilizable que:
+- Muestra zona de drag & drop para imagenes (JPG, PNG, WEBP)
+- Convierte la imagen a base64
+- Llama a `supabase.functions.invoke('extract-task-from-image', { body: { image: base64 } })`
+- Devuelve los datos extraidos al componente padre via callback `onExtracted(data)`
+- Muestra estado de carga con skeleton/spinner
+- Muestra preview de la imagen subida
+
+---
+
+### Flujo del usuario
+
+```text
+1. Usuario abre "Nueva Tarea"
+2. Pulsa boton "Extraer de imagen" (icono de imagen)
+3. Arrastra o selecciona una captura de pantalla (ej. email)
+4. Se muestra spinner "Analizando imagen..."
+5. La IA extrae los datos y pre-rellena el formulario
+6. El usuario revisa, ajusta si es necesario, y pulsa "Crear Tarea"
 ```
-supabase
-  .from('user_permission_groups')
-  .select('user_id, permission_groups(name)')
-  .eq('org_id', user.org_id)
-```
-
-Devuelve: `Map<string, string>` (userId -> groupName)
 
 ---
-
-**2. Actualizar `UserTable.tsx`**
-
-- Recibir nueva prop `permissionGroupMap: Record<string, string>`
-- Agregar columna "Permisos" entre "Rol" y "Estado"
-- Mostrar un Badge con el nombre del grupo o "Sin asignar" en gris
-
----
-
-**3. Actualizar `SystemUserTable.tsx`**
-
-- Mismo cambio: nueva prop y columna "Permisos"
-
----
-
-**4. Actualizar `Users.tsx` (pagina general)**
-
-- Importar y usar `useUserPermissionGroupNames`
-- Pasar el mapa como prop a `UserTable`
-
----
-
-**5. Actualizar `SystemUsersPage.tsx`**
-
-- Importar y usar `useUserPermissionGroupNames`
-- Pasar el mapa como prop a `SystemUserTable`
-
----
-
-### Diseno visual de la columna
-
-| Permisos |
-|----------|
-| Badge azul claro: "Administrador" |
-| Badge gris: "Sin asignar" |
-| Badge verde claro: "Operativo" |
-
-Los badges seguiran el sistema de diseno: `border-[0.5px] rounded-[10px] text-xs`.
 
 ### Archivos afectados
 
 | Archivo | Accion |
 |---------|--------|
-| `src/hooks/useUserPermissionGroupNames.ts` | Nuevo |
-| `src/components/users/UserTable.tsx` | Agregar columna Permisos |
-| `src/components/users/SystemUserTable.tsx` | Agregar columna Permisos |
-| `src/pages/Users.tsx` | Usar hook y pasar prop |
-| `src/pages/SystemUsersPage.tsx` | Usar hook y pasar prop |
+| `supabase/functions/extract-task-from-image/index.ts` | Nuevo - Edge function con OpenAI Vision |
+| `src/components/tasks/TaskImageExtractor.tsx` | Nuevo - Componente de upload + extraccion |
+| `src/components/tasks/TaskFormDialog.tsx` | Modificar - integrar boton y extractor |
+| `src/hooks/useTaskForm.ts` | Modificar - exponer `setFormData` o metodo para pre-rellenar |
+| Secreto `OPENAI_API_KEY` | Nuevo - se solicitara al usuario |
 
-No se requieren cambios en base de datos. Las tablas `permission_groups` y `user_permission_groups` ya existen.
+### Notas tecnicas
+
+- Se usa GPT-4o (modelo con vision) para analizar la imagen
+- La imagen se envia como base64 en el body de la request
+- Limite de tamano: se valida < 5MB en el cliente
+- No se almacena la imagen en storage, solo se usa para el analisis
+- El componente sigue el sistema de diseno: bordes 0.5px, rounded-[10px], Manrope
