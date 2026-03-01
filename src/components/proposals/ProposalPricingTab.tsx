@@ -5,10 +5,20 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Calculator, Package } from 'lucide-react'
 
+interface ClientInfo {
+  name: string
+  email?: string
+  dni_nif?: string
+}
+
 interface ProposalPricingTabProps {
   proposalId: string
   totalAmount: number
   currency?: string
+  proposalTitle?: string
+  proposalNumber?: string
+  validUntil?: string
+  client?: ClientInfo
 }
 
 interface ProposalLineItem {
@@ -24,7 +34,7 @@ interface ProposalLineItem {
   sort_order: number
 }
 
-export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }: ProposalPricingTabProps) => {
+export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR', proposalTitle, proposalNumber, validUntil, client }: ProposalPricingTabProps) => {
   const { user } = useApp()
 
   // Fetch line items for this proposal
@@ -93,6 +103,10 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
             <button
               onClick={() => {
                 const fmt = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency, minimumFractionDigits: 2 }).format(n)
+                const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+                const refNumber = proposalNumber || `REF-${proposalId.slice(0, 8).toUpperCase()}`
+                const validDate = validUntil ? new Date(validUntil).toLocaleDateString('es-ES') : null
+
                 const rows = lineItems.map(item => `
                   <tr>
                     <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5">${item.name}${item.description ? `<br><small style="color:#666">${item.description}</small>` : ''}</td>
@@ -102,13 +116,26 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                   </tr>
                 `).join('')
 
-                const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propuesta Comercial</title>
+                const clientBlock = client ? `
+                  <div style="background:#f8f9fa;border:1px solid #e5e5e5;border-radius:8px;padding:16px;margin-bottom:24px">
+                    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:8px;font-weight:600">Datos del cliente</div>
+                    <div style="font-weight:600;font-size:15px;margin-bottom:4px">${client.name}</div>
+                    ${client.dni_nif ? `<div style="font-size:13px;color:#555">NIF/CIF: ${client.dni_nif}</div>` : ''}
+                    ${client.email ? `<div style="font-size:13px;color:#555">${client.email}</div>` : ''}
+                  </div>
+                ` : ''
+
+                const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propuesta Comercial - ${refNumber}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
                 <style>
                   *{margin:0;padding:0;box-sizing:border-box}
                   body{font-family:'Manrope',sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto}
-                  h1{font-size:24px;font-weight:700;margin-bottom:8px}
-                  .subtitle{color:#666;font-size:14px;margin-bottom:32px}
+                  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:20px;border-bottom:2px solid #0061FF}
+                  .header-left h1{font-size:22px;font-weight:700;color:#0061FF;margin-bottom:4px}
+                  .header-left .subtitle{font-size:13px;color:#666}
+                  .header-right{text-align:right;font-size:12px;color:#666;line-height:1.6}
+                  .header-right .ref{font-size:14px;font-weight:700;color:#1a1a1a}
+                  .proposal-title{font-size:18px;font-weight:600;margin-bottom:24px;color:#1a1a1a}
                   table{width:100%;border-collapse:collapse;margin-bottom:32px}
                   th{background:#f5f5f5;padding:10px 12px;text-align:left;font-weight:600;font-size:13px;border-bottom:2px solid #e0e0e0}
                   th:nth-child(2){text-align:center}
@@ -116,11 +143,22 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                   .totals{margin-left:auto;width:300px}
                   .totals .row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
                   .totals .total-row{border-top:2px solid #1a1a1a;padding-top:10px;margin-top:6px;font-size:18px;font-weight:700}
-                  .footer{margin-top:40px;font-size:12px;color:#888;text-align:center}
+                  .footer{margin-top:48px;padding-top:16px;border-top:1px solid #e5e5e5;font-size:11px;color:#999;text-align:center;line-height:1.8}
                   @media print{body{padding:20px}}
                 </style></head><body>
-                <h1>Propuesta Comercial</h1>
-                <p class="subtitle">Ref: ${proposalId.slice(0, 8).toUpperCase()}</p>
+                <div class="header">
+                  <div class="header-left">
+                    <h1>Propuesta Comercial</h1>
+                    <div class="subtitle">Documento generado automáticamente</div>
+                  </div>
+                  <div class="header-right">
+                    <div class="ref">${refNumber}</div>
+                    <div>Fecha: ${today}</div>
+                    ${validDate ? `<div>Válida hasta: ${validDate}</div>` : ''}
+                  </div>
+                </div>
+                ${proposalTitle ? `<div class="proposal-title">${proposalTitle}</div>` : ''}
+                ${clientBlock}
                 <table>
                   <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th></tr></thead>
                   <tbody>${rows}</tbody>
@@ -130,7 +168,10 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
                   <div class="row"><span>IVA (21%)</span><span>${fmt(taxAmount)}</span></div>
                   <div class="row total-row"><span>Total</span><span>${fmt(calculatedTotal)}</span></div>
                 </div>
-                <div class="footer">Documento generado el ${new Date().toLocaleDateString('es-ES')}</div>
+                <div class="footer">
+                  Documento generado el ${today}<br>
+                  Esta propuesta tiene carácter informativo y no constituye factura. Precios sujetos a IVA vigente.
+                </div>
                 </body></html>`
 
                 const w = window.open('', '_blank')

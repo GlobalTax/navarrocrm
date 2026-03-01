@@ -91,7 +91,8 @@ export default function ProposalDetail() {
             id,
             name,
             email,
-            phone
+            phone,
+            dni_nif
           )
         `)
         .eq('id', id)
@@ -568,7 +569,19 @@ export default function ProposalDetail() {
               </TabsContent>
               
               <TabsContent value="pricing" className="space-y-6">
-                <ProposalPricingTab proposalId={proposal.id} totalAmount={proposal.total_amount} currency={proposal.currency} />
+                <ProposalPricingTab 
+                  proposalId={proposal.id} 
+                  totalAmount={proposal.total_amount} 
+                  currency={proposal.currency}
+                  proposalTitle={proposal.title}
+                  proposalNumber={proposal.proposal_number}
+                  validUntil={proposal.valid_until}
+                  client={proposal.client ? {
+                    name: proposal.client.name,
+                    email: proposal.client.email || undefined,
+                    dni_nif: proposal.client.dni_nif || undefined
+                  } : undefined}
+                />
               </TabsContent>
               
               <TabsContent value="documents">
