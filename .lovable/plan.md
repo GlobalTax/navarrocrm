@@ -1,85 +1,48 @@
 
-## Plan: Crear tareas a partir de imagenes (emails, capturas, etc.)
+## Plan: Corregir alineacion de columnas en tablas virtualizadas
 
-### Objetivo
-Permitir al usuario subir una imagen (captura de un email, documento, etc.) y que la IA extraiga automaticamente los datos relevantes para pre-rellenar el formulario de creacion de tareas (titulo, descripcion, prioridad, fecha limite).
+### Problema
+En las tablas de **Empresas** y **Personas Fisicas**, las columnas de datos no se alinean con las cabeceras. Esto ocurre porque:
 
----
+1. La **cabecera** usa `grid-cols-7` (o `grid-cols-6`) ocupando todo el ancho
+2. Las **filas** tienen un Avatar (40px + gap) **fuera** del grid, desplazando todas las columnas hacia la derecha
+3. Resultado: los datos aparecen debajo de la cabecera incorrecta (nombre truncado, sectores cortados, etc.)
 
-### Paso 1 -- Configurar secreto de OpenAI
+### Solucion
 
-Se necesita una API key de OpenAI para usar el modelo de vision (GPT-4o). Se solicitara al usuario que proporcione su clave.
-
----
-
-### Paso 2 -- Crear Edge Function `extract-task-from-image`
-
-**Nuevo archivo: `supabase/functions/extract-task-from-image/index.ts`**
-
-Recibe una imagen en base64 y la envia a la API de OpenAI (GPT-4o con vision) con un prompt que le pide extraer:
-- `title`: Titulo conciso de la tarea
-- `description`: Descripcion detallada
-- `priority`: low / medium / high / urgent
-- `due_date`: Fecha limite si se detecta (formato ISO)
-- `estimated_hours`: Horas estimadas si es posible inferir
-
-El prompt estara orientado a emails y documentos en castellano. Devuelve JSON estructurado.
+Igualar la estructura de cabecera y filas para que el avatar forme parte del mismo layout.
 
 ---
 
-### Paso 3 -- Anadir boton "Crear desde imagen" al formulario de tareas
+### Cambio 1 -- `VirtualizedCompaniesTable.tsx` (cabecera empresas)
 
-**Archivo modificado: `src/components/tasks/TaskFormDialog.tsx`**
+- Cambiar la cabecera para que tenga un placeholder del mismo ancho que el avatar (40px + gap) antes del grid
+- Estructura: `flex` con un `div` de 52px (avatar 40px + gap 12px) + `grid-cols-7`
+- Asi la cabecera se alinea exactamente con las filas
 
-- Anadir un boton con icono de camara/imagen en la cabecera del dialogo
-- Al pulsar, abre un area de drop/upload (usando `react-dropzone`, ya instalado)
-- Al subir la imagen, llama a la edge function
-- Con la respuesta, pre-rellena los campos del formulario (`title`, `description`, `priority`, `due_date`)
-- Muestra un indicador de carga mientras se procesa
+### Cambio 2 -- `CompanyRow` en `VirtualizedCompaniesTable.tsx` (filas empresas)
 
----
+- Asegurar que el grid interior usa las mismas proporciones que la cabecera
+- Sin cambio estructural grande, solo garantizar coherencia de anchos
 
-### Paso 4 -- Crear componente de extraccion de imagen
+### Cambio 3 -- `PersonTableHeader.tsx` (cabecera personas)
 
-**Nuevo archivo: `src/components/tasks/TaskImageExtractor.tsx`**
+- Mismo ajuste: anadir spacer de 52px antes del `grid-cols-6`
 
-Componente reutilizable que:
-- Muestra zona de drag & drop para imagenes (JPG, PNG, WEBP)
-- Convierte la imagen a base64
-- Llama a `supabase.functions.invoke('extract-task-from-image', { body: { image: base64 } })`
-- Devuelve los datos extraidos al componente padre via callback `onExtracted(data)`
-- Muestra estado de carga con skeleton/spinner
-- Muestra preview de la imagen subida
+### Cambio 4 -- `PersonRow.tsx` (filas personas)
+
+- Verificar que el grid interior coincide con la cabecera ajustada
 
 ---
 
-### Flujo del usuario
+### Resultado esperado
 
-```text
-1. Usuario abre "Nueva Tarea"
-2. Pulsa boton "Extraer de imagen" (icono de imagen)
-3. Arrastra o selecciona una captura de pantalla (ej. email)
-4. Se muestra spinner "Analizando imagen..."
-5. La IA extrae los datos y pre-rellena el formulario
-6. El usuario revisa, ajusta si es necesario, y pulsa "Crear Tarea"
-```
-
----
+Las columnas Empresa/Sector/Contacto Principal/Informacion/Contactos/Estado/Acciones quedaran perfectamente alineadas con sus cabeceras, y los nombres dejaran de aparecer truncados innecesariamente.
 
 ### Archivos afectados
 
-| Archivo | Accion |
+| Archivo | Cambio |
 |---------|--------|
-| `supabase/functions/extract-task-from-image/index.ts` | Nuevo - Edge function con OpenAI Vision |
-| `src/components/tasks/TaskImageExtractor.tsx` | Nuevo - Componente de upload + extraccion |
-| `src/components/tasks/TaskFormDialog.tsx` | Modificar - integrar boton y extractor |
-| `src/hooks/useTaskForm.ts` | Modificar - exponer `setFormData` o metodo para pre-rellenar |
-| Secreto `OPENAI_API_KEY` | Nuevo - se solicitara al usuario |
-
-### Notas tecnicas
-
-- Se usa GPT-4o (modelo con vision) para analizar la imagen
-- La imagen se envia como base64 en el body de la request
-- Limite de tamano: se valida < 5MB en el cliente
-- No se almacena la imagen en storage, solo se usa para el analisis
-- El componente sigue el sistema de diseno: bordes 0.5px, rounded-[10px], Manrope
+| `src/components/contacts/VirtualizedCompaniesTable.tsx` | Ajustar cabecera y filas para alinear con avatar |
+| `src/components/contacts/PersonTableHeader.tsx` | Anadir spacer para el avatar |
+| `src/components/contacts/PersonRow.tsx` | Verificar coherencia del grid |
