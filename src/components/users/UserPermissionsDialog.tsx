@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Trash2, Plus, Shield, UserCog } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
+import { Trash2, Plus, Shield, UserCog, Layers } from 'lucide-react'
 import { useUserPermissions } from '@/hooks/useUserPermissions'
+import { usePermissionGroups } from '@/hooks/usePermissionGroups'
 
 interface UserPermissionsDialogProps {
   open: boolean
@@ -24,8 +26,11 @@ export const UserPermissionsDialog = ({ open, onOpenChange, user, onClose }: Use
     PERMISSION_LEVELS
   } = useUserPermissions()
   
+  const { groups, applyGroupToUser } = usePermissionGroups()
+  
   const [selectedModule, setSelectedModule] = useState('')
   const [selectedPermission, setSelectedPermission] = useState('')
+  const [selectedGroup, setSelectedGroup] = useState('')
 
   const userPermissions = user ? getUserPermissions(user.id) : []
 
@@ -40,6 +45,12 @@ export const UserPermissionsDialog = ({ open, onOpenChange, user, onClose }: Use
 
     setSelectedModule('')
     setSelectedPermission('')
+  }
+
+  const handleApplyGroup = async () => {
+    if (!user || !selectedGroup) return
+    await applyGroupToUser.mutateAsync({ userId: user.id, groupId: selectedGroup })
+    setSelectedGroup('')
   }
 
   const getModuleLabel = (moduleKey: string) => {
@@ -79,6 +90,46 @@ export const UserPermissionsDialog = ({ open, onOpenChange, user, onClose }: Use
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Asignación rápida por grupo */}
+          {groups.length > 0 && (
+            <Card className="border-[0.5px] border-black rounded-[10px]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Layers className="h-4 w-4" />
+                  Asignar Grupo de Permisos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-3">
+                  <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                    <SelectTrigger className="flex-1 border-[0.5px] border-black rounded-[10px]">
+                      <SelectValue placeholder="Selecciona un grupo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {groups.map(g => (
+                        <SelectItem key={g.id} value={g.id}>
+                          {g.name} ({g.items.length} permisos)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleApplyGroup}
+                    disabled={!selectedGroup || applyGroupToUser.isPending}
+                    className="rounded-[10px]"
+                  >
+                    {applyGroupToUser.isPending ? 'Aplicando...' : 'Aplicar'}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Aplica todos los permisos del grupo al usuario de una vez.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <Separator />
+
           {/* Permisos actuales */}
           <Card>
             <CardHeader>
@@ -124,7 +175,7 @@ export const UserPermissionsDialog = ({ open, onOpenChange, user, onClose }: Use
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Agregar Nuevo Permiso
+                Agregar Permiso Individual
               </CardTitle>
             </CardHeader>
             <CardContent>
