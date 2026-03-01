@@ -28,15 +28,23 @@ export const ProposalsBuilderManager = ({
   onUpdateProposal
 }: ProposalsBuilderManagerProps) => {
   // Mostrar el wizard profesional para ambos tipos de propuestas
-  if (isRecurrentBuilderOpen || isSpecificBuilderOpen) {
+  if (isRecurrentBuilderOpen) {
     return (
       <LegalProposalBuilder
-        onClose={isRecurrentBuilderOpen ? onCloseRecurrentBuilder : onCloseSpecificBuilder}
+        onClose={onCloseRecurrentBuilder}
         onSave={isEditMode && editingProposal && onUpdateProposal 
           ? (data: any) => onUpdateProposal(editingProposal.id, data)
           : onSaveRecurrentProposal
         }
         isSaving={isSavingRecurrent}
+      />
+    )
+  }
+
+  if (isSpecificBuilderOpen) {
+    return (
+      <ProfessionalProposalBuilder
+        onBack={onCloseSpecificBuilder}
       />
     )
   }
