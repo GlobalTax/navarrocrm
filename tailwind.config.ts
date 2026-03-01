@@ -20,7 +20,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Manrope', 'system-ui', 'sans-serif'],
+				sans: ['General Sans', 'system-ui', 'sans-serif'],
 			},
 			fontSize: {
 				// Micro texto (8px-10px) - Para timestamps, badges pequeños
