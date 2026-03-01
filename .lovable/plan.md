@@ -1,116 +1,76 @@
 
-## Plan: Mejorar PDF de propuestas puntuales y recurrentes
+
+## Plan: Mostrar nivel de permisos en la tabla de usuarios
 
 ### Objetivo
-Anadir datos completos del cliente (nombre, NIF, email, telefono), logo del despacho, cabecera profesional y pie de pagina a ambos tipos de PDF.
+Agregar una columna "Permisos" en las tablas de usuarios (general y sistema) que muestre el nombre del grupo de permisos asignado a cada usuario (ej. "Administrador", "Solo Lectura", "Operativo"), o un indicador "Sin asignar" si no tiene grupo.
 
----
+### Cambios
 
-### Cambio 1 -- Extraer funcion compartida de generacion HTML
+**1. Crear hook `useUserPermissionGroupNames`**
 
-**Nuevo archivo: `src/components/proposals/utils/generateProposalPDF.ts`**
+Nuevo archivo: `src/hooks/useUserPermissionGroupNames.ts`
 
-Funcion utilitaria que genera el HTML completo del PDF, reutilizable por ambos tipos de propuesta. Recibe:
+Un hook que consulta `user_permission_groups` con join a `permission_groups` para obtener un mapa `{ [user_id]: nombre_grupo }`. Se usa con `useQuery` filtrando por `org_id`.
 
-```text
-{
-  type: 'one-time' | 'retainer'
-  title, refNumber, date, validUntil
-  client: { name, nif, email, phone }
-  firmName, firmLogo (URL o base64)
-  rows (tabla de servicios)
-  totals: { subtotal, tax, total, discountInfo? }
-  retainerConfig? (solo para recurrentes)
-  introduction?, terms?
-}
+Consulta:
+```
+supabase
+  .from('user_permission_groups')
+  .select('user_id, permission_groups(name)')
+  .eq('org_id', user.org_id)
 ```
 
-Genera HTML con:
-- **Cabecera**: logo del despacho (imagen) a la izquierda + nombre del despacho, referencia y fecha a la derecha, linea azul (#0061FF) separadora
-- **Bloque cliente**: nombre, NIF/CIF, email y telefono en caja gris con borde
-- **Cuerpo**: tabla de servicios, totales, y para retainer la caja de condiciones
-- **Pie de pagina**: texto legal + nombre del despacho + "Pagina X" (via CSS `@page` counter), linea separadora superior
-
-Logica de logo: se usara una URL configurable. Si no hay logo, se muestra solo el nombre del despacho en texto grande.
+Devuelve: `Map<string, string>` (userId -> groupName)
 
 ---
 
-### Cambio 2 -- Actualizar ProposalPricingTab (puntuales)
+**2. Actualizar `UserTable.tsx`**
 
-**Archivo: `src/components/proposals/ProposalPricingTab.tsx`**
-
-- Ampliar la interfaz `ClientInfo` para incluir `phone?: string`
-- Reemplazar el bloque HTML inline (lineas 112-192) por una llamada a `generateProposalPDF()` con type `'one-time'`
-- Pasar datos del cliente incluyendo telefono
+- Recibir nueva prop `permissionGroupMap: Record<string, string>`
+- Agregar columna "Permisos" entre "Rol" y "Estado"
+- Mostrar un Badge con el nombre del grupo o "Sin asignar" en gris
 
 ---
 
-### Cambio 3 -- Actualizar LegalProposalStepContent (recurrentes)
+**3. Actualizar `SystemUserTable.tsx`**
 
-**Archivo: `src/components/proposals/legal/components/LegalProposalStepContent.tsx`**
-
-- Anadir prop `clientData` al componente (o recibirlo del contexto del wizard) con nombre, NIF, email, telefono
-- Reemplazar el bloque HTML inline (lineas 131-217) por una llamada a `generateProposalPDF()` con type `'retainer'`, pasando `retainerConfig`, `introduction`, `terms` y datos del cliente
+- Mismo cambio: nueva prop y columna "Permisos"
 
 ---
 
-### Cambio 4 -- Pasar datos del cliente al wizard legal
+**4. Actualizar `Users.tsx` (pagina general)**
 
-**Archivo: `src/components/proposals/legal/LegalProposalPreview.tsx`**
-
-- Anadir prop `client` con la misma interfaz `{ name, nif, email, phone }` y propagarla al HTML
-
-Los componentes padre que invocan el wizard ya tienen acceso al `contact_id`; se consultaran los datos del contacto para pasarlos.
+- Importar y usar `useUserPermissionGroupNames`
+- Pasar el mapa como prop a `UserTable`
 
 ---
 
-### Diseno del PDF resultante
+**5. Actualizar `SystemUsersPage.tsx`**
 
-```text
-+--------------------------------------------------+
-|  [LOGO]  Nombre del Despacho        REF-XXXXX    |
-|           Asesoria integral          01/03/2026   |
-|           www.despacho.com           Valid: 30d   |
-+==================================================+
-|                                                    |
-|  DATOS DEL CLIENTE                                 |
-|  +----------------------------------------------+ |
-|  | Nombre: Empresa S.L.                          | |
-|  | NIF: B12345678  |  Email: info@empresa.com    | |
-|  | Telefono: +34 612 345 678                     | |
-|  +----------------------------------------------+ |
-|                                                    |
-|  Titulo de la Propuesta                            |
-|                                                    |
-|  SERVICIOS PROPUESTOS                              |
-|  | Concepto | Cant | P.Unit | Total |             |
-|  |----------|------|--------|-------|             |
-|  | Servicio | 1    | 500 E  | 500 E |             |
-|                                                    |
-|              Subtotal:  500,00 EUR                 |
-|              IVA 21%:   105,00 EUR                 |
-|              TOTAL:     605,00 EUR                 |
-|                                                    |
-|  [Solo retainer: caja condiciones]                 |
-|  [Seccion firma]                                   |
-|                                                    |
-+--------------------------------------------------+
-|  Nombre Despacho | Documento informativo | Pag 1  |
-+--------------------------------------------------+
-```
+- Importar y usar `useUserPermissionGroupNames`
+- Pasar el mapa como prop a `SystemUserTable`
 
-### Notas tecnicas
+---
 
-- El logo se cargara desde una constante configurable (URL publica o placeholder). No requiere storage ni migracion SQL.
-- Se usa CSS `@media print` y `@page` para margenes y pie de pagina en impresion.
-- Fuente Manrope desde Google Fonts (ya en uso).
-- No se crean nuevas dependencias.
+### Diseno visual de la columna
+
+| Permisos |
+|----------|
+| Badge azul claro: "Administrador" |
+| Badge gris: "Sin asignar" |
+| Badge verde claro: "Operativo" |
+
+Los badges seguiran el sistema de diseno: `border-[0.5px] rounded-[10px] text-xs`.
 
 ### Archivos afectados
 
 | Archivo | Accion |
 |---------|--------|
-| `src/components/proposals/utils/generateProposalPDF.ts` | Nuevo - funcion compartida |
-| `src/components/proposals/ProposalPricingTab.tsx` | Modificar - usar funcion compartida |
-| `src/components/proposals/legal/components/LegalProposalStepContent.tsx` | Modificar - usar funcion compartida + datos cliente |
-| `src/components/proposals/legal/LegalProposalPreview.tsx` | Modificar - anadir prop client |
+| `src/hooks/useUserPermissionGroupNames.ts` | Nuevo |
+| `src/components/users/UserTable.tsx` | Agregar columna Permisos |
+| `src/components/users/SystemUserTable.tsx` | Agregar columna Permisos |
+| `src/pages/Users.tsx` | Usar hook y pasar prop |
+| `src/pages/SystemUsersPage.tsx` | Usar hook y pasar prop |
+
+No se requieren cambios en base de datos. Las tablas `permission_groups` y `user_permission_groups` ya existen.
