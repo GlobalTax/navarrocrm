@@ -1,72 +1,92 @@
 
 
-## Optimizar rendimiento del sistema de permisos
+## Crear Grupos de Permisos
 
-### Problema
-El sistema de permisos no esta mal disenado, pero genera lentitud por:
-- Queries sin cache (`staleTime` = 0 por defecto)
-- Peticiones secuenciales innecesarias en `useTeams`
-- Hooks duplicados que multiplican el overhead
-- Multiples queries a la tabla `users` con diferentes queryKeys
+### Problema actual
+Para asignar permisos a un usuario hay que ir modulo por modulo, permiso por permiso. Con 8 modulos y 4 niveles, configurar un usuario completo requiere hasta 32 clics.
 
-### Solucion: 4 optimizaciones concretas
+### Solucion
+Crear **Grupos de Permisos** (plantillas predefinidas) que agrupan multiples permisos. Al asignar un grupo a un usuario, se aplican todos los permisos del grupo de una vez.
 
----
+### Modelo de datos
 
-**1. Anadir `staleTime` a las queries base (usuarios, equipos, permisos)**
+**Nueva tabla: `permission_groups`**
+| Columna | Tipo | Descripcion |
+|---------|------|-------------|
+| id | uuid PK | Identificador |
+| org_id | uuid FK | Organizacion |
+| name | varchar | Nombre del grupo (ej: "Lectura basica", "Gestor de expedientes") |
+| description | text | Descripcion del grupo |
+| is_system | boolean | Si es plantilla del sistema (no editable) |
+| created_by | uuid | Quien lo creo |
+| created_at / updated_at | timestamptz | Timestamps |
 
-Archivos: `useUsers.ts`, `useTeams.ts`, `useUserPermissions/queries.ts`, `useEnhancedUsers.ts`
+**Nueva tabla: `permission_group_items`**
+| Columna | Tipo | Descripcion |
+|---------|------|-------------|
+| id | uuid PK | Identificador |
+| group_id | uuid FK | Referencia al grupo |
+| module | varchar | Modulo (cases, contacts, etc.) |
+| permission | varchar | Nivel (read, write, delete, admin) |
 
-Anadir `staleTime: 5 * 60 * 1000` (5 minutos) a todas las queries de datos que cambian poco. Esto evita refetches innecesarios al montar componentes o al cambiar de pestana.
+**Nueva tabla: `user_permission_groups`**
+| Columna | Tipo | Descripcion |
+|---------|------|-------------|
+| id | uuid PK | Identificador |
+| user_id | uuid | Usuario |
+| group_id | uuid FK | Grupo asignado |
+| org_id | uuid | Organizacion |
+| assigned_by | uuid | Quien asigno |
+| created_at | timestamptz | Timestamp |
 
----
+RLS en las 3 tablas por `org_id`, solo partners/area_managers pueden gestionar.
 
-**2. Eliminar la query secuencial en `useTeams` memberships**
+### Plantillas predefinidas (seed)
+Se insertaran grupos por defecto al crear la migracion:
+- **Solo Lectura**: read en todos los modulos
+- **Operativo**: read + write en cases, contacts, time_tracking, proposals
+- **Gestor de Area**: read + write + delete en cases, contacts, proposals, time_tracking, reports
+- **Administrador**: admin en todos los modulos
+- **Finanzas**: admin en billing, read en reports, cases, contacts
 
-Archivo: `src/hooks/useTeams.ts`
+### Cambios en el frontend
 
-Actualmente la query de memberships hace:
-1. Fetch de `team_memberships`
-2. Fetch de `users` por IDs (secuencial)
+**1. Nueva pestana "Grupos de Permisos" en la pagina de Usuarios del Sistema**
+- Anadir una pestana `Tabs` en `SystemUsersPage.tsx` con dos secciones: "Usuarios" (actual) y "Grupos de Permisos"
+- La pestana de grupos mostrara una tabla con los grupos existentes y un boton para crear nuevos
 
-Cambiar a una sola query con select relacional:
-```
-.from('team_memberships')
-.select('*, user:users(id, email, role)')
-```
+**2. Nuevo componente `PermissionGroupsTab.tsx`**
+- Tabla inline con columnas: Nombre, Descripcion, Permisos (badges), Acciones
+- Boton "Crear Grupo" que abre un dialog
+- Acciones: editar, eliminar, ver usuarios asignados
 
-Si la relacion directa falla por RLS, usar un join via `user_id` con el select embebido de Supabase. Esto elimina 1 round-trip por carga.
+**3. Nuevo componente `PermissionGroupDialog.tsx`**
+- Formulario para crear/editar un grupo
+- Campo nombre y descripcion
+- Matriz de checkboxes: modulos (filas) x niveles (columnas) para seleccionar permisos
+- Boton guardar
 
----
+**4. Actualizar `UserPermissionsDialog.tsx`**
+- Anadir seccion superior "Asignar Grupo" con un Select de grupos disponibles
+- Al seleccionar un grupo, se aplican automaticamente todos los permisos del grupo (INSERT masivo en `user_permissions`)
+- Mantener la seccion actual de permisos individuales como "ajuste fino"
 
-**3. Unificar queryKey de usuarios**
+**5. Nuevo hook `usePermissionGroups.ts`**
+- Query para listar grupos con sus items
+- Mutations: crear grupo, editar grupo, eliminar grupo
+- Mutation: asignar grupo a usuario (inserta todos los permisos del grupo en `user_permissions`)
 
-Archivo: `useEnhancedUsers.ts`
-
-Cuando los filtros estan vacios (search='', role='all', status='all'), usar el mismo queryKey que `useUsers` (`['users', org_id]`) para que React Query comparta la cache. Esto evita tener los mismos 55 usuarios duplicados en memoria con keys distintas.
-
----
-
-**4. Evitar instanciacion redundante de hooks en `useTimeTrackingMetrics`**
-
-Archivo: `src/hooks/useTimeTrackingMetrics/index.ts`
-
-`useTimeTrackingPermissions` ya llama internamente a `useTeams` y `useUsers`. Pero `useTimeTrackingMetrics` vuelve a llamar a ambos. Refactorizar para que `useTimeTrackingPermissions` exporte tambien los datos de teams/users que ya tiene, y `useTimeTrackingMetrics` los reutilice sin volver a instanciar los hooks.
-
----
-
-### Impacto esperado
-- De ~8-10 queries por carga de pagina a ~4-5
-- Eliminacion de refetches al cambiar de pestana/tab
-- Eliminacion de 1 round-trip secuencial en memberships
-- Menor uso de memoria por cache compartida
+### Archivos a crear
+| Archivo | Proposito |
+|---------|-----------|
+| `src/hooks/usePermissionGroups.ts` | Hook con queries y mutations |
+| `src/components/users/PermissionGroupsTab.tsx` | Pestana de gestion de grupos |
+| `src/components/users/PermissionGroupDialog.tsx` | Dialog crear/editar grupo |
 
 ### Archivos a modificar
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useUsers.ts` | Anadir staleTime |
-| `src/hooks/useTeams.ts` | staleTime + query unica en memberships |
-| `src/hooks/useUserPermissions/queries.ts` | Anadir staleTime |
-| `src/hooks/useEnhancedUsers.ts` | Anadir staleTime + unificar queryKey |
-| `src/hooks/useTimeTrackingPermissions/index.ts` | Exportar teams/memberships/users |
-| `src/hooks/useTimeTrackingMetrics/index.ts` | Reutilizar datos del hook de permisos |
+| `src/pages/SystemUsersPage.tsx` | Anadir Tabs con pestana de grupos |
+| `src/components/users/UserPermissionsDialog.tsx` | Anadir selector de grupo para asignacion rapida |
+| Migracion SQL | Crear tablas + seed de plantillas |
+
