@@ -1,38 +1,71 @@
 
 
-## Plan: Alta masiva de 53 usuarios con asignación visual de roles
+## Plan: Actualizar datos reales de los 53 usuarios
 
-### Objetivo
-Crear una pantalla temporal (o modal) con los 53 usuarios ya cargados, donde puedas asignar el rol a cada uno mediante un dropdown, y luego crearlos todos de golpe usando la Edge Function `create-user` existente.
+### Problema
+El array `PRELOADED_USERS` en `src/components/users/UserBulkPreloaded.tsx` (lineas 38-92) contiene datos inventados. Hay que reemplazarlo con los datos reales proporcionados del equipo NRRO.
 
-### Cambios
+### Cambio
+Reemplazar el array `PRELOADED_USERS` (lineas 38-92) con los 54 usuarios reales:
 
-**1. Nuevo componente: `src/components/users/UserBulkPreloaded.tsx`**
-- Tabla con los 53 usuarios pre-cargados (nombre, apellido, email)
-- Columna con dropdown de rol (`partner`, `area_manager`, `senior`, `junior`, `finance`) para cada fila
-- Botones de asignación rápida: "Todos junior", "Todos senior", etc.
-- Checkbox para seleccionar/deseleccionar usuarios individuales
-- Botón "Crear usuarios seleccionados" que llama secuencialmente a `create-user` (con pausa de 500ms entre cada uno, como el bulk actual)
-- Barra de progreso durante la creación
-- Al finalizar: resumen con credenciales descargables (mismo flujo que `UserBulkCreation`)
+```
+Adrián Montero - a.montero@nrro.es
+Adrián Muñoz - a.munoz@nrro.es
+Alba Virto - a.virto@nrro.es
+Alberto Vicente - a.vicente@nrro.es
+Aleix Miró - a.miro@nrro.es
+Alejandro Brotons - a.brotons@nrro.es
+Ana Ramírez - a.ramirez@nrro.es
+Anabel Raso - a.raso@nrro.es
+Angelo Martín - a.martin@nrro.es
+Blanca Salvó - b.salvo@nrro.es
+Carolina Sacco - c.sacco@nrro.es
+Cinthia Paola Sánchez - cp.sanchez@nrro.es
+Clara Bellonch - c.bellonch@nrro.es
+Clara Giménez - c.gimenez@nrro.es
+Claudia Martín - c.martin@nrro.es
+David Gómez Rovira - d.gomez@nrro.es
+Eric Abellán - e.abellan@nrro.es
+Estel Borrell - e.borrell@nrro.es
+Gemma Zalacain - g.zalacain@nrro.es
+Gerard Iriarte - g.iriarte@nrro.es
+Irene Velarde - i.velarde@nrro.es
+Iván Rodríguez Ruiz - I.Rodriguez@nrro.es
+Joan Salvó - j.salvo@nrro.es
+Jordi Majoral - j.majoral@nrro.es
+Jose Bonet - j.bonet@nrro.es
+José María Argüello - jm.arguello@nrro.es
+Juan Luis Dambrosio - jl.dambrosio@nrro.es
+Júlia Estellé - j.estelle@nrro.es
+Laia Moll - l.moll@nrro.es
+Lluís Montanya - ll.montanya@nrro.es
+Lucia Linares - L.linares@nrro.es
+Magdalena Vidueira - m.vidueira@nrro.es
+Marc Canet - m.canet@nrro.es
+María León - m.leon@nrro.es
+María Ventín - m.ventin@nrro.es
+Mía Fernández - m.fernandez@nrro.es
+Mónica Castro - m.castro@nrro.es
+Nil Moreno - n.moreno@nrro.es
+Oriol Morón - o.moron@nrro.es
+Pau Valls - p.valls@nrro.es
+Paula Cárdenas - p.cardenas@nrro.es
+Pepe Rico - p.rico@nrro.es
+Pilar D'Ambrosio - p.dambrosio@nrro.es
+Pol Fontclara - p.fontclara@nrro.es
+Queralt Vall - q.vall@nrro.es
+Raquel Chica - r.chica@nrro.es
+Raul Rubio - r.rubio@nrro.es
+Roc Serra - r.serra@nrro.es
+Rosa Rodríguez - r.rodriguez@nrro.es
+Sara Alonso - s.alonso@nrro.es
+Sara Sanz - s.sanz@nrro.es
+Vasyl Lenko - v.lenko@nrro.es
+Yasmina Aguilera - y.aguilera@nrro.es
+Yolanda Pescador - y.pescador@nrro.es
+Yuxiang Huang - y.huang@nrro.es
+```
 
-**2. Integración en la página de Usuarios (`/system-users`)**
-- Añadir un botón "Alta equipo NRRO" (o similar) que abre el nuevo componente
-- Una vez creados todos, el botón desaparece o se desactiva
+### Archivo afectado
+- `src/components/users/UserBulkPreloaded.tsx` — solo se reemplaza el array de datos (lineas 38-92), el resto del componente no cambia.
 
-### Datos pre-cargados
-Los 53 usuarios de la lista Microsoft 365 con sus campos: `email`, `first_name`, `last_name`. El campo `role` empezará vacío para que lo asignes tú.
-
-### Flujo de uso
-1. Vas a Usuarios y pulsas "Alta equipo NRRO"
-2. Se abre un modal/dialog con la tabla de 53 usuarios
-3. Asignas rol a cada uno (o usas los botones de asignación rápida)
-4. Pulsas "Crear usuarios"
-5. Se procesan secuencialmente (barra de progreso visible)
-6. Al terminar, descargas el CSV de credenciales
-
-### Detalles tecnicos
-- Reutiliza la Edge Function `create-user` existente (sin cambios)
-- Delay de 500ms entre creaciones para evitar rate-limiting
-- Los usuarios sin rol asignado no se crean (validacion)
-- Mismo sistema de credenciales temporales (`user_credentials_temp`)
