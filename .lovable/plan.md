@@ -1,64 +1,51 @@
 
+## Plan: Corregir tabla de Empresas (755 vs 5) y reorganizar Sidebar
 
-## Plan: Corregir alineacion definitiva en tablas de Empresas y Personas
+### Problema 1: Solo salen 5 empresas
 
-### Problema raiz
+La funcion RPC `get_companies_with_contacts` consulta la tabla `public.companies` (que solo tiene 5 registros), en lugar de `public.contacts WHERE client_type = 'empresa'` (que tiene 755 registros). Son tablas distintas y la mayoria de empresas estan en `contacts`.
 
-El fix anterior (anadir spacer `w-10` en la cabecera) no es suficiente porque:
+**Solucion:** Modificar la funcion RPC `get_companies_with_contacts` para que consulte `public.contacts WHERE client_type = 'empresa'` en lugar de `public.companies`. Ademas, adaptar los campos devueltos (la tabla `contacts` tiene `business_sector`, `status`, `email`, `phone`, etc. que `companies` no tiene).
 
-1. **Avatar con borde extra**: El avatar en las filas tiene `border-2 border-white shadow-lg`, lo que anade 4px al ancho real (44px vs 40px del spacer)
-2. **Estructura de nesting diferente**: Las filas tienen un `div` wrapper adicional (`flex items-center gap-3 flex-1 min-w-0`) que la cabecera no replica exactamente
-3. **Padding interno inconsistente**: Las filas usan `px-6 py-4` en el `div style={style}` mientras que la cabecera usa `px-6 py-4` en un wrapper diferente
+### Problema 2: Sidebar - Separar Contactos en secciones
 
-### Solucion
-
-Unificar la estructura exacta de cabecera y filas, eliminando cualquier diferencia de tamanio.
+Actualmente hay un unico enlace "Contactos" en el sidebar (`/contacts`). El usuario quiere:
+- Una seccion dedicada con enlaces separados para **Personas Fisicas** y **Empresas**
 
 ---
 
-### Cambio 1 -- `VirtualizedCompaniesTable.tsx` (cabecera)
+### Cambios planificados
 
-Ajustar el spacer de la cabecera para que coincida exactamente con el avatar incluyendo su borde:
-- Cambiar `w-10` a `w-10 h-10` con el mismo border invisible (`border-2 border-transparent`) para igualar el box model
-- O simplemente usar un ancho fijo con `min-w-[44px]` que coincida con el avatar real
+#### 1. Migracion SQL: Reescribir la funcion RPC
 
-### Cambio 2 -- `CompanyRow` en `VirtualizedCompaniesTable.tsx` (filas)
+Reescribir `get_companies_with_contacts` para que consulte `public.contacts` filtrado por `client_type = 'empresa'`, devolviendo los campos que el frontend necesita (`business_sector`, `status`, `email`, `phone`, `relationship_type`, etc.) y manteniendo la logica de deduplicacion por `quantum_customer_id`.
 
-- Eliminar `border-2 border-white shadow-lg` del Avatar para simplificar y que coincida con `w-10` exacto
-- Esto alinea perfectamente con el spacer `w-10` de la cabecera
+#### 2. Sidebar: Reorganizar NavigationData.ts
 
-### Cambio 3 -- `PersonRow.tsx` (filas personas)
+Cambiar la seccion "Principal" del sidebar para separar:
 
-- Mismo cambio: eliminar `border-2 border-white shadow-lg` del Avatar
-- Asegurar que la estructura `flex > avatar(w-10) + grid-cols-6` coincide con la cabecera
-
-### Cambio 4 -- `PersonTableHeader.tsx` (cabecera personas)
-
-- Verificar que el spacer `w-10` esta correcto (ya fue actualizado en el fix anterior)
-
----
-
-### Detalle tecnico
-
-**Antes (desalineado):**
 ```text
-Cabecera: [spacer 40px] [gap 12px] [grid-cols-7 ...]
-Fila:     [avatar 44px] [gap 12px] [grid-cols-7 ...]
-                 ^-- 4px de diferencia por border-2
+Principal
+  - Dashboard
+  - Contactos (enlace general /contacts)
+    -- o reemplazar por:
+  - Personas Fisicas (/contacts?tab=persons)
+  - Empresas (/contacts?tab=companies)
+  - Casos
+  - Escrituras
+  - Propuestas
 ```
 
-**Despues (alineado):**
-```text
-Cabecera: [spacer 40px] [gap 12px] [grid-cols-7 ...]
-Fila:     [avatar 40px] [gap 12px] [grid-cols-7 ...]
-```
+Se anadiran los iconos `User` y `Building2` para distinguir visualmente personas y empresas.
 
-### Archivos a modificar
+#### 3. Ajuste en useInfiniteCompanies.ts
+
+Adaptar el mapeo de datos del hook para que coincida con los nuevos campos devueltos por la RPC actualizada (que ahora vendrán de `contacts` en vez de `companies`).
+
+### Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/contacts/VirtualizedCompaniesTable.tsx` | Quitar border-2/shadow del avatar en CompanyRow |
-| `src/components/contacts/PersonRow.tsx` | Quitar border-2/shadow del avatar en PersonRow |
-
-Son cambios minimos (2 lineas por archivo) que resuelven la raiz del desajuste.
-
+| Migracion SQL | Reescribir funcion `get_companies_with_contacts` |
+| `src/components/layout/sidebar/NavigationData.ts` | Separar Contactos en Personas y Empresas |
+| `src/hooks/useInfiniteCompanies.ts` | Ajustar mapeo de campos si es necesario |
