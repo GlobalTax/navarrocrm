@@ -64,12 +64,7 @@ export const useInfiniteCompanies = () => {
           client_type: 'empresa' as const,
           relationship_type: (raw.relationship_type as 'prospecto' | 'cliente' | 'ex_cliente') || 'prospecto',
           email_preferences: parseEmailPreferences(raw.email_preferences) || defaultEmailPreferences,
-          primary_contact: raw.primary_contact ? {
-            id: raw.primary_contact.id,
-            name: raw.primary_contact.name,
-            email: raw.primary_contact.email || null,
-            phone: raw.primary_contact.phone || null
-          } : null,
+          primary_contact: raw.primary_contact ? (typeof raw.primary_contact === 'string' ? JSON.parse(raw.primary_contact) : raw.primary_contact) : null,
           total_contacts: Number(raw.total_contacts) || 0
         } as Company
       })

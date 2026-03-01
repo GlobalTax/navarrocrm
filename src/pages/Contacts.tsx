@@ -1,5 +1,6 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Database } from 'lucide-react'
@@ -38,7 +39,15 @@ const Contacts = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
-  const [activeTab, setActiveTab] = useState('persons')
+  const [searchParams] = useSearchParams()
+  const tabFromUrl = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(tabFromUrl === 'companies' ? 'companies' : 'persons')
+
+  useEffect(() => {
+    if (tabFromUrl === 'companies' || tabFromUrl === 'persons') {
+      setActiveTab(tabFromUrl)
+    }
+  }, [tabFromUrl])
 
   // ⚡ OPTIMIZACIÓN: Usar solo useInfiniteContacts (elimina queries duplicadas)
   const { contacts, refetch } = useInfiniteContacts()
