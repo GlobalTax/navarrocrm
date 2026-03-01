@@ -205,14 +205,17 @@ export const VirtualizedCompaniesTable = forwardRef<any, VirtualizedCompaniesTab
       <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
         {/* Header */}
         <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
-          <div className="grid grid-cols-7 gap-4">
-            <div className="font-semibold text-gray-900 text-sm">Empresa</div>
-            <div className="font-semibold text-gray-900 text-sm">Sector</div>
-            <div className="font-semibold text-gray-900 text-sm">Contacto Principal</div>
-            <div className="font-semibold text-gray-900 text-sm">Información</div>
-            <div className="font-semibold text-gray-900 text-sm">Contactos</div>
-            <div className="font-semibold text-gray-900 text-sm">Estado</div>
-            <div className="font-semibold text-gray-900 text-sm text-right">Acciones</div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 flex-shrink-0" />
+            <div className="flex-1 min-w-0 grid grid-cols-7 gap-4">
+              <div className="font-semibold text-gray-900 text-sm">Empresa</div>
+              <div className="font-semibold text-gray-900 text-sm">Sector</div>
+              <div className="font-semibold text-gray-900 text-sm">Contacto Principal</div>
+              <div className="font-semibold text-gray-900 text-sm">Información</div>
+              <div className="font-semibold text-gray-900 text-sm">Contactos</div>
+              <div className="font-semibold text-gray-900 text-sm">Estado</div>
+              <div className="font-semibold text-gray-900 text-sm text-right">Acciones</div>
+            </div>
           </div>
         </div>
 
