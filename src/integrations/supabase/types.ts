@@ -7664,6 +7664,9 @@ export type Database = {
           billing_unit: string | null
           created_at: string | null
           description: string | null
+          discount_amount: number | null
+          discount_type: string | null
+          discount_value: number | null
           id: string
           name: string
           proposal_id: string
@@ -7677,6 +7680,9 @@ export type Database = {
           billing_unit?: string | null
           created_at?: string | null
           description?: string | null
+          discount_amount?: number | null
+          discount_type?: string | null
+          discount_value?: number | null
           id?: string
           name: string
           proposal_id: string
@@ -7690,6 +7696,9 @@ export type Database = {
           billing_unit?: string | null
           created_at?: string | null
           description?: string | null
+          discount_amount?: number | null
+          discount_type?: string | null
+          discount_value?: number | null
           id?: string
           name?: string
           proposal_id?: string

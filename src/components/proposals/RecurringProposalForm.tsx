@@ -182,7 +182,10 @@ export function RecurringProposalForm({
       unit_price: 0,
       total_price: 0,
       billing_unit: 'hour',
-      sort_order: formData.line_items.length
+      sort_order: formData.line_items.length,
+      discount_type: null,
+      discount_value: 0,
+      discount_amount: 0
     }
     setFormData(prev => ({
       ...prev,
@@ -197,9 +200,18 @@ export function RecurringProposalForm({
       [field]: value 
     }
     
-    // Calcular total_price automáticamente
-    if (field === 'quantity' || field === 'unit_price') {
-      updatedItems[index].total_price = updatedItems[index].quantity * updatedItems[index].unit_price
+    // Recalcular descuento y total automáticamente
+    const item = updatedItems[index]
+    if (['quantity', 'unit_price', 'discount_type', 'discount_value'].includes(field)) {
+      const gross = item.quantity * item.unit_price
+      let discountAmt = 0
+      if (item.discount_type === 'percentage' && item.discount_value) {
+        discountAmt = gross * (item.discount_value / 100)
+      } else if (item.discount_type === 'fixed' && item.discount_value) {
+        discountAmt = item.discount_value
+      }
+      updatedItems[index].discount_amount = Math.max(0, Math.min(discountAmt, gross))
+      updatedItems[index].total_price = Math.max(0, gross - updatedItems[index].discount_amount)
     }
 
     setFormData(prev => ({
@@ -399,9 +411,58 @@ export function RecurringProposalForm({
                             />
                           </div>
 
+                          {/* Fila de descuento */}
+                          <div className="col-span-3 grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label>Descuento</Label>
+                              <Select 
+                                value={item.discount_type || 'none'} 
+                                onValueChange={(v) => {
+                                  if (v === 'none') {
+                                    updateLineItem(index, 'discount_type', null)
+                                    updateLineItem(index, 'discount_value', 0)
+                                  } else {
+                                    updateLineItem(index, 'discount_type', v)
+                                  }
+                                }}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Sin descuento</SelectItem>
+                                  <SelectItem value="percentage">Porcentaje (%)</SelectItem>
+                                  <SelectItem value="fixed">Importe fijo (€)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {item.discount_type && (
+                              <>
+                                <div className="space-y-2">
+                                  <Label>Valor {item.discount_type === 'percentage' ? '(%)' : '(€)'}</Label>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max={item.discount_type === 'percentage' ? 100 : undefined}
+                                    value={item.discount_value || 0}
+                                    onChange={(e) => updateLineItem(index, 'discount_value', Number(e.target.value))}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Dto. aplicado</Label>
+                                  <div className="h-10 flex items-center text-sm text-destructive font-medium">
+                                    -{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(item.discount_amount || 0)}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+
                           <div className="col-span-3 flex justify-between items-center pt-2 border-t">
                             <div className="text-sm text-muted-foreground">
-                              {item.quantity} × €{item.unit_price} = 
+                              {item.quantity} × €{item.unit_price}
+                              {item.discount_amount ? ` - €${(item.discount_amount || 0).toFixed(2)} dto.` : ''} = 
                             </div>
                             <div className="text-lg font-semibold">
                               €{item.total_price.toLocaleString()}
