@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useState } from 'react'
 import { useProposalsActions } from '@/features/proposals'
 import { ProposalPricingTab } from '@/components/proposals/ProposalPricingTab'
+import { ProposalHistoryTab } from '@/components/proposals/ProposalHistoryTab'
 import { useProposalsPageState } from '@/hooks/proposals/useProposalsPageState'
 import { ProposalsBuilderManager } from '@/components/proposals/ProposalsBuilderManager'
 import { toast } from 'sonner'
@@ -592,10 +593,7 @@ export default function ProposalDetail() {
               </TabsContent>
 
               <TabsContent value="history">
-                <div className="bg-card p-12 rounded-lg border shadow-sm text-center">
-                  <div className="text-lg font-medium mb-2 text-card-foreground">Historial de Cambios</div>
-                  <p className="text-sm text-muted-foreground">Esta funcionalidad estará disponible próximamente</p>
-                </div>
+                <ProposalHistoryTab proposalId={proposal.id} />
               </TabsContent>
             </div>
           </Tabs>
