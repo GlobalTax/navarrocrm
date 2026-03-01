@@ -107,7 +107,7 @@ export const CompaniesList = ({ onCreateCompany, onEditCompany }: CompaniesListP
           )}
           
           {!error && !isLoading && companies.length > 0 && (
-            <ParametricTable<Company>
+            <ParametricTable
               columns={columns}
               data={companies}
               keyExtractor={(c) => c.id}
