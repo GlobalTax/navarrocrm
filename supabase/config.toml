@@ -103,3 +103,6 @@ verify_jwt = false
 
 [functions.extract-task-from-image]
 verify_jwt = false
+
+[functions.send-welcome-email]
+verify_jwt = false

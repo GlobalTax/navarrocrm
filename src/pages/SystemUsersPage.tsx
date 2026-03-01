@@ -18,6 +18,7 @@ import { SystemUserTable } from '@/components/users/SystemUserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
 import { UserBulkPreloaded } from '@/components/users/UserBulkPreloaded'
 import { PermissionGroupsTab } from '@/components/users/PermissionGroupsTab'
+import { SendAccessEmailDialog } from '@/components/users/SendAccessEmailDialog'
 
 const SystemUsersPage = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -39,6 +40,7 @@ const SystemUsersPage = () => {
   const [showPermissionsDialog, setShowPermissionsDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showAuditDialog, setShowAuditDialog] = useState(false)
+  const [showSendEmailDialog, setShowSendEmailDialog] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any>(null)
 
   const stats = getFilteredStats()
@@ -62,6 +64,11 @@ const SystemUsersPage = () => {
   const handleViewAudit = (user: any) => {
     setSelectedUser(user)
     setShowAuditDialog(true)
+  }
+
+  const handleSendAccessEmail = (user: any) => {
+    setSelectedUser(user)
+    setShowSendEmailDialog(true)
   }
 
   const handleActivateUser = (user: any) => {
@@ -175,6 +182,7 @@ const SystemUsersPage = () => {
               onDeleteUser={handleDeleteUser}
               onInviteUser={handleCreateDirectUser}
               onClearFilters={handleClearFilters}
+              onSendAccessEmail={handleSendAccessEmail}
             />
           </div>
         </TabsContent>
@@ -206,6 +214,12 @@ const SystemUsersPage = () => {
       <UserBulkPreloaded
         open={showBulkPreloaded}
         onOpenChange={setShowBulkPreloaded}
+      />
+
+      <SendAccessEmailDialog
+        open={showSendEmailDialog}
+        onOpenChange={setShowSendEmailDialog}
+        user={selectedUser}
       />
     </StandardPageContainer>
   )
