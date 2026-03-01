@@ -91,59 +91,50 @@ export const ProposalPricingTab = ({ proposalId, totalAmount, currency = 'EUR' }
           </Badge>
           {lineItems.length > 0 && (
             <button
-              onClick={async () => {
-                try {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('Iniciando generación de PDF para propuesta:', proposalId)
-                  }
-                  
-                  const proposalPdfData = {
-                    proposalId,
-                    totalAmount: calculatedTotal,
-                    currency,
-                    lineItems
-                  }
+              onClick={() => {
+                const fmt = (n: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency, minimumFractionDigits: 2 }).format(n)
+                const rows = lineItems.map(item => `
+                  <tr>
+                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5">${item.name}${item.description ? `<br><small style="color:#666">${item.description}</small>` : ''}</td>
+                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:center">${item.quantity}</td>
+                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right">${fmt(item.unit_price)}</td>
+                    <td style="padding:10px 12px;border-bottom:1px solid #e5e5e5;text-align:right;font-weight:600">${fmt(item.total_price)}</td>
+                  </tr>
+                `).join('')
 
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('Datos enviados a la función edge:', proposalPdfData)
-                  }
+                const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propuesta Comercial</title>
+                <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+                <style>
+                  *{margin:0;padding:0;box-sizing:border-box}
+                  body{font-family:'Manrope',sans-serif;color:#1a1a1a;padding:40px;max-width:800px;margin:0 auto}
+                  h1{font-size:24px;font-weight:700;margin-bottom:8px}
+                  .subtitle{color:#666;font-size:14px;margin-bottom:32px}
+                  table{width:100%;border-collapse:collapse;margin-bottom:32px}
+                  th{background:#f5f5f5;padding:10px 12px;text-align:left;font-weight:600;font-size:13px;border-bottom:2px solid #e0e0e0}
+                  th:nth-child(2){text-align:center}
+                  th:nth-child(3),th:nth-child(4){text-align:right}
+                  .totals{margin-left:auto;width:300px}
+                  .totals .row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
+                  .totals .total-row{border-top:2px solid #1a1a1a;padding-top:10px;margin-top:6px;font-size:18px;font-weight:700}
+                  .footer{margin-top:40px;font-size:12px;color:#888;text-align:center}
+                  @media print{body{padding:20px}}
+                </style></head><body>
+                <h1>Propuesta Comercial</h1>
+                <p class="subtitle">Ref: ${proposalId.slice(0, 8).toUpperCase()}</p>
+                <table>
+                  <thead><tr><th>Concepto</th><th>Cant.</th><th>Precio Unit.</th><th>Total</th></tr></thead>
+                  <tbody>${rows}</tbody>
+                </table>
+                <div class="totals">
+                  <div class="row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+                  <div class="row"><span>IVA (21%)</span><span>${fmt(taxAmount)}</span></div>
+                  <div class="row total-row"><span>Total</span><span>${fmt(calculatedTotal)}</span></div>
+                </div>
+                <div class="footer">Documento generado el ${new Date().toLocaleDateString('es-ES')}</div>
+                </body></html>`
 
-                  const { data, error } = await supabase.functions.invoke('generate-proposal-pdf', {
-                    body: proposalPdfData
-                  })
-
-                  if (error) {
-                    if (process.env.NODE_ENV === 'development') {
-                      console.error('Error en la función edge:', error)
-                    }
-                    throw new Error(`Error generando PDF: ${error.message}`)
-                  }
-
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('Respuesta de la función edge:', data)
-                  }
-
-                  // Crear y descargar el archivo
-                  const blob = new Blob([data], { type: 'text/html' })
-                  const url = window.URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.style.display = 'none'
-                  a.href = url
-                  a.download = `propuesta-${proposalId}.html`
-                  document.body.appendChild(a)
-                  a.click()
-                  window.URL.revokeObjectURL(url)
-                  document.body.removeChild(a)
-                  
-                  if (process.env.NODE_ENV === 'development') {
-                    console.log('PDF generado y descargado correctamente')
-                  }
-                } catch (error) {
-                  if (process.env.NODE_ENV === 'development') {
-                    console.error('Error descargando PDF:', error)
-                  }
-                  alert(`Error al generar el PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`)
-                }
+                const w = window.open('', '_blank')
+                if (w) { w.document.write(html); w.document.close(); w.print() }
               }}
               className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm hover:bg-primary/90 transition-colors"
             >
