@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale'
 import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/hooks/useRecurringFees'
 import { useAllRecurringFeesHours } from '@/hooks/recurringFees/useRecurringFeeTimeEntries'
 import { RecurringFeeForm } from '@/components/recurring-fees/RecurringFeeForm'
+import { QuickTimeEntry } from '@/components/recurring-fees/QuickTimeEntry'
 import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesMetrics'
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'
 import { RecurringFeesFilters } from '@/components/recurring-fees/RecurringFeesFilters'
@@ -188,6 +189,8 @@ const RecurrentFees = () => {
       />
 
       <RecurringFeesDashboard fees={recurringFees} hoursMap={hoursMap} />
+
+      <QuickTimeEntry fees={recurringFees} />
 
       <RecurringFeesActions
         onNewFee={handleNewFee}
