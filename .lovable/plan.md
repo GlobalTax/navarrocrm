@@ -1,32 +1,72 @@
 
 
-## Corregir nombres/apellidos y edicion de usuarios
+## Optimizar rendimiento del sistema de permisos
 
-### Problemas encontrados
+### Problema
+El sistema de permisos no esta mal disenado, pero genera lentitud por:
+- Queries sin cache (`staleTime` = 0 por defecto)
+- Peticiones secuenciales innecesarias en `useTeams`
+- Hooks duplicados que multiplican el overhead
+- Multiples queries a la tabla `users` con diferentes queryKeys
 
-1. **Los nombres no se guardan al crear usuarios**: La edge function `create-user` recibe `firstName` y `lastName` pero NO los incluye en el INSERT a la tabla `users` (linea 80-86). Solo guarda `id`, `email`, `role`, `org_id` e `is_active`.
+### Solucion: 4 optimizaciones concretas
 
-2. **El formulario de edicion no permite modificar nombres**: El dialogo `UserFormDialog` solo muestra email (no editable) y rol. No tiene campos para nombre ni apellido, y el UPDATE solo modifica el `role`.
+---
 
-### Cambios
+**1. Anadir `staleTime` a las queries base (usuarios, equipos, permisos)**
 
-**1. Edge Function `supabase/functions/create-user/index.ts`**
-- Agregar `first_name` y `last_name` al objeto del INSERT (linea 80-86)
+Archivos: `useUsers.ts`, `useTeams.ts`, `useUserPermissions/queries.ts`, `useEnhancedUsers.ts`
 
-**2. Redesplegar la edge function**
-- Tras el cambio, redesplegar `create-user`
+Anadir `staleTime: 5 * 60 * 1000` (5 minutos) a todas las queries de datos que cambian poco. Esto evita refetches innecesarios al montar componentes o al cambiar de pestana.
 
-**3. Formulario de edicion `src/components/users/UserFormDialog.tsx`**
-- Agregar estados `firstName` y `lastName` que se inicialicen con `user.first_name` y `user.last_name`
-- Agregar campos de input para nombre y apellido en el formulario
-- Incluir `first_name` y `last_name` en el UPDATE de Supabase junto con el `role`
+---
 
-**4. Actualizar usuarios existentes (one-time fix)**
-- Ejecutar un UPDATE SQL en Supabase que ponga los nombres correctos a los usuarios ya creados, usando los datos de `PRELOADED_USERS` que ya estan definidos en `UserBulkPreloaded.tsx`
-- Esto se hara mediante una query SQL directa
+**2. Eliminar la query secuencial en `useTeams` memberships**
 
-### Resultado
-- Los nuevos usuarios se crearan con nombre y apellido
-- Los usuarios existentes se podran editar (nombre, apellido, rol)
-- Los usuarios de NRRO ya creados tendran sus nombres rellenados
+Archivo: `src/hooks/useTeams.ts`
 
+Actualmente la query de memberships hace:
+1. Fetch de `team_memberships`
+2. Fetch de `users` por IDs (secuencial)
+
+Cambiar a una sola query con select relacional:
+```
+.from('team_memberships')
+.select('*, user:users(id, email, role)')
+```
+
+Si la relacion directa falla por RLS, usar un join via `user_id` con el select embebido de Supabase. Esto elimina 1 round-trip por carga.
+
+---
+
+**3. Unificar queryKey de usuarios**
+
+Archivo: `useEnhancedUsers.ts`
+
+Cuando los filtros estan vacios (search='', role='all', status='all'), usar el mismo queryKey que `useUsers` (`['users', org_id]`) para que React Query comparta la cache. Esto evita tener los mismos 55 usuarios duplicados en memoria con keys distintas.
+
+---
+
+**4. Evitar instanciacion redundante de hooks en `useTimeTrackingMetrics`**
+
+Archivo: `src/hooks/useTimeTrackingMetrics/index.ts`
+
+`useTimeTrackingPermissions` ya llama internamente a `useTeams` y `useUsers`. Pero `useTimeTrackingMetrics` vuelve a llamar a ambos. Refactorizar para que `useTimeTrackingPermissions` exporte tambien los datos de teams/users que ya tiene, y `useTimeTrackingMetrics` los reutilice sin volver a instanciar los hooks.
+
+---
+
+### Impacto esperado
+- De ~8-10 queries por carga de pagina a ~4-5
+- Eliminacion de refetches al cambiar de pestana/tab
+- Eliminacion de 1 round-trip secuencial en memberships
+- Menor uso de memoria por cache compartida
+
+### Archivos a modificar
+| Archivo | Cambio |
+|---------|--------|
+| `src/hooks/useUsers.ts` | Anadir staleTime |
+| `src/hooks/useTeams.ts` | staleTime + query unica en memberships |
+| `src/hooks/useUserPermissions/queries.ts` | Anadir staleTime |
+| `src/hooks/useEnhancedUsers.ts` | Anadir staleTime + unificar queryKey |
+| `src/hooks/useTimeTrackingPermissions/index.ts` | Exportar teams/memberships/users |
+| `src/hooks/useTimeTrackingMetrics/index.ts` | Reutilizar datos del hook de permisos |
