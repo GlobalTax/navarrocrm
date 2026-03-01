@@ -1,9 +1,13 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
-import { Users } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
+import { Users, Shield } from 'lucide-react'
 import { UserActionsMenu } from './UserActionsMenu'
 import { UserEmptyState } from './states/UserEmptyState'
+import { BulkPermissionAssignDialog } from './BulkPermissionAssignDialog'
 
 interface SystemUserTableProps {
   users: any[]
@@ -30,7 +34,29 @@ export const SystemUserTable = ({
   onInviteUser,
   onClearFilters
 }: SystemUserTableProps) => {
-  
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [showBulkPermissions, setShowBulkPermissions] = useState(false)
+
+  const allSelected = users.length > 0 && selectedIds.size === users.length
+  const someSelected = selectedIds.size > 0
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(users.map(u => u.id)))
+    }
+  }
+
+  const toggleOne = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   const getRoleLabel = (role: string) => {
     const roleLabels = {
       'partner': 'Partner',
@@ -76,68 +102,118 @@ export const SystemUserTable = ({
   }
 
   return (
-    <Card className="border-0.5 border-black rounded-[10px]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Usuarios del Sistema
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Apellido</TableHead>
-              <TableHead>Correo</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Permisos</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => {
-              const systemStatus = getSystemStatus(user)
-              return (
-                <TableRow
-                  key={user.id}
-                  className={!user.is_active ? 'bg-destructive/5' : ''}
-                >
-                  <TableCell className="font-medium">{user.first_name || '-'}</TableCell>
-                  <TableCell>{user.last_name || '-'}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge className={`${getRoleColor(user.role)} border-[0.5px] rounded-[10px] text-xs`}>
-                      {getRoleLabel(user.role)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`${permissionGroupMap[user.id] ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200'} border-[0.5px] rounded-[10px] text-xs`}>
-                      {permissionGroupMap[user.id] || 'Sin asignar'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`${systemStatus.color} border-[0.5px] rounded-[10px] text-xs`}>
-                      {systemStatus.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <UserActionsMenu
-                      user={user}
-                      onEdit={onEditUser}
-                      onManagePermissions={onManagePermissions}
-                      onViewAudit={onViewAudit}
-                      onActivate={onActivateUser}
-                      onDelete={onDeleteUser}
-                    />
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <>
+      {/* Barra de acciones masivas */}
+      {someSelected && (
+        <div className="mb-4 flex items-center justify-between bg-primary/5 border-[0.5px] border-primary/20 rounded-[10px] px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <span className="text-sm font-medium">
+            {selectedIds.size} usuario{selectedIds.size !== 1 ? 's' : ''} seleccionado{selectedIds.size !== 1 ? 's' : ''}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectedIds(new Set())}
+              className="border-[0.5px] border-black rounded-[10px]"
+            >
+              Deseleccionar
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setShowBulkPermissions(true)}
+              className="border-[0.5px] border-black rounded-[10px] gap-1.5"
+            >
+              <Shield className="h-4 w-4" />
+              Asignar permisos
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Card className="border-0.5 border-black rounded-[10px]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Usuarios del Sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={toggleAll}
+                    aria-label="Seleccionar todos"
+                  />
+                </TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Apellido</TableHead>
+                <TableHead>Correo</TableHead>
+                <TableHead>Rol</TableHead>
+                <TableHead>Permisos</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => {
+                const systemStatus = getSystemStatus(user)
+                return (
+                  <TableRow
+                    key={user.id}
+                    className={`${!user.is_active ? 'bg-destructive/5' : ''} ${selectedIds.has(user.id) ? 'bg-primary/5' : ''}`}
+                  >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(user.id)}
+                        onCheckedChange={() => toggleOne(user.id)}
+                        aria-label={`Seleccionar ${user.first_name}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{user.first_name || '-'}</TableCell>
+                    <TableCell>{user.last_name || '-'}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Badge className={`${getRoleColor(user.role)} border-[0.5px] rounded-[10px] text-xs`}>
+                        {getRoleLabel(user.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${permissionGroupMap[user.id] ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200'} border-[0.5px] rounded-[10px] text-xs`}>
+                        {permissionGroupMap[user.id] || 'Sin asignar'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${systemStatus.color} border-[0.5px] rounded-[10px] text-xs`}>
+                        {systemStatus.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <UserActionsMenu
+                        user={user}
+                        onEdit={onEditUser}
+                        onManagePermissions={onManagePermissions}
+                        onViewAudit={onViewAudit}
+                        onActivate={onActivateUser}
+                        onDelete={onDeleteUser}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <BulkPermissionAssignDialog
+        open={showBulkPermissions}
+        onOpenChange={setShowBulkPermissions}
+        selectedUserIds={Array.from(selectedIds)}
+        onComplete={() => setSelectedIds(new Set())}
+      />
+    </>
   )
 }
