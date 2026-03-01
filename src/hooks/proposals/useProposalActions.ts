@@ -177,7 +177,7 @@ export const useProposalActions = () => {
     
     try {
       // Separar line_items y campos que no son columnas de la BD
-      const { line_items, clientId, client, contact, selectedServices, client_id, ...rest } = proposalData
+      const { line_items, clientId, client, contact, selectedServices, client_id, retainerConfig, ...rest } = proposalData
       
       // Construir datos limpios para la BD
       const cleanData: Record<string, any> = { ...rest }
