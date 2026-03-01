@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button'
 import { FileText, Plus } from 'lucide-react'
 import { RecurringFeeCard } from './RecurringFeeCard'
 import type { RecurringFee } from '@/hooks/useRecurringFees'
+import type { RecurringFeeHoursData } from '@/hooks/recurringFees/useRecurringFeeTimeEntries'
 
 interface RecurringFeesListProps {
   fees: RecurringFee[]
   hasFilters: boolean
+  hoursMap?: Record<string, RecurringFeeHoursData>
   onEdit: (fee: RecurringFee) => void
   onDelete: (fee: RecurringFee) => void
   onToggleStatus: (fee: RecurringFee) => void
@@ -18,6 +20,7 @@ interface RecurringFeesListProps {
 export function RecurringFeesList({
   fees,
   hasFilters,
+  hoursMap = {},
   onEdit,
   onDelete,
   onToggleStatus,
@@ -27,9 +30,9 @@ export function RecurringFeesList({
   if (fees.length === 0) {
     return (
       <div className="col-span-full text-center py-12">
-        <FileText className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No hay cuotas recurrentes</h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+        <h3 className="mt-2 text-sm font-medium">No hay cuotas recurrentes</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           {hasFilters
             ? 'No se encontraron cuotas que coincidan con los filtros.'
             : 'Comienza creando tu primera cuota recurrente.'}
@@ -50,6 +53,7 @@ export function RecurringFeesList({
         <RecurringFeeCard
           key={fee.id}
           recurringFee={fee}
+          hoursData={hoursMap[fee.id]}
           onEdit={onEdit}
           onDelete={onDelete}
           onToggleStatus={onToggleStatus}

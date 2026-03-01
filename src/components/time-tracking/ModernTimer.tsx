@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Play, Pause, Square, Clock, Zap, Coffee, Target } from 'lucide-react'
+import { Play, Pause, Square, Clock, Zap, Coffee, Target, RotateCcw } from 'lucide-react'
 import { useCasesList } from '@/features/cases'
 import { useTimeEntries } from '@/hooks/useTimeEntries'
+import { useRecurringFeesForTimer } from '@/hooks/recurringFees/useRecurringFeesForTimer'
 import { toast } from 'sonner'
 
 export const ModernTimer = () => {
@@ -15,6 +16,7 @@ export const ModernTimer = () => {
   const [isPaused, setIsPaused] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [selectedCaseId, setSelectedCaseId] = useState<string>('no-case')
+  const [selectedRecurringFeeId, setSelectedRecurringFeeId] = useState<string>('no-fee')
   const [description, setDescription] = useState('')
   const [isBillable, setIsBillable] = useState(true)
   const [entryType, setEntryType] = useState<'billable' | 'office_admin' | 'business_development' | 'internal'>('billable')
@@ -22,6 +24,16 @@ export const ModernTimer = () => {
 
   const { cases } = useCasesList()
   const { createTimeEntry, isCreating } = useTimeEntries()
+  const { activeFees } = useRecurringFeesForTimer()
+
+  // Cuando se selecciona una cuota recurrente, marcar como facturable
+  const handleRecurringFeeChange = (value: string) => {
+    setSelectedRecurringFeeId(value)
+    if (value !== 'no-fee') {
+      setIsBillable(true)
+      setEntryType('billable')
+    }
+  }
 
   useEffect(() => {
     if (isRunning && !isPaused) {
@@ -85,7 +97,8 @@ export const ModernTimer = () => {
         description: description.trim(),
         duration_minutes: minutes,
         is_billable: isBillable,
-        entry_type: entryType
+        entry_type: entryType,
+        recurring_fee_id: selectedRecurringFeeId === 'no-fee' ? null : selectedRecurringFeeId,
       })
 
       // Reset timer
@@ -93,6 +106,7 @@ export const ModernTimer = () => {
       setIsPaused(false)
       setSeconds(0)
       setDescription('')
+      setSelectedRecurringFeeId('no-fee')
 
       toast.success(`Tiempo registrado: ${minutes} minutos`)
     } catch (error) {
@@ -272,6 +286,26 @@ export const ModernTimer = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="recurring-fee-select" className="text-sm font-medium">Cuota recurrente</Label>
+              <Select value={selectedRecurringFeeId} onValueChange={handleRecurringFeeChange}>
+                <SelectTrigger id="recurring-fee-select">
+                  <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no-fee">Sin cuota</SelectItem>
+                  {activeFees.map((fee: any) => (
+                    <SelectItem key={fee.id} value={fee.id}>
+                      {fee.name} ({fee.included_hours}h)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div className="space-y-2">
               <Label htmlFor="entry-type" className="text-sm font-medium">Tipo de Actividad</Label>

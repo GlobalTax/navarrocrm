@@ -10597,6 +10597,7 @@ export type Database = {
           id: string
           is_billable: boolean
           org_id: string
+          recurring_fee_id: string | null
           service_contract_id: string | null
           service_type: string | null
           updated_at: string | null
@@ -10612,6 +10613,7 @@ export type Database = {
           id?: string
           is_billable?: boolean
           org_id: string
+          recurring_fee_id?: string | null
           service_contract_id?: string | null
           service_type?: string | null
           updated_at?: string | null
@@ -10627,6 +10629,7 @@ export type Database = {
           id?: string
           is_billable?: boolean
           org_id?: string
+          recurring_fee_id?: string | null
           service_contract_id?: string | null
           service_type?: string | null
           updated_at?: string | null
@@ -10645,6 +10648,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_recurring_fee_id_fkey"
+            columns: ["recurring_fee_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_fees"
             referencedColumns: ["id"]
           },
           {

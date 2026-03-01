@@ -35,6 +35,7 @@ export interface CreateTimeEntryData {
   entry_type?: 'billable' | 'office_admin' | 'business_development' | 'internal'
   service_contract_id?: string | null
   service_type?: 'accounting' | 'tax' | 'labor' | null
+  recurring_fee_id?: string | null
 }
 
 export const useTimeEntries = () => {
@@ -111,6 +112,7 @@ export const useTimeEntries = () => {
           entry_type: data.entry_type || 'billable',
           service_contract_id: data.service_contract_id ?? null,
           service_type: data.service_type ?? null,
+          recurring_fee_id: data.recurring_fee_id ?? null,
         })
         .select()
         .maybeSingle()
