@@ -1,92 +1,60 @@
 
+Objetivo: corregir definitivamente el error al eliminar propuestas (`23503` sobre `proposal_audit_log_proposal_id_fkey`) sin romper el historial de altas/ediciones.
 
-## Crear Grupos de Permisos
+Diagnóstico confirmado (con evidencia):
+1) La petición que falla es el `DELETE /rest/v1/proposals?id=eq...` (HTTP 409).
+2) El detalle exacto de BD dice: `Key (proposal_id)=... is not present in table "proposals"`.
+3) En BD existe este trigger activo:
+   - `proposal_audit_trigger AFTER INSERT OR DELETE OR UPDATE ON public.proposals`
+4) La función `log_proposal_changes()` inserta siempre en `proposal_audit_log` usando `proposal_id = COALESCE(NEW.id, OLD.id)`.
+5) En un `AFTER DELETE`, la propuesta ya no existe; por eso el insert en `proposal_audit_log` viola la FK hacia `proposals`.
+6) La FK `proposal_audit_log_proposal_id_fkey` ya está en `ON DELETE CASCADE`; por tanto el problema no es “faltar CASCADE”, sino el intento de insertar auditoría después del borrado.
 
-### Problema actual
-Para asignar permisos a un usuario hay que ir modulo por modulo, permiso por permiso. Con 8 modulos y 4 niveles, configurar un usuario completo requiere hasta 32 clics.
+Plan de implementación (secuenciado):
 
-### Solucion
-Crear **Grupos de Permisos** (plantillas predefinidas) que agrupan multiples permisos. Al asignar un grupo a un usuario, se aplican todos los permisos del grupo de una vez.
+1. Migración SQL de corrección del trigger (capa backend, arreglo real)
+- Crear una nueva migración que:
+  - Elimine triggers antiguos por ambos nombres (para evitar residuos históricos):
+    - `DROP TRIGGER IF EXISTS proposal_audit_trigger ON public.proposals;`
+    - `DROP TRIGGER IF EXISTS log_proposal_changes ON public.proposals;`
+  - Recree el trigger de auditoría SOLO para `INSERT` y `UPDATE`:
+    - `CREATE TRIGGER proposal_audit_trigger AFTER INSERT OR UPDATE ON public.proposals ...`
+- Resultado: deja de ejecutarse auditoría automática en `DELETE`, eliminando el fallo FK en todos los borrados (UI, API, SQL).
 
-### Modelo de datos
+2. Hardening de la función `log_proposal_changes` (defensa extra)
+- Actualizar la función para cortar explícitamente en `DELETE`:
+  - Si `TG_OP = 'DELETE'` → `RETURN OLD` sin `INSERT` en `proposal_audit_log`.
+- Aunque alguien vuelva a incluir `DELETE` en un trigger en el futuro, no reaparecerá este error.
 
-**Nueva tabla: `permission_groups`**
-| Columna | Tipo | Descripcion |
-|---------|------|-------------|
-| id | uuid PK | Identificador |
-| org_id | uuid FK | Organizacion |
-| name | varchar | Nombre del grupo (ej: "Lectura basica", "Gestor de expedientes") |
-| description | text | Descripcion del grupo |
-| is_system | boolean | Si es plantilla del sistema (no editable) |
-| created_by | uuid | Quien lo creo |
-| created_at / updated_at | timestamptz | Timestamps |
+3. Ajuste en frontend para evitar trabajo inútil al borrar
+- En `src/hooks/proposals/useProposalActions.ts`, dentro de `deleteProposal`, quitar el `logProposalAction(..., 'deleted', ...)` previo al borrado.
+- Motivo: ese registro se elimina inmediatamente por cascada al borrar la propuesta, así que hoy añade latencia sin valor real.
+- Mantener intacto:
+  - borrado de `proposal_line_items` (aunque exista cascade, no molesta),
+  - invalidaciones de React Query (`proposals`, `proposal-history`),
+  - toasts de éxito/error.
 
-**Nueva tabla: `permission_group_items`**
-| Columna | Tipo | Descripcion |
-|---------|------|-------------|
-| id | uuid PK | Identificador |
-| group_id | uuid FK | Referencia al grupo |
-| module | varchar | Modulo (cases, contacts, etc.) |
-| permission | varchar | Nivel (read, write, delete, admin) |
+4. Verificación técnica después de aplicar
+- Validar en BD:
+  - `SELECT pg_get_triggerdef(...)` y confirmar que `proposal_audit_trigger` ya no contiene `DELETE`.
+- Validar en UI:
+  - Eliminar una propuesta en `/proposals` y comprobar:
+    - sin toast de error,
+    - lista refrescada correctamente.
+- Validar que sigue habiendo auditoría de creación/edición:
+  - crear o editar propuesta y confirmar entradas en `proposal_audit_log`.
 
-**Nueva tabla: `user_permission_groups`**
-| Columna | Tipo | Descripcion |
-|---------|------|-------------|
-| id | uuid PK | Identificador |
-| user_id | uuid | Usuario |
-| group_id | uuid FK | Grupo asignado |
-| org_id | uuid | Organizacion |
-| assigned_by | uuid | Quien asigno |
-| created_at | timestamptz | Timestamp |
+5. Riesgos/impacto
+- Impacto funcional esperado: se soluciona el bloqueo de borrado sin tocar RLS ni estructura de tablas.
+- Cambio de comportamiento: ya no habrá evento “deleted” persistido en `proposal_audit_log` (coherente con el modelo actual con FK a `proposals`).
+- Si se requiere auditoría histórica de borrados a futuro, se propone fase 2 separada:
+  - tabla de auditoría de borrados sin FK dura a `proposals` (o con snapshot en JSON y `proposal_id` sin restricción).
 
-RLS en las 3 tablas por `org_id`, solo partners/area_managers pueden gestionar.
+Archivos a modificar:
+- Nueva migración SQL en `supabase/migrations/...sql` (trigger + función)
+- `src/hooks/proposals/useProposalActions.ts` (eliminar log manual previo al delete)
 
-### Plantillas predefinidas (seed)
-Se insertaran grupos por defecto al crear la migracion:
-- **Solo Lectura**: read en todos los modulos
-- **Operativo**: read + write en cases, contacts, time_tracking, proposals
-- **Gestor de Area**: read + write + delete en cases, contacts, proposals, time_tracking, reports
-- **Administrador**: admin en todos los modulos
-- **Finanzas**: admin en billing, read en reports, cases, contacts
-
-### Cambios en el frontend
-
-**1. Nueva pestana "Grupos de Permisos" en la pagina de Usuarios del Sistema**
-- Anadir una pestana `Tabs` en `SystemUsersPage.tsx` con dos secciones: "Usuarios" (actual) y "Grupos de Permisos"
-- La pestana de grupos mostrara una tabla con los grupos existentes y un boton para crear nuevos
-
-**2. Nuevo componente `PermissionGroupsTab.tsx`**
-- Tabla inline con columnas: Nombre, Descripcion, Permisos (badges), Acciones
-- Boton "Crear Grupo" que abre un dialog
-- Acciones: editar, eliminar, ver usuarios asignados
-
-**3. Nuevo componente `PermissionGroupDialog.tsx`**
-- Formulario para crear/editar un grupo
-- Campo nombre y descripcion
-- Matriz de checkboxes: modulos (filas) x niveles (columnas) para seleccionar permisos
-- Boton guardar
-
-**4. Actualizar `UserPermissionsDialog.tsx`**
-- Anadir seccion superior "Asignar Grupo" con un Select de grupos disponibles
-- Al seleccionar un grupo, se aplican automaticamente todos los permisos del grupo (INSERT masivo en `user_permissions`)
-- Mantener la seccion actual de permisos individuales como "ajuste fino"
-
-**5. Nuevo hook `usePermissionGroups.ts`**
-- Query para listar grupos con sus items
-- Mutations: crear grupo, editar grupo, eliminar grupo
-- Mutation: asignar grupo a usuario (inserta todos los permisos del grupo en `user_permissions`)
-
-### Archivos a crear
-| Archivo | Proposito |
-|---------|-----------|
-| `src/hooks/usePermissionGroups.ts` | Hook con queries y mutations |
-| `src/components/users/PermissionGroupsTab.tsx` | Pestana de gestion de grupos |
-| `src/components/users/PermissionGroupDialog.tsx` | Dialog crear/editar grupo |
-
-### Archivos a modificar
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/SystemUsersPage.tsx` | Anadir Tabs con pestana de grupos |
-| `src/components/users/UserPermissionsDialog.tsx` | Anadir selector de grupo para asignacion rapida |
-| Migracion SQL | Crear tablas + seed de plantillas |
-
+Criterio de éxito:
+- El usuario puede eliminar propuestas sin error 409/23503.
+- Continúa funcionando la auditoría automática de INSERT/UPDATE.
+- La UI se actualiza al instante tras borrar.
