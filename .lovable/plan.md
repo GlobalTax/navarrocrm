@@ -1,51 +1,125 @@
 
-## Plan: Corregir tabla de Empresas (755 vs 5) y reorganizar Sidebar
 
-### Problema 1: Solo salen 5 empresas
+## Plan: Tabla inline parametrizable para Contactos
 
-La funcion RPC `get_companies_with_contacts` consulta la tabla `public.companies` (que solo tiene 5 registros), en lugar de `public.contacts WHERE client_type = 'empresa'` (que tiene 755 registros). Son tablas distintas y la mayoria de empresas estan en `contacts`.
+### Problema actual
 
-**Solucion:** Modificar la funcion RPC `get_companies_with_contacts` para que consulte `public.contacts WHERE client_type = 'empresa'` en lugar de `public.companies`. Ademas, adaptar los campos devueltos (la tabla `contacts` tiene `business_sector`, `status`, `email`, `phone`, etc. que `companies` no tiene).
+Las tablas de Personas y Empresas usan `div` con `grid-cols-X` para simular columnas, lo que causa:
+- Desalineacion constante entre cabecera y filas
+- Columnas hardcodeadas (no parametrizables)
+- Imposible reordenar, ocultar o redimensionar columnas
+- No usa elementos HTML `<table>` nativos
 
-### Problema 2: Sidebar - Separar Contactos en secciones
+### Solucion
 
-Actualmente hay un unico enlace "Contactos" en el sidebar (`/contacts`). El usuario quiere:
-- Una seccion dedicada con enlaces separados para **Personas Fisicas** y **Empresas**
+Crear un componente generico `ParametricTable<T>` que use elementos `<table>` nativos (los primitivos de `src/components/ui/table.tsx` que ya existen) y sea completamente configurable via props. Luego usarlo tanto en Personas como en Empresas.
 
 ---
 
-### Cambios planificados
+### Cambio 1 -- Crear `src/components/shared/ParametricTable.tsx`
 
-#### 1. Migracion SQL: Reescribir la funcion RPC
+Componente generico que acepta:
 
-Reescribir `get_companies_with_contacts` para que consulte `public.contacts` filtrado por `client_type = 'empresa'`, devolviendo los campos que el frontend necesita (`business_sector`, `status`, `email`, `phone`, `relationship_type`, etc.) y manteniendo la logica de deduplicacion por `quantum_customer_id`.
+```typescript
+interface ColumnDef<T> {
+  key: string
+  header: string
+  render: (item: T) => React.ReactNode
+  width?: string           // ej: "200px", "25%"
+  sortable?: boolean
+  align?: 'left' | 'center' | 'right'
+  visible?: boolean        // para ocultar/mostrar columnas
+}
 
-#### 2. Sidebar: Reorganizar NavigationData.ts
-
-Cambiar la seccion "Principal" del sidebar para separar:
-
-```text
-Principal
-  - Dashboard
-  - Contactos (enlace general /contacts)
-    -- o reemplazar por:
-  - Personas Fisicas (/contacts?tab=persons)
-  - Empresas (/contacts?tab=companies)
-  - Casos
-  - Escrituras
-  - Propuestas
+interface ParametricTableProps<T> {
+  columns: ColumnDef<T>[]
+  data: T[]
+  keyExtractor: (item: T) => string
+  onRowClick?: (item: T) => void
+  isLoading?: boolean
+  emptyMessage?: string
+  // Virtualizacion (infinite scroll)
+  hasNextPage?: boolean
+  isFetchingNextPage?: boolean
+  fetchNextPage?: () => void
+  // Ordenacion
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+  onSort?: (columnKey: string) => void
+}
 ```
 
-Se anadiran los iconos `User` y `Building2` para distinguir visualmente personas y empresas.
+Internamente usa `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` de `ui/table.tsx`. Las filas se renderizan con `InfiniteLoader` + `react-window` pero dentro de un `<table>` real, usando un wrapper que mantiene la estructura semantica.
 
-#### 3. Ajuste en useInfiniteCompanies.ts
+Para la virtualizacion con tabla HTML nativa, se usara un approach hibrido:
+- La cabecera (`thead`) queda fija fuera del scroll
+- El `tbody` se renderiza dentro de un contenedor con scroll y altura fija
+- Se usa `IntersectionObserver` para cargar mas paginas (en lugar de `react-window`) ya que `FixedSizeList` no es compatible con `<tr>` nativos
 
-Adaptar el mapeo de datos del hook para que coincida con los nuevos campos devueltos por la RPC actualizada (que ahora vendrán de `contacts` en vez de `companies`).
+### Cambio 2 -- Crear `src/components/contacts/columns/personColumns.tsx`
 
-### Archivos afectados
+Definicion de columnas para Personas Fisicas:
 
-| Archivo | Cambio |
+| Columna | Render |
 |---------|--------|
-| Migracion SQL | Reescribir funcion `get_companies_with_contacts` |
-| `src/components/layout/sidebar/NavigationData.ts` | Separar Contactos en Personas y Empresas |
-| `src/hooks/useInfiniteCompanies.ts` | Ajustar mapeo de campos si es necesario |
+| Persona | Avatar + nombre |
+| Tipo | Icono + label (particular/autonomo) |
+| Contacto | Email + telefono |
+| Empresa | Icono Building2 + nombre |
+| Estado | Badge con color |
+| Acciones | Boton editar (hover) |
+
+### Cambio 3 -- Crear `src/components/contacts/columns/companyColumns.tsx`
+
+Definicion de columnas para Empresas:
+
+| Columna | Render |
+|---------|--------|
+| Empresa | Avatar + nombre + sector |
+| Sector | Icono + texto |
+| Contacto Principal | Nombre + email + telefono |
+| Informacion | Email + telefono empresa |
+| Contactos | Contador |
+| Estado | Badge |
+| Acciones | Boton editar |
+
+### Cambio 4 -- Actualizar `PersonsList.tsx`
+
+Reemplazar `VirtualizedPersonsTable` + `PersonTableHeader` + `PersonRow` por:
+
+```tsx
+<ParametricTable
+  columns={personColumns}
+  data={persons}
+  keyExtractor={(p) => p.id}
+  onRowClick={(p) => navigate(`/contacts/${p.id}`)}
+  hasNextPage={hasNextPage}
+  fetchNextPage={fetchNextPage}
+  isFetchingNextPage={isFetchingNextPage}
+/>
+```
+
+### Cambio 5 -- Actualizar `CompaniesList.tsx`
+
+Mismo patron: reemplazar `VirtualizedCompaniesTable` por `ParametricTable` con `companyColumns`.
+
+---
+
+### Beneficios
+
+- **Alineacion perfecta**: `<table>` HTML nativo garantiza que columnas se alinean siempre
+- **Parametrizable**: anadir/quitar/reordenar columnas cambiando solo el array de `columns`
+- **Reutilizable**: el mismo componente sirve para cualquier entidad (Casos, Facturas, etc.)
+- **Ordenacion**: click en cabecera para ordenar (las columnas con `sortable: true`)
+- **Visibilidad**: toggle de columnas con la prop `visible`
+
+### Archivos
+
+| Archivo | Accion |
+|---------|--------|
+| `src/components/shared/ParametricTable.tsx` | Crear -- componente generico |
+| `src/components/contacts/columns/personColumns.tsx` | Crear -- config columnas personas |
+| `src/components/contacts/columns/companyColumns.tsx` | Crear -- config columnas empresas |
+| `src/components/contacts/PersonsList.tsx` | Modificar -- usar ParametricTable |
+| `src/components/contacts/CompaniesList.tsx` | Modificar -- usar ParametricTable |
+
