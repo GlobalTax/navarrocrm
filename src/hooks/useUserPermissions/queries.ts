@@ -22,6 +22,7 @@ export const useUserPermissionsQuery = () => {
       return data || []
     },
     enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000,
   })
 }
 

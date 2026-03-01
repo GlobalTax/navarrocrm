@@ -6,6 +6,10 @@ export interface TimeTrackingAccess {
   visibleUserIds: string[]
   visibleTeamIds: string[]
   accessLevel: 'personal' | 'team' | 'department' | 'organization'
+  // Shared data to avoid redundant hook calls
+  teams: any[]
+  memberships: any[]
+  users: any[]
 }
 
 export interface PermissionsContext {

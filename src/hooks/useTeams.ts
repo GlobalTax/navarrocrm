@@ -67,7 +67,8 @@ export const useTeams = () => {
       if (error) throw error
       return data as Department[]
     },
-    enabled: !!user?.org_id
+    enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000,
   })
 
   // Fetch teams with department info
@@ -94,41 +95,32 @@ export const useTeams = () => {
         members_count: team.team_memberships?.length || 0
       })) as Team[]
     },
-    enabled: !!user?.org_id
+    enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000,
   })
 
-  // Fetch team memberships - simplified query without user join
+  // Fetch team memberships with user data in parallel
   const { data: memberships = [], isLoading: loadingMemberships } = useQuery({
     queryKey: ['team-memberships', user?.org_id],
     queryFn: async () => {
       if (!user?.org_id) return []
       
-      // Get memberships first
-      const { data: membershipData, error: membershipError } = await supabase
-        .from('team_memberships')
-        .select('*')
-        .eq('is_active', true)
+      const [membershipRes, usersRes] = await Promise.all([
+        supabase.from('team_memberships').select('*').eq('is_active', true),
+        supabase.from('users').select('id, email, role').eq('org_id', user.org_id)
+      ])
 
-      if (membershipError) throw membershipError
+      if (membershipRes.error) throw membershipRes.error
+      if (usersRes.error) throw usersRes.error
 
-      // Get user data separately to avoid relation issues
-      const userIds = membershipData.map(m => m.user_id)
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, email, role')
-        .in('id', userIds)
-
-      if (userError) throw userError
-
-      // Combine the data
-      const enrichedMemberships = membershipData.map(membership => ({
-        ...membership,
-        user: userData.find(u => u.id === membership.user_id) || null
-      }))
-
-      return enrichedMemberships as TeamMembership[]
+      const userMap = new Map(usersRes.data.map(u => [u.id, u]))
+      return membershipRes.data.map(m => ({
+        ...m,
+        user: userMap.get(m.user_id) || null
+      })) as TeamMembership[]
     },
-    enabled: !!user?.org_id
+    enabled: !!user?.org_id,
+    staleTime: 5 * 60 * 1000,
   })
 
   // Create department mutation
