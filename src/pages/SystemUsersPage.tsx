@@ -3,7 +3,7 @@ import { StandardPageContainer } from '@/components/layout/StandardPageContainer
 import { StandardPageHeader } from '@/components/layout/StandardPageHeader'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { UserCog, Mail, Upload, Shield, Activity, UsersRound } from 'lucide-react'
+import { UserCog, Upload, UsersRound, Shield } from 'lucide-react'
 
 // Hooks y componentes
 import { useApp } from '@/contexts/AppContext'
@@ -12,13 +12,11 @@ import { UserAdvancedFilters, UserFilters } from '@/components/users/UserAdvance
 import { UserTableSkeleton } from '@/components/users/skeleton/UserTableSkeleton'
 import { UserMetricsSkeleton } from '@/components/users/skeleton/UserMetricsSkeleton'
 import { useUsersPageStats } from '@/hooks/useUsersPageStats'
-import { UserInvitationsTable } from '@/components/users/UserInvitationsTable'
-import { InvitationNotifications } from '@/components/users/InvitationNotifications'
 import { SystemUserMetrics } from '@/components/users/SystemUserMetrics'
 import { SystemUserTable } from '@/components/users/SystemUserTable'
 import { UsersPageDialogs } from '@/components/users/UsersPageDialogs'
-import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
 import { UserBulkPreloaded } from '@/components/users/UserBulkPreloaded'
+import { PermissionGroupsTab } from '@/components/users/PermissionGroupsTab'
 
 const SystemUsersPage = () => {
   const [filters, setFilters] = useState<UserFilters>({
@@ -138,30 +136,50 @@ const SystemUsersPage = () => {
         </Button>
       </StandardPageHeader>
 
-      {/* Métricas del sistema */}
-      <SystemUserMetrics stats={stats} />
+      {/* Tabs: Usuarios y Grupos de Permisos */}
+      <Tabs defaultValue="users" className="mt-4">
+        <TabsList className="border-[0.5px] border-black rounded-[10px]">
+          <TabsTrigger value="users" className="rounded-[8px]">
+            <UserCog className="h-4 w-4 mr-2" />
+            Usuarios
+          </TabsTrigger>
+          <TabsTrigger value="permission-groups" className="rounded-[8px]">
+            <Shield className="h-4 w-4 mr-2" />
+            Grupos de Permisos
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filtros avanzados */}
-      <UserAdvancedFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        userCount={users.length}
-      />
+        <TabsContent value="users" className="mt-4 space-y-4">
+          {/* Métricas del sistema */}
+          <SystemUserMetrics stats={stats} />
 
-      {/* Tabla de usuarios del sistema */}
-      <div className="mt-6">
-        <SystemUserTable
-          users={users}
-          hasFilters={hasFilters}
-          onEditUser={handleEditUser}
-          onManagePermissions={handleManagePermissions}
-          onViewAudit={handleViewAudit}
-          onActivateUser={handleActivateUser}
-          onDeleteUser={handleDeleteUser}
-          onInviteUser={handleCreateDirectUser}
-          onClearFilters={handleClearFilters}
-        />
-      </div>
+          {/* Filtros avanzados */}
+          <UserAdvancedFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            userCount={users.length}
+          />
+
+          {/* Tabla de usuarios del sistema */}
+          <div className="mt-6">
+            <SystemUserTable
+              users={users}
+              hasFilters={hasFilters}
+              onEditUser={handleEditUser}
+              onManagePermissions={handleManagePermissions}
+              onViewAudit={handleViewAudit}
+              onActivateUser={handleActivateUser}
+              onDeleteUser={handleDeleteUser}
+              onInviteUser={handleCreateDirectUser}
+              onClearFilters={handleClearFilters}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="permission-groups" className="mt-4">
+          <PermissionGroupsTab />
+        </TabsContent>
+      </Tabs>
 
       {/* Todos los diálogos agrupados */}
       <UsersPageDialogs
