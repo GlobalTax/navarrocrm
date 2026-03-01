@@ -1,26 +1,43 @@
 
 
-## Fix: Los expedientes creados no aparecen en el listado
+## Redisenar el Timer para permitir entrada manual de horas y minutos
 
-### Problema
-El filtro por defecto es `"active"`, que en el lado del cliente significa "todos los expedientes que no estan cerrados" (`status !== 'closed'`). Sin embargo, la query a Supabase envia `.eq('status', 'active')` literalmente, y ese valor no existe en la base de datos (los valores validos son `open`, `on_hold`, `closed`).
+### Situacion actual
+El `ModernTimer` solo permite registrar tiempo mediante un cronometro (play/pause/stop). No hay forma de introducir manualmente horas y minutos como se ve en la imagen de referencia.
 
-Por eso la query devuelve 0 resultados aunque el expediente se haya creado correctamente con `status: "open"`.
+### Cambios propuestos
 
-### Solucion
+**Archivo:** `src/components/time-tracking/ModernTimer.tsx`
 
-**Archivo:** `src/hooks/cases/useCasesQueries.ts` (linea 51-53)
+Se reorganiza el formulario para seguir el diseno de la imagen de referencia:
 
-Cambiar la logica del filtro de status en la query del servidor para que cuando el valor sea `"active"`, en lugar de buscar `status = 'active'`, use `.neq('status', 'closed')` (todos excepto cerrados):
+1. **Cabecera con metricas rapidas**: Mostrar "hoy / semana / mes" con horas acumuladas (consulta a `time_entries`).
 
-```typescript
-if (filters.statusFilter && filters.statusFilter !== 'all') {
-  if (filters.statusFilter === 'active') {
-    query = query.neq('status', 'closed')
-  } else {
-    query = query.eq('status', filters.statusFilter)
-  }
-}
-```
+2. **Formulario de entrada manual en una fila compacta**:
+   - Input numerico "Horas" (0-23)
+   - Input numerico "Min" (0-59)
+   - Date picker "Fecha" (por defecto hoy)
+   - Selector de caso/expediente (Mandato)
+   - Selector "Tipo de tarea"
+   - Input de descripcion
+   - Boton "+ Registrar"
 
-Es un cambio de 3 lineas en un solo archivo. Tambien se aplicara la misma logica en la query de paginacion infinita mas abajo en el mismo archivo.
+3. **Checkbox "Facturable" y enlace "Mas opciones"**: Al expandir "Mas opciones" se muestran los campos actuales de cuota recurrente y tipo de actividad.
+
+4. **El cronometro se mantiene** como modo alternativo accesible desde un toggle o boton secundario, pero el modo por defecto sera la entrada manual.
+
+### Detalle tecnico
+
+- Anadir estados `manualHours` y `manualMinutes` (number, default 0 y 30)
+- Anadir estado `entryDate` (Date, default hoy)
+- Al pulsar "+ Registrar", calcular `duration_minutes = manualHours * 60 + manualMinutes` y crear la entrada
+- Mover la seccion del cronometro circular a un area colapsable o tab secundario
+- Consultar horas del dia/semana/mes actual con una query a `time_entries` filtrada por usuario y rango de fechas
+- Layout horizontal en desktop (grid), vertical en mobile (stack)
+
+### Archivos afectados
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/time-tracking/ModernTimer.tsx` | Redisenar con entrada manual como modo principal, cronometro como secundario, y metricas de hoy/semana/mes |
+
