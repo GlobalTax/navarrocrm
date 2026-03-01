@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
@@ -225,12 +225,15 @@ export const UserBulkPreloaded = ({ open, onOpenChange }: UserBulkPreloadedProps
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col border-[0.5px] border-black rounded-[10px]">
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border-[0.5px] border-black rounded-[10px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-[Manrope]">
             <Users className="h-5 w-5" />
             Alta equipo NRRO — {PRELOADED_USERS.length} usuarios
           </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Asigna roles y crea los usuarios del equipo
+          </DialogDescription>
         </DialogHeader>
 
         {phase === 'assign' && (
@@ -252,7 +255,7 @@ export const UserBulkPreloaded = ({ open, onOpenChange }: UserBulkPreloadedProps
             </div>
 
             {/* Table */}
-            <ScrollArea className="flex-1 min-h-0 max-h-[55vh]">
+            <div className="flex-1 min-h-0 max-h-[55vh] overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 bg-background z-10">
                   <tr className="border-b text-left">
@@ -280,7 +283,7 @@ export const UserBulkPreloaded = ({ open, onOpenChange }: UserBulkPreloadedProps
                           <SelectTrigger className="h-8 border-[0.5px] border-black rounded-[10px] text-xs">
                             <SelectValue placeholder="Seleccionar rol" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent position="popper" className="z-50">
                             {(Object.entries(ROLE_LABELS) as [Role, string][]).map(([role, label]) => (
                               <SelectItem key={role} value={role}>{label}</SelectItem>
                             ))}
@@ -291,7 +294,7 @@ export const UserBulkPreloaded = ({ open, onOpenChange }: UserBulkPreloadedProps
                   ))}
                 </tbody>
               </table>
-            </ScrollArea>
+            </div>
 
             {/* Footer */}
             <div className="flex items-center justify-between pt-3 border-t">
