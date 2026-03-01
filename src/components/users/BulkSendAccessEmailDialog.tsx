@@ -31,6 +31,9 @@ export const BulkSendAccessEmailDialog = ({ open, onOpenChange, users, onComplet
     const currentUserId = (await supabase.auth.getUser()).data.user?.id
 
     for (let i = 0; i < users.length; i++) {
+      // Throttle: esperar 600ms entre emails para no superar 2 req/s de Resend
+      if (i > 0) await new Promise(r => setTimeout(r, 600))
+
       const user = users[i]
       try {
         if (mode === 'credentials') {

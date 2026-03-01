@@ -130,7 +130,7 @@ serve(async (req: Request) => {
     console.log(`📧 Sending ${payload.mode} email to ${payload.email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "CRM Legal <onboarding@resend.dev>",
+      from: "CRM Legal NRRO <s.navarro@nrro.es>",
       to: [payload.email],
       subject,
       html,
