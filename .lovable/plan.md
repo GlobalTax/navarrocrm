@@ -1,47 +1,35 @@
 
 
-## Parametrizar tipos de actividad en el registro de tiempo
+## Dashboard visual de horas consumidas vs incluidas por cuota recurrente
 
-### Situacion actual
-- La tabla `activity_types` ya existe en la BD con campos: `id`, `name`, `category`, `color`, `icon`, `is_active`
-- El timer (`ModernTimer.tsx`) tiene los tipos hardcodeados: "Facturable", "Admin. Oficina", "Desarrollo Negocio", "Interno"
-- El campo `entry_type` en `time_entries` es un `string` libre (no un enum en BD), lo cual facilita la migracion
+### Objetivo
+Crear un componente con graficos visuales (barras y donuts) que muestre la comparativa de horas consumidas vs incluidas para cada cuota recurrente activa, integrado en la pagina de Cuotas Recurrentes.
 
-### Plan
+### Componente nuevo
 
-**1. Crear hook `useActivityTypes`**
-- Nuevo archivo `src/hooks/useActivityTypes.ts`
-- Query a la tabla `activity_types` filtrando `is_active = true`
-- Cache con React Query
-- Incluir mutaciones para crear/editar/desactivar tipos (para la pantalla de gestion)
+**`src/components/recurring-fees/RecurringFeesHoursChart.tsx`**
 
-**2. Crear pantalla de gestion de tipos de actividad**
-- Nuevo archivo `src/components/settings/ActivityTypesManager.tsx`
-- Tabla con las columnas: Nombre, Categoria, Color, Estado (activo/inactivo)
-- Acciones: crear nuevo, editar, desactivar (no borrar para mantener integridad)
-- Integrar en la seccion de Configuracion existente o como sub-tab en Time Tracking
+Contenido:
+- **Grafico de barras horizontal** (recharts `BarChart`): cada barra representa una cuota recurrente, mostrando horas incluidas vs consumidas lado a lado, con colores diferenciados (verde para incluidas, azul para consumidas, rojo si se exceden).
+- **Indicadores visuales por cuota**: barra de progreso con porcentaje de utilizacion, coloreada segun umbrales (verde < 80%, ambar 80-100%, rojo > 100%).
+- **Resumen global**: grafico tipo `PieChart` o `RadialBarChart` con la utilizacion total agregada.
+- **Tabla compacta** debajo del grafico con columnas: Cliente, Cuota, Horas incluidas, Horas usadas, Horas extra, Importe extra.
 
-**3. Actualizar el timer para usar tipos dinamicos**
-- En `ModernTimer.tsx`, reemplazar el `Select` hardcodeado de "Tipo de actividad" por uno que cargue desde `useActivityTypes`
-- Al guardar, almacenar el `name` del tipo en `entry_type` (o mejor aun, el `id` en un nuevo campo)
-- Mantener compatibilidad: si no hay tipos configurados, mostrar los 4 por defecto
+### Datos
+- Se reutiliza el `hoursMap` existente (de `useAllRecurringFeesHours`) que ya se pasa a `RecurringFeesDashboard`.
+- Se cruza con la lista de `fees` para obtener nombre del cliente y nombre de la cuota.
 
-**4. Actualizar la tabla de entradas**
-- En `OptimizedTimeEntriesTable.tsx`, si se muestra el tipo, usar el nombre del activity_type en lugar del valor hardcodeado
+### Integracion
+- Se inserta en `src/pages/RecurrentFees.tsx` justo despues de `RecurringFeesDashboard`, pasandole `fees` y `hoursMap` como props.
 
-### Migracion de datos
-- No se necesita migracion de esquema: `entry_type` ya es `string` libre
-- Sembrar los 4 tipos por defecto en `activity_types` si la tabla esta vacia (via migracion SQL)
+### Librerias
+- `recharts` (ya instalada): `BarChart`, `Bar`, `XAxis`, `YAxis`, `Tooltip`, `ResponsiveContainer`, `Cell`.
+- Estilos consistentes con el sistema de diseno: bordes 0.5px, rounded-[10px], fuente Manrope.
 
 ### Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/useActivityTypes.ts` | Nuevo - hook CRUD para activity_types |
-| `src/components/settings/ActivityTypesManager.tsx` | Nuevo - UI para gestionar tipos |
-| `src/components/time-tracking/ModernTimer.tsx` | Cargar tipos dinamicamente del hook |
-| `src/components/recurring-fees/QuickTimeEntry.tsx` | Anadir selector de tipo si procede |
-
-### Migracion SQL
-- INSERT de los 4 tipos por defecto (billable, office_admin, business_development, internal) si no existen, para que el sistema funcione desde el primer momento
+| `src/components/recurring-fees/RecurringFeesHoursChart.tsx` | Nuevo - graficos de horas |
+| `src/pages/RecurrentFees.tsx` | Importar e insertar el nuevo componente |
 
