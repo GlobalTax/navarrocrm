@@ -240,9 +240,6 @@ export const useProposalActions = () => {
   const deleteProposal = async (proposalId: string, proposalTitle?: string) => {
     setIsLoading(true)
     try {
-      // Log antes de eliminar
-      await logProposalAction(proposalId, 'deleted', `Propuesta "${proposalTitle || ''}" eliminada`)
-
       // Eliminar line items primero (FK)
       const { error: lineItemsError } = await supabase
         .from('proposal_line_items')
