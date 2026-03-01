@@ -6,6 +6,7 @@ import { format, isAfter } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import { useRecurringFees, useGenerateInvoices, useUpdateRecurringFee, useDeleteRecurringFee } from '@/hooks/useRecurringFees'
+import { useAllRecurringFeesHours } from '@/hooks/recurringFees/useRecurringFeeTimeEntries'
 import { RecurringFeeForm } from '@/components/recurring-fees/RecurringFeeForm'
 import { RecurringFeesMetrics } from '@/components/recurring-fees/RecurringFeesMetrics'
 import { RecurringFeesActions } from '@/components/recurring-fees/RecurringFeesActions'
@@ -32,6 +33,12 @@ const RecurrentFees = () => {
   const generateInvoicesMutation = useGenerateInvoices()
   const updateFeeMutation = useUpdateRecurringFee()
   const deleteFeeMutation = useDeleteRecurringFee()
+
+  // Horas consumidas por cuota
+  const feesWithHours = recurringFees
+    .filter(f => f.status === 'active' && f.included_hours > 0)
+    .map(f => ({ id: f.id, frequency: f.frequency, included_hours: f.included_hours, hourly_rate_extra: f.hourly_rate_extra }))
+  const { data: hoursMap = {} } = useAllRecurringFeesHours(feesWithHours)
 
   // Filtrar por búsqueda de texto
   const filteredFees = recurringFees.filter(fee => 
@@ -180,7 +187,7 @@ const RecurrentFees = () => {
         }
       />
 
-      <RecurringFeesDashboard fees={recurringFees} />
+      <RecurringFeesDashboard fees={recurringFees} hoursMap={hoursMap} />
 
       <RecurringFeesActions
         onNewFee={handleNewFee}
@@ -197,6 +204,7 @@ const RecurrentFees = () => {
       <RecurringFeesList
         fees={filteredFees}
         hasFilters={hasFilters}
+        hoursMap={hoursMap}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onToggleStatus={handleToggleStatus}

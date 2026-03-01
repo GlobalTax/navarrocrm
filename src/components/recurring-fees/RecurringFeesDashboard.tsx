@@ -1,16 +1,19 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Euro, Calendar, AlertCircle, TrendingUp, Clock, FileText } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
+import { Euro, Calendar, AlertCircle, TrendingUp, Clock, FileText, Timer } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { RecurringFee } from '@/hooks/useRecurringFees'
+import type { RecurringFeeHoursData } from '@/hooks/recurringFees/useRecurringFeeTimeEntries'
 
 interface RecurringFeesDashboardProps {
   fees: RecurringFee[]
+  hoursMap?: Record<string, RecurringFeeHoursData>
 }
 
-export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) => {
+export const RecurringFeesDashboard = ({ fees, hoursMap = {} }: RecurringFeesDashboardProps) => {
   const activeFeesCount = fees.filter(f => f.status === 'active').length
   const overdueFeesCount = fees.filter(f => 
     f.status === 'active' && 
@@ -34,6 +37,13 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
     }, 0)
 
   const yearlyRevenue = monthlyRevenue * 12
+
+  // Métricas globales de horas
+  const totalIncludedHours = Object.values(hoursMap).reduce((sum, h) => sum + h.includedHours, 0)
+  const totalUsedHours = Object.values(hoursMap).reduce((sum, h) => sum + h.hoursUsed, 0)
+  const totalExtraHours = Object.values(hoursMap).reduce((sum, h) => sum + h.extraHours, 0)
+  const totalExtraAmount = Object.values(hoursMap).reduce((sum, h) => sum + h.extraAmount, 0)
+  const globalUtilization = totalIncludedHours > 0 ? Math.round((totalUsedHours / totalIncludedHours) * 100) : 0
 
   const upcomingFees = fees
     .filter(f => 
@@ -116,6 +126,50 @@ export const RecurringFeesDashboard = ({ fees }: RecurringFeesDashboardProps) =>
           </CardContent>
         </Card>
       </div>
+
+      {/* Métricas de horas globales */}
+      {totalIncludedHours > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Timer className="w-5 h-5 text-indigo-600" />
+              Utilización de Horas (Periodo Actual)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Incluidas</p>
+                <p className="text-xl font-bold">{totalIncludedHours}h</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Consumidas</p>
+                <p className="text-xl font-bold">{totalUsedHours}h</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Extra</p>
+                <p className={`text-xl font-bold ${totalExtraHours > 0 ? 'text-red-600' : ''}`}>{totalExtraHours}h</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Importe extra</p>
+                <p className={`text-xl font-bold ${totalExtraAmount > 0 ? 'text-red-600' : ''}`}>€{totalExtraAmount.toFixed(2)}</p>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-sm">
+                <span>Utilización global</span>
+                <span className={`font-medium ${globalUtilization > 100 ? 'text-red-600' : globalUtilization > 80 ? 'text-amber-600' : 'text-green-600'}`}>
+                  {globalUtilization}%
+                </span>
+              </div>
+              <Progress 
+                value={Math.min(globalUtilization, 100)} 
+                className={`h-3 ${globalUtilization > 100 ? '[&>div]:bg-red-500' : globalUtilization > 80 ? '[&>div]:bg-amber-500' : '[&>div]:bg-green-500'}`}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Cuotas próximas */}
       {upcomingFees.length > 0 && (

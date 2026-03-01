@@ -3,6 +3,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
 import { type RecurringFee } from '@/hooks/useRecurringFees'
+import type { RecurringFeeHoursData } from '@/hooks/recurringFees/useRecurringFeeTimeEntries'
 import { 
   MoreHorizontal, 
   Edit, 
@@ -28,6 +30,7 @@ import { es } from 'date-fns/locale'
 
 interface RecurringFeeCardProps {
   recurringFee: RecurringFee
+  hoursData?: RecurringFeeHoursData
   onEdit: (fee: RecurringFee) => void
   onDelete: (fee: RecurringFee) => void
   onToggleStatus: (fee: RecurringFee) => void
@@ -37,6 +40,7 @@ interface RecurringFeeCardProps {
 
 export function RecurringFeeCard({
   recurringFee,
+  hoursData,
   onEdit,
   onDelete,
   onToggleStatus,
@@ -160,15 +164,44 @@ export function RecurringFeeCard({
 
         {/* Información de horas si aplica */}
         {recurringFee.included_hours > 0 && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Horas incluidas</p>
-              <p className="font-medium">{recurringFee.included_hours}h</p>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Horas incluidas</p>
+                <p className="font-medium">{recurringFee.included_hours}h</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Tarifa extra</p>
+                <p className="font-medium">{recurringFee.hourly_rate_extra.toFixed(2)} €/h</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Tarifa extra</p>
-              <p className="font-medium">{recurringFee.hourly_rate_extra.toFixed(2)} €/h</p>
-            </div>
+
+            {/* Barra de consumo de horas */}
+            {hoursData && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Consumo periodo</span>
+                  <span className={`font-medium ${hoursData.utilizationPercent > 100 ? 'text-red-600' : hoursData.utilizationPercent > 80 ? 'text-amber-600' : 'text-green-600'}`}>
+                    {hoursData.hoursUsed}h / {hoursData.includedHours}h ({hoursData.utilizationPercent}%)
+                  </span>
+                </div>
+                <Progress 
+                  value={Math.min(hoursData.utilizationPercent, 100)} 
+                  className={`h-2 ${hoursData.utilizationPercent > 100 ? '[&>div]:bg-red-500' : hoursData.utilizationPercent > 80 ? '[&>div]:bg-amber-500' : '[&>div]:bg-green-500'}`}
+                />
+                {hoursData.extraHours > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-red-600 font-medium flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      {hoursData.extraHours}h extra
+                    </span>
+                    <span className="text-red-600 font-bold">
+                      +{hoursData.extraAmount.toFixed(2)} €
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
