@@ -335,12 +335,32 @@ export const ModernTimer = () => {
             </div>
           </div>
 
-          {/* Fila 2: Descripción + Botón registrar */}
-          <div className="flex gap-3 items-end">
-            <div className="flex-1 space-y-1">
+          {/* Fila 2: Tipo de tarea + Descripción + Botón */}
+          <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr_auto] gap-3 items-end">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Tipo de tarea</Label>
+              <Select value={entryType} onValueChange={setEntryType}>
+                <SelectTrigger className="border-[0.5px] border-black rounded-[10px] h-9">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTypes.map((t) => (
+                    <SelectItem key={t.id} value={t.category}>
+                      <span className="flex items-center gap-2">
+                        {t.color && (
+                          <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                        )}
+                        {t.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Descripción</Label>
               <Textarea
-                placeholder="¿En qué trabajaste?"
+                placeholder="Breve descripción..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="resize-none h-9 min-h-[36px] border-[0.5px] border-black rounded-[10px] py-2"
@@ -359,7 +379,6 @@ export const ModernTimer = () => {
 
           {/* Más opciones */}
           <div className="flex items-center gap-4">
-
             <Collapsible open={showMoreOptions} onOpenChange={setShowMoreOptions}>
               <CollapsibleTrigger asChild>
                 <Button variant="link" size="sm" className="text-xs p-0 h-auto text-muted-foreground">
@@ -374,27 +393,6 @@ export const ModernTimer = () => {
           <Collapsible open={showMoreOptions} onOpenChange={setShowMoreOptions}>
             <CollapsibleContent className="space-y-3 pt-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Tipo de actividad</Label>
-                  <Select value={entryType} onValueChange={setEntryType}>
-                    <SelectTrigger className="border-[0.5px] border-black rounded-[10px] h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTypes.map((t) => (
-                        <SelectItem key={t.id} value={t.category}>
-                          <span className="flex items-center gap-2">
-                            {t.color && (
-                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                            )}
-                            {t.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Cuota recurrente</Label>
                   <Select value={selectedRecurringFeeId} onValueChange={handleRecurringFeeChange}>
