@@ -13,7 +13,8 @@ import {
   Send, 
   Copy,
   CheckCircle,
-  XCircle
+  XCircle,
+  Trash2
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -22,6 +23,7 @@ interface OneTimeProposalActionsProps {
   onViewProposal: (proposal: any) => void
   onEditProposal: (proposal: any) => void
   onDuplicateProposal: (proposal: any) => void
+  onDeleteProposal?: (proposal: any) => void
   onStatusChange: (id: string, status: any) => void
 }
 
@@ -30,6 +32,7 @@ export const OneTimeProposalActions: React.FC<OneTimeProposalActionsProps> = ({
   onViewProposal,
   onEditProposal,
   onDuplicateProposal,
+  onDeleteProposal,
   onStatusChange
 }) => {
   const navigate = useNavigate()
@@ -142,6 +145,24 @@ export const OneTimeProposalActions: React.FC<OneTimeProposalActionsProps> = ({
               </TooltipContent>
             </Tooltip>
           </>
+        )}
+
+        {onDeleteProposal && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDeleteProposal(proposal)}
+                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Eliminar propuesta</p>
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
     </TooltipProvider>

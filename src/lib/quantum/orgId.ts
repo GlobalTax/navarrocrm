@@ -2,6 +2,7 @@
  * Obtención centralizada de org_id para evitar inconsistencias
  */
 
+import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
 /**
@@ -62,6 +63,3 @@ export const useUserOrgId = () => {
 
   return { orgId, isLoading, error }
 }
-
-// Importar React hooks si no están disponibles
-import { useState, useEffect } from 'react'

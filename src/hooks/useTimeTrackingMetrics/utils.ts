@@ -4,7 +4,7 @@ import type { TimeMetrics, MetricsPeriod } from './types'
 
 export const getDateRangeForPeriod = (period: MetricsPeriod) => {
   const now = new Date()
-  let startDate = new Date()
+  const startDate = new Date()
   
   switch (period) {
     case 'today':

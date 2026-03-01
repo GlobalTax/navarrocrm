@@ -3,8 +3,7 @@ import { useState } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { UserPlus, Database } from 'lucide-react'
-import { type Contact } from '@/features/contacts'
-import { useInfiniteContacts } from '@/hooks/useInfiniteContacts'
+import { useContactsList, type Contact } from '@/features/contacts'
 import { Person } from '@/hooks/usePersons'
 import { Company } from '@/hooks/useCompanies'
 import { ContactsTabsContent } from '@/components/contacts/ContactsTabsContent'
@@ -20,6 +19,7 @@ import { useOnboarding } from '@/components/onboarding'
 import { ImprovedClientOnboarding } from '@/components/onboarding/ImprovedClientOnboarding'
 
 import { MigrationDashboard } from '@/components/migration/MigrationDashboard'
+import { ClassificationReviewPanel } from '@/components/contacts/ClassificationReviewPanel'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -39,8 +39,7 @@ const Contacts = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [activeTab, setActiveTab] = useState('persons')
 
-  // ⚡ OPTIMIZACIÓN: Usar solo useInfiniteContacts (elimina queries duplicadas)
-  const { contacts, refetch } = useInfiniteContacts()
+  const { contacts, refetch } = useContactsList()
   const { startOnboarding } = useOnboarding()
 
   const handleCreatePerson = () => {
@@ -72,12 +71,10 @@ const Contacts = () => {
     setSelectedPerson(null)
     setSelectedCompany(null)
     refetch()
-    refetchAll()
   }
 
   const handleBulkUploadSuccess = () => {
     refetch()
-    refetchAll()
   }
 
   const handleStartImprovedOnboarding = () => {
@@ -86,14 +83,12 @@ const Contacts = () => {
 
   const handleCloseImprovedOnboarding = () => {
     setIsImprovedOnboardingOpen(false)
-    refetch() // Refrescar datos después del onboarding
-    refetchAll()
+    refetch()
   }
 
   const handleQuantumImportClose = () => {
     setIsQuantumImportOpen(false)
-    refetch() // Refrescar datos después de la importación
-    refetchAll()
+    refetch()
   }
 
   return (
@@ -124,7 +119,7 @@ const Contacts = () => {
 
       {/* Métricas rápidas y estado de sincronización */}
       <div className="space-y-6 mb-6">
-        <ContactQuickMetrics contacts={allContacts} />
+        <ContactQuickMetrics contacts={contacts} />
         <DuplicateAlert />
         <QuantumSyncStatus />
       </div>
@@ -157,7 +152,8 @@ const Contacts = () => {
 
         {/* Tab de Migración */}
         {activeTab === 'migration' && (
-          <div className="mt-6">
+          <div className="mt-6 space-y-6">
+            <ClassificationReviewPanel />
             <MigrationDashboard />
           </div>
         )}

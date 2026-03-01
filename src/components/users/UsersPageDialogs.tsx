@@ -1,7 +1,7 @@
 
 import { DirectUserCreationDialog } from './DirectUserCreationDialog'
 import { UserFormDialog } from './UserFormDialog'
-import { AIEnhancedBulkUpload } from '@/components/bulk-upload/AIEnhancedBulkUpload'
+import { UserBulkCreation } from './UserBulkCreation'
 import { UserPermissionsDialog } from './UserPermissionsDialog'
 import { UserDeleteDialog } from './UserDeleteDialog'
 import { UserAuditLogDialog } from './UserAuditLogDialog'
@@ -87,12 +87,10 @@ export const UsersPageDialogs = ({
         onClose={() => setShowDirectCreation(false)}
       />
 
-      <AIEnhancedBulkUpload
+      <UserBulkCreation
         open={showBulkUpload}
+        onOpenChange={setShowBulkUpload}
         onClose={() => setShowBulkUpload(false)}
-        onSuccess={onBulkUploadSuccess}
-        dataType="users"
-        title="Importación Masiva de Usuarios"
       />
 
       <UserPermissionsDialog

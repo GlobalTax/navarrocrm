@@ -1,5 +1,6 @@
 
 import { useState } from 'react'
+import DOMPurify from 'dompurify'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -126,7 +127,7 @@ export const EmailInvitationPreview = ({
                     </DialogHeader>
                     <div 
                       className="border rounded-lg p-4 bg-white"
-                      dangerouslySetInnerHTML={{ __html: generateEmailPreview() }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generateEmailPreview()) }}
                     />
                   </DialogContent>
                 </Dialog>

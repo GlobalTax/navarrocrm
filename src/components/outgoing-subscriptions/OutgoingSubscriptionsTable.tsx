@@ -133,7 +133,7 @@ export const OutgoingSubscriptionsTable = () => {
 
   // Filtrado y ordenamiento
   const filteredSubscriptions = useMemo(() => {
-    let filtered = subscriptions.filter(subscription => {
+    const filtered = subscriptions.filter(subscription => {
       const matchesSearch = subscription.provider_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            subscription.description?.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesStatus = statusFilter === 'all' || subscription.status === statusFilter

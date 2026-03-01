@@ -237,8 +237,40 @@ export const useProposalActions = () => {
     }
   }
 
+  const deleteProposal = async (proposalId: string, proposalTitle?: string) => {
+    setIsLoading(true)
+    try {
+      // Eliminar line items primero (FK)
+      const { error: lineItemsError } = await supabase
+        .from('proposal_line_items')
+        .delete()
+        .eq('proposal_id', proposalId)
+
+      if (lineItemsError) throw lineItemsError
+
+      // Eliminar la propuesta
+      const { error } = await supabase
+        .from('proposals')
+        .delete()
+        .eq('id', proposalId)
+
+      if (error) throw error
+
+      await queryClient.invalidateQueries({ queryKey: ['proposals'] })
+      await queryClient.invalidateQueries({ queryKey: ['proposal-history'] })
+      toast.success('Propuesta eliminada correctamente')
+    } catch (error: any) {
+      console.error('Error deleting proposal:', error)
+      toast.error(`Error al eliminar propuesta: ${error.message}`)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     duplicateProposal,
+    deleteProposal,
     updateProposalStatus,
     updateProposal,
     validateStatusTransition,

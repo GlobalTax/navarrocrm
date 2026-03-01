@@ -19,6 +19,7 @@ interface ProposalsTabsViewProps {
   onViewProposal: (proposal: any) => void
   onEditProposal: (proposal: any) => void
   onDuplicateProposal: (proposal: any) => void
+  onDeleteProposal?: (proposal: any) => void
   onOpenRecurrentBuilder: () => void
   onOpenSpecificBuilder: () => void
 }
@@ -29,6 +30,7 @@ export const ProposalsTabsView: React.FC<ProposalsTabsViewProps> = ({
   onViewProposal,
   onEditProposal,
   onDuplicateProposal,
+  onDeleteProposal,
   onOpenRecurrentBuilder,
   onOpenSpecificBuilder
 }) => {
@@ -85,6 +87,7 @@ export const ProposalsTabsView: React.FC<ProposalsTabsViewProps> = ({
           onViewProposal={onViewProposal}
           onEditProposal={onEditProposal}
           onDuplicateProposal={onDuplicateProposal}
+          onDeleteProposal={onDeleteProposal}
         />
       </TabsContent>
 
@@ -95,6 +98,7 @@ export const ProposalsTabsView: React.FC<ProposalsTabsViewProps> = ({
           onViewProposal={onViewProposal}
           onEditProposal={onEditProposal}
           onDuplicateProposal={onDuplicateProposal}
+          onDeleteProposal={onDeleteProposal}
         />
       </TabsContent>
 
@@ -105,6 +109,7 @@ export const ProposalsTabsView: React.FC<ProposalsTabsViewProps> = ({
           onViewProposal={onViewProposal}
           onEditProposal={onEditProposal}
           onDuplicateProposal={onDuplicateProposal}
+          onDeleteProposal={onDeleteProposal}
         />
       </TabsContent>
 

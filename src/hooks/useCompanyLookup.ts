@@ -100,7 +100,7 @@ export const useCompanyLookup = () => {
       })
       
       // Personalizar mensaje según si son datos reales o simulados
-      let toastMessage = `${data.data.name} - ${data.data.nif}`
+      const toastMessage = `${data.data.name} - ${data.data.nif}`
       let toastDescription = ''
       
       if (data.isSimulated) {

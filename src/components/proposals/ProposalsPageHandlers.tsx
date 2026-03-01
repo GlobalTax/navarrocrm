@@ -44,7 +44,7 @@ export const useProposalsPageHandlers = ({
     variant: 'default'
   })
 
-  const { duplicateProposal, updateProposalStatus: updateStatus } = useProposalActions()
+  const { duplicateProposal, deleteProposal, updateProposalStatus: updateStatus } = useProposalActions()
   
   const handleStatusChange = (id: string, status: any) => {
     const proposal = selectedProposal || { id, status: 'draft' }
@@ -186,6 +186,23 @@ export const useProposalsPageHandlers = ({
     setOnboardingDialog({ isOpen: false, proposal: null })
   }
 
+  const handleDeleteProposal = (proposal: any) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar propuesta?',
+      description: `¿Estás seguro de eliminar "${proposal.title}"? Esta acción no se puede deshacer.`,
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          await deleteProposal(proposal.id, proposal.title)
+          setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+        } catch (error) {
+          // Error ya manejado en el hook
+        }
+      }
+    })
+  }
+
   return {
     // Handlers originales
     handleStatusChange,
@@ -195,6 +212,7 @@ export const useProposalsPageHandlers = ({
     // Nuevos handlers
     handleEditProposal,
     handleDuplicateProposal,
+    handleDeleteProposal,
     handleDetailStatusChange,
     handleProposalWon,
     
